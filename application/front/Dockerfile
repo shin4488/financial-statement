@@ -12,5 +12,5 @@ ENV WDS_SOCKET_PORT 0
 WORKDIR /home/app/financialStatement
 
 COPY docker_setup.sh /home/docker_setup.sh
-RUN chmod 755 /home/docker_setup.sh
+RUN chmod 111 /home/docker_setup.sh
 CMD ["/home/docker_setup.sh"]
