@@ -1,13 +1,13 @@
 my_first_job:
   cron: "*/20 * * * * *"
-  class: SandboxTask
+  class: SandboxJob
   queue: default
   args:
     name: "stuffA"
     count: 103
 my_second_job:
   cron: "*/2 * * * *"
-  class: SandboxTask
+  class: SandboxJob
   queue: default
   args:
     name: "stuffB"

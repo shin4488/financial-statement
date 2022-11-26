@@ -1,4 +1,4 @@
-class SandboxTask < ApplicationJob
+class SandboxJob < ApplicationJob
     def perform(*args)
         puts "sidekiq-cronが動いたよ"
         puts "args: #{args}"
