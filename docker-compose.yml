@@ -1,0 +1,35 @@
+version: "3.8"
+services:
+  web:
+    build: ./web
+    ports:
+      - 10000:80
+    volumes:
+      - ./web/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - appfront
+      - appserver
+  appfront:
+    build: ./application/front
+    volumes:
+      - ./application/front:/home/app/financialStatement
+      - ./application/front/node_modules:/home/app/financialStatement/node_modules
+  appserver:
+    build: ./application/server
+    # サーバ処理の動作確認を行えるようにポート解放する
+    ports:
+      - 20000:3000
+    volumes:
+      - ./application/server:/home/app/financialStatement
+      - ./application/server/vendor/bundle:/home/app/financialStatement/vendor/bundle
+    depends_on:
+      - database
+  database:
+    build: ./database
+    volumes:
+      - ./database/init:/docker-entrypoint-initdb.d
+      - ./database/data:/var/lib/postgresql/data
+  cache:
+    build: ./cache
+    volumes:
+      - ./cache/data:/data
