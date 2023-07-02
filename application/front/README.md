@@ -1,3 +1,64 @@
+# 参考
+## react で eslint と prettier を使用する
+eslintインストール
+```
+% yarn add -D eslint
+```
+eslint初期化・設定ファイル作成
+```
+% yarn run eslint --init
+yarn run v1.22.19
+$ /Users/shin4488/MyContents/development/github/financial-statement/application/front/node_modules/.bin/eslint --init
+You can also run this command directly using 'npm init @eslint/config'.
+Need to install the following packages:
+  @eslint/create-config
+Ok to proceed? (y) y
+✔ How would you like to use ESLint? · problems
+✔ What type of modules does your project use? · esm
+✔ Which framework does your project use? · react
+✔ Does your project use TypeScript? · No / Yes
+✔ Where does your code run? · browser
+✔ What format do you want your config file to be in? · JavaScript
+The config that you've selected requires the following dependencies:
+
+@typescript-eslint/eslint-plugin@latest eslint-plugin-react@latest @typescript-eslint/parser@latest
+✔ Would you like to install them now? · No / Yes
+✔ Which package manager do you want to use? · yarn
+```
+prettierインストール
+```
+% yarn add -D eslint-config-prettier prettier
+```
+prettier設定ファイル作成
+```
+% touch .prettierrc
+```
+```js:./.prettierrc
+{
+  "trailingComma": "all",
+  "tabWidth": 2,
+  "semi": true,
+  "singleQuote": true
+}
+```
+保存時に自動でeslintとprettierを適用（.vscode/setting.jsonの編集）
+```json
+{
+  // 保存時のprettier自動フォーマッターを有効化
+  "editor.formatOnSave": true,
+  // prettierをデフォルトのフォーマッタに設定
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  // 保存時のeslintを有効化
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  // markdownは保存時にprettierを適用しない
+  "[markdown]": {
+    "editor.formatOnSave": false
+  }
+}
+```
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
@@ -6,7 +67,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 In the project directory, you can run:
 
-### `npm start`
+### `yarn start`
 
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
@@ -14,12 +75,12 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 The page will reload if you make edits.\
 You will also see any lint errors in the console.
 
-### `npm test`
+### `yarn test`
 
 Launches the test runner in the interactive watch mode.\
 See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-### `npm run build`
+### `yarn build`
 
 Builds the app for production to the `build` folder.\
 It correctly bundles React in production mode and optimizes the build for the best performance.
@@ -29,7 +90,7 @@ Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### `npm run eject`
+### `yarn eject`
 
 **Note: this is a one-way operation. Once you `eject`, you can’t go back!**
 
