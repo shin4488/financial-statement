@@ -59,6 +59,37 @@ prettier設定ファイル作成
 }
 ```
 
+## TypeScriptとeslintでエイリアス追加
+https://qiita.com/Statham/items/8a1161c7816e360590f3
+TypeScriptのエイリアス設定
+```json:tsconfig.json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
+```
+eslint側でエイリアス設定
+トランスパイル後のjsファイルでもエイリアスを解決させるために行う
+```
+% yarn -D eslint-import-resolver-typescript
+```
+```js:.eslintrc.js
+module.exports = {
+  settings: {
+    'import/resolver': {
+      node: {
+        extensions: ['.js', '.jsx', '.json', '.ts', '.tsx'],
+      },
+      typescript: {},
+    },
+  },
+}
+```
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
