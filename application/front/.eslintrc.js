@@ -1,6 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const path = require('path');
-
 module.exports = {
   env: {
     browser: true,
@@ -12,6 +9,15 @@ module.exports = {
     'plugin:react/recommended',
     'prettier',
   ],
+  settings: {
+    // https://github.com/import-js/eslint-import-resolver-typescript
+    'import/resolver': {
+      node: {
+        extensions: ['.js', '.jsx', '.json', '.ts', '.tsx'],
+      },
+      typescript: {},
+    },
+  },
   overrides: [
     {
       env: {
