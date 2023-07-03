@@ -17,6 +17,7 @@
     "web-vitals": "^2.1.0"
   },
   "devDependencies": {
+    "@craco/craco": "^7.1.0",
     "@typescript-eslint/eslint-plugin": "^5.60.1",
     "@typescript-eslint/parser": "^5.60.1",
     "eslint": "^8.44.0",
@@ -25,9 +26,9 @@
     "prettier": "^2.8.8"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
