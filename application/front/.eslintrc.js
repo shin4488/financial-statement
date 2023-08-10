@@ -9,15 +9,6 @@ module.exports = {
     'plugin:react/recommended',
     'prettier',
   ],
-  settings: {
-    // https://github.com/import-js/eslint-import-resolver-typescript
-    'import/resolver': {
-      node: {
-        extensions: ['.js', '.jsx', '.json', '.ts', '.tsx'],
-      },
-      typescript: {},
-    },
-  },
   overrides: [
     {
       env: {
