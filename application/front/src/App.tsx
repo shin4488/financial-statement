@@ -1,12 +1,17 @@
 import React from 'react';
 import './App.css';
 import Charts from '@/development/pages/Charts';
+import DefaultLayout from '@/layouts/Default';
 
 function App() {
   return (
-    <div className="App">
-      <Charts />
-    </div>
+    <DefaultLayout
+      customChildren={
+        <div className="App">
+          <Charts />
+        </div>
+      }
+    />
   );
 }
 
