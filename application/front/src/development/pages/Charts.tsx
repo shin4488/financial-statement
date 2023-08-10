@@ -8,13 +8,15 @@ interface CashFlow {
 }
 
 interface WaterFlowBarChartProps {
-  cashFlowData: CashFlow[];
+  flowData: CashFlow[];
+  positiveColor: string;
+  negativeColor: string;
 }
 
 class WaterFlowBarChart extends React.Component<WaterFlowBarChartProps> {
   render(): React.ReactNode {
     return (
-      <BarChart width={500} height={400} data={this.props.cashFlowData}>
+      <BarChart width={500} height={400} data={this.props.flowData}>
         <XAxis dataKey="name" />
         <Tooltip
           cursor={false}
@@ -28,12 +30,12 @@ class WaterFlowBarChart extends React.Component<WaterFlowBarChartProps> {
           }}
         />
         <Bar dataKey="sum" stackId="a" fill="transparent" />
-        <Bar dataKey="cash" stackId="a" fill="#82ca9d">
-          {this.props.cashFlowData.map((cashFlow: CashFlow, index) =>
+        <Bar dataKey="cash" stackId="a">
+          {this.props.flowData.map((cashFlow: CashFlow, index) =>
             cashFlow.cash < 0 ? (
-              <Cell key={index} fill="#FF9EAA" />
+              <Cell key={index} fill={this.props.negativeColor} />
             ) : (
-              <Cell key={index} fill="#A1C2F1" />
+              <Cell key={index} fill={this.props.positiveColor} />
             ),
           )}
         </Bar>
@@ -60,7 +62,11 @@ export default class Charts extends React.Component<unknown, ChartsState> {
   render(): React.ReactNode {
     return (
       <>
-        <WaterFlowBarChart cashFlowData={this.state.cashFlowData} />
+        <WaterFlowBarChart
+          flowData={this.state.cashFlowData}
+          positiveColor="#A1C2F1"
+          negativeColor="#FF9EAA"
+        />
       </>
     );
   }
