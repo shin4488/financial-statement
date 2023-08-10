@@ -89,6 +89,12 @@ module.exports = {
   },
 }
 ```
+## react-router-domによるルーティング
+https://www.webopixel.net/javascript/1773.html
+https://zenn.dev/monicle/articles/react-router-v6-suspense-idiom
+
+## rechartsでwater flow 棒グラフを作成する
+https://medium.com/2359media/tutorial-how-to-create-a-waterfall-chart-in-recharts-15a0e980d4b
 
 # Getting Started with Create React App
 
