@@ -4,13 +4,16 @@ import { ProfitLossBarChartProps } from '@/components/profitLossBarChart/props';
 import CashFlowBarChart from '@/components/cashFlowBarChart/CashFlowBarChart';
 import { CashFlowBarChartProps } from '@/components/cashFlowBarChart/props';
 
-interface ChartsState {
+interface DevChartsState {
   profitLossData: ProfitLossBarChartProps[];
   cashFlowData: CashFlowBarChartProps[];
 }
 
-export default class DevCharts extends React.Component<unknown, ChartsState> {
-  state: Readonly<ChartsState> = {
+export default class DevCharts extends React.Component<
+  unknown,
+  DevChartsState
+> {
+  state: Readonly<DevChartsState> = {
     profitLossData: [
       {
         sales: 10000,
