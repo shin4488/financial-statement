@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
 import DevCharts from '@/development/pages/DevCharts';
-import DefaultLayout from '@/layouts/Default';
+import DefaultLayout from '@/layouts/DefaultLayout';
 
 function App() {
   return (
