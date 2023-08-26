@@ -1,4 +1,7 @@
 import React from 'react';
+import { Grid } from '@mui/material';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 import AppCarousel from '@/components/appCarousel/AppCarousel';
 import BalanceSheetBarCahrt from '@/components/balanceSheetBarChart/BalanceSheetBarChart';
 import { BalanceSheetBarChartProps } from '@/components/balanceSheetBarChart/props';
@@ -124,49 +127,55 @@ export default class DevCharts extends React.Component<
 
   render(): React.ReactNode {
     return (
-      <>
+      <Grid container spacing={2} padding={1}>
         {this.state.financialStatements.map((chartData, index) => {
           const balanceSheet = chartData.balanceSheet;
           const profitLoss = chartData.profitLoss;
           const cashFlow = chartData.cashFlow;
           return (
-            <div style={{ width: '33%' }} key={index}>
-              <AppCarousel>
-                <BalanceSheetBarCahrt
-                  currentAsset={balanceSheet.currentAsset}
-                  propertyPlantAndEquipment={
-                    balanceSheet.propertyPlantAndEquipment
-                  }
-                  intangibleAsset={balanceSheet.intangibleAsset}
-                  investmentAndOtherAsset={balanceSheet.investmentAndOtherAsset}
-                  currentLiability={balanceSheet.currentLiability}
-                  noncurrentLiability={balanceSheet.noncurrentLiability}
-                  netAsset={balanceSheet.netAsset}
-                />
-                <ProfitLossBarChart
-                  netSales={profitLoss.netSales}
-                  originalCost={profitLoss.originalCost}
-                  sellingGeneralExpense={profitLoss.sellingGeneralExpense}
-                  operatingIncome={profitLoss.operatingIncome}
-                />
-                <CashFlowBarChart
-                  startingCash={cashFlow.startingCash}
-                  operatingActivitiesCashFlow={
-                    cashFlow.operatingActivitiesCashFlow
-                  }
-                  investingActivitiesCashFlow={
-                    cashFlow.investingActivitiesCashFlow
-                  }
-                  financingActivitiesCashFlow={
-                    cashFlow.financingActivitiesCashFlow
-                  }
-                  endingCash={cashFlow.endingCash}
-                />
-              </AppCarousel>
-            </div>
+            <Grid item xs={12} md={6} lg={4} key={index}>
+              <Card variant="elevation">
+                <CardContent>
+                  <AppCarousel>
+                    <BalanceSheetBarCahrt
+                      currentAsset={balanceSheet.currentAsset}
+                      propertyPlantAndEquipment={
+                        balanceSheet.propertyPlantAndEquipment
+                      }
+                      intangibleAsset={balanceSheet.intangibleAsset}
+                      investmentAndOtherAsset={
+                        balanceSheet.investmentAndOtherAsset
+                      }
+                      currentLiability={balanceSheet.currentLiability}
+                      noncurrentLiability={balanceSheet.noncurrentLiability}
+                      netAsset={balanceSheet.netAsset}
+                    />
+                    <ProfitLossBarChart
+                      netSales={profitLoss.netSales}
+                      originalCost={profitLoss.originalCost}
+                      sellingGeneralExpense={profitLoss.sellingGeneralExpense}
+                      operatingIncome={profitLoss.operatingIncome}
+                    />
+                    <CashFlowBarChart
+                      startingCash={cashFlow.startingCash}
+                      operatingActivitiesCashFlow={
+                        cashFlow.operatingActivitiesCashFlow
+                      }
+                      investingActivitiesCashFlow={
+                        cashFlow.investingActivitiesCashFlow
+                      }
+                      financingActivitiesCashFlow={
+                        cashFlow.financingActivitiesCashFlow
+                      }
+                      endingCash={cashFlow.endingCash}
+                    />
+                  </AppCarousel>
+                </CardContent>
+              </Card>
+            </Grid>
           );
         })}
-      </>
+      </Grid>
     );
   }
 }
