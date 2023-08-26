@@ -38,7 +38,7 @@ export default class AppCarousel extends React.Component<
         animation="slide"
         duration={100}
         navButtonsAlwaysVisible
-        navButtonsProps={{ style: { opacity: 0.3 } }}
+        navButtonsProps={{ style: { opacity: 0.2 } }}
       >
         {this.props.children}
       </Carousel>
