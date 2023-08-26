@@ -5,34 +5,34 @@ import { WaterFlowBarChartElement } from '@/components/waterFlowBarChart/props';
 
 export default class CashFlowBarChart extends React.Component<CashFlowBarChartProps> {
   waterFlowBarChartData(): WaterFlowBarChartElement[] {
-    const openingBalance = this.props.openingBalance;
+    const startingCash = this.props.startingCash;
     const operatingActivitiesCashFlow = this.props.operatingActivitiesCashFlow;
     const investingActivitiesCashFlow = this.props.investingActivitiesCashFlow;
     const financingActivitiesCashFlow = this.props.financingActivitiesCashFlow;
     return [
       // sumの部分が透明となるため、sumは前の要素までの合計値とする
-      { name: '期首残高', value: openingBalance, previousSum: 0 },
+      { name: '期首残高', value: startingCash, previousSum: 0 },
       {
         name: '営業CF',
         value: operatingActivitiesCashFlow,
-        previousSum: openingBalance,
+        previousSum: startingCash,
       },
       {
         name: '投資CF',
         value: investingActivitiesCashFlow,
-        previousSum: openingBalance + operatingActivitiesCashFlow,
+        previousSum: startingCash + operatingActivitiesCashFlow,
       },
       {
         name: '財務CF',
         value: financingActivitiesCashFlow,
         previousSum:
-          openingBalance +
+          startingCash +
           operatingActivitiesCashFlow +
           investingActivitiesCashFlow,
       },
       {
         name: '期末残高',
-        value: this.props.closingBalance,
+        value: this.props.endingCash,
         previousSum: 0,
       },
     ];

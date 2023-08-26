@@ -42,18 +42,18 @@ export default class DevCharts extends React.Component<
     ],
     cashFlowData: [
       {
-        openingBalance: 400,
+        startingCash: 400,
         operatingActivitiesCashFlow: 700,
         investingActivitiesCashFlow: -300,
         financingActivitiesCashFlow: 200,
-        closingBalance: 400 + 700 + -300 + 200,
+        endingCash: 400 + 700 + -300 + 200,
       },
       {
-        openingBalance: 100000,
+        startingCash: 100000,
         operatingActivitiesCashFlow: -200000,
         investingActivitiesCashFlow: -300,
         financingActivitiesCashFlow: 10000,
-        closingBalance: 100000 + -200000 + -300 + 10000,
+        endingCash: 100000 + -200000 + -300 + 10000,
       },
     ],
   };
@@ -73,11 +73,11 @@ export default class DevCharts extends React.Component<
         {this.state.cashFlowData.map((cashFlow, index) => (
           <CashFlowBarChart
             key={index}
-            openingBalance={cashFlow.openingBalance}
+            startingCash={cashFlow.startingCash}
             operatingActivitiesCashFlow={cashFlow.operatingActivitiesCashFlow}
             investingActivitiesCashFlow={cashFlow.investingActivitiesCashFlow}
             financingActivitiesCashFlow={cashFlow.financingActivitiesCashFlow}
-            closingBalance={cashFlow.closingBalance}
+            endingCash={cashFlow.endingCash}
           />
         ))}
       </>

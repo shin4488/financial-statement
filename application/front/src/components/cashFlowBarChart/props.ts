@@ -1,7 +1,7 @@
 export interface CashFlowBarChartProps {
-  openingBalance: number;
+  startingCash: number;
   operatingActivitiesCashFlow: number;
   investingActivitiesCashFlow: number;
   financingActivitiesCashFlow: number;
-  closingBalance: number;
+  endingCash: number;
 }
