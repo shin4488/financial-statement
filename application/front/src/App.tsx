@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import Charts from '@/development/pages/Charts';
+import DevCharts from '@/development/pages/DevCharts';
 import DefaultLayout from '@/layouts/Default';
 
 function App() {
@@ -8,7 +8,7 @@ function App() {
     <DefaultLayout
       customChildren={
         <div className="App">
-          <Charts />
+          <DevCharts />
         </div>
       }
     />
