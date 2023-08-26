@@ -3,3 +3,5 @@ export const tooltipStyle = {
   opacity: '0.8',
   padding: '10px',
 };
+
+export const stackLabelListFillColor = '#FFF';

@@ -1,4 +1,5 @@
 import React from 'react';
+import { stackLabelListFillColor } from '@/constants/tooltip';
 import { BarChart, Bar, LabelList } from 'recharts';
 import { ProfitLossBarChartProps } from './props';
 
@@ -37,14 +38,13 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
   render(): React.ReactNode {
     const costSalesCharData = this.costSalesCharData();
     const hasLoss = costSalesCharData[1].operatingLoss > 0;
-    const labelListFillColor = '#FFF';
     const profitLossComponent = hasLoss ? (
       <Bar dataKey="operatingLoss" stackId="a" fill="#5B9A8B">
         <LabelList
           dataKey="operatingLoss"
           formatter={(value: unknown) => `営業損失: ${String(value)}`}
           position="center"
-          fill={labelListFillColor}
+          fill={stackLabelListFillColor}
         />
       </Bar>
     ) : (
@@ -53,7 +53,7 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
           dataKey="operatingProfit"
           formatter={(value: unknown) => `営業利益: ${String(value)}`}
           position="center"
-          fill={labelListFillColor}
+          fill={stackLabelListFillColor}
         />
       </Bar>
     );
@@ -64,7 +64,7 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
         <Bar dataKey="sales" stackId="a" fill="#F94C10">
           <LabelList
             dataKey="sales"
-            fill={labelListFillColor}
+            fill={stackLabelListFillColor}
             position="center"
             formatter={(value: unknown) => `売上: ${String(value)}`}
           />
@@ -72,7 +72,7 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
         <Bar dataKey="sellingAdministrativeExpense" stackId="a" fill="#5C4B99">
           <LabelList
             dataKey="sellingAdministrativeExpense"
-            fill={labelListFillColor}
+            fill={stackLabelListFillColor}
             position="center"
             formatter={(value: unknown) => `販売一般管理費: ${String(value)}`}
           />
@@ -80,7 +80,7 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
         <Bar dataKey="costOfSales" stackId="a" fill="#9F91CC">
           <LabelList
             dataKey="costOfSales"
-            fill={labelListFillColor}
+            fill={stackLabelListFillColor}
             position="center"
             formatter={(value: unknown) => `売上原価: ${String(value)}`}
           />
