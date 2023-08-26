@@ -1,10 +1,13 @@
 import React from 'react';
+import BalanceSheetBarCahrt from '@/components/balanceSheetBarChart/BalanceSheetBarChart';
+import { BalanceSheetBarChartProps } from '@/components/balanceSheetBarChart/props';
 import ProfitLossBarChart from '@/components/profitLossBarChart/ProfitLossBarChart';
 import { ProfitLossBarChartProps } from '@/components/profitLossBarChart/props';
 import CashFlowBarChart from '@/components/cashFlowBarChart/CashFlowBarChart';
 import { CashFlowBarChartProps } from '@/components/cashFlowBarChart/props';
 
 interface DevChartsState {
+  balanceSheetData: BalanceSheetBarChartProps[];
   profitLossData: ProfitLossBarChartProps[];
   cashFlowData: CashFlowBarChartProps[];
 }
@@ -14,6 +17,26 @@ export default class DevCharts extends React.Component<
   DevChartsState
 > {
   state: Readonly<DevChartsState> = {
+    balanceSheetData: [
+      {
+        currentAsset: 250000,
+        propertyPlantAndEquipment: 50000,
+        intangibleAsset: 70000,
+        investmentAndOtherAsset: 10000,
+        currentLiability: 100000,
+        noncurrentLiability: 25000,
+        netAsset: 250000 + 50000 + 70000 + 10000 - (100000 + 25000),
+      },
+      {
+        currentAsset: 250000,
+        propertyPlantAndEquipment: 50000,
+        intangibleAsset: 70000,
+        investmentAndOtherAsset: 10000,
+        currentLiability: 200000,
+        noncurrentLiability: 350000,
+        netAsset: 250000 + 50000 + 70000 + 10000 - (200000 + 350000),
+      },
+    ],
     profitLossData: [
       {
         netSales: 10000,
@@ -61,6 +84,18 @@ export default class DevCharts extends React.Component<
   render(): React.ReactNode {
     return (
       <>
+        {this.state.balanceSheetData.map((balanceSheet, index) => (
+          <BalanceSheetBarCahrt
+            key={index}
+            currentAsset={balanceSheet.currentAsset}
+            propertyPlantAndEquipment={balanceSheet.propertyPlantAndEquipment}
+            intangibleAsset={balanceSheet.intangibleAsset}
+            investmentAndOtherAsset={balanceSheet.investmentAndOtherAsset}
+            currentLiability={balanceSheet.currentLiability}
+            noncurrentLiability={balanceSheet.noncurrentLiability}
+            netAsset={balanceSheet.netAsset}
+          />
+        ))}
         {this.state.profitLossData.map((profitLoss, index) => (
           <ProfitLossBarChart
             key={index}
