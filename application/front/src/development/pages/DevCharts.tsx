@@ -42,12 +42,14 @@ export default class DevCharts extends React.Component<
         operatingActivitiesCashFlow: 700,
         investingActivitiesCashFlow: -300,
         financingActivitiesCashFlow: 200,
+        closingBalance: 400 + 700 + -300 + 200,
       },
       {
         openingBalance: 100000,
         operatingActivitiesCashFlow: -200000,
         investingActivitiesCashFlow: -300,
         financingActivitiesCashFlow: 10000,
+        closingBalance: 100000 + -200000 + -300 + 10000,
       },
     ],
   };
@@ -72,6 +74,7 @@ export default class DevCharts extends React.Component<
             operatingActivitiesCashFlow={cashFlow.operatingActivitiesCashFlow}
             investingActivitiesCashFlow={cashFlow.investingActivitiesCashFlow}
             financingActivitiesCashFlow={cashFlow.financingActivitiesCashFlow}
+            closingBalance={cashFlow.closingBalance}
           />
         ))}
       </>

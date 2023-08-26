@@ -3,4 +3,5 @@ export interface CashFlowBarChartProps {
   operatingActivitiesCashFlow: number;
   investingActivitiesCashFlow: number;
   financingActivitiesCashFlow: number;
+  closingBalance: number;
 }

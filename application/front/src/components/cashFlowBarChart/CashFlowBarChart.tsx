@@ -32,11 +32,7 @@ export default class CashFlowBarChart extends React.Component<CashFlowBarChartPr
       },
       {
         name: '期末残高',
-        value:
-          openingBalance +
-          operatingActivitiesCashFlow +
-          investingActivitiesCashFlow +
-          financingActivitiesCashFlow,
+        value: this.props.closingBalance,
         previousSum: 0,
       },
     ];
