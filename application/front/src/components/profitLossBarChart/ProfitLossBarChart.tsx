@@ -7,7 +7,7 @@ type ProfitLossChart = [
   {
     costOfSales: number;
     sellingAdministrativeExpense: number;
-    operatingProfit: number;
+    operatingIncome: number;
   },
   {
     sales: number;
@@ -17,21 +17,17 @@ type ProfitLossChart = [
 
 export default class ProfitLossBarChart extends React.Component<ProfitLossBarChartProps> {
   costSalesCharData(): ProfitLossChart {
-    const sales = this.props.sales;
-    const costOfSales = this.props.costOfSales;
-    const sellingAdministrativeExpense =
-      this.props.sellingAdministrativeExpense;
-    const operatingProfit =
-      sales - (costOfSales + sellingAdministrativeExpense);
-
     return [
       {
-        costOfSales: costOfSales,
-        sellingAdministrativeExpense: sellingAdministrativeExpense,
-        operatingProfit: Math.max(0, operatingProfit),
+        costOfSales: this.props.costOfSales,
+        sellingAdministrativeExpense: this.props.sellingAdministrativeExpense,
+        operatingIncome: Math.max(0, this.props.operatingIncome),
       },
       // マイナス数値を棒グラフに表示すると上から下へ向かって表示されてしまうため、下から上へグラフが出るようにプラス数値へ変える
-      { sales: sales, operatingLoss: -Math.min(0, operatingProfit) },
+      {
+        sales: this.props.sales,
+        operatingLoss: -Math.min(0, this.props.operatingIncome),
+      },
     ];
   }
 
@@ -48,9 +44,9 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
         />
       </Bar>
     ) : (
-      <Bar dataKey="operatingProfit" stackId="a" fill="#3D246C">
+      <Bar dataKey="operatingIncome" stackId="a" fill="#3D246C">
         <LabelList
-          dataKey="operatingProfit"
+          dataKey="operatingIncome"
           formatter={(value: unknown) => `営業利益: ${String(value)}`}
           position="center"
           fill={stackLabelListFillColor}

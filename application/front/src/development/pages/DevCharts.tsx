@@ -19,21 +19,25 @@ export default class DevCharts extends React.Component<
         sales: 10000,
         costOfSales: 6000,
         sellingAdministrativeExpense: 2000,
+        operatingIncome: 10000 - 6000 - 2000,
       },
       {
         sales: 10000,
         costOfSales: 6000,
         sellingAdministrativeExpense: 5000,
+        operatingIncome: 10000 - 6000 - 5000,
       },
       {
         sales: 10000,
         costOfSales: 6000,
         sellingAdministrativeExpense: 4000,
+        operatingIncome: 10000 - 6000 - 4000,
       },
       {
         sales: 10000,
         costOfSales: 6000,
         sellingAdministrativeExpense: 3999,
+        operatingIncome: 10000 - 6000 - 3999,
       },
     ],
     cashFlowData: [
@@ -65,6 +69,7 @@ export default class DevCharts extends React.Component<
             sellingAdministrativeExpense={
               profitLoss.sellingAdministrativeExpense
             }
+            operatingIncome={profitLoss.operatingIncome}
           />
         ))}
         {this.state.cashFlowData.map((cashFlow, index) => (
