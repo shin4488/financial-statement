@@ -130,38 +130,40 @@ export default class DevCharts extends React.Component<
           const profitLoss = chartData.profitLoss;
           const cashFlow = chartData.cashFlow;
           return (
-            <AppCarousel key={index}>
-              <BalanceSheetBarCahrt
-                currentAsset={balanceSheet.currentAsset}
-                propertyPlantAndEquipment={
-                  balanceSheet.propertyPlantAndEquipment
-                }
-                intangibleAsset={balanceSheet.intangibleAsset}
-                investmentAndOtherAsset={balanceSheet.investmentAndOtherAsset}
-                currentLiability={balanceSheet.currentLiability}
-                noncurrentLiability={balanceSheet.noncurrentLiability}
-                netAsset={balanceSheet.netAsset}
-              />
-              <ProfitLossBarChart
-                netSales={profitLoss.netSales}
-                originalCost={profitLoss.originalCost}
-                sellingGeneralExpense={profitLoss.sellingGeneralExpense}
-                operatingIncome={profitLoss.operatingIncome}
-              />
-              <CashFlowBarChart
-                startingCash={cashFlow.startingCash}
-                operatingActivitiesCashFlow={
-                  cashFlow.operatingActivitiesCashFlow
-                }
-                investingActivitiesCashFlow={
-                  cashFlow.investingActivitiesCashFlow
-                }
-                financingActivitiesCashFlow={
-                  cashFlow.financingActivitiesCashFlow
-                }
-                endingCash={cashFlow.endingCash}
-              />
-            </AppCarousel>
+            <div style={{ width: '33%' }} key={index}>
+              <AppCarousel>
+                <BalanceSheetBarCahrt
+                  currentAsset={balanceSheet.currentAsset}
+                  propertyPlantAndEquipment={
+                    balanceSheet.propertyPlantAndEquipment
+                  }
+                  intangibleAsset={balanceSheet.intangibleAsset}
+                  investmentAndOtherAsset={balanceSheet.investmentAndOtherAsset}
+                  currentLiability={balanceSheet.currentLiability}
+                  noncurrentLiability={balanceSheet.noncurrentLiability}
+                  netAsset={balanceSheet.netAsset}
+                />
+                <ProfitLossBarChart
+                  netSales={profitLoss.netSales}
+                  originalCost={profitLoss.originalCost}
+                  sellingGeneralExpense={profitLoss.sellingGeneralExpense}
+                  operatingIncome={profitLoss.operatingIncome}
+                />
+                <CashFlowBarChart
+                  startingCash={cashFlow.startingCash}
+                  operatingActivitiesCashFlow={
+                    cashFlow.operatingActivitiesCashFlow
+                  }
+                  investingActivitiesCashFlow={
+                    cashFlow.investingActivitiesCashFlow
+                  }
+                  financingActivitiesCashFlow={
+                    cashFlow.financingActivitiesCashFlow
+                  }
+                  endingCash={cashFlow.endingCash}
+                />
+              </AppCarousel>
+            </div>
           );
         })}
       </>
