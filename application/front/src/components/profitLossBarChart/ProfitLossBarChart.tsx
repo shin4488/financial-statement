@@ -1,6 +1,10 @@
 import React from 'react';
-import { stackLabelListFillColor } from '@/constants/tooltip';
-import { BarChart, Bar, LabelList, YAxis } from 'recharts';
+import {
+  stackLabelListFillColor,
+  barChartWidth,
+  barChartHeight,
+} from '@/constants/chart';
+import { BarChart, Bar, LabelList, YAxis, ResponsiveContainer } from 'recharts';
 import { ProfitLossBarChartProps } from './props';
 
 type ProfitLossChart = [
@@ -55,39 +59,45 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
     );
 
     return (
-      <BarChart width={500} height={400} data={costSalesCharData}>
-        <YAxis reversed hide />
+      <ResponsiveContainer
+        className="bar-container"
+        width={barChartWidth}
+        height={barChartHeight}
+      >
+        <BarChart data={costSalesCharData}>
+          <YAxis reversed hide />
 
-        {/* 借方 */}
-        <Bar dataKey="originalCost" stackId="a" fill="#9F91CC">
-          <LabelList
-            dataKey="originalCost"
-            fill={stackLabelListFillColor}
-            position="center"
-            formatter={(value: unknown) => `売上原価: ${String(value)}`}
-          />
-        </Bar>
-        <Bar dataKey="sellingGeneralExpense" stackId="a" fill="#5C4B99">
-          <LabelList
-            dataKey="sellingGeneralExpense"
-            fill={stackLabelListFillColor}
-            position="center"
-            formatter={(value: unknown) => `販売一般管理費: ${String(value)}`}
-          />
-        </Bar>
+          {/* 借方 */}
+          <Bar dataKey="originalCost" stackId="a" fill="#9F91CC">
+            <LabelList
+              dataKey="originalCost"
+              fill={stackLabelListFillColor}
+              position="center"
+              formatter={(value: unknown) => `売上原価: ${String(value)}`}
+            />
+          </Bar>
+          <Bar dataKey="sellingGeneralExpense" stackId="a" fill="#5C4B99">
+            <LabelList
+              dataKey="sellingGeneralExpense"
+              fill={stackLabelListFillColor}
+              position="center"
+              formatter={(value: unknown) => `販売一般管理費: ${String(value)}`}
+            />
+          </Bar>
 
-        {/* 貸方 */}
-        <Bar dataKey="netSales" stackId="a" fill="#F94C10">
-          <LabelList
-            dataKey="netSales"
-            fill={stackLabelListFillColor}
-            position="center"
-            formatter={(value: unknown) => `売上: ${String(value)}`}
-          />
-        </Bar>
-        {/* 営業利益/営業損失はどちらの場合でも積み上げの一番下に表示する */}
-        {profitLossComponent}
-      </BarChart>
+          {/* 貸方 */}
+          <Bar dataKey="netSales" stackId="a" fill="#F94C10">
+            <LabelList
+              dataKey="netSales"
+              fill={stackLabelListFillColor}
+              position="center"
+              formatter={(value: unknown) => `売上: ${String(value)}`}
+            />
+          </Bar>
+          {/* 営業利益/営業損失はどちらの場合でも積み上げの一番下に表示する */}
+          {profitLossComponent}
+        </BarChart>
+      </ResponsiveContainer>
     );
   }
 }

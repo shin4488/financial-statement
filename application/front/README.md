@@ -96,6 +96,9 @@ https://zenn.dev/monicle/articles/react-router-v6-suspense-idiom
 ## rechartsでwater flow 棒グラフを作成する
 https://medium.com/2359media/tutorial-how-to-create-a-waterfall-chart-in-recharts-15a0e980d4b
 
+## ReactでVueのslotのような使い方をする
+propsのデータとして`children: JSX.Element | JSX.Element[];`を使う。
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
