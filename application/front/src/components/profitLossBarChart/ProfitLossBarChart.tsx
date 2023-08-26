@@ -1,6 +1,6 @@
 import React from 'react';
 import { stackLabelListFillColor } from '@/constants/tooltip';
-import { BarChart, Bar, LabelList } from 'recharts';
+import { BarChart, Bar, LabelList, YAxis } from 'recharts';
 import { ProfitLossBarChartProps } from './props';
 
 type ProfitLossChart = [
@@ -56,13 +56,15 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
 
     return (
       <BarChart width={500} height={400} data={costSalesCharData}>
-        {profitLossComponent}
-        <Bar dataKey="netSales" stackId="a" fill="#F94C10">
+        <YAxis reversed hide />
+
+        {/* 借方 */}
+        <Bar dataKey="originalCost" stackId="a" fill="#9F91CC">
           <LabelList
-            dataKey="netSales"
+            dataKey="originalCost"
             fill={stackLabelListFillColor}
             position="center"
-            formatter={(value: unknown) => `売上: ${String(value)}`}
+            formatter={(value: unknown) => `売上原価: ${String(value)}`}
           />
         </Bar>
         <Bar dataKey="sellingGeneralExpense" stackId="a" fill="#5C4B99">
@@ -73,14 +75,18 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
             formatter={(value: unknown) => `販売一般管理費: ${String(value)}`}
           />
         </Bar>
-        <Bar dataKey="originalCost" stackId="a" fill="#9F91CC">
+
+        {/* 貸方 */}
+        <Bar dataKey="netSales" stackId="a" fill="#F94C10">
           <LabelList
-            dataKey="originalCost"
+            dataKey="netSales"
             fill={stackLabelListFillColor}
             position="center"
-            formatter={(value: unknown) => `売上原価: ${String(value)}`}
+            formatter={(value: unknown) => `売上: ${String(value)}`}
           />
         </Bar>
+        {/* 営業利益/営業損失はどちらの場合でも積み上げの一番下に表示する */}
+        {profitLossComponent}
       </BarChart>
     );
   }
