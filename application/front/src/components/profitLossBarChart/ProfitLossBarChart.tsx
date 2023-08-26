@@ -5,12 +5,12 @@ import { ProfitLossBarChartProps } from './props';
 
 type ProfitLossChart = [
   {
-    costOfSales: number;
-    sellingAdministrativeExpense: number;
+    originalCost: number;
+    sellingGeneralExpense: number;
     operatingIncome: number;
   },
   {
-    sales: number;
+    netSales: number;
     operatingLoss: number;
   },
 ];
@@ -19,13 +19,13 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
   costSalesCharData(): ProfitLossChart {
     return [
       {
-        costOfSales: this.props.originalCost,
-        sellingAdministrativeExpense: this.props.sellingGeneralExpense,
+        originalCost: this.props.originalCost,
+        sellingGeneralExpense: this.props.sellingGeneralExpense,
         operatingIncome: Math.max(0, this.props.operatingIncome),
       },
       // マイナス数値を棒グラフに表示すると上から下へ向かって表示されてしまうため、下から上へグラフが出るようにプラス数値へ変える
       {
-        sales: this.props.netSales,
+        netSales: this.props.netSales,
         operatingLoss: -Math.min(0, this.props.operatingIncome),
       },
     ];
@@ -57,25 +57,25 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
     return (
       <BarChart width={500} height={400} data={costSalesCharData}>
         {profitLossComponent}
-        <Bar dataKey="sales" stackId="a" fill="#F94C10">
+        <Bar dataKey="netSales" stackId="a" fill="#F94C10">
           <LabelList
-            dataKey="sales"
+            dataKey="netSales"
             fill={stackLabelListFillColor}
             position="center"
             formatter={(value: unknown) => `売上: ${String(value)}`}
           />
         </Bar>
-        <Bar dataKey="sellingAdministrativeExpense" stackId="a" fill="#5C4B99">
+        <Bar dataKey="sellingGeneralExpense" stackId="a" fill="#5C4B99">
           <LabelList
-            dataKey="sellingAdministrativeExpense"
+            dataKey="sellingGeneralExpense"
             fill={stackLabelListFillColor}
             position="center"
             formatter={(value: unknown) => `販売一般管理費: ${String(value)}`}
           />
         </Bar>
-        <Bar dataKey="costOfSales" stackId="a" fill="#9F91CC">
+        <Bar dataKey="originalCost" stackId="a" fill="#9F91CC">
           <LabelList
-            dataKey="costOfSales"
+            dataKey="originalCost"
             fill={stackLabelListFillColor}
             position="center"
             formatter={(value: unknown) => `売上原価: ${String(value)}`}
