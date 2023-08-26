@@ -134,7 +134,7 @@ export default class DevCharts extends React.Component<
           const cashFlow = chartData.cashFlow;
           return (
             <Grid item xs={12} md={6} lg={4} key={index}>
-              <Card variant="elevation">
+              <Card>
                 <CardContent>
                   <AppCarousel>
                     <BalanceSheetBarCahrt
