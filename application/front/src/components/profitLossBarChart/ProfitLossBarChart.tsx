@@ -19,13 +19,13 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
   costSalesCharData(): ProfitLossChart {
     return [
       {
-        costOfSales: this.props.costOfSales,
-        sellingAdministrativeExpense: this.props.sellingAdministrativeExpense,
+        costOfSales: this.props.originalCost,
+        sellingAdministrativeExpense: this.props.sellingGeneralExpense,
         operatingIncome: Math.max(0, this.props.operatingIncome),
       },
       // マイナス数値を棒グラフに表示すると上から下へ向かって表示されてしまうため、下から上へグラフが出るようにプラス数値へ変える
       {
-        sales: this.props.sales,
+        sales: this.props.netSales,
         operatingLoss: -Math.min(0, this.props.operatingIncome),
       },
     ];

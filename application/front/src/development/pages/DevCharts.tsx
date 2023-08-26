@@ -16,27 +16,27 @@ export default class DevCharts extends React.Component<
   state: Readonly<DevChartsState> = {
     profitLossData: [
       {
-        sales: 10000,
-        costOfSales: 6000,
-        sellingAdministrativeExpense: 2000,
+        netSales: 10000,
+        originalCost: 6000,
+        sellingGeneralExpense: 2000,
         operatingIncome: 10000 - 6000 - 2000,
       },
       {
-        sales: 10000,
-        costOfSales: 6000,
-        sellingAdministrativeExpense: 5000,
+        netSales: 10000,
+        originalCost: 6000,
+        sellingGeneralExpense: 5000,
         operatingIncome: 10000 - 6000 - 5000,
       },
       {
-        sales: 10000,
-        costOfSales: 6000,
-        sellingAdministrativeExpense: 4000,
+        netSales: 10000,
+        originalCost: 6000,
+        sellingGeneralExpense: 4000,
         operatingIncome: 10000 - 6000 - 4000,
       },
       {
-        sales: 10000,
-        costOfSales: 6000,
-        sellingAdministrativeExpense: 3999,
+        netSales: 10000,
+        originalCost: 6000,
+        sellingGeneralExpense: 3999,
         operatingIncome: 10000 - 6000 - 3999,
       },
     ],
@@ -64,11 +64,9 @@ export default class DevCharts extends React.Component<
         {this.state.profitLossData.map((profitLoss, index) => (
           <ProfitLossBarChart
             key={index}
-            sales={profitLoss.sales}
-            costOfSales={profitLoss.costOfSales}
-            sellingAdministrativeExpense={
-              profitLoss.sellingAdministrativeExpense
-            }
+            netSales={profitLoss.netSales}
+            originalCost={profitLoss.originalCost}
+            sellingGeneralExpense={profitLoss.sellingGeneralExpense}
             operatingIncome={profitLoss.operatingIncome}
           />
         ))}
