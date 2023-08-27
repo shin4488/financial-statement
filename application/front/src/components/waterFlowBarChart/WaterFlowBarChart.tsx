@@ -49,13 +49,16 @@ export default class WaterFlowBarChart extends React.Component<WaterFlowBarChart
               position="top"
               formatter={(value: number) => value.toLocaleString()}
             />
-            {this.props.data.map((dataElement, index) =>
-              dataElement.value < 0 ? (
-                <Cell key={index} fill={this.props.positiveColor} />
-              ) : (
-                <Cell key={index} fill={this.props.negativeColor} />
-              ),
-            )}
+            {this.props.data.map((dataElement, index) => (
+              <Cell
+                key={index}
+                fill={
+                  dataElement.value < 0
+                    ? this.props.positiveColor
+                    : this.props.negativeColor
+                }
+              />
+            ))}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
