@@ -13,12 +13,44 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  /** Represents non-fractional signed whole numeric values. Since the value may exceed the size of a 32-bit integer, it's encoded as a string. */
+  BigInt: { input: any; output: any; }
+};
+
+export type BalanceSheet = {
+  __typename?: 'BalanceSheet';
+  currentAsset?: Maybe<Scalars['BigInt']['output']>;
+  currentLiability?: Maybe<Scalars['BigInt']['output']>;
+  intangibleAsset?: Maybe<Scalars['BigInt']['output']>;
+  investmentAndOtherAsset?: Maybe<Scalars['BigInt']['output']>;
+  netAsset?: Maybe<Scalars['BigInt']['output']>;
+  noncurrentLiability?: Maybe<Scalars['BigInt']['output']>;
+  propertyPlantAndEquipment?: Maybe<Scalars['BigInt']['output']>;
 };
 
 export type Bookmark = {
   documentId: Scalars['String']['input'];
-  testArg: Scalars['Int']['input'];
   userId: Scalars['String']['input'];
+};
+
+export type CashFlow = {
+  __typename?: 'CashFlow';
+  endingCash?: Maybe<Scalars['BigInt']['output']>;
+  financingActivitiesCashFlow?: Maybe<Scalars['BigInt']['output']>;
+  investingActivitiesCashFlow?: Maybe<Scalars['BigInt']['output']>;
+  operatingActivitiesCashFlow?: Maybe<Scalars['BigInt']['output']>;
+  startingCash?: Maybe<Scalars['BigInt']['output']>;
+};
+
+export type CompanyFinancialStatement = {
+  __typename?: 'CompanyFinancialStatement';
+  balanceSheet?: Maybe<BalanceSheet>;
+  cashFlow?: Maybe<CashFlow>;
+  companyName?: Maybe<Scalars['String']['output']>;
+  fiscalYearEndDate?: Maybe<Scalars['String']['output']>;
+  fiscalYearStartDate?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  profitLoss?: Maybe<ProfitLoss>;
 };
 
 export type Mutation = {
@@ -33,12 +65,25 @@ export type MutationSandboxTestArgs = {
   input: SandboxTestInput;
 };
 
+export type ProfitLoss = {
+  __typename?: 'ProfitLoss';
+  netSales?: Maybe<Scalars['BigInt']['output']>;
+  operatingIncome?: Maybe<Scalars['BigInt']['output']>;
+  originalCost?: Maybe<Scalars['BigInt']['output']>;
+  sellingGeneralExpense?: Maybe<Scalars['BigInt']['output']>;
+};
+
 export type Query = {
   __typename?: 'Query';
+  /** Find Company Financial Statement by limit */
+  companyFinancialStatements?: Maybe<Array<CompanyFinancialStatement>>;
   /** Find SandboxTest by id */
   sandboxTests?: Maybe<Array<SandboxTest>>;
-  /** An example field added by the generator */
-  testField: Scalars['String']['output'];
+};
+
+
+export type QueryCompanyFinancialStatementsArgs = {
+  limit: Scalars['Int']['input'];
 };
 
 
