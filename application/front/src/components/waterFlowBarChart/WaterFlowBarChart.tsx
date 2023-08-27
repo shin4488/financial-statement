@@ -44,7 +44,11 @@ export default class WaterFlowBarChart extends React.Component<WaterFlowBarChart
           />
           <Bar dataKey="previousSum" stackId="a" fill="transparent" />
           <Bar dataKey="value" stackId="a">
-            <LabelList dataKey="value" position="top" />
+            <LabelList
+              dataKey="value"
+              position="top"
+              formatter={(value: number) => value.toLocaleString()}
+            />
             {this.props.data.map((dataElement, index) =>
               dataElement.value < 0 ? (
                 <Cell key={index} fill={this.props.positiveColor} />
