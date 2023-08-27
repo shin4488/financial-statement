@@ -20,5 +20,6 @@
     "strictNullChecks": true
   },
   "include": ["src"],
+  "exclude": ["src/__generated__"],
   "extends": "./tsconfig.paths"
 }

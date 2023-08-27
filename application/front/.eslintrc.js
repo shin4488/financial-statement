@@ -26,6 +26,7 @@ module.exports = {
     sourceType: 'module',
   },
   plugins: ['@typescript-eslint', 'react'],
+  ignorePatterns: ['src/__generated__/**'],
   rules: {
     'no-console': 'warn',
     'no-extra-semi': 'warn',
