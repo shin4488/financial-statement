@@ -8,7 +8,6 @@ module Mutations
         :sandbox_testaa => {
             :id => attributes[:user_id],
             :title => attributes[:document_id],
-            :rating => attributes[:test_arg]
         }
       }
     end
