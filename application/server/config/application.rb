@@ -37,5 +37,6 @@ module FinancialStatement
     config.api_only = true
 
     config.middleware.use ActionDispatch::Session::CookieStore
+    config.hosts << "fs_serverapp"
   end
 end
