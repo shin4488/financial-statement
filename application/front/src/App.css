@@ -25,3 +25,7 @@
 .bar-container {
   margin: auto;
 }
+
+.financial-statement-card-header {
+  text-align: left;
+}
