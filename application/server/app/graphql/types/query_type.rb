@@ -36,7 +36,7 @@ module Types
       puts "company_financial_statement_type limit: #{limit}"
       financial_statements = [
         {
-          id: 0,
+          id: 1,
           fiscal_year_start_date: '2021-07-01',
           fiscal_year_end_date: '2022-06-30',
           company_name: 'オルバヘルスケアホールディングス株式会社',
@@ -64,7 +64,7 @@ module Types
           },
         },
         {
-          id: 1,
+          id: 2,
           fiscal_year_start_date: '2021-07-01',
           fiscal_year_end_date: '2022-06-30',
           company_name: '株式会社ＡｍｉｄＡホールディングス',
@@ -89,6 +89,62 @@ module Types
             investing_activities_cash_flow: -34107000,
             financing_activities_cash_flow: -77705000,
             ending_cash: 1757833000,
+          },
+        },
+        {
+          id: 3,
+          fiscal_year_start_date: '2021-07-01',
+          fiscal_year_end_date: '2022-06-30',
+          company_name: '一正蒲鉾株式会社',
+          balance_sheet: {
+            current_asset: 250000,
+            property_plant_and_equipment: 50000,
+            intangible_asset: 70000,
+            investment_and_other_asset: 10000,
+            current_liability: 200000,
+            noncurrent_liability: 350000,
+            net_asset: 250000 + 50000 + 70000 + 10000 - (200000 + 350000),
+          },
+          profit_loss: {
+            net_sales: 10000,
+            original_cost: 6000,
+            selling_general_expense: 4000,
+            operating_income: 10000 - 6000 - 4000,
+          },
+          cash_flow: {
+            starting_cash: 100000,
+            operating_activities_cash_flow: -200000,
+            investing_activities_cash_flow: -300,
+            financing_activities_cash_flow: 10000,
+            ending_cash: 100000 + -200000 + -300 + 10000,
+          },
+        },
+        {
+          id: 4,
+          fiscal_year_start_date: '2021-12-31',
+          fiscal_year_end_date: '2022-12-30',
+          company_name: '株式会社アジュバンホールディングスああああああああああああ aaaaaaaaa bbbbbbbbbbbb ccccccccc ddddddddddddddddddddddddddddddddddddddddddddddddddd',
+          balance_sheet: {
+            current_asset: 250000,
+            property_plant_and_equipment: 50000,
+            intangible_asset: 70000,
+            investment_and_other_asset: 10000,
+            current_liability: 100000,
+            noncurrent_liability: 25000,
+            net_asset: 250000 + 50000 + 70000 + 10000 - (100000 + 25000),
+          },
+          profit_loss: {
+            net_sales: 10000,
+            original_cost: 6000,
+            selling_general_expense: 2000,
+            operating_income: 10000 - 6000 - 2000,
+          },
+          cash_flow: {
+            starting_cash: 400,
+            operating_activities_cash_flow: 700,
+            investing_activities_cash_flow: -300,
+            financing_activities_cash_flow: 200,
+            ending_cash: 400 + 700 + -300 + 200,
           },
         }
       ]
