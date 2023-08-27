@@ -24,6 +24,7 @@ interface FinancialStatement {
 }
 
 interface DevChartsState {
+  apolloService: ApolloClientService;
   financialStatements: FinancialStatement[];
 }
 
@@ -32,6 +33,7 @@ export default class DevCharts extends React.Component<
   DevChartsState
 > {
   state: Readonly<DevChartsState> = {
+    apolloService: new ApolloClientService(),
     financialStatements: [],
   };
 
@@ -102,7 +104,7 @@ export default class DevCharts extends React.Component<
   }
 
   componentDidMount(): void {
-    new ApolloClientService()
+    this.state.apolloService
       .query(
         `
         query {
