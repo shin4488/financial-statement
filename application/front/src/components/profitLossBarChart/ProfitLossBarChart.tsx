@@ -42,7 +42,7 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
       <Bar dataKey="operatingLoss" stackId="a" fill="#5B9A8B">
         <LabelList
           dataKey="operatingLoss"
-          formatter={(value: unknown) => `営業損失: ${String(value)}`}
+          formatter={(value: number) => `営業損失: ${value.toLocaleString()}`}
           position="center"
           fill={stackLabelListFillColor}
         />
@@ -51,7 +51,7 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
       <Bar dataKey="operatingIncome" stackId="a" fill="#3D246C">
         <LabelList
           dataKey="operatingIncome"
-          formatter={(value: unknown) => `営業利益: ${String(value)}`}
+          formatter={(value: number) => `営業利益: ${value.toLocaleString()}`}
           position="center"
           fill={stackLabelListFillColor}
         />
@@ -73,7 +73,9 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
               dataKey="originalCost"
               fill={stackLabelListFillColor}
               position="center"
-              formatter={(value: unknown) => `売上原価: ${String(value)}`}
+              formatter={(value: number) =>
+                `売上原価: ${value.toLocaleString()}`
+              }
             />
           </Bar>
           <Bar dataKey="sellingGeneralExpense" stackId="a" fill="#5C4B99">
@@ -81,7 +83,9 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
               dataKey="sellingGeneralExpense"
               fill={stackLabelListFillColor}
               position="center"
-              formatter={(value: unknown) => `販売一般管理費: ${String(value)}`}
+              formatter={(value: number) =>
+                `販売一般管理費: ${value.toLocaleString()}`
+              }
             />
           </Bar>
 
@@ -91,7 +95,7 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
               dataKey="netSales"
               fill={stackLabelListFillColor}
               position="center"
-              formatter={(value: unknown) => `売上: ${String(value)}`}
+              formatter={(value: number) => `売上: ${value.toLocaleString()}`}
             />
           </Bar>
           {/* 営業利益/営業損失はどちらの場合でも積み上げの一番下に表示する */}

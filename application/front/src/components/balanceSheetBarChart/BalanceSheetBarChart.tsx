@@ -83,7 +83,9 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
               dataKey="currentAsset"
               fill={stackLabelListFillColor}
               position="center"
-              formatter={(value: unknown) => `流動資産: ${String(value)}`}
+              formatter={(value: number) =>
+                `流動資産: ${value.toLocaleString()}`
+              }
             />
           </Bar>
           <Bar dataKey="propertyPlantAndEquipment" stackId="a" fill="#E48586">
@@ -91,7 +93,9 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
               dataKey="propertyPlantAndEquipment"
               fill={stackLabelListFillColor}
               position="center"
-              formatter={(value: unknown) => `有形固定資産: ${String(value)}`}
+              formatter={(value: number) =>
+                `有形固定資産: ${value.toLocaleString()}`
+              }
             />
           </Bar>
           <Bar dataKey="intangibleAsset" stackId="a" fill="#FCBAAD">
@@ -99,7 +103,9 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
               dataKey="intangibleAsset"
               fill={stackLabelListFillColor}
               position="center"
-              formatter={(value: unknown) => `無形固定資産: ${String(value)}`}
+              formatter={(value: number) =>
+                `無形固定資産: ${value.toLocaleString()}`
+              }
             />
           </Bar>
           <Bar dataKey="investmentAndOtherAsset" stackId="a" fill="#C51605">
@@ -107,8 +113,8 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
               dataKey="investmentAndOtherAsset"
               fill={stackLabelListFillColor}
               position="center"
-              formatter={(value: unknown) =>
-                `投資その他の資産: ${String(value)}`
+              formatter={(value: number) =>
+                `投資その他の資産: ${value.toLocaleString()}`
               }
             />
           </Bar>
@@ -119,7 +125,9 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
               dataKey="currentLiability"
               fill={stackLabelListFillColor}
               position="center"
-              formatter={(value: unknown) => `流動負債: ${String(value)}`}
+              formatter={(value: number) =>
+                `流動負債: ${value.toLocaleString()}`
+              }
             />
           </Bar>
           <Bar dataKey="noncurrentLiability" stackId="a" fill="#445069">
@@ -127,7 +135,9 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
               dataKey="noncurrentLiability"
               fill={stackLabelListFillColor}
               position="center"
-              formatter={(value: unknown) => `固定負債: ${String(value)}`}
+              formatter={(value: number) =>
+                `固定負債: ${value.toLocaleString()}`
+              }
             />
           </Bar>
           {isInsolvency ? (
@@ -141,8 +151,11 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
               dataKey="netAsset"
               fill={stackLabelListFillColor}
               position="center"
-              formatter={(value: unknown) =>
-                `純資産: ${isInsolvency ? -Number(value) : value}`
+              formatter={(value: number) =>
+                `純資産: ${(isInsolvency
+                  ? -Number(value)
+                  : value
+                ).toLocaleString()}`
               }
             />
           </Bar>
