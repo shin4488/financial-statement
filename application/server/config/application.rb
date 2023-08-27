@@ -37,6 +37,8 @@ module FinancialStatement
     config.api_only = true
 
     config.middleware.use ActionDispatch::Session::CookieStore
+    # https://weseek.co.jp/tech/680/
+    # DNSリバインディング攻撃制御に対応するため、nginxで定義されているサーバ名からのリクエストは受け付ける
     config.hosts << "fs_serverapp"
   end
 end
