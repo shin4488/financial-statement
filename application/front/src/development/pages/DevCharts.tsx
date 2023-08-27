@@ -10,6 +10,9 @@ import ProfitLossBarChart from '@/components/profitLossBarChart/ProfitLossBarCha
 import { ProfitLossBarChartProps } from '@/components/profitLossBarChart/props';
 import CashFlowBarChart from '@/components/cashFlowBarChart/CashFlowBarChart';
 import { CashFlowBarChartProps } from '@/components/cashFlowBarChart/props';
+import ApolloClientService from '@/plugins/apollo/service';
+import { NumberUtil } from '@/plugins/utils/numberUtil';
+import StringUtil from '@/plugins/utils/stringUtil';
 
 interface FinancialStatement {
   fiscalYearStartDate: string;
@@ -29,117 +32,7 @@ export default class DevCharts extends React.Component<
   DevChartsState
 > {
   state: Readonly<DevChartsState> = {
-    financialStatements: [
-      {
-        fiscalYearStartDate: '2021-07-01',
-        fiscalYearEndDate: '2022-06-30',
-        companyName: 'オルバヘルスケアホールディングス株式会社',
-        balanceSheet: {
-          currentAsset: 32908208000,
-          propertyPlantAndEquipment: 4304433000,
-          intangibleAsset: 814974000,
-          investmentAndOtherAsset: 1941055000,
-          currentLiability: 28866106000,
-          noncurrentLiability: 2009258000,
-          netAsset: 9093306000,
-        },
-        profitLoss: {
-          netSales: 107959426000,
-          originalCost: 95455447000,
-          sellingGeneralExpense: 10430832000,
-          operatingIncome: 2073146000,
-        },
-        cashFlow: {
-          startingCash: 2110675000,
-          operatingActivitiesCashFlow: 2420642000,
-          investingActivitiesCashFlow: -211806000,
-          financingActivitiesCashFlow: -1169906000,
-          endingCash: 3149605000,
-        },
-      },
-      {
-        fiscalYearStartDate: '2021-07-01',
-        fiscalYearEndDate: '2022-06-30',
-        companyName: '株式会社ＡｍｉｄＡホールディングス',
-        balanceSheet: {
-          currentAsset: 2182649000,
-          propertyPlantAndEquipment: 312374000,
-          intangibleAsset: 56027000,
-          investmentAndOtherAsset: 34293000,
-          currentLiability: 332198000,
-          noncurrentLiability: 76480000,
-          netAsset: 2176666000,
-        },
-        profitLoss: {
-          netSales: 3055422000,
-          originalCost: 1421813000,
-          sellingGeneralExpense: 1195403000,
-          operatingIncome: 438206000,
-        },
-        cashFlow: {
-          startingCash: 1567892000,
-          operatingActivitiesCashFlow: 301753000,
-          investingActivitiesCashFlow: -34107000,
-          financingActivitiesCashFlow: -77705000,
-          endingCash: 1757833000,
-        },
-      },
-      {
-        fiscalYearStartDate: '2021-07-01',
-        fiscalYearEndDate: '2022-06-30',
-        companyName: '一正蒲鉾株式会社',
-        balanceSheet: {
-          currentAsset: 250000,
-          propertyPlantAndEquipment: 50000,
-          intangibleAsset: 70000,
-          investmentAndOtherAsset: 10000,
-          currentLiability: 200000,
-          noncurrentLiability: 350000,
-          netAsset: 250000 + 50000 + 70000 + 10000 - (200000 + 350000),
-        },
-        profitLoss: {
-          netSales: 10000,
-          originalCost: 6000,
-          sellingGeneralExpense: 4000,
-          operatingIncome: 10000 - 6000 - 4000,
-        },
-        cashFlow: {
-          startingCash: 100000,
-          operatingActivitiesCashFlow: -200000,
-          investingActivitiesCashFlow: -300,
-          financingActivitiesCashFlow: 10000,
-          endingCash: 100000 + -200000 + -300 + 10000,
-        },
-      },
-      {
-        fiscalYearStartDate: '2021-07-01',
-        fiscalYearEndDate: '2022-06-30',
-        companyName:
-          '株式会社アジュバンホールディングスああああああああああああ aaaaaaaaa bbbbbbbbbbbb ccccccccc',
-        balanceSheet: {
-          currentAsset: 250000,
-          propertyPlantAndEquipment: 50000,
-          intangibleAsset: 70000,
-          investmentAndOtherAsset: 10000,
-          currentLiability: 100000,
-          noncurrentLiability: 25000,
-          netAsset: 250000 + 50000 + 70000 + 10000 - (100000 + 25000),
-        },
-        profitLoss: {
-          netSales: 10000,
-          originalCost: 6000,
-          sellingGeneralExpense: 2000,
-          operatingIncome: 10000 - 6000 - 2000,
-        },
-        cashFlow: {
-          startingCash: 400,
-          operatingActivitiesCashFlow: 700,
-          investingActivitiesCashFlow: -300,
-          financingActivitiesCashFlow: 200,
-          endingCash: 400 + 700 + -300 + 200,
-        },
-      },
-    ],
+    financialStatements: [],
   };
 
   render(): React.ReactNode {
@@ -206,5 +99,117 @@ export default class DevCharts extends React.Component<
         })}
       </Grid>
     );
+  }
+
+  componentDidMount(): void {
+    new ApolloClientService()
+      .query(
+        `
+        query {
+          companyFinancialStatements(limit: 123) {
+            fiscalYearStartDate
+            fiscalYearEndDate
+            companyName
+            balanceSheet {
+              currentAsset
+              propertyPlantAndEquipment
+              intangibleAsset
+              investmentAndOtherAsset
+              currentLiability
+              noncurrentLiability
+              netAsset
+            }
+            profitLoss {
+              netSales
+              originalCost
+              sellingGeneralExpense
+              operatingIncome
+            }
+            cashFlow {
+              startingCash
+              operatingActivitiesCashFlow
+              investingActivitiesCashFlow
+              financingActivitiesCashFlow
+              endingCash
+            }
+          }
+        }
+        `,
+      )
+      .then((result) => {
+        const financialStatements = result.companyFinancialStatements;
+        if (
+          financialStatements === undefined ||
+          financialStatements === null ||
+          financialStatements.length === 0
+        ) {
+          return;
+        }
+
+        this.setState({
+          financialStatements: financialStatements.map((statement) => {
+            const balanceSheet = statement.balanceSheet;
+            const profitLoss = statement.profitLoss;
+            const cashFlow = statement.cashFlow;
+            return {
+              fiscalYearStartDate: StringUtil.toBlankIfEmpty(
+                statement.fiscalYearStartDate,
+              ),
+              fiscalYearEndDate: StringUtil.toBlankIfEmpty(
+                statement.fiscalYearEndDate,
+              ),
+              companyName: StringUtil.toBlankIfEmpty(statement.companyName),
+              balanceSheet: {
+                currentAsset: NumberUtil.toNumberOrDefault(
+                  balanceSheet?.currentAsset,
+                ),
+                propertyPlantAndEquipment: NumberUtil.toNumberOrDefault(
+                  balanceSheet?.propertyPlantAndEquipment,
+                ),
+                intangibleAsset: NumberUtil.toNumberOrDefault(
+                  balanceSheet?.intangibleAsset,
+                ),
+                investmentAndOtherAsset: NumberUtil.toNumberOrDefault(
+                  balanceSheet?.investmentAndOtherAsset,
+                ),
+                currentLiability: NumberUtil.toNumberOrDefault(
+                  balanceSheet?.currentLiability,
+                ),
+                noncurrentLiability: NumberUtil.toNumberOrDefault(
+                  balanceSheet?.noncurrentLiability,
+                ),
+                netAsset: NumberUtil.toNumberOrDefault(balanceSheet?.netAsset),
+              },
+              profitLoss: {
+                netSales: NumberUtil.toNumberOrDefault(profitLoss?.netSales),
+                originalCost: NumberUtil.toNumberOrDefault(
+                  profitLoss?.originalCost,
+                ),
+                sellingGeneralExpense: NumberUtil.toNumberOrDefault(
+                  profitLoss?.sellingGeneralExpense,
+                ),
+                operatingIncome: NumberUtil.toNumberOrDefault(
+                  profitLoss?.operatingIncome,
+                ),
+              },
+              cashFlow: {
+                startingCash: NumberUtil.toNumberOrDefault(
+                  cashFlow?.startingCash,
+                ),
+                operatingActivitiesCashFlow: NumberUtil.toNumberOrDefault(
+                  cashFlow?.operatingActivitiesCashFlow,
+                ),
+                investingActivitiesCashFlow: NumberUtil.toNumberOrDefault(
+                  cashFlow?.investingActivitiesCashFlow,
+                ),
+                financingActivitiesCashFlow: NumberUtil.toNumberOrDefault(
+                  cashFlow?.financingActivitiesCashFlow,
+                ),
+                endingCash: NumberUtil.toNumberOrDefault(cashFlow?.endingCash),
+              },
+            };
+          }),
+        });
+      });
   }
 }
