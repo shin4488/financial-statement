@@ -1,7 +1,7 @@
 module Mutations
   class SandboxTest < Mutations::BaseMutation
     argument :attributes, Types::BookmarkType
-    field :sandbox_testaa, Types::SandboxTestType, null: false
+    field :sandbox_testaa, Types::Sandbox::SandboxTestType, null: false
 
     def resolve(attributes:)
       {

@@ -7,18 +7,10 @@ module Types
     # Add root-level fields here.
     # They will be entry points for queries on your schema.
 
-    # TODO: remove me
-    field :test_field, String, null: false,
-      description: "An example field added by the generator"
-    def test_field
-      "Hello World!"
-    end
-
-    field :sandbox_tests, [SandboxTestType], "Find SandboxTest by id" do
+    field :sandbox_tests, [Sandbox::SandboxTestType], "Find SandboxTest by id" do
       argument :id, ID
     end
     def sandbox_tests(id:)
-      puts "#{id} が渡されました！！"
       results = []
       10.times do |i|
         results.push({
