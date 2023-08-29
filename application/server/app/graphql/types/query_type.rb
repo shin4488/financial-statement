@@ -30,10 +30,9 @@ module Types
     end
 
     field :company_financial_statements, [FinancialStatement::CompanyFinancialStatementType], "Find Company Financial Statement by limit" do
-      argument :limit, Integer
+      argument :limit, Integer, validates: { numericality: { greater_than: 0 } }
     end
-    def company_financial_statements(limit:)
-      puts "company_financial_statement_type limit: #{limit}"
+    def company_financial_statements(limit: 100)
       financial_statements = [
         {
           id: 1,
