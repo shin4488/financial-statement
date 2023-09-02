@@ -114,7 +114,7 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
               fill={stackLabelListFillColor}
               position="center"
               formatter={(value: number) =>
-                `投資その他の資産: ${value.toLocaleString()}`
+                `投資その他資産: ${value.toLocaleString()}`
               }
             />
           </Bar>

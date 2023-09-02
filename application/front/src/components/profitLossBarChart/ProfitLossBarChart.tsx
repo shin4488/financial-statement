@@ -83,9 +83,7 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
               dataKey="sellingGeneralExpense"
               fill={stackLabelListFillColor}
               position="center"
-              formatter={(value: number) =>
-                `販売一般管理費: ${value.toLocaleString()}`
-              }
+              formatter={(value: number) => `販管費: ${value.toLocaleString()}`}
             />
           </Bar>
 
