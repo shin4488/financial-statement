@@ -1,8 +1,8 @@
 interface Credit {
-  currentAsset: number;
-  propertyPlantAndEquipment: number;
-  intangibleAsset: number;
-  investmentAndOtherAsset: number;
+  currentAssetAmount: number;
+  propertyPlantAndEquipmentAmount: number;
+  intangibleAssetAmount: number;
+  investmentAndOtherAssetAmount: number;
   currentAssetRatio: number;
   propertyPlantAndEquipmentRatio: number;
   intangibleAssetRatio: number;
@@ -10,17 +10,17 @@ interface Credit {
 }
 
 interface Dept {
-  currentLiability: number;
-  noncurrentLiability: number;
-  netAsset?: number;
+  currentLiabilityAmount: number;
+  noncurrentLiabilityAmount: number;
+  netAssetAmount?: number;
   currentLiabilityRatio: number;
   noncurrentLiabilityRatio: number;
   netAssetRatio?: number;
 }
 
 interface MinusNetAsset {
-  blanckForInsolvency: number;
-  netAsset: number;
+  blanckForInsolvencyAmount: number;
+  netAssetAmount: number;
   netAssetRatio: number;
 }
 
@@ -34,12 +34,12 @@ export type BalanceSheetChart = [
 export type BalanceSheetAmountKeyLabel = {
   [K in (keyof Credit | keyof Dept | keyof MinusNetAsset) &
     (
-      | 'currentAsset'
-      | 'propertyPlantAndEquipment'
-      | 'intangibleAsset'
-      | 'investmentAndOtherAsset'
-      | 'currentLiability'
-      | 'noncurrentLiability'
-      | 'netAsset'
+      | 'currentAssetAmount'
+      | 'propertyPlantAndEquipmentAmount'
+      | 'intangibleAssetAmount'
+      | 'investmentAndOtherAssetAmount'
+      | 'currentLiabilityAmount'
+      | 'noncurrentLiabilityAmount'
+      | 'netAssetAmount'
     )]: string;
 };
