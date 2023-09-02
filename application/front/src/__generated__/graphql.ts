@@ -19,6 +19,12 @@ export type Scalars = {
 
 export type BalanceSheet = {
   __typename?: 'BalanceSheet';
+  amount?: Maybe<BalanceSheetAmount>;
+  ratio?: Maybe<BalanceSheetRatio>;
+};
+
+export type BalanceSheetAmount = {
+  __typename?: 'BalanceSheetAmount';
   currentAsset?: Maybe<Scalars['BigInt']['output']>;
   currentLiability?: Maybe<Scalars['BigInt']['output']>;
   intangibleAsset?: Maybe<Scalars['BigInt']['output']>;
@@ -26,6 +32,17 @@ export type BalanceSheet = {
   netAsset?: Maybe<Scalars['BigInt']['output']>;
   noncurrentLiability?: Maybe<Scalars['BigInt']['output']>;
   propertyPlantAndEquipment?: Maybe<Scalars['BigInt']['output']>;
+};
+
+export type BalanceSheetRatio = {
+  __typename?: 'BalanceSheetRatio';
+  currentAsset?: Maybe<Scalars['Float']['output']>;
+  currentLiability?: Maybe<Scalars['Float']['output']>;
+  intangibleAsset?: Maybe<Scalars['Float']['output']>;
+  investmentAndOtherAsset?: Maybe<Scalars['Float']['output']>;
+  netAsset?: Maybe<Scalars['Float']['output']>;
+  noncurrentLiability?: Maybe<Scalars['Float']['output']>;
+  propertyPlantAndEquipment?: Maybe<Scalars['Float']['output']>;
 };
 
 export type Bookmark = {
@@ -84,6 +101,7 @@ export type Query = {
 
 export type QueryCompanyFinancialStatementsArgs = {
   limit: Scalars['Int']['input'];
+  offset: Scalars['Int']['input'];
 };
 
 

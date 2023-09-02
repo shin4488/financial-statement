@@ -373,7 +373,47 @@ module Types
             ending_cash: 400 + 700 + -300 + 200,
           },
         },
-      ]
+      ].map { |statement|
+        balance_sheet = statement[:balance_sheet]
+        truncated_position = 3
+
+        current_asset = balance_sheet[:current_asset].to_d
+        property_plant_and_equipment = balance_sheet[:property_plant_and_equipment].to_d
+        intangible_asset = balance_sheet[:intangible_asset].to_d
+        investment_and_other_asset = balance_sheet[:investment_and_other_asset].to_d
+        total_asset_amount = current_asset + property_plant_and_equipment + intangible_asset + investment_and_other_asset
+        current_asset_ratio = (current_asset / total_asset_amount).truncate(truncated_position)
+        property_plant_and_equipment_ratio = (property_plant_and_equipment / total_asset_amount).truncate(truncated_position)
+        intangible_asset_ratio = (intangible_asset / total_asset_amount).truncate(truncated_position)
+        investment_and_other_asset_ratio = 1 - (current_asset_ratio + property_plant_and_equipment_ratio + intangible_asset_ratio)
+
+        current_liability = balance_sheet[:current_liability].to_d
+        noncurrent_liability = balance_sheet[:noncurrent_liability].to_d
+        current_liability_ratio = (current_liability / total_asset_amount).truncate(truncated_position)
+        noncurrent_liability_ratio = (noncurrent_liability / total_asset_amount).truncate(truncated_position)
+
+        {
+          id: statement[:id],
+          fiscal_year_start_date: statement[:fiscal_year_start_date],
+          fiscal_year_end_date: statement[:fiscal_year_end_date],
+          company_name: statement[:company_name],
+          balance_sheet: {
+            amount: balance_sheet,
+            ratio: {
+              current_asset: current_asset_ratio * 100,
+              property_plant_and_equipment: property_plant_and_equipment_ratio * 100,
+              intangible_asset: intangible_asset_ratio * 100,
+              investment_and_other_asset: investment_and_other_asset_ratio * 100,
+              current_liability: current_liability_ratio * 100,
+              noncurrent_liability: noncurrent_liability_ratio * 100,
+              # 債務超過の時は総資産と比較した比率を算出する
+              net_asset: balance_sheet[:net_asset] >= 0 ? (1 - (current_liability_ratio + noncurrent_liability_ratio)).truncate(truncated_position) * 100 : (balance_sheet[:net_asset] / total_asset_amount).truncate(truncated_position) * 100,
+            }
+          },
+          profit_loss: statement[:profit_loss],
+          cash_flow: statement[:cash_flow],
+        }
+      }
     end
   end
 end

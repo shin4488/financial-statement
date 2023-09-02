@@ -125,13 +125,24 @@ export default class DevCharts extends React.Component<
             fiscalYearEndDate
             companyName
             balanceSheet {
-              currentAsset
-              propertyPlantAndEquipment
-              intangibleAsset
-              investmentAndOtherAsset
-              currentLiability
-              noncurrentLiability
-              netAsset
+              amount {
+                currentAsset
+                propertyPlantAndEquipment
+                intangibleAsset
+                investmentAndOtherAsset
+                currentLiability
+                noncurrentLiability
+                netAsset
+              }
+              ratio {
+                currentAsset
+                propertyPlantAndEquipment
+                intangibleAsset
+                investmentAndOtherAsset
+                currentLiability
+                noncurrentLiability
+                netAsset
+              }
             }
             profitLoss {
               netSales
@@ -192,7 +203,8 @@ export default class DevCharts extends React.Component<
   mapFinancialStatementFromResponseToState(
     financialStatementResponse: CompanyFinancialStatement,
   ): FinancialStatement {
-    const balanceSheet = financialStatementResponse.balanceSheet;
+    const balanceSheetAmount = financialStatementResponse.balanceSheet?.amount;
+    const balanceSheetRatio = financialStatementResponse.balanceSheet?.ratio;
     const profitLoss = financialStatementResponse.profitLoss;
     const cashFlow = financialStatementResponse.cashFlow;
 
@@ -209,33 +221,45 @@ export default class DevCharts extends React.Component<
       balanceSheet: {
         amount: {
           currentAsset: NumberUtil.toNumberOrDefault(
-            balanceSheet?.currentAsset,
+            balanceSheetAmount?.currentAsset,
           ),
           propertyPlantAndEquipment: NumberUtil.toNumberOrDefault(
-            balanceSheet?.propertyPlantAndEquipment,
+            balanceSheetAmount?.propertyPlantAndEquipment,
           ),
           intangibleAsset: NumberUtil.toNumberOrDefault(
-            balanceSheet?.intangibleAsset,
+            balanceSheetAmount?.intangibleAsset,
           ),
           investmentAndOtherAsset: NumberUtil.toNumberOrDefault(
-            balanceSheet?.investmentAndOtherAsset,
+            balanceSheetAmount?.investmentAndOtherAsset,
           ),
           currentLiability: NumberUtil.toNumberOrDefault(
-            balanceSheet?.currentLiability,
+            balanceSheetAmount?.currentLiability,
           ),
           noncurrentLiability: NumberUtil.toNumberOrDefault(
-            balanceSheet?.noncurrentLiability,
+            balanceSheetAmount?.noncurrentLiability,
           ),
-          netAsset: NumberUtil.toNumberOrDefault(balanceSheet?.netAsset),
+          netAsset: NumberUtil.toNumberOrDefault(balanceSheetAmount?.netAsset),
         },
         ratio: {
-          currentAsset: 60,
-          propertyPlantAndEquipment: 20,
-          intangibleAsset: 15,
-          investmentAndOtherAsset: 5,
-          currentLiability: 40,
-          noncurrentLiability: 15,
-          netAsset: 45,
+          currentAsset: NumberUtil.toNumberOrDefault(
+            balanceSheetRatio?.currentAsset,
+          ),
+          propertyPlantAndEquipment: NumberUtil.toNumberOrDefault(
+            balanceSheetRatio?.propertyPlantAndEquipment,
+          ),
+          intangibleAsset: NumberUtil.toNumberOrDefault(
+            balanceSheetRatio?.intangibleAsset,
+          ),
+          investmentAndOtherAsset: NumberUtil.toNumberOrDefault(
+            balanceSheetRatio?.investmentAndOtherAsset,
+          ),
+          currentLiability: NumberUtil.toNumberOrDefault(
+            balanceSheetRatio?.currentLiability,
+          ),
+          noncurrentLiability: NumberUtil.toNumberOrDefault(
+            balanceSheetRatio?.noncurrentLiability,
+          ),
+          netAsset: NumberUtil.toNumberOrDefault(balanceSheetRatio?.netAsset),
         },
       },
       profitLoss: {
