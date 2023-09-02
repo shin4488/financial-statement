@@ -1,4 +1,4 @@
-type Credit = {
+interface Credit {
   currentAsset: number;
   propertyPlantAndEquipment: number;
   intangibleAsset: number;
@@ -7,22 +7,22 @@ type Credit = {
   propertyPlantAndEquipmentRatio: number;
   intangibleAssetRatio: number;
   investmentAndOtherAssetRatio: number;
-};
+}
 
-type Dept = {
+interface Dept {
   currentLiability: number;
   noncurrentLiability: number;
   netAsset?: number;
   currentLiabilityRatio: number;
   noncurrentLiabilityRatio: number;
   netAssetRatio?: number;
-};
+}
 
-type MinusNetAsset = {
+interface MinusNetAsset {
   blanckForInsolvency: number;
   netAsset: number;
   netAssetRatio: number;
-};
+}
 
 export type BalanceSheetChart = [
   Credit,
