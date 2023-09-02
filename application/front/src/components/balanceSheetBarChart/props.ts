@@ -1,4 +1,4 @@
-export interface BalanceSheetBarChartProps {
+interface BalanceSheetDetail {
   currentAsset: number;
   // 有形固定資産
   propertyPlantAndEquipment: number;
@@ -9,4 +9,9 @@ export interface BalanceSheetBarChartProps {
   currentLiability: number;
   noncurrentLiability: number;
   netAsset: number;
+}
+
+export interface BalanceSheetBarChartProps {
+  amount: BalanceSheetDetail;
+  ratio: BalanceSheetDetail;
 }

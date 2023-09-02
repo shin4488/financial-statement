@@ -32,26 +32,28 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
    * @returns
    */
   isInsolvency(): boolean {
-    return this.props.netAsset < 0;
+    return this.props.amount.netAsset < 0;
   }
 
   balanceSheetCharData(): BalanceSheetChart {
+    const amount = this.props.amount;
+    const ratio = this.props.ratio;
     return [
       {
-        currentAssetAmount: this.props.currentAsset,
-        propertyPlantAndEquipmentAmount: this.props.propertyPlantAndEquipment,
-        intangibleAssetAmount: this.props.intangibleAsset,
-        investmentAndOtherAssetAmount: this.props.investmentAndOtherAsset,
-        currentAssetRatio: 40,
-        propertyPlantAndEquipmentRatio: 20,
-        intangibleAssetRatio: 30,
-        investmentAndOtherAssetRatio: 10,
+        currentAssetAmount: amount.currentAsset,
+        propertyPlantAndEquipmentAmount: amount.propertyPlantAndEquipment,
+        intangibleAssetAmount: amount.intangibleAsset,
+        investmentAndOtherAssetAmount: amount.investmentAndOtherAsset,
+        currentAssetRatio: ratio.currentAsset,
+        propertyPlantAndEquipmentRatio: ratio.propertyPlantAndEquipment,
+        intangibleAssetRatio: ratio.intangibleAsset,
+        investmentAndOtherAssetRatio: ratio.investmentAndOtherAsset,
       },
       {
-        currentLiabilityAmount: this.props.currentLiability,
-        noncurrentLiabilityAmount: this.props.noncurrentLiability,
-        currentLiabilityRatio: 30,
-        noncurrentLiabilityRatio: 20,
+        currentLiabilityAmount: amount.currentLiability,
+        noncurrentLiabilityAmount: amount.noncurrentLiability,
+        currentLiabilityRatio: ratio.currentLiability,
+        noncurrentLiabilityRatio: ratio.noncurrentLiability,
       },
     ];
   }
@@ -59,22 +61,22 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
   render(): React.ReactNode {
     const balanceSheetCharData = this.balanceSheetCharData();
     const isInsolvency = this.isInsolvency();
-    const netAsset = this.props.netAsset;
+    const amount = this.props.amount;
+    const ratio = this.props.ratio;
+    const netAsset = amount.netAsset;
     // 債務超過の場合は3本目のグラフに純資産を表示する
     if (isInsolvency) {
       balanceSheetCharData.push({
         // この場合純資産の数値はマイナスとなるため、ブランク分の数値は「負債 - 純資産（債務超過分）」となる
         blanckForInsolvencyAmount:
-          this.props.currentLiability +
-          this.props.noncurrentLiability +
-          netAsset,
+          amount.currentLiability + amount.noncurrentLiability + netAsset,
         // マイナス数値をChartに表示すると逆方法に表示されてしまうため、Chartに渡す数値はプラスにする
         netAssetAmount: -netAsset,
-        netAssetRatio: 30,
+        netAssetRatio: -ratio.netAsset,
       });
     } else {
       balanceSheetCharData[1].netAssetAmount = netAsset;
-      balanceSheetCharData[1].netAssetRatio = 30;
+      balanceSheetCharData[1].netAssetRatio = ratio.netAsset;
     }
 
     return (
