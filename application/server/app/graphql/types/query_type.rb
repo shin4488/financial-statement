@@ -373,6 +373,34 @@ module Types
             ending_cash: 400 + 700 + -300 + 200,
           },
         },
+        {
+          id: 4,
+          fiscal_year_start_date: '2021-12-31',
+          fiscal_year_end_date: '2022-12-30',
+          company_name: '株式会社アジュバンホールディングスああああああああああああ aaaaaaaaa bbbbbbbbbbbb ccccccccc ddddddddddddddddddddddddddddddddddddddddddddddddddd',
+          balance_sheet: {
+            current_asset: 250000,
+            property_plant_and_equipment: 50000,
+            intangible_asset: 70000,
+            investment_and_other_asset: 10000,
+            current_liability: 100000,
+            noncurrent_liability: 25000,
+            net_asset: 250000 + 50000 + 70000 + 10000 - (100000 + 25000),
+          },
+          profit_loss: {
+            net_sales: 10000,
+            original_cost: 6000,
+            selling_general_expense: 2000,
+            operating_income: 10000 - 6000 - 2000,
+          },
+          cash_flow: {
+            starting_cash: 400,
+            operating_activities_cash_flow: 700,
+            investing_activities_cash_flow: -300,
+            financing_activities_cash_flow: 200,
+            ending_cash: 400 + 700 + -300 + 200,
+          },
+        },
       ].map { |statement|
         balance_sheet = statement[:balance_sheet]
         truncated_position = 3
