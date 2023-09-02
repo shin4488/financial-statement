@@ -49,8 +49,7 @@ export default class DevCharts extends React.Component<
       <>
         <Grid container spacing={2} padding={1}>
           {this.state.financialStatements.map((chartData, index) => {
-            const balanceSheetAmount = chartData.balanceSheet.amount;
-            const balanceSheetRatio = chartData.balanceSheet.ratio;
+            const balanceSheet = chartData.balanceSheet;
             const profitLoss = chartData.profitLoss;
             const cashFlow = chartData.cashFlow;
             return (
@@ -71,8 +70,8 @@ export default class DevCharts extends React.Component<
                   <CardContent>
                     <AppCarousel>
                       <BalanceSheetBarCahrt
-                        amount={balanceSheetAmount}
-                        ratio={balanceSheetRatio}
+                        amount={balanceSheet.amount}
+                        ratio={balanceSheet.ratio}
                       />
                       <ProfitLossBarChart
                         netSales={profitLoss.netSales}
