@@ -4,7 +4,7 @@ import {
   stackLabelListFillColor,
   barChartWidth,
   barChartHeight,
-} from '@/constants/chart';
+} from '@/constants/values';
 import { BalanceSheetBarChartProps } from './props';
 
 type BalanceSheetChart = [

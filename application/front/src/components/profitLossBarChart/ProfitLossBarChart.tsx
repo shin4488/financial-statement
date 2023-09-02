@@ -3,7 +3,7 @@ import {
   stackLabelListFillColor,
   barChartWidth,
   barChartHeight,
-} from '@/constants/chart';
+} from '@/constants/values';
 import { BarChart, Bar, LabelList, YAxis, ResponsiveContainer } from 'recharts';
 import { ProfitLossBarChartProps } from './props';
 

@@ -8,7 +8,11 @@ import {
   LabelList,
   ResponsiveContainer,
 } from 'recharts';
-import { tooltipStyle, barChartWidth, barChartHeight } from '@/constants/chart';
+import {
+  tooltipStyle,
+  barChartWidth,
+  barChartHeight,
+} from '@/constants/values';
 import { WaterFlowBarChartProps } from './props';
 
 export default class WaterFlowBarChart extends React.Component<WaterFlowBarChartProps> {
