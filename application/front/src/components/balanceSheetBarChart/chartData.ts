@@ -9,7 +9,7 @@ interface Credit {
   investmentAndOtherAssetRatio: number;
 }
 
-interface Dept {
+interface Debt {
   currentLiabilityAmount: number;
   noncurrentLiabilityAmount: number;
   netAssetAmount?: number;
@@ -26,13 +26,13 @@ interface MinusNetAsset {
 
 export type BalanceSheetChart = [
   Credit,
-  Dept,
+  Debt,
   // 債務超過の場合のみ3つ目の棒グラフを表示
   MinusNetAsset?,
 ];
 
 export type BalanceSheetAmountKeyLabel = {
-  [K in (keyof Credit | keyof Dept | keyof MinusNetAsset) &
+  [K in (keyof Credit | keyof Debt | keyof MinusNetAsset) &
     (
       | 'currentAssetAmount'
       | 'propertyPlantAndEquipmentAmount'
