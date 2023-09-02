@@ -17,6 +17,7 @@ import { NumberUtil } from '@/plugins/utils/numberUtil';
 import StringUtil from '@/plugins/utils/stringUtil';
 import { financialStatementOffsetUnit } from '@/constants/values';
 import { EnvUtil } from '@/plugins/utils/envUtil';
+import { CompanyFinancialStatement } from '@/__generated__/graphql';
 
 interface FinancialStatement {
   fiscalYearStartDate: string;
@@ -188,85 +189,74 @@ export default class DevCharts extends React.Component<
               ? state.financialStatements
               : [
                   ...state.financialStatements,
-                  ...financialStatements.map<FinancialStatement>(
-                    (statement) => {
-                      const balanceSheet = statement.balanceSheet;
-                      const profitLoss = statement.profitLoss;
-                      const cashFlow = statement.cashFlow;
-                      return {
-                        fiscalYearStartDate: StringUtil.toBlankIfEmpty(
-                          statement.fiscalYearStartDate,
-                        ),
-                        fiscalYearEndDate: StringUtil.toBlankIfEmpty(
-                          statement.fiscalYearEndDate,
-                        ),
-                        companyName: StringUtil.toBlankIfEmpty(
-                          statement.companyName,
-                        ),
-                        balanceSheet: {
-                          currentAsset: NumberUtil.toNumberOrDefault(
-                            balanceSheet?.currentAsset,
-                          ),
-                          propertyPlantAndEquipment:
-                            NumberUtil.toNumberOrDefault(
-                              balanceSheet?.propertyPlantAndEquipment,
-                            ),
-                          intangibleAsset: NumberUtil.toNumberOrDefault(
-                            balanceSheet?.intangibleAsset,
-                          ),
-                          investmentAndOtherAsset: NumberUtil.toNumberOrDefault(
-                            balanceSheet?.investmentAndOtherAsset,
-                          ),
-                          currentLiability: NumberUtil.toNumberOrDefault(
-                            balanceSheet?.currentLiability,
-                          ),
-                          noncurrentLiability: NumberUtil.toNumberOrDefault(
-                            balanceSheet?.noncurrentLiability,
-                          ),
-                          netAsset: NumberUtil.toNumberOrDefault(
-                            balanceSheet?.netAsset,
-                          ),
-                        },
-                        profitLoss: {
-                          netSales: NumberUtil.toNumberOrDefault(
-                            profitLoss?.netSales,
-                          ),
-                          originalCost: NumberUtil.toNumberOrDefault(
-                            profitLoss?.originalCost,
-                          ),
-                          sellingGeneralExpense: NumberUtil.toNumberOrDefault(
-                            profitLoss?.sellingGeneralExpense,
-                          ),
-                          operatingIncome: NumberUtil.toNumberOrDefault(
-                            profitLoss?.operatingIncome,
-                          ),
-                        },
-                        cashFlow: {
-                          startingCash: NumberUtil.toNumberOrDefault(
-                            cashFlow?.startingCash,
-                          ),
-                          operatingActivitiesCashFlow:
-                            NumberUtil.toNumberOrDefault(
-                              cashFlow?.operatingActivitiesCashFlow,
-                            ),
-                          investingActivitiesCashFlow:
-                            NumberUtil.toNumberOrDefault(
-                              cashFlow?.investingActivitiesCashFlow,
-                            ),
-                          financingActivitiesCashFlow:
-                            NumberUtil.toNumberOrDefault(
-                              cashFlow?.financingActivitiesCashFlow,
-                            ),
-                          endingCash: NumberUtil.toNumberOrDefault(
-                            cashFlow?.endingCash,
-                          ),
-                        },
-                      };
-                    },
+                  ...financialStatements.map((statement) =>
+                    this.mapFinancialStatementFromResponseToState(statement),
                   ),
                 ],
           };
         });
       });
+  }
+
+  mapFinancialStatementFromResponseToState(
+    financialStatementResponse: CompanyFinancialStatement,
+  ): FinancialStatement {
+    const balanceSheet = financialStatementResponse.balanceSheet;
+    const profitLoss = financialStatementResponse.profitLoss;
+    const cashFlow = financialStatementResponse.cashFlow;
+
+    return {
+      fiscalYearStartDate: StringUtil.toBlankIfEmpty(
+        financialStatementResponse.fiscalYearStartDate,
+      ),
+      fiscalYearEndDate: StringUtil.toBlankIfEmpty(
+        financialStatementResponse.fiscalYearEndDate,
+      ),
+      companyName: StringUtil.toBlankIfEmpty(
+        financialStatementResponse.companyName,
+      ),
+      balanceSheet: {
+        currentAsset: NumberUtil.toNumberOrDefault(balanceSheet?.currentAsset),
+        propertyPlantAndEquipment: NumberUtil.toNumberOrDefault(
+          balanceSheet?.propertyPlantAndEquipment,
+        ),
+        intangibleAsset: NumberUtil.toNumberOrDefault(
+          balanceSheet?.intangibleAsset,
+        ),
+        investmentAndOtherAsset: NumberUtil.toNumberOrDefault(
+          balanceSheet?.investmentAndOtherAsset,
+        ),
+        currentLiability: NumberUtil.toNumberOrDefault(
+          balanceSheet?.currentLiability,
+        ),
+        noncurrentLiability: NumberUtil.toNumberOrDefault(
+          balanceSheet?.noncurrentLiability,
+        ),
+        netAsset: NumberUtil.toNumberOrDefault(balanceSheet?.netAsset),
+      },
+      profitLoss: {
+        netSales: NumberUtil.toNumberOrDefault(profitLoss?.netSales),
+        originalCost: NumberUtil.toNumberOrDefault(profitLoss?.originalCost),
+        sellingGeneralExpense: NumberUtil.toNumberOrDefault(
+          profitLoss?.sellingGeneralExpense,
+        ),
+        operatingIncome: NumberUtil.toNumberOrDefault(
+          profitLoss?.operatingIncome,
+        ),
+      },
+      cashFlow: {
+        startingCash: NumberUtil.toNumberOrDefault(cashFlow?.startingCash),
+        operatingActivitiesCashFlow: NumberUtil.toNumberOrDefault(
+          cashFlow?.operatingActivitiesCashFlow,
+        ),
+        investingActivitiesCashFlow: NumberUtil.toNumberOrDefault(
+          cashFlow?.investingActivitiesCashFlow,
+        ),
+        financingActivitiesCashFlow: NumberUtil.toNumberOrDefault(
+          cashFlow?.financingActivitiesCashFlow,
+        ),
+        endingCash: NumberUtil.toNumberOrDefault(cashFlow?.endingCash),
+      },
+    };
   }
 }
