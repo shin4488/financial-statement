@@ -95,7 +95,9 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
             labelFormatter={() => ''}
             formatter={(value, name) => {
               return [
-                value.toLocaleString(),
+                this.isInsolvency()
+                  ? `-${value.toLocaleString()}`
+                  : value.toLocaleString(),
                 // Barコンポーネントに渡すdataKeyはAmountのキーである前提
                 `${
                   dataKeyJapaneseHash[name as keyof BalanceSheetAmountKeyLabel]
