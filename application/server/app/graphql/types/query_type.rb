@@ -160,8 +160,8 @@ module Types
             intangible_asset: 814974000,
             investment_and_other_asset: 1941055000,
             current_liability: 28866106000,
-            noncurrent_liability: 2009258000,
-            net_asset: 9093306000,
+            noncurrent_liability: 32908208000 + 4304433000 + 814974000 + 1941055000 - 28866106000,
+            net_asset: 0,
           },
           profit_loss: {
             net_sales: 107959426000,
@@ -419,8 +419,10 @@ module Types
         # 負債
         current_liability = balance_sheet[:current_liability].to_d
         noncurrent_liability = balance_sheet[:noncurrent_liability].to_d
+        net_asset = balance_sheet[:net_asset].to_d
         current_liability_ratio = (current_liability / total_asset_amount).truncate(ratio_truncated_position)
         noncurrent_liability_ratio = (noncurrent_liability / total_asset_amount).truncate(ratio_truncated_position)
+        net_asset_ratio = net_asset > 0 ? 1 - (current_liability_ratio + noncurrent_liability_ratio) : (net_asset / total_asset_amount).truncate(ratio_truncated_position)
 
         # 損益計算書
         profit_loss = statement[:profit_loss]
@@ -447,7 +449,7 @@ module Types
               current_liability: current_liability_ratio * 100,
               noncurrent_liability: noncurrent_liability_ratio * 100,
               # 債務超過の時は総資産と比較した比率を算出する
-              net_asset: balance_sheet[:net_asset] >= 0 ? (1 - (current_liability_ratio + noncurrent_liability_ratio)).truncate(ratio_truncated_position) * 100 : (balance_sheet[:net_asset] / total_asset_amount).truncate(ratio_truncated_position) * 100,
+              net_asset: net_asset_ratio * 100,
             }
           },
           profit_loss: {
