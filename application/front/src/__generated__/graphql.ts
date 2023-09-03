@@ -56,7 +56,6 @@ export type CashFlow = {
 
 export type CompanyFinancialStatement = {
   __typename?: 'CompanyFinancialStatement';
-  aaa?: Maybe<Scalars['String']['output']>;
   balanceSheet?: Maybe<BalanceSheet>;
   cashFlow?: Maybe<CashFlow>;
   companyName?: Maybe<Scalars['String']['output']>;
