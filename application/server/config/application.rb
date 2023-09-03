@@ -39,7 +39,6 @@ module FinancialStatement
     config.middleware.use ActionDispatch::Session::CookieStore
     # https://weseek.co.jp/tech/680/
     # DNSリバインディング攻撃制御に対応するため、nginxで定義されているサーバ名からのリクエストは受け付ける
-    config.hosts << "fs_serverapp"
-    config.hosts << "appserver"
+    config.hosts << ENV["SERVER_HOST_NAME"] if ENV["SERVER_HOST_NAME"].present?
   end
 end
