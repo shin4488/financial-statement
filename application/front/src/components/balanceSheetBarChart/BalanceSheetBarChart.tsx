@@ -1,20 +1,9 @@
 import React from 'react';
-import {
-  Bar,
-  BarChart,
-  LabelList,
-  ResponsiveContainer,
-  Tooltip,
-  YAxis,
-} from 'recharts';
-import {
-  stackLabelListFillColor,
-  barChartWidth,
-  barChartHeight,
-  tooltipStyle,
-} from '@/constants/values';
+import { Bar, LabelList } from 'recharts';
+import { stackLabelListFillColor } from '@/constants/values';
 import { BalanceSheetBarChartProps } from './props';
 import { BalanceSheetAmountKeyLabel, BalanceSheetChart } from './chartData';
+import FinancialStatementBarChart from '@/components/financialStatementBarChart/FinancialStatementBarChart';
 
 const dataKeyJapaneseHash: BalanceSheetAmountKeyLabel = {
   currentAssetAmount: '流動資産',
@@ -80,129 +69,108 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
     }
 
     return (
-      <ResponsiveContainer
-        className="bar-container"
-        width={barChartWidth}
-        height={barChartHeight}
+      <FinancialStatementBarChart
+        data={balanceSheetCharData}
+        tooltipFormatter={(value, name) => {
+          return [
+            this.isInsolvency()
+              ? `-${value.toLocaleString()}`
+              : value.toLocaleString(),
+            // Barコンポーネントに渡すdataKeyはAmountのキーである前提
+            `${dataKeyJapaneseHash[name as keyof BalanceSheetAmountKeyLabel]}`,
+          ];
+        }}
       >
-        <BarChart data={balanceSheetCharData}>
-          <YAxis reversed hide />
-          <Tooltip
-            cursor={false}
-            wrapperStyle={{
-              backgroundColor: tooltipStyle.backgroundColor,
-              textAlign: 'left',
-            }}
-            // 配列のインデックス数値が表示されてしまうため、labelはブランクとする
-            labelFormatter={() => ''}
-            formatter={(value, name) => {
-              return [
-                this.isInsolvency()
-                  ? `-${value.toLocaleString()}`
-                  : value.toLocaleString(),
-                // Barコンポーネントに渡すdataKeyはAmountのキーである前提
-                `${
-                  dataKeyJapaneseHash[name as keyof BalanceSheetAmountKeyLabel]
-                }`,
-              ];
-            }}
+        {/* 借方 */}
+        <Bar dataKey="currentAssetAmount" stackId="a" fill="#FEBBCC">
+          <LabelList
+            dataKey="currentAssetRatio"
+            fill={stackLabelListFillColor}
+            position="center"
+            formatter={(value: number) =>
+              `${dataKeyJapaneseHash.currentAssetAmount}: ${value}%`
+            }
           />
+        </Bar>
+        <Bar
+          dataKey="propertyPlantAndEquipmentAmount"
+          stackId="a"
+          fill="#E48586"
+        >
+          <LabelList
+            dataKey="propertyPlantAndEquipmentRatio"
+            fill={stackLabelListFillColor}
+            position="center"
+            formatter={(value: number) =>
+              `${dataKeyJapaneseHash.propertyPlantAndEquipmentAmount}: ${value}%`
+            }
+          />
+        </Bar>
+        <Bar dataKey="intangibleAssetAmount" stackId="a" fill="#FCBAAD">
+          <LabelList
+            dataKey="intangibleAssetRatio"
+            fill={stackLabelListFillColor}
+            position="center"
+            formatter={(value: number) =>
+              `${dataKeyJapaneseHash.intangibleAssetAmount}: ${value}%`
+            }
+          />
+        </Bar>
+        <Bar dataKey="investmentAndOtherAssetAmount" stackId="a" fill="#C51605">
+          <LabelList
+            dataKey="investmentAndOtherAssetRatio"
+            fill={stackLabelListFillColor}
+            position="center"
+            formatter={(value: number) =>
+              `${dataKeyJapaneseHash.investmentAndOtherAssetAmount}: ${value}%`
+            }
+          />
+        </Bar>
 
-          {/* 借方 */}
-          <Bar dataKey="currentAssetAmount" stackId="a" fill="#FEBBCC">
-            <LabelList
-              dataKey="currentAssetRatio"
-              fill={stackLabelListFillColor}
-              position="center"
-              formatter={(value: number) =>
-                `${dataKeyJapaneseHash.currentAssetAmount}: ${value}%`
-              }
-            />
-          </Bar>
+        {/* 貸方 */}
+        <Bar dataKey="currentLiabilityAmount" stackId="a" fill="#5B9A8B">
+          <LabelList
+            dataKey="currentLiabilityRatio"
+            fill={stackLabelListFillColor}
+            position="center"
+            formatter={(value: number) =>
+              `${dataKeyJapaneseHash.currentLiabilityAmount}: ${value}%`
+            }
+          />
+        </Bar>
+        <Bar dataKey="noncurrentLiabilityAmount" stackId="a" fill="#445069">
+          <LabelList
+            dataKey="noncurrentLiabilityRatio"
+            fill={stackLabelListFillColor}
+            position="center"
+            formatter={(value: number) =>
+              `${dataKeyJapaneseHash.noncurrentLiabilityAmount}: ${value}%`
+            }
+          />
+        </Bar>
+        {isInsolvency ? (
+          // 債務超過の場合のみ3つ目の棒グラフを表示、債務超過の分だけ資産（借方）には空白スペースを表示
           <Bar
-            dataKey="propertyPlantAndEquipmentAmount"
+            dataKey="blanckForInsolvencyAmount"
             stackId="a"
-            fill="#E48586"
-          >
-            <LabelList
-              dataKey="propertyPlantAndEquipmentRatio"
-              fill={stackLabelListFillColor}
-              position="center"
-              formatter={(value: number) =>
-                `${dataKeyJapaneseHash.propertyPlantAndEquipmentAmount}: ${value}%`
-              }
-            />
-          </Bar>
-          <Bar dataKey="intangibleAssetAmount" stackId="a" fill="#FCBAAD">
-            <LabelList
-              dataKey="intangibleAssetRatio"
-              fill={stackLabelListFillColor}
-              position="center"
-              formatter={(value: number) =>
-                `${dataKeyJapaneseHash.intangibleAssetAmount}: ${value}%`
-              }
-            />
-          </Bar>
-          <Bar
-            dataKey="investmentAndOtherAssetAmount"
-            stackId="a"
-            fill="#C51605"
-          >
-            <LabelList
-              dataKey="investmentAndOtherAssetRatio"
-              fill={stackLabelListFillColor}
-              position="center"
-              formatter={(value: number) =>
-                `${dataKeyJapaneseHash.investmentAndOtherAssetAmount}: ${value}%`
-              }
-            />
-          </Bar>
-
-          {/* 貸方 */}
-          <Bar dataKey="currentLiabilityAmount" stackId="a" fill="#5B9A8B">
-            <LabelList
-              dataKey="currentLiabilityRatio"
-              fill={stackLabelListFillColor}
-              position="center"
-              formatter={(value: number) =>
-                `${dataKeyJapaneseHash.currentLiabilityAmount}: ${value}%`
-              }
-            />
-          </Bar>
-          <Bar dataKey="noncurrentLiabilityAmount" stackId="a" fill="#445069">
-            <LabelList
-              dataKey="noncurrentLiabilityRatio"
-              fill={stackLabelListFillColor}
-              position="center"
-              formatter={(value: number) =>
-                `${dataKeyJapaneseHash.noncurrentLiabilityAmount}: ${value}%`
-              }
-            />
-          </Bar>
-          {isInsolvency ? (
-            // 債務超過の場合のみ3つ目の棒グラフを表示、債務超過の分だけ資産（借方）には空白スペースを表示
-            <Bar
-              dataKey="blanckForInsolvencyAmount"
-              stackId="a"
-              fill="transparent"
-            />
-          ) : (
-            <></>
-          )}
-          <Bar dataKey="netAssetAmount" stackId="a" fill="#252B48">
-            <LabelList
-              dataKey="netAssetRatio"
-              fill={stackLabelListFillColor}
-              position="center"
-              formatter={(value: number) =>
-                `${dataKeyJapaneseHash.netAssetAmount}: ${
-                  isInsolvency ? -Number(value) : value
-                }%`
-              }
-            />
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+            fill="transparent"
+          />
+        ) : (
+          <></>
+        )}
+        <Bar dataKey="netAssetAmount" stackId="a" fill="#252B48">
+          <LabelList
+            dataKey="netAssetRatio"
+            fill={stackLabelListFillColor}
+            position="center"
+            formatter={(value: number) =>
+              `${dataKeyJapaneseHash.netAssetAmount}: ${
+                isInsolvency ? -Number(value) : value
+              }%`
+            }
+          />
+        </Bar>
+      </FinancialStatementBarChart>
     );
   }
 }
