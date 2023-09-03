@@ -1,4 +1,6 @@
-export const barChartWidth = '85%';
+export const financialStatementOffsetUnit = 12;
+
+export const barChartWidth = '90%';
 export const barChartHeight = 400;
 
 export const tooltipStyle = {

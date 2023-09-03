@@ -8,7 +8,11 @@ import {
   LabelList,
   ResponsiveContainer,
 } from 'recharts';
-import { tooltipStyle, barChartWidth, barChartHeight } from '@/constants/chart';
+import {
+  tooltipStyle,
+  barChartWidth,
+  barChartHeight,
+} from '@/constants/values';
 import { WaterFlowBarChartProps } from './props';
 
 export default class WaterFlowBarChart extends React.Component<WaterFlowBarChartProps> {
@@ -35,19 +39,30 @@ export default class WaterFlowBarChart extends React.Component<WaterFlowBarChart
               }
 
               // ペイロードの2要素目が色付き部分のデータ（1要素目は透明部分のデータ）
-              return <div>{`${props.label}: ${payload[1].value}`}</div>;
+              return (
+                <div>{`${
+                  props.label
+                }: ${payload[1].value?.toLocaleString()}`}</div>
+              );
             }}
           />
           <Bar dataKey="previousSum" stackId="a" fill="transparent" />
           <Bar dataKey="value" stackId="a">
-            <LabelList dataKey="value" position="top" />
-            {this.props.data.map((dataElement, index) =>
-              dataElement.value < 0 ? (
-                <Cell key={index} fill={this.props.positiveColor} />
-              ) : (
-                <Cell key={index} fill={this.props.negativeColor} />
-              ),
-            )}
+            <LabelList
+              dataKey="value"
+              position="top"
+              formatter={(value: number) => value.toLocaleString()}
+            />
+            {this.props.data.map((dataElement, index) => (
+              <Cell
+                key={index}
+                fill={
+                  dataElement.value < 0
+                    ? this.props.positiveColor
+                    : this.props.negativeColor
+                }
+              />
+            ))}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
