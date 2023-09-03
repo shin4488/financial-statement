@@ -7,28 +7,6 @@ module Types
     # Add root-level fields here.
     # They will be entry points for queries on your schema.
 
-    field :sandbox_tests, [Sandbox::SandboxTestType], "Find SandboxTest by id" do
-      argument :id, ID
-    end
-    def sandbox_tests(id:)
-      results = []
-      10.times do |i|
-        results.push({
-          :id => id,
-          :title => "タイトル #{i}",
-          :rating => 1000 * i,
-          :sub_sandboxes => [
-            {
-              :id => 0,
-              :note => "メモ #{i}"
-            }
-          ]
-        })
-      end
-
-      results
-    end
-
     field :company_financial_statements, [FinancialStatement::CompanyFinancialStatementType], "Find Company Financial Statement by limit" do
       argument :limit, Integer, validates: { numericality: { greater_than: 0 } }
       argument :offset, Integer, validates: { numericality: { greater_than_or_equal_to: 0 } }
@@ -422,6 +400,7 @@ module Types
         net_asset = balance_sheet[:net_asset].to_d
         current_liability_ratio = (current_liability / total_asset_amount).truncate(ratio_truncated_position)
         noncurrent_liability_ratio = (noncurrent_liability / total_asset_amount).truncate(ratio_truncated_position)
+        # 債務超過の時は総資産と比較した比率を算出する
         net_asset_ratio = net_asset > 0 ? 1 - (current_liability_ratio + noncurrent_liability_ratio) : (net_asset / total_asset_amount).truncate(ratio_truncated_position)
 
         # 損益計算書
@@ -448,7 +427,6 @@ module Types
               investment_and_other_asset: investment_and_other_asset_ratio * 100,
               current_liability: current_liability_ratio * 100,
               noncurrent_liability: noncurrent_liability_ratio * 100,
-              # 債務超過の時は総資産と比較した比率を算出する
               net_asset: net_asset_ratio * 100,
             }
           },

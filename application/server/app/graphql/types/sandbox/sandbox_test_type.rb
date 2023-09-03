@@ -7,7 +7,6 @@ module Types
       field :id, ID, null: false
       field :title, String
       field :rating, Integer
-      field :sub_sandboxes, [Types::Sandbox::SubSandboxTestType]
     end
   end
 end
