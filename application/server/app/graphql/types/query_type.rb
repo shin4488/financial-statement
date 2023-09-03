@@ -138,8 +138,8 @@ module Types
           profit_loss: {
             net_sales: 10000,
             original_cost: 6000,
-            selling_general_expense: 2000,
-            operating_income: 10000 - 6000 - 2000,
+            selling_general_expense: 7000,
+            operating_income: 10000 - 6000 - 7000,
           },
           cash_flow: {
             starting_cash: 400,
@@ -402,23 +402,35 @@ module Types
           },
         },
       ].map { |statement|
-        balance_sheet = statement[:balance_sheet]
-        truncated_position = 3
+        ratio_truncated_position = 3
 
+        # 貸借対照表
+        balance_sheet = statement[:balance_sheet]
+        # 資産
         current_asset = balance_sheet[:current_asset].to_d
         property_plant_and_equipment = balance_sheet[:property_plant_and_equipment].to_d
         intangible_asset = balance_sheet[:intangible_asset].to_d
         investment_and_other_asset = balance_sheet[:investment_and_other_asset].to_d
         total_asset_amount = current_asset + property_plant_and_equipment + intangible_asset + investment_and_other_asset
-        current_asset_ratio = (current_asset / total_asset_amount).truncate(truncated_position)
-        property_plant_and_equipment_ratio = (property_plant_and_equipment / total_asset_amount).truncate(truncated_position)
-        intangible_asset_ratio = (intangible_asset / total_asset_amount).truncate(truncated_position)
+        current_asset_ratio = (current_asset / total_asset_amount).truncate(ratio_truncated_position)
+        property_plant_and_equipment_ratio = (property_plant_and_equipment / total_asset_amount).truncate(ratio_truncated_position)
+        intangible_asset_ratio = (intangible_asset / total_asset_amount).truncate(ratio_truncated_position)
         investment_and_other_asset_ratio = 1 - (current_asset_ratio + property_plant_and_equipment_ratio + intangible_asset_ratio)
-
+        # 負債
         current_liability = balance_sheet[:current_liability].to_d
         noncurrent_liability = balance_sheet[:noncurrent_liability].to_d
-        current_liability_ratio = (current_liability / total_asset_amount).truncate(truncated_position)
-        noncurrent_liability_ratio = (noncurrent_liability / total_asset_amount).truncate(truncated_position)
+        current_liability_ratio = (current_liability / total_asset_amount).truncate(ratio_truncated_position)
+        noncurrent_liability_ratio = (noncurrent_liability / total_asset_amount).truncate(ratio_truncated_position)
+
+        # 損益計算書
+        profit_loss = statement[:profit_loss]
+        net_sales = profit_loss[:net_sales].to_d
+        original_cost = profit_loss[:original_cost].to_d
+        selling_general_expense = profit_loss[:selling_general_expense].to_d
+        operating_income = profit_loss[:operating_income].to_d
+        original_cost_ratio = (original_cost / net_sales).truncate(ratio_truncated_position)
+        selling_general_expense_ratio = (selling_general_expense / net_sales).truncate(ratio_truncated_position)
+        operating_income_ratio = operating_income > 0 ? 1 - (original_cost_ratio + selling_general_expense_ratio) : (operating_income / net_sales).truncate(ratio_truncated_position)
 
         {
           id: statement[:id],
@@ -435,10 +447,19 @@ module Types
               current_liability: current_liability_ratio * 100,
               noncurrent_liability: noncurrent_liability_ratio * 100,
               # 債務超過の時は総資産と比較した比率を算出する
-              net_asset: balance_sheet[:net_asset] >= 0 ? (1 - (current_liability_ratio + noncurrent_liability_ratio)).truncate(truncated_position) * 100 : (balance_sheet[:net_asset] / total_asset_amount).truncate(truncated_position) * 100,
+              net_asset: balance_sheet[:net_asset] >= 0 ? (1 - (current_liability_ratio + noncurrent_liability_ratio)).truncate(ratio_truncated_position) * 100 : (balance_sheet[:net_asset] / total_asset_amount).truncate(ratio_truncated_position) * 100,
             }
           },
-          profit_loss: statement[:profit_loss],
+          profit_loss: {
+            amount: profit_loss,
+            ratio: {
+              # 割合は売上比で考えるため、売上は100固定
+              net_sales: 100,
+              original_cost: original_cost_ratio * 100,
+              selling_general_expense: selling_general_expense_ratio * 100,
+              operating_income: operating_income_ratio * 100,
+            }
+          },
           cash_flow: statement[:cash_flow],
         }
       }

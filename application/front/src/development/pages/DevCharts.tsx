@@ -74,10 +74,8 @@ export default class DevCharts extends React.Component<
                         ratio={balanceSheet.ratio}
                       />
                       <ProfitLossBarChart
-                        netSales={profitLoss.netSales}
-                        originalCost={profitLoss.originalCost}
-                        sellingGeneralExpense={profitLoss.sellingGeneralExpense}
-                        operatingIncome={profitLoss.operatingIncome}
+                        amount={profitLoss.amount}
+                        ratio={profitLoss.ratio}
                       />
                       <CashFlowBarChart
                         startingCash={cashFlow.startingCash}
@@ -120,7 +118,7 @@ export default class DevCharts extends React.Component<
       .query(
         `
         query {
-          companyFinancialStatements(limit: 123, offset: ${offset}) {
+          companyFinancialStatements(limit: 1, offset: 0) {
             fiscalYearStartDate
             fiscalYearEndDate
             companyName
@@ -145,10 +143,18 @@ export default class DevCharts extends React.Component<
               }
             }
             profitLoss {
-              netSales
-              originalCost
-              sellingGeneralExpense
-              operatingIncome
+              amount {
+                netSales
+                originalCost
+                sellingGeneralExpense
+                operatingIncome
+              }
+              ratio {
+                netSales
+                originalCost
+                sellingGeneralExpense
+                operatingIncome
+              }
             }
             cashFlow {
               startingCash
@@ -205,7 +211,8 @@ export default class DevCharts extends React.Component<
   ): FinancialStatement {
     const balanceSheetAmount = financialStatementResponse.balanceSheet?.amount;
     const balanceSheetRatio = financialStatementResponse.balanceSheet?.ratio;
-    const profitLoss = financialStatementResponse.profitLoss;
+    const profitLossAmount = financialStatementResponse.profitLoss?.amount;
+    const profitLossRatio = financialStatementResponse.profitLoss?.ratio;
     const cashFlow = financialStatementResponse.cashFlow;
 
     return {
@@ -263,14 +270,30 @@ export default class DevCharts extends React.Component<
         },
       },
       profitLoss: {
-        netSales: NumberUtil.toNumberOrDefault(profitLoss?.netSales),
-        originalCost: NumberUtil.toNumberOrDefault(profitLoss?.originalCost),
-        sellingGeneralExpense: NumberUtil.toNumberOrDefault(
-          profitLoss?.sellingGeneralExpense,
-        ),
-        operatingIncome: NumberUtil.toNumberOrDefault(
-          profitLoss?.operatingIncome,
-        ),
+        amount: {
+          netSales: NumberUtil.toNumberOrDefault(profitLossAmount?.netSales),
+          originalCost: NumberUtil.toNumberOrDefault(
+            profitLossAmount?.originalCost,
+          ),
+          sellingGeneralExpense: NumberUtil.toNumberOrDefault(
+            profitLossAmount?.sellingGeneralExpense,
+          ),
+          operatingIncome: NumberUtil.toNumberOrDefault(
+            profitLossAmount?.operatingIncome,
+          ),
+        },
+        ratio: {
+          netSales: NumberUtil.toNumberOrDefault(profitLossRatio?.netSales),
+          originalCost: NumberUtil.toNumberOrDefault(
+            profitLossRatio?.originalCost,
+          ),
+          sellingGeneralExpense: NumberUtil.toNumberOrDefault(
+            profitLossRatio?.sellingGeneralExpense,
+          ),
+          operatingIncome: NumberUtil.toNumberOrDefault(
+            profitLossRatio?.operatingIncome,
+          ),
+        },
       },
       cashFlow: {
         startingCash: NumberUtil.toNumberOrDefault(cashFlow?.startingCash),

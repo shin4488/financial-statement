@@ -3,55 +3,75 @@ import {
   stackLabelListFillColor,
   barChartWidth,
   barChartHeight,
+  tooltipStyle,
 } from '@/constants/values';
-import { BarChart, Bar, LabelList, YAxis, ResponsiveContainer } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  LabelList,
+  YAxis,
+  ResponsiveContainer,
+  Tooltip,
+} from 'recharts';
 import { ProfitLossBarChartProps } from './props';
+import { ProfitLossAmountKeyLabel, ProfitLossChart } from './chartData';
 
-type ProfitLossChart = [
-  {
-    originalCost: number;
-    sellingGeneralExpense: number;
-    operatingIncome: number;
-  },
-  {
-    netSales: number;
-    operatingLoss: number;
-  },
-];
+const dataKeyJapaneseHash: ProfitLossAmountKeyLabel = {
+  originalCostAmount: '売上原価',
+  sellingGeneralExpenseAmount: '販管費',
+  operatingIncomeAmount: '営業利益',
+  netSalesAmount: '売上',
+  operatingLossAmount: '営業損失',
+};
 
 export default class ProfitLossBarChart extends React.Component<ProfitLossBarChartProps> {
   costSalesCharData(): ProfitLossChart {
+    const amount = this.props.amount;
+    const ratio = this.props.ratio;
     return [
       {
-        originalCost: this.props.originalCost,
-        sellingGeneralExpense: this.props.sellingGeneralExpense,
-        operatingIncome: Math.max(0, this.props.operatingIncome),
+        originalCostAmount: amount.originalCost,
+        sellingGeneralExpenseAmount: amount.sellingGeneralExpense,
+        operatingIncomeAmount: Math.max(0, amount.operatingIncome),
+        originalCostRatio: ratio.originalCost,
+        sellingGeneralExpenseRatio: ratio.sellingGeneralExpense,
+        operatingIncomeRatio: Math.max(0, ratio.operatingIncome),
       },
-      // マイナス数値を棒グラフに表示すると上から下へ向かって表示されてしまうため、下から上へグラフが出るようにプラス数値へ変える
       {
-        netSales: this.props.netSales,
-        operatingLoss: -Math.min(0, this.props.operatingIncome),
+        netSalesAmount: amount.netSales,
+        // マイナス数値を棒グラフに表示すると上から下へ向かって表示されてしまうため、下から上へグラフが出るようにプラス数値へ変える
+        operatingLossAmount: -Math.min(0, amount.operatingIncome),
+        netSalesRatio: ratio.netSales,
+        operatingLossRatio: -Math.min(0, ratio.operatingIncome),
       },
     ];
   }
 
   render(): React.ReactNode {
     const costSalesCharData = this.costSalesCharData();
-    const hasLoss = costSalesCharData[1].operatingLoss > 0;
+    const hasLoss = costSalesCharData[1].operatingLossAmount > 0;
     const profitLossComponent = hasLoss ? (
-      <Bar dataKey="operatingLoss" stackId="a" fill="#5B9A8B">
+      <Bar dataKey="operatingLossAmount" stackId="a" fill="#5B9A8B">
         <LabelList
-          dataKey="operatingLoss"
-          formatter={(value: number) => `営業損失: ${value.toLocaleString()}`}
+          dataKey="operatingLossRatio"
+          formatter={(value: number) =>
+            `${
+              dataKeyJapaneseHash.operatingLossAmount
+            }: -${value.toLocaleString()}%`
+          }
           position="center"
           fill={stackLabelListFillColor}
         />
       </Bar>
     ) : (
-      <Bar dataKey="operatingIncome" stackId="a" fill="#3D246C">
+      <Bar dataKey="operatingIncomeAmount" stackId="a" fill="#3D246C">
         <LabelList
-          dataKey="operatingIncome"
-          formatter={(value: number) => `営業利益: ${value.toLocaleString()}`}
+          dataKey="operatingIncomeRatio"
+          formatter={(value: number) =>
+            `${
+              dataKeyJapaneseHash.operatingIncomeAmount
+            }: ${value.toLocaleString()}%`
+          }
           position="center"
           fill={stackLabelListFillColor}
         />
@@ -66,34 +86,63 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
       >
         <BarChart data={costSalesCharData}>
           <YAxis reversed hide />
+          <Tooltip
+            cursor={false}
+            wrapperStyle={{
+              backgroundColor: tooltipStyle.backgroundColor,
+              textAlign: 'left',
+            }}
+            // 配列のインデックス数値が表示されてしまうため、labelはブランクとする
+            labelFormatter={() => ''}
+            formatter={(value, name) => {
+              const dataKey = name as keyof ProfitLossAmountKeyLabel;
+              return [
+                dataKey === 'operatingLossAmount'
+                  ? `-${value.toLocaleString()}`
+                  : value.toLocaleString(),
+                // Barコンポーネントに渡すdataKeyはAmountのキーである前提
+                `${dataKeyJapaneseHash[dataKey]}`,
+              ];
+            }}
+          />
 
           {/* 借方 */}
-          <Bar dataKey="originalCost" stackId="a" fill="#9F91CC">
+          <Bar dataKey="originalCostAmount" stackId="a" fill="#9F91CC">
             <LabelList
-              dataKey="originalCost"
+              dataKey="originalCostRatio"
               fill={stackLabelListFillColor}
               position="center"
               formatter={(value: number) =>
-                `売上原価: ${value.toLocaleString()}`
+                `${
+                  dataKeyJapaneseHash.originalCostAmount
+                }: ${value.toLocaleString()}%`
               }
             />
           </Bar>
-          <Bar dataKey="sellingGeneralExpense" stackId="a" fill="#5C4B99">
+          <Bar dataKey="sellingGeneralExpenseAmount" stackId="a" fill="#5C4B99">
             <LabelList
-              dataKey="sellingGeneralExpense"
+              dataKey="sellingGeneralExpenseRatio"
               fill={stackLabelListFillColor}
               position="center"
-              formatter={(value: number) => `販管費: ${value.toLocaleString()}`}
+              formatter={(value: number) =>
+                `${
+                  dataKeyJapaneseHash.sellingGeneralExpenseAmount
+                }: ${value.toLocaleString()}%`
+              }
             />
           </Bar>
 
           {/* 貸方 */}
-          <Bar dataKey="netSales" stackId="a" fill="#F94C10">
+          <Bar dataKey="netSalesAmount" stackId="a" fill="#F94C10">
             <LabelList
-              dataKey="netSales"
+              dataKey="netSalesRatio"
               fill={stackLabelListFillColor}
               position="center"
-              formatter={(value: number) => `売上: ${value.toLocaleString()}`}
+              formatter={(value: number) =>
+                `${
+                  dataKeyJapaneseHash.netSalesAmount
+                }: ${value.toLocaleString()}%`
+              }
             />
           </Bar>
           {/* 営業利益/営業損失はどちらの場合でも積み上げの一番下に表示する */}

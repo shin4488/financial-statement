@@ -3,10 +3,8 @@
 module Types
   module FinancialStatement
     class ProfitLossType < Types::BaseObject
-      field :net_sales, GraphQL::Types::BigInt
-      field :original_cost, GraphQL::Types::BigInt
-      field :selling_general_expense, GraphQL::Types::BigInt
-      field :operating_income, GraphQL::Types::BigInt
+      field :amount, ProfitLossAmountType
+      field :ratio, ProfitLossRatioType
     end
   end
 end

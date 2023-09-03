@@ -84,10 +84,24 @@ export type MutationSandboxTestArgs = {
 
 export type ProfitLoss = {
   __typename?: 'ProfitLoss';
+  amount?: Maybe<ProfitLossAmount>;
+  ratio?: Maybe<ProfitLossRatio>;
+};
+
+export type ProfitLossAmount = {
+  __typename?: 'ProfitLossAmount';
   netSales?: Maybe<Scalars['BigInt']['output']>;
   operatingIncome?: Maybe<Scalars['BigInt']['output']>;
   originalCost?: Maybe<Scalars['BigInt']['output']>;
   sellingGeneralExpense?: Maybe<Scalars['BigInt']['output']>;
+};
+
+export type ProfitLossRatio = {
+  __typename?: 'ProfitLossRatio';
+  netSales?: Maybe<Scalars['Float']['output']>;
+  operatingIncome?: Maybe<Scalars['Float']['output']>;
+  originalCost?: Maybe<Scalars['Float']['output']>;
+  sellingGeneralExpense?: Maybe<Scalars['Float']['output']>;
 };
 
 export type Query = {
