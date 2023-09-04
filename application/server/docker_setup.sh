@@ -7,4 +7,5 @@ if [ -f /home/app/financialStatement/tmp/pids/server.pid ]; then
 fi
 
 bundle exec sidekiq -e development -C config/sidekiq.yml &
+bundle exec rake db:migrate
 bundle exec ./bin/rails s -b '0.0.0.0'

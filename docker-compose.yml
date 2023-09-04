@@ -24,12 +24,15 @@ services:
       - ./application/server:/home/app/financialStatement
       - ./application/server/vendor/bundle:/home/app/financialStatement/vendor/bundle
     depends_on:
-      - database
+      database:
+        condition: service_healthy
   database:
     build: ./database
     volumes:
       - ./database/init:/docker-entrypoint-initdb.d
       - ./database/data:/var/lib/postgresql/data
+    healthcheck:
+      test: psql -U financial_statement_admin -d financial_statement_development
   cache:
     build: ./cache
     volumes:
