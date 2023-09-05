@@ -1,0 +1,5 @@
+security_report_subscriber_job:
+  # 開発時は2分おきに実行
+  cron: "0 */2 * * * *"
+  class: SecurityReportSubscriberJob
+  queue: default
