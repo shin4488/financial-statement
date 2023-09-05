@@ -19,15 +19,15 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_04_131246) do
   create_enum "accounting_standard", ["japan_gaap", "us_gaap", "ifrs"]
 
   create_table "companies", comment: "企業", force: :cascade do |t|
-    t.string "editnet_code", limit: 6, null: false, comment: "EDINETコード"
-    t.integer "stock_code", limit: 2, comment: "証券コード"
+    t.string "edinet_code", limit: 6, null: false, comment: "EDINETコード"
+    t.string "stock_code", limit: 5, comment: "証券コード"
     t.string "company_japanese_name", comment: "企業名（日本語）"
     t.string "company_english_name", comment: "企業名（英語）"
     t.string "consolidated_inductory_code", comment: "連結業種"
-    t.string "separate_inductory_code", comment: "単体業種"
+    t.string "non_consolidated_inductory_code", comment: "単体業種"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["editnet_code"], name: "index_companies_on_editnet_code", unique: true
+    t.index ["edinet_code"], name: "index_companies_on_edinet_code", unique: true
   end
 
   create_table "security_reports", comment: "有価証券報告書", force: :cascade do |t|
@@ -61,7 +61,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_04_131246) do
     t.bigint "consolidated_profit_loss_attributable_to_owners_of_parent", comment: "連結親会社株主に帰属する当期純利益"
     t.bigint "consolidated_start_cash_flow_balance", comment: "連結期首残高キャッシュフロー"
     t.bigint "consolidated_operating_activity_cash_flow", comment: "連結営業活動によるキャッシュフロー"
-    t.bigint "consolidated_inInvestment_activity_cash_flow", comment: "連結投資活動によるキャッシュフロー"
+    t.bigint "consolidated_investment_activity_cash_flow", comment: "連結投資活動によるキャッシュフロー"
     t.bigint "consolidated_financing_activity_cash_flow", comment: "連結財務活動によるキャッシュフロー"
     t.bigint "consolidated_end_cash_flow_balance", comment: "連結期末残高キャッシュフロー"
     t.bigint "non_consolidated_current_asset", comment: "単体流動資産"
@@ -89,7 +89,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_04_131246) do
     t.bigint "non_consolidated_profit_loss_attributable_to_owners_of_parent", comment: "単体親会社株主に帰属する当期純利益"
     t.bigint "non_consolidated_start_cash_flow_balance", comment: "単体期首残高キャッシュフロー"
     t.bigint "non_consolidated_operating_activity_cash_flow", comment: "単体営業活動によるキャッシュフロー"
-    t.bigint "non_consolidated_inInvestment_activity_cash_flow", comment: "単体投資活動によるキャッシュフロー"
+    t.bigint "non_consolidated_investment_activity_cash_flow", comment: "単体投資活動によるキャッシュフロー"
     t.bigint "non_consolidated_financing_activity_cash_flow", comment: "単体財務活動によるキャッシュフロー"
     t.bigint "non_consolidated_end_cash_flow_balance", comment: "単体期末残高キャッシュフロー"
     t.datetime "created_at", null: false

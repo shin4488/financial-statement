@@ -33,7 +33,7 @@ class CreateFinancialStatementDocuments < ActiveRecord::Migration[7.0]
       t.bigint :consolidated_profit_loss_attributable_to_owners_of_parent, comment: "連結親会社株主に帰属する当期純利益"
       t.bigint :consolidated_start_cash_flow_balance, comment: "連結期首残高キャッシュフロー"
       t.bigint :consolidated_operating_activity_cash_flow, comment: "連結営業活動によるキャッシュフロー"
-      t.bigint :consolidated_inInvestment_activity_cash_flow, comment: "連結投資活動によるキャッシュフロー"
+      t.bigint :consolidated_investment_activity_cash_flow, comment: "連結投資活動によるキャッシュフロー"
       t.bigint :consolidated_financing_activity_cash_flow, comment: "連結財務活動によるキャッシュフロー"
       t.bigint :consolidated_end_cash_flow_balance, comment: "連結期末残高キャッシュフロー"
       t.bigint :non_consolidated_current_asset, comment: "単体流動資産"
@@ -61,7 +61,7 @@ class CreateFinancialStatementDocuments < ActiveRecord::Migration[7.0]
       t.bigint :non_consolidated_profit_loss_attributable_to_owners_of_parent, comment: "単体親会社株主に帰属する当期純利益"
       t.bigint :non_consolidated_start_cash_flow_balance, comment: "単体期首残高キャッシュフロー"
       t.bigint :non_consolidated_operating_activity_cash_flow, comment: "単体営業活動によるキャッシュフロー"
-      t.bigint :non_consolidated_inInvestment_activity_cash_flow, comment: "単体投資活動によるキャッシュフロー"
+      t.bigint :non_consolidated_investment_activity_cash_flow, comment: "単体投資活動によるキャッシュフロー"
       t.bigint :non_consolidated_financing_activity_cash_flow, comment: "単体財務活動によるキャッシュフロー"
       t.bigint :non_consolidated_end_cash_flow_balance, comment: "単体期末残高キャッシュフロー"
       t.timestamps
