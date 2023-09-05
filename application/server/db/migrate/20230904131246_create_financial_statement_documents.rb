@@ -1,12 +1,10 @@
 class CreateFinancialStatementDocuments < ActiveRecord::Migration[7.0]
   def change
-    create_enum :accounting_standard, ["japan_gaap", "us_gaap", "ifrs"]
-
     create_table :security_reports, comment: "有価証券報告書" do |t|
-      t.references :companies, foreign_key: true, comment: "企業id"
+      t.references :company, foreign_key: true, comment: "企業id"
       t.date :fiscal_year_start_date, comment: "会計年度開始日"
       t.date :fiscal_year_end_date, comment: "会計年度終了日"
-      t.enum :accounting_standard, enum_type: "accounting_standard", default: "japan_gaap", comment: "会計基準"
+      t.integer :accounting_standard, null: false, comment: "会計基準"
       t.boolean :has_consolidated_financial_statement, default: false, null: false, comment: "連結決算あり"
       t.bigint :consolidated_current_asset, comment: "連結流動資産"
       t.bigint :consolidated_property_plant_and_equipment, comment: "連結有形固定資産"
