@@ -14,10 +14,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_04_131246) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
-  # Custom types defined in this database.
-  # Note that some types may not work with other database engines. Be careful if changing database.
-  create_enum "accounting_standard", ["japan_gaap", "us_gaap", "ifrs"]
-
   create_table "companies", comment: "企業", force: :cascade do |t|
     t.string "edinet_code", limit: 6, null: false, comment: "EDINETコード"
     t.string "stock_code", limit: 5, comment: "証券コード"
@@ -31,10 +27,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_04_131246) do
   end
 
   create_table "security_reports", comment: "有価証券報告書", force: :cascade do |t|
-    t.bigint "companies_id", comment: "企業id"
+    t.bigint "company_id", comment: "企業id"
     t.date "fiscal_year_start_date", comment: "会計年度開始日"
     t.date "fiscal_year_end_date", comment: "会計年度終了日"
-    t.enum "accounting_standard", default: "japan_gaap", comment: "会計基準", enum_type: "accounting_standard"
+    t.integer "accounting_standard", null: false, comment: "会計基準"
     t.boolean "has_consolidated_financial_statement", default: false, null: false, comment: "連結決算あり"
     t.bigint "consolidated_current_asset", comment: "連結流動資産"
     t.bigint "consolidated_property_plant_and_equipment", comment: "連結有形固定資産"
@@ -94,8 +90,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_04_131246) do
     t.bigint "non_consolidated_end_cash_flow_balance", comment: "単体期末残高キャッシュフロー"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["companies_id"], name: "index_security_reports_on_companies_id"
+    t.index ["company_id"], name: "index_security_reports_on_company_id"
   end
 
-  add_foreign_key "security_reports", "companies", column: "companies_id"
+  add_foreign_key "security_reports", "companies"
 end
