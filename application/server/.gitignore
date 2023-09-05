@@ -29,4 +29,4 @@
 /config/master.key
 
 /vendor/bundle
-.env
+security_reports
