@@ -29,4 +29,6 @@
 /config/master.key
 
 /vendor/bundle
-security_reports
+# security_reportsは有価証券報告書xbrl保存のために必要
+security_reports/**
+!security_reports/.keep
