@@ -43,7 +43,7 @@ class SecurityReport::SubscriberService
         end
       end.reject(&:nil?)
 
-      [security_report_result]
+      security_report_result
     end
 
     private
