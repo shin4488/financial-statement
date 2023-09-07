@@ -13,7 +13,7 @@ class SecurityReport::SubscriberService
       # zipファイルパスの生成
       document_id_security_report_zip_paths = generate_security_report_zip_path(from_date: from_date, end_date: end_date)
       # zipファイルのダウンロード・保存
-      security_report_xbrl_paths = document_id_security_report_zip_paths.map do |document_id, zip_path|
+      security_report_result = document_id_security_report_zip_paths.map do |document_id, zip_path|
         uri = URI("https://disclosure.edinet-fsa.go.jp/api/v1/documents/#{document_id}")
         queries = { :type => 1 }
         uri.query = URI.encode_www_form(queries)
@@ -26,8 +26,10 @@ class SecurityReport::SubscriberService
 
         # zipファイルの展開
         Zip::File.open(zip_path) do |zip_file|
-          # zipファイルから、財務データの存在するxbrlファイルのみを残す
+          # zipファイルから、財務データの存在するxbrlファイルのみを処理する、ファイルがなかったら財務データがないものとして登録しない
           entry = zip_file.glob("*/PublicDoc/*.xbrl").first
+          next if entry.nil?
+
           xbrl_directory_path = File.join(@@project_root_path, document_id)
           # https://qiita.com/wjhmks1219/items/f52f6cbc8785346154e7
           FileUtils.mkpath(xbrl_directory_path)
@@ -35,29 +37,32 @@ class SecurityReport::SubscriberService
           zip_file.extract(entry, xbrl_file_path) unless File.exist?(xbrl_file_path)
           # 展開したzipは削除
           FileUtils.rm(zip_path)
-          xbrl_file_path
+
+          security_report = SecurityReport::ReaderRepository.new(xbrl_file_path).read
+          [xbrl_file_path, security_report]
         end
+      end.reject(&:nil?)
+
+      [security_report_result]
+    end
+
+    private
+      def generate_security_report_zip_path(from_date:, end_date:)
+        uri = URI("https://disclosure.edinet-fsa.go.jp/api/v1/documents.json")
+        queries = { :date => from_date, :type => 2 }
+        uri.query = URI.encode_www_form(queries)
+        document_list_response = Net::HTTP.get(uri)
+        document_list_response_body = JSON.parse(document_list_response)
+        document_results = document_list_response_body["results"]
+        document_results&.map { |document_result|
+          # 上場会社の有価証券報告書のみを処理するため、それ以外のドキュメントは扱わない
+          next if document_result["secCode"].nil? || document_result["docTypeCode"] != "120"
+
+          puts "#{document_result["docID"]} #{document_result["filerName"].tr('０-９ａ-ｚＡ-Ｚ　＆','0-9a-zA-Z &')}"
+          document_id = document_result["docID"]
+          zip_path = File.join(@@project_root_path, "#{document_id}.zip").to_s
+          [document_id, zip_path]
+        }&.reject(&:nil?).to_h
       end
-
-      [document_id_security_report_zip_paths, security_report_xbrl_paths]
-    end
-
-    def generate_security_report_zip_path(from_date:, end_date:)
-      uri = URI("https://disclosure.edinet-fsa.go.jp/api/v1/documents.json")
-      queries = { :date => from_date, :type => 2 }
-      uri.query = URI.encode_www_form(queries)
-      document_list_response = Net::HTTP.get(uri)
-      document_list_response_body = JSON.parse(document_list_response)
-      document_results = document_list_response_body["results"]
-      document_results.map { |document_result|
-        # 上場会社の有価証券報告書のみを処理するため、それ以外のドキュメントは扱わない
-        next if document_result["secCode"].nil? || document_result["docTypeCode"] != "120"
-
-        puts "#{document_result["docID"]} #{document_result["filerName"].tr('０-９ａ-ｚＡ-Ｚ　＆','0-9a-zA-Z &')}"
-        document_id = document_result["docID"]
-        zip_path = File.join(@@project_root_path, "#{document_id}.zip").to_s
-        [document_id, zip_path]
-      }.reject(&:nil?).to_h
-    end
   end
 end
