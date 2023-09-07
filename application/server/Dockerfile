@@ -1,4 +1,4 @@
-FROM ruby:3.1.2
+FROM ruby:3.2.2
 
 ENV POSTGRES_DATABASE_NAME financial_statement_development
 ENV POSTGRES_HOST_NAME database
