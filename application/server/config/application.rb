@@ -37,6 +37,7 @@ module FinancialStatement
     config.api_only = true
 
     config.middleware.use ActionDispatch::Session::CookieStore
+    config.paths.add 'lib', eager_load: true
     # https://weseek.co.jp/tech/680/
     # DNSリバインディング攻撃制御に対応するため、nginxで定義されているサーバ名からのリクエストは受け付ける
     config.hosts << ENV["SERVER_HOST_NAME"] if ENV["SERVER_HOST_NAME"].present?
