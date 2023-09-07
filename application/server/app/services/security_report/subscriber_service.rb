@@ -13,7 +13,7 @@ class SecurityReport::SubscriberService
       # zipファイルパスの生成
       document_id_security_report_zip_paths = generate_security_report_zip_path(from_date: from_date, end_date: end_date)
       # zipファイルのダウンロード・保存
-      document_id_security_report_zip_paths.each do |document_id, zip_path|
+      security_report_xbrl_paths = document_id_security_report_zip_paths.map do |document_id, zip_path|
         uri = URI("https://disclosure.edinet-fsa.go.jp/api/v1/documents/#{document_id}")
         queries = { :type => 1 }
         uri.query = URI.encode_www_form(queries)
@@ -23,10 +23,8 @@ class SecurityReport::SubscriberService
             out.write(file.read)
           end
         end
-      end
 
-      # zipファイルの展開
-      security_report_xbrl_paths = document_id_security_report_zip_paths.map do |document_id, zip_path|
+        # zipファイルの展開
         Zip::File.open(zip_path) do |zip_file|
           # zipファイルから、財務データの存在するxbrlファイルのみを残す
           entry = zip_file.glob("*/PublicDoc/*.xbrl").first
@@ -34,12 +32,12 @@ class SecurityReport::SubscriberService
           # https://qiita.com/wjhmks1219/items/f52f6cbc8785346154e7
           FileUtils.mkpath(xbrl_directory_path)
           xbrl_file_path = File.join(xbrl_directory_path, File.basename(entry.name))
-          zip_file.extract(entry, xbrl_file_path) unless File.exists?(xbrl_file_path)
+          zip_file.extract(entry, xbrl_file_path) unless File.exist?(xbrl_file_path)
           # 展開したzipは削除
           FileUtils.rm(zip_path)
           xbrl_file_path
         end
-      end.reject(&:nil?)
+      end
 
       [document_id_security_report_zip_paths, security_report_xbrl_paths]
     end
