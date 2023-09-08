@@ -25,9 +25,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_04_131246) do
   end
 
   create_table "security_reports", comment: "有価証券報告書", force: :cascade do |t|
-    t.bigint "company_id", comment: "企業id"
-    t.date "fiscal_year_start_date", comment: "会計年度開始日"
-    t.date "fiscal_year_end_date", comment: "会計年度終了日"
+    t.bigint "company_id", null: false, comment: "企業id"
+    t.date "fiscal_year_start_date", null: false, comment: "会計年度開始日"
+    t.date "fiscal_year_end_date", null: false, comment: "会計年度終了日"
     t.integer "accounting_standard", null: false, comment: "会計基準"
     t.boolean "has_consolidated_financial_statement", default: false, null: false, comment: "連結決算あり"
     t.string "consolidated_inductory_code", comment: "連結業種"
