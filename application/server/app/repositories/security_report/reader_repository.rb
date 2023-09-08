@@ -32,6 +32,8 @@ class SecurityReport::ReaderRepository
     {
       edinet_code: @parser.extract_text(key: "//jpdei_cor:EDINETCodeDEI[@contextRef='FilingDateInstant']"),
       stock_code: @parser.extract_text(key: "//jpdei_cor:SecurityCodeDEI[@contextRef='FilingDateInstant']"),
+      company_japanese_name: convert_2byte_to_1byte_char(company_japanese_name),
+      company_english_name: convert_2byte_to_1byte_char(company_english_name),
       accounting_standard: accounting_standard,
       # 文字列の"true","false"が返されるため、bool値に変換する
       has_consolidated_financial_statement: ActiveRecord::Type::Boolean.new.cast(has_consolidated_financial_statement),
@@ -40,8 +42,6 @@ class SecurityReport::ReaderRepository
       # TODO:会計基準がIFRSだと、連結財務諸表の数値が0（xbrl上では値なし）となる
       consolidated_inductory_code: @parser.extract_text(key: "//jpdei_cor:IndustryCodeWhenConsolidatedFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI[@contextRef='FilingDateInstant']"),
       non_consolidated_inductory_code: @parser.extract_text(key: "//jpdei_cor:IndustryCodeWhenFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI[@contextRef='FilingDateInstant']"),
-      company_japanese_name: convert_2byte_to_1byte_char(company_japanese_name),
-      company_english_name: convert_2byte_to_1byte_char(company_english_name),
       consolidated_statement: consolidated_reader.read,
       non_consolidated_statement: non_consolidated_reader.read,
     }
