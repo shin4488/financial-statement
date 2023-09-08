@@ -6,6 +6,8 @@ class CreateFinancialStatementDocuments < ActiveRecord::Migration[7.0]
       t.date :fiscal_year_end_date, comment: "会計年度終了日"
       t.integer :accounting_standard, null: false, comment: "会計基準"
       t.boolean :has_consolidated_financial_statement, default: false, null: false, comment: "連結決算あり"
+      t.string :consolidated_inductory_code, comment: "連結業種"
+      t.string :non_consolidated_inductory_code, comment: "単体業種"
       t.bigint :consolidated_current_asset, comment: "連結流動資産"
       t.bigint :consolidated_property_plant_and_equipment, comment: "連結有形固定資産"
       t.bigint :consolidated_intangible_asset, comment: "連結無形固定資産"
