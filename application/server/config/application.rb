@@ -35,7 +35,8 @@ module FinancialStatement
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
-
+    config.time_zone = 'Tokyo'
+    config.active_record.default_timezone = :local
     config.middleware.use ActionDispatch::Session::CookieStore
     config.paths.add 'lib', eager_load: true
     # https://weseek.co.jp/tech/680/
