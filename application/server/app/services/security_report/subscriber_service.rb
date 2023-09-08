@@ -4,14 +4,15 @@ require "open-uri"
 class SecurityReport::SubscriberService
   include Sidekiq::Worker
 
-  @@project_root_path = Rails.root.join("security_reports").freeze
+  REPORT_DIR_PATH = Rails.root.join("security_reports").freeze
 
   class << self
     def perform(from_date:, end_date: Date.today)
-      FileUtils.mkdir_p(@@project_root_path)
+      FileUtils.mkdir_p(REPORT_DIR_PATH)
 
       # zipファイルパスの生成
-      document_id_security_report_zip_paths = generate_security_report_zip_path(from_date: from_date, end_date: end_date)
+      document_id_security_report_zip_paths = generate_security_report_zip_path(from_date:, end_date:)
+
       # zipファイルのダウンロード・保存
       security_report_result = document_id_security_report_zip_paths.map do |document_id, zip_path|
         uri = URI("https://disclosure.edinet-fsa.go.jp/api/v1/documents/#{document_id}")
@@ -30,7 +31,7 @@ class SecurityReport::SubscriberService
           entry = zip_file.glob("*/PublicDoc/*.xbrl").first
           next if entry.nil?
 
-          xbrl_directory_path = File.join(@@project_root_path, document_id)
+          xbrl_directory_path = File.join(REPORT_DIR_PATH, document_id)
           # https://qiita.com/wjhmks1219/items/f52f6cbc8785346154e7
           FileUtils.mkpath(xbrl_directory_path)
           xbrl_file_path = File.join(xbrl_directory_path, File.basename(entry.name))
@@ -48,21 +49,12 @@ class SecurityReport::SubscriberService
 
     private
       def generate_security_report_zip_path(from_date:, end_date:)
-        uri = URI("https://disclosure.edinet-fsa.go.jp/api/v1/documents.json")
-        queries = { :date => from_date, :type => 2 }
-        uri.query = URI.encode_www_form(queries)
-        document_list_response = Net::HTTP.get(uri)
-        document_list_response_body = JSON.parse(document_list_response)
-        document_results = document_list_response_body["results"]
-        document_results&.map { |document_result|
-          # 上場会社の有価証券報告書のみを処理するため、それ以外のドキュメントは扱わない
-          next if document_result["secCode"].nil? || document_result["docTypeCode"] != "120"
-
-          puts "#{document_result["docID"]} #{document_result["filerName"].tr('０-９ａ-ｚＡ-Ｚ　＆','0-9a-zA-Z &')}"
-          document_id = document_result["docID"]
-          zip_path = File.join(@@project_root_path, "#{document_id}.zip").to_s
+        document_repository = SecurityReport::DocumentRepository.new(from_date: from_date, end_date: end_date)
+        document_ids = document_repository.document_ids
+        document_ids.map { |document_id|
+          zip_path = File.join(REPORT_DIR_PATH, "#{document_id}.zip").to_s
           [document_id, zip_path]
-        }&.reject(&:nil?).to_h
+        }.to_h
       end
   end
 end
