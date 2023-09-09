@@ -22,7 +22,7 @@ services:
       - 20000:3000
     volumes:
       - ./application/server:/home/app/financialStatement
-      - ./application/server/vendor/bundle:/home/app/financialStatement/vendor/bundle
+      - ./application/server/vendor:/home/app/financialStatement/vendor
     depends_on:
       database:
         condition: service_healthy
