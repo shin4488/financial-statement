@@ -2,10 +2,6 @@
 
 PROJECT_ROOT_DIR=/home/app/financialStatement
 
-if [ -d $PROJECT_ROOT_DIR/vendor/bundle ]; then
-  rm -r $PROJECT_ROOT_DIR/vendor/bundle
-fi
-
 bundle install --path vendor/bundle
 
 if [ -f $PROJECT_ROOT_DIR/tmp/pids/server.pid ]; then

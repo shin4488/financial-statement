@@ -22,7 +22,7 @@ services:
       - 20000:3000
     volumes:
       - ./application/server:/home/app/financialStatement
-      - ./application/server/vendor:/home/app/financialStatement/vendor
+      - ./application/server/vendor/bundle:/home/app/financialStatement/vendor/bundle
     depends_on:
       database:
         condition: service_healthy
@@ -32,7 +32,7 @@ services:
       - ./database/init:/docker-entrypoint-initdb.d
       - ./database/data:/var/lib/postgresql/data
     healthcheck:
-      test: psql -U financial_statement_admin -d financial_statement_development
+      test: pg_isready -U financial_statement_admin
   cache:
     build: ./cache
     volumes:
