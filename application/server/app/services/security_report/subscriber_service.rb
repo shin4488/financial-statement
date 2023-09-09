@@ -7,7 +7,7 @@ class SecurityReport::SubscriberService
   REPORT_DIR_PATH = Rails.root.join("security_reports").freeze
 
   class << self
-    def perform(from_date:, end_date: Time.zone.yesterday)
+    def subscribe(from_date: Time.zone.yesterday, end_date: Time.zone.yesterday)
       FileUtils.mkdir_p(REPORT_DIR_PATH)
 
       # zipファイルパスの生成
@@ -73,7 +73,8 @@ class SecurityReport::SubscriberService
         consolidated_statement = security_report[:consolidated_statement]
         non_consolidated_statement = security_report[:non_consolidated_statement]
 
-        SecurityReport.create!(
+        # 財務諸表の修正取込も可能とするためにupsertとする
+        SecurityReport.upsert({
           # 会計年度の企業情報
           company_id: company_id,
           accounting_standard: security_report[:accounting_standard],
@@ -142,7 +143,7 @@ class SecurityReport::SubscriberService
           non_consolidated_investment_activity_cash_flow: non_consolidated_statement[:investment_activity_cash_flow],
           non_consolidated_financing_activity_cash_flow: non_consolidated_statement[:financing_activity_cash_flow],
           non_consolidated_end_cash_flow_balance: non_consolidated_statement[:end_cash_flow_balance]
-        )
+        }, unique_by: [:company_id, :fiscal_year_start_date, :fiscal_year_end_date])
       end
   end
 end
