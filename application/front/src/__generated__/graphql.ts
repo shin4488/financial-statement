@@ -68,8 +68,6 @@ export type CompanyFinancialStatement = {
 export type Mutation = {
   __typename?: 'Mutation';
   sandboxTest?: Maybe<SandboxTestPayload>;
-  /** An example field added by the generator */
-  testField: Scalars['String']['output'];
 };
 
 
