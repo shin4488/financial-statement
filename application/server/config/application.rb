@@ -35,12 +35,18 @@ module FinancialStatement
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+
+    # ActiveRecordやTime.zoneで扱うタイムゾーン
     config.time_zone = 'Tokyo'
-    config.active_record.default_timezone = :local
+    # DBに書かれている時刻をどのタイムゾーンとして解釈するか、時刻をDBに書き込むときどのタイムゾーンで書き込むか（DBのタイムゾーン）
+    config.active_record.default_timezone = :utc
+
     config.middleware.use ActionDispatch::Session::CookieStore
     config.paths.add 'lib', eager_load: true
     # https://weseek.co.jp/tech/680/
     # DNSリバインディング攻撃制御に対応するため、nginxで定義されているサーバ名からのリクエストは受け付ける
     config.hosts << ENV["SERVER_HOST_NAME"] if ENV["SERVER_HOST_NAME"].present?
+
+    ActiveRecord::Base.logger = Logger.new("log/sql_#{Rails.env}.log", 'weekly')
   end
 end
