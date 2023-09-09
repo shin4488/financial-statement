@@ -27,3 +27,5 @@ Things you may want to cover:
 https://www.digitalocean.com/community/tutorials/how-to-install-ruby-on-rails-with-rbenv-on-ubuntu-22-04
 https://www.tutorialspoint.com/how-to-fix-ldquo-could-not-get-lock-var-lib-dpkg-lock-rdquo-error-on-ubuntu
 
+<!-- Company.joins(:security_reports).group(["companies.id", "companies.edinet_code", "companies.company_japanese_name"]
+).count -->
