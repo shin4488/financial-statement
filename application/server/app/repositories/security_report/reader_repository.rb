@@ -23,9 +23,6 @@ class SecurityReport::ReaderRepository
     has_consolidated_financial_statement = @parser.extract_text(key: "//jpdei_cor:WhetherConsolidatedFinancialStatementsArePreparedDEI[@contextRef='FilingDateInstant']")
     company_japanese_name = @parser.extract_text(key: "//jpcrp_cor:CompanyNameCoverPage[@contextRef='FilingDateInstant']")
     company_english_name = @parser.extract_text(key: "//jpcrp_cor:CompanyNameInEnglishCoverPage[@contextRef='FilingDateInstant']")
-    fiscal_year_start_date = @parser.extract_text(key: "//jpdei_cor:CurrentFiscalYearStartDateDEI[@contextRef='FilingDateInstant']")
-    fiscal_year_end_date = @parser.extract_text(key: "//jpdei_cor:CurrentFiscalYearEndDateDEI[@contextRef='FilingDateInstant']")
-
     consolidated_reader = SingleSecurityReportsReader.new(CONSOLIDATED, @xbrl_file_path)
     non_consolidated_reader = SingleSecurityReportsReader.new(NON_CONSOLIDATED, @xbrl_file_path)
 
@@ -37,8 +34,9 @@ class SecurityReport::ReaderRepository
       accounting_standard: accounting_standard,
       # 文字列の"true","false"が返されるため、bool値に変換する
       has_consolidated_financial_statement: ActiveRecord::Type::Boolean.new.cast(has_consolidated_financial_statement),
-      fiscal_year_start_date: fiscal_year_start_date,
-      fiscal_year_end_date: fiscal_year_end_date,
+      fiscal_year_start_date: @parser.extract_text(key: "//jpdei_cor:CurrentFiscalYearStartDateDEI[@contextRef='FilingDateInstant']"),
+      fiscal_year_end_date: @parser.extract_text(key: "//jpdei_cor:CurrentFiscalYearEndDateDEI[@contextRef='FilingDateInstant']"),
+      filing_date: @parser.extract_text(key: "//jpcrp_cor:FilingDateCoverPage[@contextRef='FilingDateInstant']"),
       # TODO:会計基準がIFRSだと、連結財務諸表の数値が0（xbrl上では値なし）となる
       consolidated_inductory_code: @parser.extract_text(key: "//jpdei_cor:IndustryCodeWhenConsolidatedFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI[@contextRef='FilingDateInstant']"),
       non_consolidated_inductory_code: @parser.extract_text(key: "//jpdei_cor:IndustryCodeWhenFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI[@contextRef='FilingDateInstant']"),
