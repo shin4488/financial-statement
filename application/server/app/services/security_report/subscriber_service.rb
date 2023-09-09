@@ -54,7 +54,7 @@ class SecurityReport::SubscriberService
 
     private
       def generate_security_report_zip_path(from_date:, end_date:)
-        document_repository = SecurityReport::DocumentRepository.new(from_date: from_date, end_date: end_date)
+        document_repository = SecurityReport::DocumentRepository.new(date: from_date)
         document_ids = document_repository.document_ids
         document_ids.map { |document_id|
           zip_path = File.join(REPORT_DIR_PATH, "#{document_id}.zip").to_s

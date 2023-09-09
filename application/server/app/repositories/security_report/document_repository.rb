@@ -1,7 +1,7 @@
 class SecurityReport::DocumentRepository
-  def initialize(from_date:, end_date:)
+  def initialize(date:)
     uri = URI("https://disclosure.edinet-fsa.go.jp/api/v1/documents.json")
-    queries = { :date => from_date, :type => 2 }
+    queries = { :date => date, :type => 2 }
     uri.query = URI.encode_www_form(queries)
     document_list_response = Net::HTTP.get(uri)
     @response = JSON.parse(document_list_response)
