@@ -1,6 +1,3 @@
-require "net/http"
-require "open-uri"
-
 class SecurityReport::SubscriberService
   REPORT_DIR_PATH = Rails.root.join("security_reports").freeze
 
@@ -12,22 +9,24 @@ class SecurityReport::SubscriberService
       # zipファイルパスの生成
       document_id_security_report_zip_paths = generate_security_report_zip_path(from_date:, end_date:)
       security_report_result = document_id_security_report_zip_paths.each do |document_id, zip_path|
-        IndivisualSubscriber.new.perform(document_id:, zip_path:)
+        IndividualSubscriber.new.perform(document_id:, zip_path:)
       end
       [Company.all, SecurityReport.all]
     end
 
     private
       def generate_security_report_zip_path(from_date:, end_date:)
-        document_repository = SecurityReport::DocumentRepository.new(date: from_date)
-        document_ids = document_repository.document_ids
-        document_ids.map { |document_id|
+        (from_date.to_date..end_date.to_date).map { |date|
+          document_repository = SecurityReport::DocumentRepository.new(date:)
+          document_repository.document_ids
+          # [["id1", "id2"], ["id3", "id4"]] => ["id1", "id2", "id3", "id4"]に変換してからパス生成
+        }.flatten(1).map { |document_id|
           zip_path = File.join(REPORT_DIR_PATH, "#{document_id}.zip").to_s
           [document_id, zip_path]
         }.to_h
       end
 
-    class IndivisualSubscriber
+    class IndividualSubscriber
       include Sidekiq::Worker
 
       def perform(document_id:, zip_path:)
@@ -89,6 +88,7 @@ class SecurityReport::SubscriberService
             has_consolidated_financial_statement: security_report[:has_consolidated_financial_statement],
             fiscal_year_start_date: security_report[:fiscal_year_start_date],
             fiscal_year_end_date: security_report[:fiscal_year_end_date],
+            filing_date: security_report[:filing_date],
             consolidated_inductory_code: security_report[:consolidated_inductory_code],
             non_consolidated_inductory_code: security_report[:non_consolidated_inductory_code],
             # 連結財務諸表
