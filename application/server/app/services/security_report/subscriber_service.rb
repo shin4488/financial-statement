@@ -8,12 +8,13 @@ class SecurityReport::SubscriberService
 
   class << self
     def subscribe(from_date: Time.zone.yesterday, end_date: Time.zone.yesterday)
+      FileUtils.remove_entry_secure(REPORT_DIR_PATH) if Dir.exist?(REPORT_DIR_PATH)
       FileUtils.mkdir_p(REPORT_DIR_PATH)
 
       # zipファイルパスの生成
       document_id_security_report_zip_paths = generate_security_report_zip_path(from_date:, end_date:)
 
-      security_report_result = document_id_security_report_zip_paths.map do |document_id, zip_path|
+      security_report_result = document_id_security_report_zip_paths.each do |document_id, zip_path|
         # zipファイルのダウンロード・保存
         uri = URI("https://disclosure.edinet-fsa.go.jp/api/v1/documents/#{document_id}")
         queries = { :type => 1 }
@@ -42,6 +43,8 @@ class SecurityReport::SubscriberService
         end
 
         security_report = SecurityReport::ReaderRepository.new(xbrl_file_path).read
+        # 読み取ったxbrlファイルは、以降では使用せずまたディスク容量を不用意に取らないためにも削除する
+        FileUtils.remove_entry_secure(File.expand_path("..", xbrl_file_path))
         company_id = create_company(security_report)
         create_security_report(security_report, company_id)
       end
