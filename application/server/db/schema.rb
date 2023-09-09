@@ -92,7 +92,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_04_131246) do
     t.bigint "non_consolidated_end_cash_flow_balance", comment: "単体期末残高キャッシュフロー"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["company_id"], name: "index_security_reports_on_company_id"
+    t.index ["company_id", "fiscal_year_start_date", "fiscal_year_end_date"], name: "index_on_security_reports_company_fy_start_end_date", unique: true
   end
 
   add_foreign_key "security_reports", "companies"

@@ -1,7 +1,7 @@
 class CreateFinancialStatementDocuments < ActiveRecord::Migration[7.0]
   def change
     create_table :security_reports, comment: "有価証券報告書" do |t|
-      t.references :company, foreign_key: true, null: false, comment: "企業id"
+      t.references :company, foreign_key: true, null: false, index: false, comment: "企業id"
       t.date :fiscal_year_start_date, null: false, comment: "会計年度開始日"
       t.date :fiscal_year_end_date, null: false, comment: "会計年度終了日"
       t.integer :accounting_standard, null: false, comment: "会計基準"
@@ -68,5 +68,7 @@ class CreateFinancialStatementDocuments < ActiveRecord::Migration[7.0]
       t.bigint :non_consolidated_end_cash_flow_balance, comment: "単体期末残高キャッシュフロー"
       t.timestamps
     end
+
+    add_index :security_reports, [:company_id, :fiscal_year_start_date, :fiscal_year_end_date], unique: true, name: :index_on_security_reports_company_fy_start_end_date
   end
 end
