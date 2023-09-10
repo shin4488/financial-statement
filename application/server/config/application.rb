@@ -50,6 +50,10 @@ module FinancialStatement
     # DNSリバインディング攻撃制御に対応するため、nginxで定義されているサーバ名からのリクエストは受け付ける
     config.hosts << ENV["SERVER_HOST_NAME"] if ENV["SERVER_HOST_NAME"].present?
 
+    config.log_formatter = proc do |severity, datetime, progname, message|
+      severity_with_bracket = "[#{severity}]"
+      "#{severity_with_bracket.rjust(7)}[#{datetime.in_time_zone.to_s}]: #{progname} : #{message}\n"
+    end
     ActiveRecord::Base.logger = Logger.new("log/sql_#{Rails.env}.log", 'weekly')
   end
 end

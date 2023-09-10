@@ -1,6 +1,6 @@
 class SecurityReportSubscriberJob < ApplicationJob
   def perform(*args)
-    puts "SecurityReportSubscriberJobが動いたよ"
-    puts "args: #{args}"
+    Rails.logger.info "SecurityReportSubscriberJob started!"
+    SecurityReport::SubscriberService.subscribe(from_date: Time.zone.yesterday)
   end
 end
