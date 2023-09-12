@@ -41,8 +41,6 @@ class SecurityReport::SubscriberService
       end
 
     class IndividualSubscriber
-      include Sidekiq::Worker
-
       def perform(document_id:, zip_path:)
         # zipファイルのダウンロード・保存
         uri = URI("https://disclosure.edinet-fsa.go.jp/api/v1/documents/#{document_id}")
