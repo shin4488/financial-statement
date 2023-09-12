@@ -15,8 +15,8 @@ class SecurityReport::DocumentRepository
       # 上場会社の有価証券報告書のみを処理するため、それ以外のドキュメントは扱わない
       next if document_result["secCode"].nil? || document_result["docTypeCode"] != "120"
 
-      puts "#{document_result["docID"]} #{document_result["filerName"].tr('０-９ａ-ｚＡ-Ｚ　＆','0-9a-zA-Z &')}"
-      document_result["docID"]
+      Rails.logger.info "#{document_result["docID"]} #{document_result["filerName"].tr('０-９ａ-ｚＡ-Ｚ　＆','0-9a-zA-Z &')}"
+      document_result["docID"].to_s
     }.reject(&:nil?)
   end
 end

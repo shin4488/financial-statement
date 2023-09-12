@@ -2,16 +2,17 @@ class SecurityReport::SubscriberService
   REPORT_DIR_PATH = Rails.root.join("security_reports").freeze
 
   class << self
-    def subscribe(from_date: Time.zone.yesterday, end_date: Time.zone.yesterday)
+    def subscribe(from_date: Time.zone.yesterday, to_date: Time.zone.yesterday)
       FileUtils.remove_entry_secure(REPORT_DIR_PATH) if Dir.exist?(REPORT_DIR_PATH)
       FileUtils.mkdir_p(REPORT_DIR_PATH)
 
-      document_id_security_report_zip_paths = generate_security_report_zip_path(from_date:, end_date:)
+      document_id_security_report_zip_paths = generate_security_report_zip_path(from_date:, to_date:)
       document_id_security_report_zip_paths.each do |document_id, zip_path|
         # 1企業の財務データ作成に失敗しても他企業には影響がないため、次のループに入る
         # TODO:非同期に実行するようにする（ある企業の財務情報作成が他企業の財務情報作成に影響を与えないため）
         begin
           IndividualSubscriber.new.perform(document_id:, zip_path:)
+          Rails.logger.info "security report subscribe Finished! #{document_id}"
         rescue => e
           Rails.logger.error "register from zip error... document_id: #{document_id}"
           Rails.logger.error e.message
@@ -21,8 +22,8 @@ class SecurityReport::SubscriberService
     end
 
     private
-      def generate_security_report_zip_path(from_date:, end_date:)
-        (from_date.to_date..end_date.to_date).map { |date|
+      def generate_security_report_zip_path(from_date:, to_date:)
+        (from_date.to_date..to_date.to_date).map { |date|
           # ある日の財務データ取得に失敗しても他の日には影響がないため、次のループに入る
           begin
             document_repository = SecurityReport::DocumentRepository.new(date:)
