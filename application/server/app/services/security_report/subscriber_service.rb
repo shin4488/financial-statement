@@ -14,7 +14,7 @@ class SecurityReport::SubscriberService
           IndividualSubscriber.new.perform(document_id:, zip_path:)
           Rails.logger.info "security report subscribe Finished! #{document_id}"
         rescue => e
-          Rails.logger.error "register from zip error... document_id: #{document_id}"
+          Rails.logger.error "security report subscribe error! document_id: #{document_id}"
           Rails.logger.error e.message
           Rails.logger.error e.backtrace.join("\n")
         end
@@ -29,7 +29,7 @@ class SecurityReport::SubscriberService
             document_repository = SecurityReport::DocumentRepository.new(date:)
             document_repository.document_ids
           rescue => e
-            Rails.logger.error "generate zip path error... date: #{date}"
+            Rails.logger.error "generate zip path error! date: #{date}"
             Rails.logger.error e.message
             Rails.logger.error e.backtrace.join("\n")
           end
