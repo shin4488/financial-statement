@@ -51,7 +51,7 @@ module FinancialStatement
     config.hosts << ENV["SERVER_HOST_NAME"] if ENV["SERVER_HOST_NAME"].present?
 
     config.logger = Logger.new("log/#{Rails.env}.log", 'weekly')
-    config.log_formatter = proc do |severity, datetime, progname, message|
+    config.logger.formatter = proc do |severity, datetime, progname, message|
       severity_with_bracket = "[#{severity}]"
       "#{severity_with_bracket.rjust(7)}[#{datetime.in_time_zone.to_s}]: #{progname} : #{message}\n"
     end

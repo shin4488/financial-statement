@@ -32,12 +32,15 @@ class SecurityReport::SubscriberService
             Rails.logger.error "generate zip path error! date: #{date}"
             Rails.logger.error e.message
             Rails.logger.error e.backtrace.join("\n")
+            nil
           end
           # [["id1", "id2"], ["id3", "id4"]] => ["id1", "id2", "id3", "id4"]に変換してからパス生成
         }.flatten(1).map { |document_id|
+          next if document_id.nil?
+
           zip_path = File.join(REPORT_DIR_PATH, "#{document_id}.zip").to_s
           [document_id, zip_path]
-        }.to_h
+        }.reject(&:nil?).to_h
       end
 
     class IndividualSubscriber
