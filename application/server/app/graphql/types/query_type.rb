@@ -19,7 +19,7 @@ module Types
           id: 1,
           fiscal_year_start_date: '2021-07-01',
           fiscal_year_end_date: '2022-06-30',
-          company_name: 'オルバヘルスケアホールディングス株式会社',
+          company_japanese_name: 'オルバヘルスケアホールディングス株式会社',
           balance_sheet: {
             current_asset: 32908208000,
             property_plant_and_equipment: 4304433000,
@@ -47,7 +47,7 @@ module Types
           id: 2,
           fiscal_year_start_date: '2021-07-01',
           fiscal_year_end_date: '2022-06-30',
-          company_name: '株式会社ＡｍｉｄＡホールディングス',
+          company_japanese_name: '株式会社ＡｍｉｄＡホールディングス',
           balance_sheet: {
             current_asset: 2182649000,
             property_plant_and_equipment: 312374000,
@@ -75,7 +75,7 @@ module Types
           id: 3,
           fiscal_year_start_date: '2021-07-01',
           fiscal_year_end_date: '2022-06-30',
-          company_name: '一正蒲鉾株式会社',
+          company_japanese_name: '一正蒲鉾株式会社',
           balance_sheet: {
             current_asset: 250000,
             property_plant_and_equipment: 50000,
@@ -103,7 +103,7 @@ module Types
           id: 4,
           fiscal_year_start_date: '2021-12-31',
           fiscal_year_end_date: '2022-12-30',
-          company_name: '株式会社アジュバンホールディングスああああああああああああ aaaaaaaaa bbbbbbbbbbbb ccccccccc ddddddddddddddddddddddddddddddddddddddddddddddddddd',
+          company_japanese_name: '株式会社アジュバンホールディングスああああああああああああ aaaaaaaaa bbbbbbbbbbbb ccccccccc ddddddddddddddddddddddddddddddddddddddddddddddddddd',
           balance_sheet: {
             current_asset: 250000,
             property_plant_and_equipment: 50000,
@@ -131,7 +131,7 @@ module Types
           id: 1,
           fiscal_year_start_date: '2021-07-01',
           fiscal_year_end_date: '2022-06-30',
-          company_name: 'オルバヘルスケアホールディングス株式会社',
+          company_japanese_name: 'オルバヘルスケアホールディングス株式会社',
           balance_sheet: {
             current_asset: 32908208000,
             property_plant_and_equipment: 4304433000,
@@ -159,7 +159,7 @@ module Types
           id: 2,
           fiscal_year_start_date: '2021-07-01',
           fiscal_year_end_date: '2022-06-30',
-          company_name: '株式会社ＡｍｉｄＡホールディングス',
+          company_japanese_name: '株式会社ＡｍｉｄＡホールディングス',
           balance_sheet: {
             current_asset: 2182649000,
             property_plant_and_equipment: 312374000,
@@ -187,7 +187,7 @@ module Types
           id: 3,
           fiscal_year_start_date: '2021-07-01',
           fiscal_year_end_date: '2022-06-30',
-          company_name: '一正蒲鉾株式会社',
+          company_japanese_name: '一正蒲鉾株式会社',
           balance_sheet: {
             current_asset: 250000,
             property_plant_and_equipment: 50000,
@@ -215,7 +215,7 @@ module Types
           id: 4,
           fiscal_year_start_date: '2021-12-31',
           fiscal_year_end_date: '2022-12-30',
-          company_name: '株式会社アジュバンホールディングスああああああああああああ aaaaaaaaa bbbbbbbbbbbb ccccccccc ddddddddddddddddddddddddddddddddddddddddddddddddddd',
+          company_japanese_name: '株式会社アジュバンホールディングスああああああああああああ aaaaaaaaa bbbbbbbbbbbb ccccccccc ddddddddddddddddddddddddddddddddddddddddddddddddddd',
           balance_sheet: {
             current_asset: 250000,
             property_plant_and_equipment: 50000,
@@ -243,7 +243,7 @@ module Types
           id: 1,
           fiscal_year_start_date: '2021-07-01',
           fiscal_year_end_date: '2022-06-30',
-          company_name: 'オルバヘルスケアホールディングス株式会社',
+          company_japanese_name: 'オルバヘルスケアホールディングス株式会社',
           balance_sheet: {
             current_asset: 32908208000,
             property_plant_and_equipment: 4304433000,
@@ -271,7 +271,7 @@ module Types
           id: 2,
           fiscal_year_start_date: '2021-07-01',
           fiscal_year_end_date: '2022-06-30',
-          company_name: '株式会社ＡｍｉｄＡホールディングス',
+          company_japanese_name: '株式会社ＡｍｉｄＡホールディングス',
           balance_sheet: {
             current_asset: 2182649000,
             property_plant_and_equipment: 312374000,
@@ -299,7 +299,7 @@ module Types
           id: 3,
           fiscal_year_start_date: '2021-07-01',
           fiscal_year_end_date: '2022-06-30',
-          company_name: '一正蒲鉾株式会社',
+          company_japanese_name: '一正蒲鉾株式会社',
           balance_sheet: {
             current_asset: 250000,
             property_plant_and_equipment: 50000,
@@ -327,7 +327,7 @@ module Types
           id: 4,
           fiscal_year_start_date: '2021-12-31',
           fiscal_year_end_date: '2022-12-30',
-          company_name: '株式会社アジュバンホールディングスああああああああああああ aaaaaaaaa bbbbbbbbbbbb ccccccccc ddddddddddddddddddddddddddddddddddddddddddddddddddd',
+          company_japanese_name: '株式会社アジュバンホールディングスああああああああああああ aaaaaaaaa bbbbbbbbbbbb ccccccccc ddddddddddddddddddddddddddddddddddddddddddddddddddd',
           balance_sheet: {
             current_asset: 250000,
             property_plant_and_equipment: 50000,
@@ -355,7 +355,7 @@ module Types
           id: 4,
           fiscal_year_start_date: '2021-12-31',
           fiscal_year_end_date: '2022-12-30',
-          company_name: '株式会社アジュバンホールディングスああああああああああああ aaaaaaaaa bbbbbbbbbbbb ccccccccc ddddddddddddddddddddddddddddddddddddddddddddddddddd',
+          company_japanese_name: '株式会社アジュバンホールディングスああああああああああああ aaaaaaaaa bbbbbbbbbbbb ccccccccc ddddddddddddddddddddddddddddddddddddddddddddddddddd',
           balance_sheet: {
             current_asset: 250000,
             property_plant_and_equipment: 50000,
@@ -417,7 +417,7 @@ module Types
           id: statement[:id],
           fiscal_year_start_date: statement[:fiscal_year_start_date],
           fiscal_year_end_date: statement[:fiscal_year_end_date],
-          company_name: statement[:company_name],
+          company_japanese_name: statement[:company_japanese_name],
           balance_sheet: {
             amount: balance_sheet,
             ratio: {

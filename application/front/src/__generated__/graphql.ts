@@ -58,7 +58,7 @@ export type CompanyFinancialStatement = {
   __typename?: 'CompanyFinancialStatement';
   balanceSheet?: Maybe<BalanceSheet>;
   cashFlow?: Maybe<CashFlow>;
-  companyName?: Maybe<Scalars['String']['output']>;
+  companyJapaneseName?: Maybe<Scalars['String']['output']>;
   fiscalYearEndDate?: Maybe<Scalars['String']['output']>;
   fiscalYearStartDate?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];

@@ -121,7 +121,7 @@ export default class DevCharts extends React.Component<
           companyFinancialStatements(limit: 1, offset: 0) {
             fiscalYearStartDate
             fiscalYearEndDate
-            companyName
+            companyJapaneseName
             balanceSheet {
               amount {
                 currentAsset
@@ -223,7 +223,7 @@ export default class DevCharts extends React.Component<
         financialStatementResponse.fiscalYearEndDate,
       ),
       companyName: StringUtil.toBlankIfEmpty(
-        financialStatementResponse.companyName,
+        financialStatementResponse.companyJapaneseName,
       ),
       balanceSheet: {
         amount: {
