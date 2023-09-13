@@ -9,7 +9,7 @@ class SecurityReport::SubscriberService
       document_id_security_report_zip_paths = generate_security_report_zip_path(from_date:, to_date:)
       document_id_security_report_zip_paths.each do |document_id, zip_path|
         # 1企業の財務データ作成に失敗しても他企業には影響がないため、次のループに入る
-        # TODO:非同期に実行するようにする（ある企業の財務情報作成が他企業の財務情報作成に影響を与えないため）
+        # 非同期に実行すると短時間でリクエスト数が多くなり（IP制限で？）403がEDINET APIから返ってくるようになってしまうため、同期処理としている
         begin
           IndividualSubscriber.new.perform(document_id:, zip_path:)
           Rails.logger.info "security report subscribe Finished! #{document_id}"
