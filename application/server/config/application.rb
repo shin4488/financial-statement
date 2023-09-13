@@ -12,6 +12,9 @@ require "action_mailbox/engine"
 require "action_text/engine"
 require "action_view/railtie"
 require "action_cable/engine"
+
+require "net/http"
+require "open-uri"
 # require "rails/test_unit/railtie"
 
 # Require the gems listed in Gemfile, including any gems
@@ -36,9 +39,22 @@ module FinancialStatement
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
 
+    # ActiveRecordやTime.zoneで扱うタイムゾーン
+    config.time_zone = 'Tokyo'
+    # DBに書かれている時刻をどのタイムゾーンとして解釈するか、時刻をDBに書き込むときどのタイムゾーンで書き込むか（DBのタイムゾーン）
+    config.active_record.default_timezone = :utc
+
     config.middleware.use ActionDispatch::Session::CookieStore
+    config.paths.add 'lib', eager_load: true
     # https://weseek.co.jp/tech/680/
     # DNSリバインディング攻撃制御に対応するため、nginxで定義されているサーバ名からのリクエストは受け付ける
     config.hosts << ENV["SERVER_HOST_NAME"] if ENV["SERVER_HOST_NAME"].present?
+
+    config.logger = Logger.new("log/#{Rails.env}.log", 'weekly')
+    config.log_formatter = proc do |severity, datetime, progname, message|
+      severity_with_bracket = "[#{severity}]"
+      "#{severity_with_bracket.rjust(7)}[#{datetime.in_time_zone.to_s}]: #{progname} : #{message}\n"
+    end
+    ActiveRecord::Base.logger = Logger.new("log/sql_#{Rails.env}.log", 'weekly')
   end
 end

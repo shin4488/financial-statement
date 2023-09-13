@@ -6,7 +6,7 @@ Sidekiq.configure_server do |config|
     config.redis = { url: redis_url }
 
     config.on(:startup) do
-        config_file_path = "config/sidekiq.yml"
+        config_file_path = "config/sidekiq-cron.yml"
         if File.exist?(config_file_path)
             sidekiq_configuration = YAML.load_file(config_file_path)
             job_names = sidekiq_configuration.keys
