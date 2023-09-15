@@ -16,7 +16,6 @@ import ApolloClientService from '@/plugins/apollo/service';
 import { NumberUtil } from '@/plugins/utils/numberUtil';
 import StringUtil from '@/plugins/utils/stringUtil';
 import { financialStatementOffsetUnit } from '@/constants/values';
-import { EnvUtil } from '@/plugins/utils/envUtil';
 import { CompanyFinancialStatement } from '@/__generated__/graphql';
 
 interface FinancialStatement {
@@ -200,9 +199,7 @@ export default class DevCharts extends React.Component<
         this.setState((state) => {
           // Reactは開発時のみデフォルトでStrictModeとなっており、StrictModeだと初期表示で2回レンダリングされるため、開発時は同じデータが2重で表示されるのを防ぐ
           const isSecondRendering =
-            EnvUtil.isDevelopment() &&
-            offset === 0 &&
-            state.financialStatements.length !== 0;
+            offset === 0 && state.financialStatements.length !== 0;
 
           return {
             shouldLoadMore:
