@@ -1,5 +1,9 @@
 import React from 'react';
-import { stackLabelListFillColor } from '@/constants/values';
+import {
+  barChartHeight,
+  barChartWidth,
+  stackLabelListFillColor,
+} from '@/constants/values';
 import { Bar, LabelList } from 'recharts';
 import { ProfitLossBarChartProps } from './props';
 import { ProfitLossAmountKeyLabel, ProfitLossChart } from './chartData';
@@ -36,7 +40,24 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
     ];
   }
 
+  hasNoData(): boolean {
+    const amount = this.props.amount;
+    return (
+      amount.netSales === 0 &&
+      amount.originalCost === 0 &&
+      amount.sellingGeneralExpense === 0
+    );
+  }
+
   render(): React.ReactNode {
+    if (this.hasNoData()) {
+      return (
+        <div style={{ width: barChartWidth, height: barChartHeight }}>
+          損益計算書: データがありません。
+        </div>
+      );
+    }
+
     const costSalesCharData = this.costSalesCharData();
     const hasLoss = costSalesCharData[1].operatingLossAmount > 0;
 

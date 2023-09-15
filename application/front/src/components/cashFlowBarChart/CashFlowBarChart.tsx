@@ -2,6 +2,7 @@ import React from 'react';
 import { CashFlowBarChartProps } from './props';
 import WaterFlowBarChart from '@/components/waterFlowBarChart/WaterFlowBarChart';
 import { WaterFlowBarChartElement } from '@/components/waterFlowBarChart/props';
+import { barChartHeight, barChartWidth } from '@/constants/values';
 
 export default class CashFlowBarChart extends React.Component<CashFlowBarChartProps> {
   waterFlowBarChartData(): WaterFlowBarChartElement[] {
@@ -38,7 +39,24 @@ export default class CashFlowBarChart extends React.Component<CashFlowBarChartPr
     ];
   }
 
+  hasNoData(): boolean {
+    return (
+      this.props.startingCash === 0 &&
+      this.props.operatingActivitiesCashFlow === 0 &&
+      this.props.investingActivitiesCashFlow === 0 &&
+      this.props.financingActivitiesCashFlow === 0
+    );
+  }
+
   render(): React.ReactNode {
+    if (this.hasNoData()) {
+      return (
+        <div style={{ width: barChartWidth, height: barChartHeight }}>
+          キャッシュフロー計算書: データがありません。
+        </div>
+      );
+    }
+
     const waterFlowBarChartData = this.waterFlowBarChartData();
     return (
       <WaterFlowBarChart
