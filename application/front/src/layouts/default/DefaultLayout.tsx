@@ -8,14 +8,24 @@ export default class DefaultLayout extends React.Component<DefaultLayoutProps> {
     return (
       <>
         <div>{this.props.children}</div>
-        出典:{' '}
-        <Link
-          target="_blank"
-          href="https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/WZEK0030.html"
+        <footer
+          style={{
+            backgroundColor: 'white',
+            opacity: 0.7,
+            position: 'fixed',
+            bottom: 0,
+            zIndex: 10,
+          }}
         >
-          EDINET閲覧（提出）サイト
-        </Link>
-        より抜粋して作成
+          出典:{' '}
+          <Link
+            target="_blank"
+            href="https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/WZEK0030.html"
+          >
+            EDINET閲覧（提出）サイト
+          </Link>
+          より抜粋して作成
+        </footer>
       </>
     );
   }
