@@ -3,6 +3,7 @@ class SecurityReport::FetcherService
 
   class << self
     def fetch_security_reports(limit:, offset:)
+      # 提出日のみのorderだと実行ごとに並び替え順番が異なり得るため、日時を値にもつupdated_atもorderに加えて、何回実行しても同じ並び順となるようにする
       SecurityReport.eager_load(:company).where(accounting_standard: "japan_gaap").order(filing_date: :desc, updated_at: :desc).limit(limit).offset(offset).map do |security_report|
         has_consolidation = security_report.has_consolidated_financial_statement
 
