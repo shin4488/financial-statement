@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid } from '@mui/material';
+import { Grid, Link } from '@mui/material';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
@@ -23,6 +23,7 @@ interface FinancialStatement {
   fiscalYearStartDate: string;
   fiscalYearEndDate: string;
   companyName: string;
+  stockCode: string;
   balanceSheet: BalanceSheetBarChartProps;
   profitLoss: ProfitLossBarChartProps;
   cashFlow: CashFlowBarChartProps;
@@ -58,7 +59,14 @@ export default class DevCharts extends React.Component<
                   <CardHeader
                     title={
                       <div className="financial-statement-card-header">
-                        {chartData.companyName}
+                        <Link
+                          title={`${chartData.companyName}（株探）`}
+                          underline="none"
+                          target="_blank"
+                          href={`https://kabutan.jp/stock/?code=${chartData.stockCode}`}
+                        >
+                          {chartData.companyName}
+                        </Link>
                       </div>
                     }
                     subheader={
@@ -100,6 +108,8 @@ export default class DevCharts extends React.Component<
 
         <InfiniteScroll
           loadMore={(page) => {
+            console.log('page');
+            console.log(page);
             this.load((page - 1) * financialStatementOffsetUnit);
           }}
           hasMore={this.state.shouldLoadMore}
@@ -118,10 +128,17 @@ export default class DevCharts extends React.Component<
       .query(
         `
         query {
-          companyFinancialStatements(limit: 1, offset: 0) {
+          companyFinancialStatements(limit: ` +
+          financialStatementOffsetUnit +
+          `, offset: ` +
+          offset +
+          `) {
             fiscalYearStartDate
             fiscalYearEndDate
+            filingDate
+            stockCode
             companyJapaneseName
+            hasConsolidatedFinancialStatement
             balanceSheet {
               amount {
                 currentAsset
@@ -168,6 +185,8 @@ export default class DevCharts extends React.Component<
         `,
       )
       .then((result) => {
+        console.log('結果ゲット！');
+        console.log(result.companyFinancialStatements);
         const financialStatements = result.companyFinancialStatements;
         if (
           financialStatements === undefined ||
@@ -189,6 +208,10 @@ export default class DevCharts extends React.Component<
             offset === 0 &&
             state.financialStatements.length !== 0;
 
+          console.log(offset);
+          console.log(financialStatements.length);
+          console.log(state.financialStatements.length);
+          console.log(isSecondRendering);
           return {
             shouldLoadMore:
               financialStatements.length === financialStatementOffsetUnit,
@@ -222,6 +245,9 @@ export default class DevCharts extends React.Component<
       fiscalYearEndDate: StringUtil.toBlankIfEmpty(
         financialStatementResponse.fiscalYearEndDate,
       ),
+      stockCode: StringUtil.toBlankIfEmpty(
+        financialStatementResponse.stockCode,
+      ).slice(0, -1),
       companyName: StringUtil.toBlankIfEmpty(
         financialStatementResponse.companyJapaneseName,
       ),
