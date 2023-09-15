@@ -108,8 +108,6 @@ export default class DevCharts extends React.Component<
 
         <InfiniteScroll
           loadMore={(page) => {
-            console.log('page');
-            console.log(page);
             this.load((page - 1) * financialStatementOffsetUnit);
           }}
           hasMore={this.state.shouldLoadMore}
@@ -185,8 +183,6 @@ export default class DevCharts extends React.Component<
         `,
       )
       .then((result) => {
-        console.log('結果ゲット！');
-        console.log(result.companyFinancialStatements);
         const financialStatements = result.companyFinancialStatements;
         if (
           financialStatements === undefined ||
@@ -208,10 +204,6 @@ export default class DevCharts extends React.Component<
             offset === 0 &&
             state.financialStatements.length !== 0;
 
-          console.log(offset);
-          console.log(financialStatements.length);
-          console.log(state.financialStatements.length);
-          console.log(isSecondRendering);
           return {
             shouldLoadMore:
               financialStatements.length === financialStatementOffsetUnit,
