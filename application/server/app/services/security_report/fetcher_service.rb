@@ -3,7 +3,7 @@ class SecurityReport::FetcherService
 
   class << self
     def fetch_security_reports(limit:, offset:)
-      SecurityReport.eager_load(:company).where(accounting_standard: "japan_gaap").order(filing_date: :desc).limit(limit).offset(offset).map do |security_report|
+      SecurityReport.eager_load(:company).where(accounting_standard: "japan_gaap").order(filing_date: :desc, updated_at: :desc).limit(limit).offset(offset).map do |security_report|
         has_consolidation = security_report.has_consolidated_financial_statement
 
         # 投資判断的には連結財務諸表が大切なはずのため、連結財務諸表があれば連結財務諸表のみを返す
