@@ -41,19 +41,14 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
   }
 
   hasNoData(): boolean {
-    const amount = this.props.amount;
-    return (
-      amount.netSales === 0 &&
-      amount.originalCost === 0 &&
-      amount.sellingGeneralExpense === 0
-    );
+    return this.props.amount.netSales === 0;
   }
 
   render(): React.ReactNode {
     if (this.hasNoData()) {
       return (
         <div style={{ width: barChartWidth, height: barChartHeight }}>
-          損益計算書: データがありません。
+          損益計算書: データがない、または表示対応していないデータです。
         </div>
       );
     }
