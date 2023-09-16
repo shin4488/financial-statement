@@ -102,6 +102,8 @@ class SecurityReport::FetcherService
           stock_code: security_report.company.stock_code,
           company_japanese_name: security_report.company.company_japanese_name,
           has_consolidated_financial_statement: security_report.has_consolidated_financial_statement,
+          consolidated_inductory_code: security_report.consolidated_inductory_code,
+          non_consolidated_inductory_code: security_report.non_consolidated_inductory_code,
           balance_sheet: {
             amount: balance_sheet,
             ratio: {
