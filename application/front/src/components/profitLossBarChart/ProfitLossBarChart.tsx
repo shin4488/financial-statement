@@ -1,13 +1,10 @@
 import React from 'react';
-import {
-  barChartHeight,
-  barChartWidth,
-  stackLabelListFillColor,
-} from '@/constants/values';
+import { stackLabelListFillColor } from '@/constants/values';
 import { Bar, LabelList } from 'recharts';
 import { ProfitLossBarChartProps } from './props';
 import { ProfitLossAmountKeyLabel, ProfitLossChart } from './chartData';
 import FinancialStatementBarChart from '@/components/financialStatementBarChart/FinancialStatementBarChart';
+import ChartAlternative from '@/components/chartAlternative/ChartAlternative';
 
 const dataKeyJapaneseHash: ProfitLossAmountKeyLabel = {
   originalCostAmount: '売上原価',
@@ -47,9 +44,9 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
   render(): React.ReactNode {
     if (this.hasNoData()) {
       return (
-        <div style={{ width: barChartWidth, height: barChartHeight }}>
+        <ChartAlternative>
           損益計算書: データがない、または表示対応していないデータです。
-        </div>
+        </ChartAlternative>
       );
     }
 
