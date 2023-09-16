@@ -17,12 +17,16 @@ import { NumberUtil } from '@/plugins/utils/numberUtil';
 import StringUtil from '@/plugins/utils/stringUtil';
 import { financialStatementOffsetUnit } from '@/constants/values';
 import { CompanyFinancialStatement } from '@/__generated__/graphql';
+import ChartAlternative from '@/components/chartAlternative/ChartAlternative';
 
 interface FinancialStatement {
   fiscalYearStartDate: string;
   fiscalYearEndDate: string;
   companyName: string;
   stockCode: string;
+  hasConsolidatedFinancialStatement: boolean;
+  consolidatedInductoryCode: string;
+  nonConsolidatedInductoryCode: string;
   balanceSheet: BalanceSheetBarChartProps;
   profitLoss: ProfitLossBarChartProps;
   cashFlow: CashFlowBarChartProps;
@@ -52,6 +56,14 @@ export default class DevCharts extends React.Component<
             const balanceSheet = chartData.balanceSheet;
             const profitLoss = chartData.profitLoss;
             const cashFlow = chartData.cashFlow;
+            const consolidationTypeLabel =
+              chartData.hasConsolidatedFinancialStatement ? '連結' : '単体';
+            const isBank =
+              (chartData.hasConsolidatedFinancialStatement &&
+                chartData.consolidatedInductoryCode === 'bnk') ||
+              (!chartData.hasConsolidatedFinancialStatement &&
+                chartData.nonConsolidatedInductoryCode === 'bnk');
+
             return (
               <Grid item xs={12} md={6} lg={4} key={index}>
                 <Card>
@@ -70,20 +82,39 @@ export default class DevCharts extends React.Component<
                     }
                     subheader={
                       <div className="financial-statement-card-header">
-                        {`${chartData.fiscalYearStartDate} - ${chartData.fiscalYearEndDate}`}
+                        {`${chartData.fiscalYearStartDate} - ${chartData.fiscalYearEndDate}（${consolidationTypeLabel}）`}
                       </div>
                     }
                   />
                   <CardContent>
                     <AppCarousel>
-                      <BalanceSheetBarCahrt
-                        amount={balanceSheet.amount}
-                        ratio={balanceSheet.ratio}
-                      />
-                      <ProfitLossBarChart
-                        amount={profitLoss.amount}
-                        ratio={profitLoss.ratio}
-                      />
+                      {/* 貸借対照表 */}
+                      {isBank ? (
+                        <ChartAlternative>
+                          貸借対照表:
+                          金融機関のデータ表示には対応しておりません。
+                        </ChartAlternative>
+                      ) : (
+                        <BalanceSheetBarCahrt
+                          amount={balanceSheet.amount}
+                          ratio={balanceSheet.ratio}
+                        />
+                      )}
+
+                      {/* 損益計算書 */}
+                      {isBank ? (
+                        <ChartAlternative>
+                          損益計算書:
+                          金融機関のデータ表示には対応しておりません。
+                        </ChartAlternative>
+                      ) : (
+                        <ProfitLossBarChart
+                          amount={profitLoss.amount}
+                          ratio={profitLoss.ratio}
+                        />
+                      )}
+
+                      {/* キャッシュフロー計算書 */}
                       <CashFlowBarChart
                         startingCash={cashFlow.startingCash}
                         operatingActivitiesCashFlow={
@@ -136,6 +167,8 @@ export default class DevCharts extends React.Component<
             stockCode
             companyJapaneseName
             hasConsolidatedFinancialStatement
+            consolidatedInductoryCode
+            nonConsolidatedInductoryCode
             balanceSheet {
               amount {
                 currentAsset
@@ -239,6 +272,14 @@ export default class DevCharts extends React.Component<
       ).slice(0, -1),
       companyName: StringUtil.toBlankIfEmpty(
         financialStatementResponse.companyJapaneseName,
+      ),
+      hasConsolidatedFinancialStatement:
+        financialStatementResponse.hasConsolidatedFinancialStatement || false,
+      consolidatedInductoryCode: StringUtil.toBlankIfEmpty(
+        financialStatementResponse.consolidatedInductoryCode,
+      ),
+      nonConsolidatedInductoryCode: StringUtil.toBlankIfEmpty(
+        financialStatementResponse.nonConsolidatedInductoryCode,
       ),
       balanceSheet: {
         amount: {
