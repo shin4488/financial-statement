@@ -37,12 +37,22 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
     ];
   }
 
-  hasNoData(): boolean {
-    return this.props.amount.netSales === 0;
+  // TODO:未対応の損益計算書のフォーマットに対応する
+  hasInvalidData(): boolean {
+    const amount = this.props.amount;
+    const netSales = amount.netSales;
+    const debit =
+      amount.originalCost +
+      amount.sellingGeneralExpense +
+      amount.operatingIncome;
+    return (
+      // 貸借に1割以上差異があったら表示できないデータとする
+      netSales === 0 || !(netSales * 0.9 <= debit && debit <= netSales * 1.1)
+    );
   }
 
   render(): React.ReactNode {
-    if (this.hasNoData()) {
+    if (this.hasInvalidData()) {
       return (
         <ChartAlternative>
           損益計算書: データがない、または表示対応していないデータです。

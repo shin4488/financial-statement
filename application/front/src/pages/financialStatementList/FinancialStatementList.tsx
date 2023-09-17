@@ -34,11 +34,16 @@ export default class FinancialStatementList extends React.Component<
             const cashFlow = statement.cashFlow;
             const consolidationTypeLabel =
               statement.hasConsolidatedFinancialStatement ? '連結' : '単体';
-            const isBank =
+            const ignoredInductoryCodes = ['bnk', 'ele'];
+            const isBankOrElectricity =
               (statement.hasConsolidatedFinancialStatement &&
-                statement.consolidatedInductoryCode === 'bnk') ||
+                ignoredInductoryCodes.includes(
+                  statement.consolidatedInductoryCode.toLowerCase(),
+                )) ||
               (!statement.hasConsolidatedFinancialStatement &&
-                statement.nonConsolidatedInductoryCode === 'bnk');
+                ignoredInductoryCodes.includes(
+                  statement.nonConsolidatedInductoryCode.toLowerCase(),
+                ));
 
             return (
               <Grid item xs={12} md={6} lg={4} key={index}>
@@ -65,10 +70,10 @@ export default class FinancialStatementList extends React.Component<
                   <CardContent>
                     <AppCarousel>
                       {/* 貸借対照表 */}
-                      {isBank ? (
+                      {isBankOrElectricity ? (
                         <ChartAlternative>
                           貸借対照表:
-                          金融機関のデータ表示には対応しておりません。
+                          金融機関や電気事業者のデータ表示には対応しておりません。
                         </ChartAlternative>
                       ) : (
                         <BalanceSheetBarCahrt
@@ -78,10 +83,10 @@ export default class FinancialStatementList extends React.Component<
                       )}
 
                       {/* 損益計算書 */}
-                      {isBank ? (
+                      {isBankOrElectricity ? (
                         <ChartAlternative>
                           損益計算書:
-                          金融機関のデータ表示には対応しておりません。
+                          金融機関や電気事業者のデータ表示には対応しておりません。
                         </ChartAlternative>
                       ) : (
                         <ProfitLossBarChart

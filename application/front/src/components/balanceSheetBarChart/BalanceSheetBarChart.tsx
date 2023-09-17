@@ -4,6 +4,7 @@ import { stackLabelListFillColor } from '@/constants/values';
 import { BalanceSheetBarChartProps } from './props';
 import { BalanceSheetAmountKeyLabel, BalanceSheetChart } from './chartData';
 import FinancialStatementBarChart from '@/components/financialStatementBarChart/FinancialStatementBarChart';
+import ChartAlternative from '@/components/chartAlternative/ChartAlternative';
 
 const dataKeyJapaneseHash: BalanceSheetAmountKeyLabel = {
   currentAssetAmount: '流動資産',
@@ -47,7 +48,30 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
     ];
   }
 
+  // TODO:未対応の貸借対照書のフォーマットに対応する
+  hasInvalidData(): boolean {
+    const amount = this.props.amount;
+
+    const debit =
+      amount.currentAsset +
+      amount.propertyPlantAndEquipment +
+      amount.intangibleAsset +
+      amount.investmentAndOtherAsset;
+    const credit =
+      amount.currentLiability + amount.noncurrentLiability + amount.netAsset;
+    // 貸借に1割以上差異があったら表示できないデータとする
+    return !(debit * 0.9 <= credit && credit <= debit * 1.1);
+  }
+
   render(): React.ReactNode {
+    if (this.hasInvalidData()) {
+      return (
+        <ChartAlternative>
+          貸借対照表: データがない、または表示対応していないデータです。
+        </ChartAlternative>
+      );
+    }
+
     const balanceSheetCharData = this.balanceSheetCharData();
     const isInsolvency = this.isInsolvency();
     const amount = this.props.amount;
