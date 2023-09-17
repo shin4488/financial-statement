@@ -58,11 +58,16 @@ export type CompanyFinancialStatement = {
   __typename?: 'CompanyFinancialStatement';
   balanceSheet?: Maybe<BalanceSheet>;
   cashFlow?: Maybe<CashFlow>;
-  companyName?: Maybe<Scalars['String']['output']>;
+  companyJapaneseName?: Maybe<Scalars['String']['output']>;
+  consolidatedInductoryCode?: Maybe<Scalars['String']['output']>;
+  filingDate?: Maybe<Scalars['String']['output']>;
   fiscalYearEndDate?: Maybe<Scalars['String']['output']>;
   fiscalYearStartDate?: Maybe<Scalars['String']['output']>;
+  hasConsolidatedFinancialStatement?: Maybe<Scalars['Boolean']['output']>;
   id: Scalars['ID']['output'];
+  nonConsolidatedInductoryCode?: Maybe<Scalars['String']['output']>;
   profitLoss?: Maybe<ProfitLoss>;
+  stockCode?: Maybe<Scalars['String']['output']>;
 };
 
 export type Mutation = {

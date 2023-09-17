@@ -1,4 +1,4 @@
-interface Credit {
+interface Debit {
   originalCostAmount: number;
   sellingGeneralExpenseAmount: number;
   operatingIncomeAmount: number;
@@ -7,17 +7,17 @@ interface Credit {
   operatingIncomeRatio: number;
 }
 
-interface Debt {
+interface Credit {
   netSalesAmount: number;
   operatingLossAmount: number;
   netSalesRatio: number;
   operatingLossRatio: number;
 }
 
-export type ProfitLossChart = [Credit, Debt];
+export type ProfitLossChart = [Debit, Credit];
 
 export type ProfitLossAmountKeyLabel = {
-  [K in (keyof Credit | keyof Debt) &
+  [K in (keyof Debit | keyof Credit) &
     (
       | 'originalCostAmount'
       | 'sellingGeneralExpenseAmount'

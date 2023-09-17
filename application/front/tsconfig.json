@@ -20,6 +20,10 @@
     "strictNullChecks": true
   },
   "include": ["src"],
-  "exclude": ["src/__generated__"],
+  "exclude": [
+    "src/__generated__/fragment-masking.ts",
+    "src/__generated__/gql.ts",
+    "src/__generated__/index.ts"
+  ],
   "extends": "./tsconfig.paths"
 }

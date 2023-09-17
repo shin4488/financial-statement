@@ -70,8 +70,30 @@ class SecurityReport::ReaderRepository
         liability: @parser.extract_text(key: "//jppfs_cor:Liabilities[@contextRef='CurrentYearInstant#{@consolidation_type}']").to_i,
         net_asset: @parser.extract_text(key: "//jppfs_cor:NetAssets[@contextRef='CurrentYearInstant#{@consolidation_type}']").to_i,
         # PLデータ
-        net_sales: @parser.extract_text(key: "//jppfs_cor:NetSales[@contextRef='CurrentYearDuration#{@consolidation_type}']").to_i,
-        cost_of_sales: @parser.extract_text(key: "//jppfs_cor:CostOfSales[@contextRef='CurrentYearDuration#{@consolidation_type}']").to_i,
+        # TODO:業種に応じたフォーマットの違いを吸収したい
+        # https://www.fsa.go.jp/search/20211109/1f_AccountList.xlsx
+        # https://www.fsa.go.jp/search/20130301/01_b2.pdf
+        net_sales: (
+          @parser.extract_text(key: "//jppfs_cor:NetSales[@contextRef='CurrentYearDuration#{@consolidation_type}']") ||
+          # 完成業務高
+          @parser.extract_text(key: "//jppfs_cor:ContractsCompletedRevOA[@contextRef='CurrentYearDuration#{@consolidation_type}']") ||
+          # 完成工事高
+          @parser.extract_text(key: "//jppfs_cor:NetSalesOfCompletedConstructionContractsCNS[@contextRef='CurrentYearDuration#{@consolidation_type}']")
+        ).to_i,
+        # 企業によって原価項目の科目名が異なる
+        cost_of_sales: (
+          @parser.extract_text(key: "//jppfs_cor:CostOfSales[@contextRef='CurrentYearDuration#{@consolidation_type}']") ||
+          # 商品及び製品売上原価
+          @parser.extract_text(key: "//jppfs_cor:CostOfMerchandiseAndFinishedGoodsSoldCOS[@contextRef='CurrentYearDuration#{@consolidation_type}']") ||
+          # 製品売上原価
+          @parser.extract_text(key: "//jppfs_cor:CostOfFinishedGoodsSold[@contextRef='CurrentYearDuration#{@consolidation_type}']") ||
+          # 商品売上原価
+          @parser.extract_text(key: "//jppfs_cor:CostOfGoodsSold[@contextRef='CurrentYearDuration#{@consolidation_type}']") ||
+          # 完成業務原価
+          @parser.extract_text(key: "//jppfs_cor:CostOfCompletedWorkCOSExpOA[@contextRef='CurrentYearDuration#{@consolidation_type}']") ||
+          # 完成工事原価
+          @parser.extract_text(key: "//jppfs_cor:CostOfSalesOfCompletedConstructionContractsCNS[@contextRef='CurrentYearDuration#{@consolidation_type}']")
+        ).to_i,
         gross_profit: @parser.extract_text(key: "//jppfs_cor:GrossProfit[@contextRef='CurrentYearDuration#{@consolidation_type}']").to_i,
         selling_general_and_administrative_expense: @parser.extract_text(key: "//jppfs_cor:SellingGeneralAndAdministrativeExpenses[@contextRef='CurrentYearDuration#{@consolidation_type}']").to_i,
         operating_income: @parser.extract_text(key: "//jppfs_cor:OperatingIncome[@contextRef='CurrentYearDuration#{@consolidation_type}']").to_i,

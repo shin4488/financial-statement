@@ -18,7 +18,7 @@ export default class FinancialStatementBarChart<
         height={barChartHeight}
       >
         <BarChart data={this.props.data}>
-          <YAxis reversed hide />
+          <YAxis reversed hide domain={[0, 'dataMax']} />
           <Tooltip
             cursor={false}
             wrapperStyle={{

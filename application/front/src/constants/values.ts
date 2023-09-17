@@ -1,4 +1,4 @@
-export const financialStatementOffsetUnit = 12;
+export const financialStatementOffsetUnit = 42;
 
 export const barChartWidth = '90%';
 export const barChartHeight = 400;
