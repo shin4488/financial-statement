@@ -8,4 +8,5 @@ export interface WaterFlowBarChartProps {
   data: WaterFlowBarChartElement[];
   positiveColor: string;
   negativeColor: string;
+  unit: string;
 }

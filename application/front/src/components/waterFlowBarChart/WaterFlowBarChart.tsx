@@ -40,9 +40,9 @@ export default class WaterFlowBarChart extends React.Component<WaterFlowBarChart
 
               // ペイロードの2要素目が色付き部分のデータ（1要素目は透明部分のデータ）
               return (
-                <div>{`${
-                  props.label
-                }: ${payload[1].value?.toLocaleString()}`}</div>
+                <div>{`${props.label}: ${payload[1].value?.toLocaleString()}${
+                  this.props.unit
+                }`}</div>
               );
             }}
           />
@@ -58,8 +58,8 @@ export default class WaterFlowBarChart extends React.Component<WaterFlowBarChart
                 key={index}
                 fill={
                   dataElement.value < 0
-                    ? this.props.positiveColor
-                    : this.props.negativeColor
+                    ? this.props.negativeColor
+                    : this.props.positiveColor
                 }
               />
             ))}

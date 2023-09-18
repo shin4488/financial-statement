@@ -13,6 +13,7 @@ import { financialStatementOffsetUnit } from '@/constants/values';
 import ChartAlternative from '@/components/chartAlternative/ChartAlternative';
 import { FinancialStatementListState } from './state';
 import FinancialStatementListStateService from './service';
+import FirebaseAnalytics from '@/plugins/firebase/analytics';
 
 export default class FinancialStatementList extends React.Component<
   unknown,
@@ -57,7 +58,20 @@ export default class FinancialStatementList extends React.Component<
                           target="_blank"
                           href={`https://kabutan.jp/stock/?code=${statement.stockCode}`}
                         >
-                          {statement.companyName}
+                          <span
+                            onClick={() =>
+                              FirebaseAnalytics.logSelectContentEvent({
+                                content_type: 'url',
+                                items: [
+                                  {
+                                    name: `https://kabutan.jp/stock/?code=${statement.stockCode}`,
+                                  },
+                                ],
+                              })
+                            }
+                          >
+                            {statement.companyName}
+                          </span>
                         </Link>
                       </div>
                     }
@@ -120,6 +134,7 @@ export default class FinancialStatementList extends React.Component<
         <InfiniteScroll
           loadMore={(page) => {
             this.load((page - 1) * financialStatementOffsetUnit);
+            FirebaseAnalytics.logLoadMoreStatementsEvent();
           }}
           hasMore={this.state.shouldLoadMore}
           loader={<CircularProgress key={1} style={{ marginBottom: 5 }} />}
