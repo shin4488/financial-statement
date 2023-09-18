@@ -134,7 +134,7 @@ export default class FinancialStatementList extends React.Component<
         <InfiniteScroll
           loadMore={(page) => {
             this.load((page - 1) * financialStatementOffsetUnit);
-            FirebaseAnalytics.logLoadMoreStatementsEvent();
+            FirebaseAnalytics.logLoadMoreStatementsEvent({ page: page });
           }}
           hasMore={this.state.shouldLoadMore}
           loader={<CircularProgress key={1} style={{ marginBottom: 5 }} />}
