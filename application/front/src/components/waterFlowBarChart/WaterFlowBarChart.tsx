@@ -58,8 +58,8 @@ export default class WaterFlowBarChart extends React.Component<WaterFlowBarChart
                 key={index}
                 fill={
                   dataElement.value < 0
-                    ? this.props.positiveColor
-                    : this.props.negativeColor
+                    ? this.props.negativeColor
+                    : this.props.positiveColor
                 }
               />
             ))}
