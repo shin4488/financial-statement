@@ -106,7 +106,7 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
         }}
       >
         {/* 借方 */}
-        <Bar dataKey="currentAssetAmount" stackId="a" fill="#FEBBCC">
+        <Bar dataKey="currentAssetAmount" stackId="a" fill="#A1C2F1">
           <LabelList
             dataKey="currentAssetRatio"
             fill={stackLabelListFillColor}
@@ -119,7 +119,7 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
         <Bar
           dataKey="propertyPlantAndEquipmentAmount"
           stackId="a"
-          fill="#E48586"
+          fill="#5A96E3"
         >
           <LabelList
             dataKey="propertyPlantAndEquipmentRatio"
@@ -130,7 +130,7 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
             }
           />
         </Bar>
-        <Bar dataKey="intangibleAssetAmount" stackId="a" fill="#FCBAAD">
+        <Bar dataKey="intangibleAssetAmount" stackId="a" fill="#7286D3">
           <LabelList
             dataKey="intangibleAssetRatio"
             fill={stackLabelListFillColor}
@@ -140,7 +140,7 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
             }
           />
         </Bar>
-        <Bar dataKey="investmentAndOtherAssetAmount" stackId="a" fill="#C51605">
+        <Bar dataKey="investmentAndOtherAssetAmount" stackId="a" fill="#576CBC">
           <LabelList
             dataKey="investmentAndOtherAssetRatio"
             fill={stackLabelListFillColor}
@@ -152,7 +152,7 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
         </Bar>
 
         {/* 貸方 */}
-        <Bar dataKey="currentLiabilityAmount" stackId="a" fill="#5B9A8B">
+        <Bar dataKey="currentLiabilityAmount" stackId="a" fill="#FEBBCC">
           <LabelList
             dataKey="currentLiabilityRatio"
             fill={stackLabelListFillColor}
@@ -162,7 +162,7 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
             }
           />
         </Bar>
-        <Bar dataKey="noncurrentLiabilityAmount" stackId="a" fill="#445069">
+        <Bar dataKey="noncurrentLiabilityAmount" stackId="a" fill="#E48586">
           <LabelList
             dataKey="noncurrentLiabilityRatio"
             fill={stackLabelListFillColor}
@@ -182,7 +182,7 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
         ) : (
           <></>
         )}
-        <Bar dataKey="netAssetAmount" stackId="a" fill="#252B48">
+        <Bar dataKey="netAssetAmount" stackId="a" fill="#8EC3B0">
           <LabelList
             dataKey="netAssetRatio"
             fill={stackLabelListFillColor}

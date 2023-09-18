@@ -78,7 +78,7 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
         }}
       >
         {/* 借方 */}
-        <Bar dataKey="originalCostAmount" stackId="a" fill="#9F91CC">
+        <Bar dataKey="originalCostAmount" stackId="a" fill="#FEBBCC">
           <LabelList
             dataKey="originalCostRatio"
             fill={stackLabelListFillColor}
@@ -90,7 +90,7 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
             }
           />
         </Bar>
-        <Bar dataKey="sellingGeneralExpenseAmount" stackId="a" fill="#5C4B99">
+        <Bar dataKey="sellingGeneralExpenseAmount" stackId="a" fill="#E48586">
           <LabelList
             dataKey="sellingGeneralExpenseRatio"
             fill={stackLabelListFillColor}
@@ -104,7 +104,7 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
         </Bar>
 
         {/* 貸方 */}
-        <Bar dataKey="netSalesAmount" stackId="a" fill="#F94C10">
+        <Bar dataKey="netSalesAmount" stackId="a" fill="#A1C2F1">
           <LabelList
             dataKey="netSalesRatio"
             fill={stackLabelListFillColor}
@@ -119,7 +119,7 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
 
         {/* 営業利益/営業損失はどちらの場合でも積み上げの一番下に表示する */}
         {hasLoss ? (
-          <Bar dataKey="operatingLossAmount" stackId="a" fill="#5B9A8B">
+          <Bar dataKey="operatingLossAmount" stackId="a" fill="#F7C04A">
             <LabelList
               dataKey="operatingLossRatio"
               formatter={(value: number) =>
@@ -132,7 +132,7 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
             />
           </Bar>
         ) : (
-          <Bar dataKey="operatingIncomeAmount" stackId="a" fill="#3D246C">
+          <Bar dataKey="operatingIncomeAmount" stackId="a" fill="#8EC3B0">
             <LabelList
               dataKey="operatingIncomeRatio"
               formatter={(value: number) =>
