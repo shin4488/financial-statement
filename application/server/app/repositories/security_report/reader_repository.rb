@@ -21,8 +21,12 @@ class SecurityReport::ReaderRepository
         ""
       end
     has_consolidated_financial_statement = @parser.extract_text(key: "//jpdei_cor:WhetherConsolidatedFinancialStatementsArePreparedDEI[@contextRef='FilingDateInstant']")
-    company_japanese_name = @parser.extract_text(key: "//jpcrp_cor:CompanyNameCoverPage[@contextRef='FilingDateInstant']")
-    company_english_name = @parser.extract_text(key: "//jpcrp_cor:CompanyNameInEnglishCoverPage[@contextRef='FilingDateInstant']")
+    company_japanese_name =
+      @parser.extract_text(key: "//jpcrp_cor:CompanyNameCoverPage[@contextRef='FilingDateInstant']") ||
+      @parser.extract_text(key: "//jpdei_cor:FilerNameInJapaneseDEI[@contextRef='FilingDateInstant']")
+    company_english_name =
+      @parser.extract_text(key: "//jpcrp_cor:CompanyNameInEnglishCoverPage[@contextRef='FilingDateInstant']") ||
+      @parser.extract_text(key: "//jpcrp_cor:FilerNameInEnglishDEI[@contextRef='FilingDateInstant']")
     consolidated_reader = SingleSecurityReportsReader.new(CONSOLIDATED, @xbrl_file_path)
     non_consolidated_reader = SingleSecurityReportsReader.new(NON_CONSOLIDATED, @xbrl_file_path)
 
