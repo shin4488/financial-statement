@@ -70,8 +70,8 @@ export default class ProfitLossBarChart extends React.Component<ProfitLossBarCha
           const dataKey = name as keyof ProfitLossAmountKeyLabel;
           return [
             dataKey === 'operatingLossAmount'
-              ? `-${value.toLocaleString()}`
-              : value.toLocaleString(),
+              ? `-${value.toLocaleString()}円`
+              : `${value.toLocaleString()}円`,
             // Barコンポーネントに渡すdataKeyはAmountのキーである前提
             `${dataKeyJapaneseHash[dataKey]}`,
           ];

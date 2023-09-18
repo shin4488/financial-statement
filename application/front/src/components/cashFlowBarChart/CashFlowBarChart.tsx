@@ -63,6 +63,7 @@ export default class CashFlowBarChart extends React.Component<CashFlowBarChartPr
         data={waterFlowBarChartData}
         positiveColor="#A1C2F1"
         negativeColor="#FF9EAA"
+        unit="円"
       />
     );
   }
