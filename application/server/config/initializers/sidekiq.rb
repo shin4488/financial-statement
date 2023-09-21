@@ -3,7 +3,12 @@ redis_post = ENV["REDIS_PORT"]
 redis_url = "redis://#{redis_host_name}:#{redis_post}"
 
 Sidekiq.configure_server do |config|
-    config.redis = { url: redis_url }
+    redis_password = ENV["REDIS_PASSWORD"]
+    if redis_password.present?
+      config.redis = { url: redis_url, password: redis_password }
+    else
+      config.redis = { url: redis_url }
+    end
 
     config.on(:startup) do
         config_file_path = "config/sidekiq-cron.yml"
