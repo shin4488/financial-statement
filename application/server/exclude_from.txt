@@ -21,7 +21,13 @@
 
 # Ignore master key for decrypting credentials and more.
 - config/master.key
+- config/application.yml
 
 - vendor/bundle
 - security_reports
 - .env
+- start.sh
+- db/schema.rb
+- .gitignore
+- .gitattributes
+- Dockerfile
