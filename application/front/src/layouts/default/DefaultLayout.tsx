@@ -35,7 +35,9 @@ export default class DefaultLayout extends React.Component<DefaultLayoutProps> {
           </Tooltip>
         </header>
 
-        <div>{this.props.children}</div>
+        <div style={{ top: 10, position: 'absolute' }}>
+          {this.props.children}
+        </div>
 
         <footer style={{ ...fixedStyle, opacity: 0.7, bottom: 0 }}>
           出典:{' '}
