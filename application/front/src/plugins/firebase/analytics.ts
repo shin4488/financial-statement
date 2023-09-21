@@ -48,7 +48,7 @@ export default class FirebaseAnalytics {
     FirebaseAnalytics.logEvent('load_more_statements', eventParams, options);
   }
 
-  static logSelectContentEvent(
+  static logClickEvent(
     eventParams?:
       | {
           [key: string]: unknown;
@@ -58,6 +58,6 @@ export default class FirebaseAnalytics {
       | undefined,
     options?: AnalyticsCallOptions | undefined,
   ) {
-    FirebaseAnalytics.logEvent('select_content', eventParams, options);
+    FirebaseAnalytics.logEvent('click', eventParams, options);
   }
 }

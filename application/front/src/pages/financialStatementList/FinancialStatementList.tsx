@@ -60,13 +60,12 @@ export default class FinancialStatementList extends React.Component<
                         >
                           <span
                             onClick={() =>
-                              FirebaseAnalytics.logSelectContentEvent({
+                              FirebaseAnalytics.logClickEvent({
                                 content_type: 'url',
-                                items: [
-                                  {
-                                    name: `https://kabutan.jp/stock/?code=${statement.stockCode}`,
-                                  },
-                                ],
+                                link_domain: 'kabutan.jp',
+                                link_url: `https://kabutan.jp/stock/?code=${statement.stockCode}`,
+                                custom_stock_code: statement.stockCode,
+                                custom_title: statement.companyName,
                               })
                             }
                           >
