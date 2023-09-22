@@ -12,10 +12,10 @@ class SecurityReport::DocumentRepository
     return [] if document_results.nil?
 
     document_results.map { |document_result|
-      # 上場会社の有価証券報告書のみを処理するため、それ以外のドキュメントは扱わない
-      next if document_result["secCode"].nil? || document_result["docTypeCode"] != "120"
+      # 上場会社の有価証券報告書・訂正有価証券報告書のみを処理するため、それ以外のドキュメントは扱わない
+      next if document_result["secCode"].nil? || ["120", "130"].exclude?(document_result["docTypeCode"])
 
-      Rails.logger.info "#{document_result["docID"]} #{document_result["filerName"].tr('０-９ａ-ｚＡ-Ｚ　＆','0-9a-zA-Z &')}"
+      Rails.logger.info "#{document_result["docID"]} #{document_result["docTypeCode"]} #{document_result["filerName"].tr('０-９ａ-ｚＡ-Ｚ　＆','0-9a-zA-Z &')}"
       document_result["docID"].to_s
     }.reject(&:nil?)
   end
