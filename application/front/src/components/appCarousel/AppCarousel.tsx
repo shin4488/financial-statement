@@ -27,7 +27,7 @@ export default class AppCarousel extends React.Component<
 
           // 一番最後の表示から一番最初の表示に変わったら（auto playを1周など）auto playを止める
           // とりあえず全部のデータを見てもらいたいが、ずっとauto playなのも目障りと思われるため
-          // ユーザー自身で前へボタンを押したときもauto playを止める（止めるということは気になったデータがあると思われるため）
+          // ユーザー自身で前へボタンを押したときもauto playを止める（前へ戻るということは、そのデータが気になっていると思われるため）
           if (now < previous) {
             this.setState({ isAutoPlay: false });
           }
