@@ -31,3 +31,4 @@
 /vendor/bundle
 security_reports
 config/credentials.yml.enc
+deploy.sh
