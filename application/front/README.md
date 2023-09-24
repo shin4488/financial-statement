@@ -145,3 +145,14 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+
+# Redux
+構成
+https://zenn.dev/engstt/articles/293e7420c93a18
+
+classコンポーネントでのフックの使用→connectの使用
+https://stackoverflow.com/questions/57135857/how-can-i-use-react-redux-useselector-in-class-component
+https://react.dev/warnings/invalid-hook-call-warning のエラーが発生するため、対処が必要。
+
+connectをTypeScritptで使用する
+https://qiita.com/NeGI1009/items/382b54106a79944652a3
