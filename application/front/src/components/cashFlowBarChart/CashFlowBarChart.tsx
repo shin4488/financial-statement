@@ -12,7 +12,7 @@ export default class CashFlowBarChart extends React.Component<CashFlowBarChartPr
     const financingActivitiesCashFlow = this.props.financingActivitiesCashFlow;
     return [
       // sumの部分が透明となるため、sumは前の要素までの合計値とする
-      { name: '期首残高', value: startingCash, previousSum: 0 },
+      { name: '期首残', value: startingCash, previousSum: 0 },
       {
         name: '営業CF',
         value: operatingActivitiesCashFlow,
@@ -32,7 +32,7 @@ export default class CashFlowBarChart extends React.Component<CashFlowBarChartPr
           investingActivitiesCashFlow,
       },
       {
-        name: '期末残高',
+        name: '期末残',
         value: this.props.endingCash,
         previousSum: 0,
       },

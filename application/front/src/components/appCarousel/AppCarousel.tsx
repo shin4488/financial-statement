@@ -1,38 +1,23 @@
 import React from 'react';
+import { connect } from 'react-redux';
 import Carousel from 'react-material-ui-carousel';
 import { AppCarouselProps } from './props';
-import { AppCarouselState } from './state';
+import { RootState } from '@/store/store';
 
-export default class AppCarousel extends React.Component<
-  AppCarouselProps,
-  AppCarouselState
-> {
-  state: Readonly<AppCarouselState> = {
-    isAutoPlay: true,
+const mapStateToProps = (state: RootState) => {
+  return {
+    isAutoPlay: state.autoPlayStatus.isAutoPlay,
   };
+};
+type AppCarouselWithStoreProps = AppCarouselProps &
+  ReturnType<typeof mapStateToProps>;
 
+class AppCarousel extends React.Component<AppCarouselWithStoreProps> {
   render(): React.ReactNode {
     return (
       <Carousel
-        next={() => {
-          // noop
-        }}
-        prev={() => {
-          // noop
-        }}
-        onChange={(now, previous) => {
-          if (now === undefined || previous === undefined) {
-            return;
-          }
-
-          // 一番最後の表示から一番最初の表示に変わったら（auto playを1周など）auto playを止める
-          // とりあえず全部のデータを見てもらいたいが、ずっとauto playなのも目障りと思われるため
-          // ユーザー自身で前へボタンを押したときもauto playを止める（前へ戻るということは、そのデータが気になっていると思われるため）
-          if (now < previous) {
-            this.setState({ isAutoPlay: false });
-          }
-        }}
-        autoPlay={this.state.isAutoPlay}
+        autoPlay={this.props.isAutoPlay}
+        swipe={false}
         interval={6000}
         stopAutoPlayOnHover
         animation="slide"
@@ -45,3 +30,5 @@ export default class AppCarousel extends React.Component<
     );
   }
 }
+
+export default connect(mapStateToProps)(AppCarousel);
