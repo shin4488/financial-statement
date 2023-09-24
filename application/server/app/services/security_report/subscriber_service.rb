@@ -6,7 +6,19 @@ class SecurityReport::SubscriberService
       FileUtils.remove_entry_secure(REPORT_DIR_PATH) if Dir.exist?(REPORT_DIR_PATH)
       FileUtils.mkdir_p(REPORT_DIR_PATH)
 
-      document_id_security_report_zip_paths = generate_security_report_zip_path(from_date:, to_date:)
+      target_document_ids = fetch_security_report_document_ids(from_date:, to_date:)
+      subscribe_by_target_document_ids(target_document_ids:)
+    end
+
+    def subscribe_by_target_document_ids(target_document_ids: nil)
+      return unless target_document_ids.present?
+
+      document_id_security_report_zip_paths = target_document_ids.map { |document_id|
+        next if document_id.nil?
+
+        zip_path = File.join(REPORT_DIR_PATH, "#{document_id}.zip").to_s
+        [document_id, zip_path]
+      }.reject(&:nil?).to_h
       document_id_security_report_zip_paths.each do |document_id, zip_path|
         # 1企業の財務データ作成に失敗しても他企業には影響がないため、次のループに入る
         # 非同期に実行すると短時間でリクエスト数が多くなり（IP制限で？）403がEDINET APIから返ってくるようになってしまうため、同期処理としている
@@ -22,7 +34,7 @@ class SecurityReport::SubscriberService
     end
 
     private
-      def generate_security_report_zip_path(from_date:, to_date:)
+      def fetch_security_report_document_ids(from_date:, to_date:)
         (from_date.to_date..to_date.to_date).map { |date|
           # ある日の財務データ取得に失敗しても他の日には影響がないため、次のループに入る
           begin
@@ -34,13 +46,8 @@ class SecurityReport::SubscriberService
             Rails.logger.error e.backtrace.join("\n")
             nil
           end
-          # [["id1", "id2"], ["id3", "id4"]] => ["id1", "id2", "id3", "id4"]に変換してからパス生成
-        }.flatten(1).map { |document_id|
-          next if document_id.nil?
-
-          zip_path = File.join(REPORT_DIR_PATH, "#{document_id}.zip").to_s
-          [document_id, zip_path]
-        }.reject(&:nil?).to_h
+          # [["id1", "id2"], ["id3", "id4"]] => ["id1", "id2", "id3", "id4"]に変換
+        }.flatten(1).reject(&:nil?)
       end
 
     class IndividualSubscriber
