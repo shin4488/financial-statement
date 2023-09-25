@@ -66,6 +66,7 @@ export default class FinancialStatementList extends React.Component<
                                 link_url: `https://kabutan.jp/stock/?code=${statement.stockCode}`,
                                 custom_stock_code: statement.stockCode,
                                 custom_title: statement.companyName,
+                                custom_timespan: `${statement.fiscalYearStartDate}-${statement.fiscalYearEndDate}`,
                               })
                             }
                           >
