@@ -3,9 +3,6 @@ class SecurityReport::SubscriberService
 
   class << self
     def subscribe(from_date: Time.zone.yesterday, to_date: Time.zone.yesterday)
-      FileUtils.remove_entry_secure(REPORT_DIR_PATH) if Dir.exist?(REPORT_DIR_PATH)
-      FileUtils.mkdir_p(REPORT_DIR_PATH)
-
       target_document_ids = fetch_security_report_document_ids(from_date:, to_date:)
       subscribe_by_target_document_ids(target_document_ids:)
     end
@@ -19,6 +16,9 @@ class SecurityReport::SubscriberService
         zip_path = File.join(REPORT_DIR_PATH, "#{document_id}.zip").to_s
         [document_id, zip_path]
       }.reject(&:nil?).to_h
+
+      FileUtils.remove_entry_secure(REPORT_DIR_PATH) if Dir.exist?(REPORT_DIR_PATH)
+      FileUtils.mkdir_p(REPORT_DIR_PATH)
       document_id_security_report_zip_paths.each do |document_id, zip_path|
         # 1企業の財務データ作成に失敗しても他企業には影響がないため、次のループに入る
         # 非同期に実行すると短時間でリクエスト数が多くなり（IP制限で？）403がEDINET APIから返ってくるようになってしまうため、同期処理としている
