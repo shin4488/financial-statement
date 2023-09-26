@@ -8,6 +8,9 @@ import {
   FormControlLabel,
   IconButton,
   Link,
+  List,
+  ListItem,
+  ListItemText,
   Tooltip,
 } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
@@ -49,17 +52,28 @@ class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
           <Tooltip
             placement="bottom-start"
             enterTouchDelay={0}
-            leaveTouchDelay={6000}
+            leaveTouchDelay={15000}
             title={
-              <div style={{ fontSize: 13 }}>
-                <div>各企業の財務情報が以下の順で表示されます。</div>
-                <div>1. 貸借対照表（数値は総資産比）</div>
-                <div>2. 損益計算書（数値は売上比）</div>
-                <div>3. キャッシュフロー計算書（数値は日本円）</div>
-                <div>
-                  財務情報の表示を自動切替したい場合は、「財務情報を自動で切替える」にチェックを入れてください。
-                </div>
-              </div>
+              <List dense disablePadding>
+                <ListItem disablePadding dense>
+                  <ListItemText
+                    primary={
+                      <div>
+                        <div>上場企業の財務情報が以下の順で表示されます。</div>
+                        <div>1. 貸借対照表（数値は総資産比）</div>
+                        <div>2. 損益計算書（数値は売上比）</div>
+                        <div>3. キャッシュフロー計算書（数値は日本円）</div>
+                      </div>
+                    }
+                  />
+                </ListItem>
+                <ListItem disablePadding dense>
+                  <ListItemText primary="「財務情報を自動で切替える」にチェックを入れると上記3つが自動で切替わります。グラフをマウスオーバー/タップすると一時的に切替えが止まります。" />
+                </ListItem>
+                <ListItem disablePadding dense>
+                  <ListItemText primary="訂正報告書が最近出された財務情報は、昨年以前の会計年度でも上位に表示されます。" />
+                </ListItem>
+              </List>
             }
           >
             <IconButton size="small">
