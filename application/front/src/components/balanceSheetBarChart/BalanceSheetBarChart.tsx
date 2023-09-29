@@ -96,12 +96,14 @@ export default class BalanceSheetBarCahrt extends React.Component<BalanceSheetBa
       <FinancialStatementBarChart
         data={balanceSheetCharData}
         tooltipFormatter={(value, name) => {
+          const balanceSheetAmountKey =
+            name as keyof BalanceSheetAmountKeyLabel;
           return [
-            this.isInsolvency()
+            this.isInsolvency() && balanceSheetAmountKey === 'netAssetAmount'
               ? `-${value.toLocaleString()}円`
               : `${value.toLocaleString()}円`,
             // Barコンポーネントに渡すdataKeyはAmountのキーである前提
-            `${dataKeyJapaneseHash[name as keyof BalanceSheetAmountKeyLabel]}`,
+            `${dataKeyJapaneseHash[balanceSheetAmountKey]}`,
           ];
         }}
       >
