@@ -12,6 +12,9 @@ import {
   ListItem,
   ListItemText,
   Tooltip,
+  AppBar,
+  Toolbar,
+  Box,
 } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
 import { AppDispatch, RootState } from '@/store/store';
@@ -48,64 +51,70 @@ class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
     // 複数ページ共通で使用したい内容があればこのコンポーネントに記述する
     return (
       <>
-        <header style={{ ...fixedStyle, opacity: 0.8, top: 0 }}>
-          <Tooltip
-            placement="bottom-start"
-            enterTouchDelay={0}
-            leaveTouchDelay={15000}
-            title={
-              <List dense disablePadding>
-                <ListItem disablePadding dense>
-                  <ListItemText
-                    primary={
-                      <div>
-                        <div>上場企業の財務情報が以下の順で表示されます。</div>
-                        <div>1. 貸借対照表（数値は総資産比）</div>
-                        <div>2. 損益計算書（数値は売上比）</div>
-                        <div>3. キャッシュフロー計算書（数値は日本円）</div>
-                      </div>
-                    }
+        <AppBar position="sticky" color="default" sx={{ bgcolor: 'F9F9E0' }}>
+          <Toolbar variant="dense">
+            <FormControl>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={this.props.isAutoPlay}
+                    onChange={(event) => {
+                      this.props.actions.changeAutoPlayStatus(
+                        event.target.checked,
+                      );
+                      localStorage.setItem(
+                        autoPlayStatusLocalStorageKey,
+                        String(event.target.checked),
+                      );
+                    }}
                   />
-                </ListItem>
-                <ListItem disablePadding dense>
-                  <ListItemText primary="「財務情報を自動で切替える」にチェックを入れると上記3つが自動で切替わります。グラフをマウスオーバー/タップすると一時的に切替えが止まります。" />
-                </ListItem>
-                <ListItem disablePadding dense>
-                  <ListItemText primary="訂正報告書が最近出された財務情報は、昨年以前の会計年度でも上位に表示されます。" />
-                </ListItem>
-              </List>
-            }
-          >
-            <IconButton size="small">
-              <span>使い方</span>
-              <InfoIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <FormControl>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={this.props.isAutoPlay}
-                  onChange={(event) => {
-                    this.props.actions.changeAutoPlayStatus(
-                      event.target.checked,
-                    );
-                    localStorage.setItem(
-                      autoPlayStatusLocalStorageKey,
-                      String(event.target.checked),
-                    );
-                  }}
-                />
-              }
-              label="財務情報を自動で切替える"
-              labelPlacement="start"
-            />
-          </FormControl>
-        </header>
+                }
+                label="自動切替"
+                labelPlacement="start"
+              />
+            </FormControl>
 
-        <div style={{ top: 13, position: 'absolute' }}>
-          {this.props.children}
-        </div>
+            <Box sx={{ flexGrow: 1 }} />
+            <Box sx={{ display: { xs: 'flex' } }}>
+              <Tooltip
+                placement="bottom-start"
+                enterTouchDelay={0}
+                leaveTouchDelay={15000}
+                title={
+                  <List dense disablePadding>
+                    <ListItem disablePadding dense>
+                      <ListItemText
+                        primary={
+                          <div>
+                            <div>
+                              上場企業の財務情報が以下の順で表示されます。
+                            </div>
+                            <div>1. 貸借対照表（数値は総資産比）</div>
+                            <div>2. 損益計算書（数値は売上比）</div>
+                            <div>3. キャッシュフロー計算書（数値は日本円）</div>
+                          </div>
+                        }
+                      />
+                    </ListItem>
+                    <ListItem disablePadding dense>
+                      <ListItemText primary="「自動切替」にチェックを入れると上記3つが自動で切替わります。グラフをマウスオーバー/タップすると一時的に切替えが止まります。" />
+                    </ListItem>
+                    <ListItem disablePadding dense>
+                      <ListItemText primary="訂正報告書が最近出された財務情報は、昨年以前の会計年度でも上位に表示されます。" />
+                    </ListItem>
+                  </List>
+                }
+              >
+                <IconButton size="small">
+                  <span></span>
+                  <InfoIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </Toolbar>
+        </AppBar>
+
+        <Box component="main">{this.props.children}</Box>
 
         <footer style={{ ...fixedStyle, opacity: 0.7, bottom: 0 }}>
           出典:{' '}
