@@ -1,9 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
 import autoPlayStatusReducer from './slices/autoPlayStatusSlice';
+import cashFlowFilterReducer from './slices/cashFlowFilterItemSlice';
 
 export const store = configureStore({
   reducer: {
     autoPlayStatus: autoPlayStatusReducer,
+    cashFlowFilter: cashFlowFilterReducer,
   },
 });
 
