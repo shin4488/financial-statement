@@ -177,7 +177,6 @@ class FinancialStatementList extends React.Component<
   }
 
   load(offset: number): void {
-    console.log(this.props.cashFlowFilterItem);
     this.state.service.query(offset).then((result) => {
       const financialStatements = result.companyFinancialStatements;
       if (
