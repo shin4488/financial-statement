@@ -20,4 +20,5 @@ export interface FinancialStatementListState {
   service: FinancialStatementListStateService;
   shouldLoadMore: boolean;
   financialStatements: FinancialStatement[];
+  infiniteScrollKey: number;
 }

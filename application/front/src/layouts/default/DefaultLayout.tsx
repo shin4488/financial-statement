@@ -30,15 +30,18 @@ import SearchIcon from '@mui/icons-material/Search';
 import { AppDispatch, RootState } from '@/store/store';
 import { changeAutoPlayStatus } from '@/store/slices/autoPlayStatusSlice';
 import { cashFlowFilterItems } from '@/constants/values';
+import { changeCashFlowFilter } from '@/store/slices/cashFlowFilterItemSlice';
 
 const autoPlayStatusLocalStorageKey = 'flazaIsStatementAutoPlay';
 
 // store更新・アクセスするための設定
 const mapStateToProps = (state: RootState) => ({
   isAutoPlay: state.autoPlayStatus.isAutoPlay,
+  cashFlowFilterItem: state.cashFlowFilter.filterItem,
 });
 const mapDispatchToProps = (dispatch: AppDispatch) => ({
   actions: bindActionCreators({ changeAutoPlayStatus }, dispatch),
+  cashFlowFilterActions: bindActionCreators({ changeCashFlowFilter }, dispatch),
 });
 type DefaultLayoutWithStoreProps = DefaultLayoutProps &
   ReturnType<typeof mapStateToProps> &
@@ -122,9 +125,11 @@ class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
                   <InputLabel>キャッシュフロー</InputLabel>
                   <Select
                     variant="standard"
-                    value={'stable'}
+                    value={this.props.cashFlowFilterItem}
                     onChange={(event: SelectChangeEvent) => {
-                      console.log(event.target.value);
+                      this.props.cashFlowFilterActions.changeCashFlowFilter(
+                        event.target.value,
+                      );
                     }}
                   >
                     {cashFlowFilterItems.map((item) => (

@@ -14,16 +14,41 @@ import ChartAlternative from '@/components/chartAlternative/ChartAlternative';
 import { FinancialStatementListState } from './state';
 import FinancialStatementListStateService from './service';
 import FirebaseAnalytics from '@/plugins/firebase/analytics';
+import { RootState } from '@/store/store';
+import { connect } from 'react-redux';
 
-export default class FinancialStatementList extends React.Component<
-  unknown,
+const mapStateToProps = (state: RootState) => {
+  return {
+    cashFlowFilterItem: state.cashFlowFilter.filterItem,
+  };
+};
+type FinancialStatementListWithStoreProps = ReturnType<typeof mapStateToProps>;
+
+class FinancialStatementList extends React.Component<
+  FinancialStatementListWithStoreProps,
   FinancialStatementListState
 > {
   state: Readonly<FinancialStatementListState> = {
     service: new FinancialStatementListStateService(),
     shouldLoadMore: true,
     financialStatements: [],
+    infiniteScrollKey: Math.random(),
   };
+
+  componentDidUpdate(
+    previousProps: FinancialStatementListWithStoreProps,
+  ): void {
+    const sameCashFlowFilter =
+      this.props.cashFlowFilterItem === previousProps.cashFlowFilterItem;
+    if (sameCashFlowFilter) {
+      return;
+    }
+
+    this.setState(() => ({
+      financialStatements: [],
+      infiniteScrollKey: Math.random(),
+    }));
+  }
 
   render(): React.ReactNode {
     return (
@@ -131,23 +156,28 @@ export default class FinancialStatementList extends React.Component<
           })}
         </Grid>
 
-        <InfiniteScroll
-          loadMore={(page) => {
-            this.load((page - 1) * financialStatementOffsetUnit);
-            FirebaseAnalytics.logLoadMoreStatementsEvent({ page: page });
-          }}
-          hasMore={this.state.shouldLoadMore}
-          loader={<CircularProgress key={1} style={{ marginBottom: 5 }} />}
-        >
-          {this.state.financialStatements.map((_, index) => (
-            <React.Fragment key={index}></React.Fragment>
-          ))}
-        </InfiniteScroll>
+        {/* 検索条件変更時にInfiniteScrollのpageがリセットするための対応。親要素のkeyを更新するとpageが0にリセットされる */}
+        {/* https://github.com/danbovey/react-infinite-scroller/issues/12#issuecomment-339375017 */}
+        <div key={this.state.infiniteScrollKey}>
+          <InfiniteScroll
+            loadMore={(page) => {
+              this.load((page - 1) * financialStatementOffsetUnit);
+              FirebaseAnalytics.logLoadMoreStatementsEvent({ page: page });
+            }}
+            hasMore={this.state.shouldLoadMore}
+            loader={<CircularProgress key={1} style={{ marginBottom: 5 }} />}
+          >
+            {this.state.financialStatements.map((_, index) => (
+              <React.Fragment key={index}></React.Fragment>
+            ))}
+          </InfiniteScroll>
+        </div>
       </>
     );
   }
 
   load(offset: number): void {
+    console.log(this.props.cashFlowFilterItem);
     this.state.service.query(offset).then((result) => {
       const financialStatements = result.companyFinancialStatements;
       if (
@@ -187,3 +217,5 @@ export default class FinancialStatementList extends React.Component<
     });
   }
 }
+
+export default connect(mapStateToProps)(FinancialStatementList);
