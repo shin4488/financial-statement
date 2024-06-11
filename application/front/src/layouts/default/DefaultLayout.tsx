@@ -15,8 +15,18 @@ import {
   AppBar,
   Toolbar,
   Box,
+  Grid,
+  Select,
+  MenuItem,
+  InputLabel,
+  SelectChangeEvent,
+  Autocomplete,
+  Chip,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
+import SearchIcon from '@mui/icons-material/Search';
 import { AppDispatch, RootState } from '@/store/store';
 import { changeAutoPlayStatus } from '@/store/slices/autoPlayStatusSlice';
 
@@ -42,81 +52,161 @@ class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
   }
 
   render(): React.ReactNode {
-    const fixedStyle: React.CSSProperties = {
-      backgroundColor: 'white',
-      position: 'fixed',
-      zIndex: 10,
-    };
+    const cashFlowFilterItems = [
+      { raises_or_falls: [], text: '指定なし', value: 'none' },
+      { raises_or_falls: ['↑', '↓', '↓'], text: '安定型', value: 'stable' },
+      { raises_or_falls: ['↓', '↓', '↑'], text: '勝負型', value: 'attacking' },
+    ];
+
+    const infoTooltip = (
+      <Tooltip
+        placement="bottom-start"
+        enterTouchDelay={0}
+        leaveTouchDelay={15000}
+        title={
+          <List dense disablePadding>
+            <ListItem disablePadding dense>
+              <ListItemText
+                primary={
+                  <div>
+                    <div>上場企業の財務情報が以下の順で表示されます。</div>
+                    <div>1. 貸借対照表（数値は総資産比）</div>
+                    <div>2. 損益計算書（数値は売上比）</div>
+                    <div>3. キャッシュフロー計算書（数値は日本円）</div>
+                  </div>
+                }
+              />
+            </ListItem>
+            <ListItem disablePadding dense>
+              <ListItemText primary="「自動切替」にチェックを入れると上記3つが自動で切替わります。グラフをマウスオーバー/タップすると一時的に切替えが止まります。" />
+            </ListItem>
+            <ListItem disablePadding dense>
+              <ListItemText primary="訂正報告書が最近出された財務情報は、昨年以前の会計年度でも上位に表示されます。" />
+            </ListItem>
+          </List>
+        }
+      >
+        <IconButton size="small">
+          <span></span>
+          <InfoIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
+    );
 
     // 複数ページ共通で使用したい内容があればこのコンポーネントに記述する
     return (
       <>
         <AppBar position="sticky" color="default" sx={{ bgcolor: 'F9F9E0' }}>
-          <Toolbar variant="dense">
-            <FormControl>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={this.props.isAutoPlay}
-                    onChange={(event) => {
-                      this.props.actions.changeAutoPlayStatus(
-                        event.target.checked,
-                      );
-                      localStorage.setItem(
-                        autoPlayStatusLocalStorageKey,
-                        String(event.target.checked),
-                      );
-                    }}
-                  />
-                }
-                label="自動切替"
-                labelPlacement="start"
-              />
-            </FormControl>
+          <Toolbar sx={{ ml: -4 }} variant="dense">
+            <Box sx={{ flexGrow: 1 }}>
+              <Grid container>
+                <Grid item xs={3} sm={2}>
+                  <FormControl>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={this.props.isAutoPlay}
+                          onChange={(event) => {
+                            this.props.actions.changeAutoPlayStatus(
+                              event.target.checked,
+                            );
+                            localStorage.setItem(
+                              autoPlayStatusLocalStorageKey,
+                              String(event.target.checked),
+                            );
+                          }}
+                        />
+                      }
+                      label="自動切替"
+                      labelPlacement="start"
+                    />
+                  </FormControl>
+                </Grid>
 
-            <Box sx={{ flexGrow: 1 }} />
-            <Box sx={{ display: { xs: 'flex' } }}>
-              <Tooltip
-                placement="bottom-start"
-                enterTouchDelay={0}
-                leaveTouchDelay={15000}
-                title={
-                  <List dense disablePadding>
-                    <ListItem disablePadding dense>
-                      <ListItemText
-                        primary={
-                          <div>
-                            <div>
-                              上場企業の財務情報が以下の順で表示されます。
-                            </div>
-                            <div>1. 貸借対照表（数値は総資産比）</div>
-                            <div>2. 損益計算書（数値は売上比）</div>
-                            <div>3. キャッシュフロー計算書（数値は日本円）</div>
-                          </div>
-                        }
+                <Grid item xs={5} sm={2}>
+                  <InputLabel>キャッシュフロー</InputLabel>
+                  <Select
+                    variant="standard"
+                    value={'stable'}
+                    onChange={(event: SelectChangeEvent) => {
+                      console.log(event.target.value);
+                    }}
+                  >
+                    {cashFlowFilterItems.map((item) => (
+                      <MenuItem key={item.value} value={item.value}>
+                        {item.raises_or_falls.map((arrow: string, index) => (
+                          <Box
+                            component="span"
+                            key={index}
+                            color={
+                              arrow === '↓' ? 'negative.main' : 'positive.main'
+                            }
+                          >
+                            {arrow}
+                          </Box>
+                        ))}
+                        {item.text}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Grid>
+
+                <Grid item xs={4} sm={8}>
+                  <Autocomplete
+                    options={[]}
+                    freeSolo
+                    multiple
+                    onChange={(event, stockCodes) => {
+                      console.log(stockCodes.map(Number));
+                    }}
+                    renderTags={(values: string[], props) =>
+                      values.map((value, index) => {
+                        return (
+                          <Chip
+                            label={value}
+                            {...props({ index })}
+                            key={index}
+                          />
+                        );
+                      })
+                    }
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        variant="standard"
+                        label="証券コードで検索（複数可）"
+                        type="number"
+                        InputProps={{
+                          startAdornment: (
+                            <>
+                              <InputAdornment position="start">
+                                <SearchIcon />
+                              </InputAdornment>
+                              {params.InputProps.startAdornment}
+                              {params.InputProps.endAdornment}
+                            </>
+                          ),
+                        }}
                       />
-                    </ListItem>
-                    <ListItem disablePadding dense>
-                      <ListItemText primary="「自動切替」にチェックを入れると上記3つが自動で切替わります。グラフをマウスオーバー/タップすると一時的に切替えが止まります。" />
-                    </ListItem>
-                    <ListItem disablePadding dense>
-                      <ListItemText primary="訂正報告書が最近出された財務情報は、昨年以前の会計年度でも上位に表示されます。" />
-                    </ListItem>
-                  </List>
-                }
-              >
-                <IconButton size="small">
-                  <span></span>
-                  <InfoIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
+                    )}
+                  />
+                </Grid>
+              </Grid>
             </Box>
+
+            <Box sx={{ display: { xs: 'flex' } }}>{infoTooltip}</Box>
           </Toolbar>
         </AppBar>
 
         <Box component="main">{this.props.children}</Box>
 
-        <footer style={{ ...fixedStyle, opacity: 0.7, bottom: 0 }}>
+        <Box
+          component="footer"
+          position="fixed"
+          bgcolor="white"
+          zIndex="10"
+          style={{ opacity: 0.7, bottom: 0 }}
+        >
           出典:{' '}
           <Link
             target="_blank"
@@ -126,7 +216,7 @@ class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
             EDINET閲覧（提出）サイト
           </Link>
           より抜粋して作成
-        </footer>
+        </Box>
       </>
     );
   }
