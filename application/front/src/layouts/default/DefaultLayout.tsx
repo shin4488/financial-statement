@@ -29,6 +29,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import SearchIcon from '@mui/icons-material/Search';
 import { AppDispatch, RootState } from '@/store/store';
 import { changeAutoPlayStatus } from '@/store/slices/autoPlayStatusSlice';
+import { cashFlowFilterItems } from '@/constants/values';
 
 const autoPlayStatusLocalStorageKey = 'flazaIsStatementAutoPlay';
 
@@ -52,12 +53,6 @@ class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
   }
 
   render(): React.ReactNode {
-    const cashFlowFilterItems = [
-      { raises_or_falls: [], text: '指定なし', value: 'none' },
-      { raises_or_falls: ['↑', '↓', '↓'], text: '安定型', value: 'stable' },
-      { raises_or_falls: ['↓', '↓', '↑'], text: '勝負型', value: 'attacking' },
-    ];
-
     const infoTooltip = (
       <Tooltip
         placement="bottom-start"
