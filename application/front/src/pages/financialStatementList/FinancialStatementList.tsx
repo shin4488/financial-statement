@@ -41,7 +41,9 @@ class FinancialStatementList extends React.Component<
   ): void {
     const sameCashFlowFilter =
       this.props.cashFlowType === previousProps.cashFlowType;
-    const sameStockCodes = this.props.stockCodes === previousProps.stockCodes;
+    const sameStockCodes =
+      JSON.stringify(this.props.stockCodes) ===
+      JSON.stringify(previousProps.stockCodes);
     if (sameCashFlowFilter && sameStockCodes) {
       return;
     }
@@ -50,6 +52,7 @@ class FinancialStatementList extends React.Component<
     this.setState(() => ({
       financialStatements: [],
       infiniteScrollKey: Math.random(),
+      shouldLoadMore: true,
     }));
   }
 
@@ -180,7 +183,11 @@ class FinancialStatementList extends React.Component<
   }
 
   load(offset: number): void {
-    this.state.service.query(offset).then((result) => {
+    const condition = {
+      cashFlowType: this.props.cashFlowType,
+      stockCodes: this.props.stockCodes,
+    };
+    this.state.service.query(offset, condition).then((result) => {
       const financialStatements = result.companyFinancialStatements;
       if (
         financialStatements === undefined ||

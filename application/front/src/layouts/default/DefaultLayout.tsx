@@ -29,7 +29,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import SearchIcon from '@mui/icons-material/Search';
 import { AppDispatch, RootState } from '@/store/store';
 import { changeAutoPlayStatus } from '@/store/slices/autoPlayStatusSlice';
-import { cashFlowTypes } from '@/constants/values';
+import { CashFlowTypeValue, cashFlowTypes } from '@/constants/values';
 import {
   changeCashFlowFilter,
   changeStockCodeFilter,
@@ -134,9 +134,10 @@ class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
                   <Select
                     variant="standard"
                     value={this.props.cashFlowType}
-                    onChange={(event: SelectChangeEvent) => {
+                    onChange={(event: SelectChangeEvent<CashFlowTypeValue>) => {
+                      // キャッシュフロータイプのvalueのデータ型は自作のデータ型を使用している
                       this.props.cashFlowFilterActions.changeCashFlowFilter(
-                        event.target.value,
+                        event.target.value as CashFlowTypeValue,
                       );
                     }}
                   >

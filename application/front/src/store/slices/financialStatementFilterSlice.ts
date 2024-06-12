@@ -3,11 +3,12 @@ import {
   ChangeCashFlowFilterAction,
   ChangeStockCodeFilterAction,
 } from './action';
+import { CashFlowTypeValue } from '@/constants/values';
 
 export const financialStatementFilterSlice = createSlice({
   name: 'financialStatementFilter',
   initialState: {
-    cashFlowType: 'none',
+    cashFlowType: 'none' as CashFlowTypeValue,
     stockCodes: [].map(String),
   },
   reducers: {

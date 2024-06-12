@@ -1,3 +1,5 @@
+import { CashFlowTypeValue } from '@/constants/values';
+
 export interface ChangeAutoPlayStatusAction {
   type: string;
   payload: boolean;
@@ -5,7 +7,7 @@ export interface ChangeAutoPlayStatusAction {
 
 export interface ChangeCashFlowFilterAction {
   type: string;
-  payload: string;
+  payload: CashFlowTypeValue;
 }
 
 export interface ChangeStockCodeFilterAction {
