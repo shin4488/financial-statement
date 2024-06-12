@@ -2,8 +2,16 @@ class SecurityReport::FetcherService
   RATIO_TRUNCATED_POSITION = 3
 
   class << self
-    def fetch_security_reports(limit:, offset:)
-      SecurityReport.fetch_company_security_reports(limit:, offset:).map do |security_report|
+    def fetch_security_reports(limit:, offset:, condition:)
+      # 証券コードは内部的には5桁で保存しているが、通常4桁で扱われるため0パディングする
+      stock_codes = condition[:stock_codes].map { |code| "#{code}0" }
+      cash_flow_condition = {
+        is_positive_operating_activities_cash_flow: condition[:is_positive_operating_activities_cash_flow],
+        is_positive_investing_activities_cash_flow: condition[:is_positive_investing_activities_cash_flow],
+        is_positive_financing_activities_cash_flow: condition[:is_positive_financing_activities_cash_flow],
+      }
+      reports = SecurityReport.fetch_company_security_reports(limit:, offset:, stock_codes:, cash_flow_condition:)
+      reports.map do |security_report|
         has_consolidation = security_report.has_consolidated_financial_statement
 
         # 投資判断的には連結財務諸表が大切なはずのため、連結財務諸表があれば連結財務諸表のみを返す

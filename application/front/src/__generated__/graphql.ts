@@ -110,8 +110,12 @@ export type Query = {
 
 
 export type QueryCompanyFinancialStatementsArgs = {
+  isPositiveFinancingActivitiesCashFlow?: InputMaybe<Scalars['Boolean']['input']>;
+  isPositiveInvestingActivitiesCashFlow?: InputMaybe<Scalars['Boolean']['input']>;
+  isPositiveOperatingActivitiesCashFlow?: InputMaybe<Scalars['Boolean']['input']>;
   limit: Scalars['Int']['input'];
   offset: Scalars['Int']['input'];
+  stockCodes?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export type SandboxBookmark = {
