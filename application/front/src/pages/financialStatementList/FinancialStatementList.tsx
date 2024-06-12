@@ -19,8 +19,8 @@ import { connect } from 'react-redux';
 
 const mapStateToProps = (state: RootState) => {
   return {
-    cashFlowFilterItem: state.cashFlowFilter.filterItem,
-    stockCodes: state.cashFlowFilter.stockCodes,
+    cashFlowType: state.financialStatementFilter.cashFlowType,
+    stockCodes: state.financialStatementFilter.stockCodes,
   };
 };
 type FinancialStatementListWithStoreProps = ReturnType<typeof mapStateToProps>;
@@ -40,7 +40,7 @@ class FinancialStatementList extends React.Component<
     previousProps: FinancialStatementListWithStoreProps,
   ): void {
     const sameCashFlowFilter =
-      this.props.cashFlowFilterItem === previousProps.cashFlowFilterItem;
+      this.props.cashFlowType === previousProps.cashFlowType;
     const sameStockCodes = this.props.stockCodes === previousProps.stockCodes;
     if (sameCashFlowFilter && sameStockCodes) {
       return;

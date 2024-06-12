@@ -33,15 +33,15 @@ import { cashFlowFilterItems } from '@/constants/values';
 import {
   changeCashFlowFilter,
   changeStockCodeFilter,
-} from '@/store/slices/cashFlowFilterItemSlice';
+} from '@/store/slices/financialStatementFilterSlice';
 
 const autoPlayStatusLocalStorageKey = 'flazaIsStatementAutoPlay';
 
 // store更新・アクセスするための設定
 const mapStateToProps = (state: RootState) => ({
   isAutoPlay: state.autoPlayStatus.isAutoPlay,
-  cashFlowFilterItem: state.cashFlowFilter.filterItem,
-  stockCodes: state.cashFlowFilter.stockCodes,
+  cashFlowType: state.financialStatementFilter.cashFlowType,
+  stockCodes: state.financialStatementFilter.stockCodes,
 });
 const mapDispatchToProps = (dispatch: AppDispatch) => ({
   actions: bindActionCreators({ changeAutoPlayStatus }, dispatch),
@@ -133,7 +133,7 @@ class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
                   <InputLabel>キャッシュフロー</InputLabel>
                   <Select
                     variant="standard"
-                    value={this.props.cashFlowFilterItem}
+                    value={this.props.cashFlowType}
                     onChange={(event: SelectChangeEvent) => {
                       this.props.cashFlowFilterActions.changeCashFlowFilter(
                         event.target.value,

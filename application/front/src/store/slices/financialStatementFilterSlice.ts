@@ -4,15 +4,15 @@ import {
   ChangeStockCodeFilterAction,
 } from './action';
 
-export const cashFlowFilterSlice = createSlice({
-  name: 'cashFlowFilter',
+export const financialStatementFilterSlice = createSlice({
+  name: 'financialStatementFilter',
   initialState: {
-    filterItem: 'none',
+    cashFlowType: 'none',
     stockCodes: [].map(String),
   },
   reducers: {
     changeCashFlowFilter: (state, action: ChangeCashFlowFilterAction) => {
-      state.filterItem = action.payload;
+      state.cashFlowType = action.payload;
     },
     changeStockCodeFilter: (state, action: ChangeStockCodeFilterAction) => {
       state.stockCodes = action.payload;
@@ -21,5 +21,5 @@ export const cashFlowFilterSlice = createSlice({
 });
 
 export const { changeCashFlowFilter, changeStockCodeFilter } =
-  cashFlowFilterSlice.actions;
-export default cashFlowFilterSlice.reducer;
+  financialStatementFilterSlice.actions;
+export default financialStatementFilterSlice.reducer;
