@@ -11,7 +11,7 @@ export const tooltipStyle = {
 
 export const stackLabelListFillColor = '#FFF';
 
-export const cashFlowFilterItems = [
+export const cashFlowTypes = [
   { raises_or_falls: [], text: '指定なし', value: 'none' },
   { raises_or_falls: ['↑', '↓', '↓'], text: '健全型', value: 'healthy' },
   { raises_or_falls: ['↑', '↓', '↑'], text: '積極型', value: 'active' },

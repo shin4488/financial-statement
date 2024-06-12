@@ -29,7 +29,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import SearchIcon from '@mui/icons-material/Search';
 import { AppDispatch, RootState } from '@/store/store';
 import { changeAutoPlayStatus } from '@/store/slices/autoPlayStatusSlice';
-import { cashFlowFilterItems } from '@/constants/values';
+import { cashFlowTypes } from '@/constants/values';
 import {
   changeCashFlowFilter,
   changeStockCodeFilter,
@@ -140,7 +140,7 @@ class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
                       );
                     }}
                   >
-                    {cashFlowFilterItems.map((item) => (
+                    {cashFlowTypes.map((item) => (
                       <MenuItem key={item.value} value={item.value}>
                         {item.raises_or_falls.map((arrow: string, index) => (
                           <Box
