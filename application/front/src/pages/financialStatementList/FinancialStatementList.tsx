@@ -20,6 +20,7 @@ import { connect } from 'react-redux';
 const mapStateToProps = (state: RootState) => {
   return {
     cashFlowFilterItem: state.cashFlowFilter.filterItem,
+    stockCodes: state.cashFlowFilter.stockCodes,
   };
 };
 type FinancialStatementListWithStoreProps = ReturnType<typeof mapStateToProps>;
@@ -40,10 +41,12 @@ class FinancialStatementList extends React.Component<
   ): void {
     const sameCashFlowFilter =
       this.props.cashFlowFilterItem === previousProps.cashFlowFilterItem;
-    if (sameCashFlowFilter) {
+    const sameStockCodes = this.props.stockCodes === previousProps.stockCodes;
+    if (sameCashFlowFilter && sameStockCodes) {
       return;
     }
 
+    // 条件が1つでも変わるとデータを再取得するため、現在表示しているデータは表示削除する
     this.setState(() => ({
       financialStatements: [],
       infiniteScrollKey: Math.random(),

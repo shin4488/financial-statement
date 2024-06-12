@@ -30,7 +30,10 @@ import SearchIcon from '@mui/icons-material/Search';
 import { AppDispatch, RootState } from '@/store/store';
 import { changeAutoPlayStatus } from '@/store/slices/autoPlayStatusSlice';
 import { cashFlowFilterItems } from '@/constants/values';
-import { changeCashFlowFilter } from '@/store/slices/cashFlowFilterItemSlice';
+import {
+  changeCashFlowFilter,
+  changeStockCodeFilter,
+} from '@/store/slices/cashFlowFilterItemSlice';
 
 const autoPlayStatusLocalStorageKey = 'flazaIsStatementAutoPlay';
 
@@ -38,10 +41,15 @@ const autoPlayStatusLocalStorageKey = 'flazaIsStatementAutoPlay';
 const mapStateToProps = (state: RootState) => ({
   isAutoPlay: state.autoPlayStatus.isAutoPlay,
   cashFlowFilterItem: state.cashFlowFilter.filterItem,
+  stockCodes: state.cashFlowFilter.stockCodes,
 });
 const mapDispatchToProps = (dispatch: AppDispatch) => ({
   actions: bindActionCreators({ changeAutoPlayStatus }, dispatch),
   cashFlowFilterActions: bindActionCreators({ changeCashFlowFilter }, dispatch),
+  stockCodeFilterActions: bindActionCreators(
+    { changeStockCodeFilter },
+    dispatch,
+  ),
 });
 type DefaultLayoutWithStoreProps = DefaultLayoutProps &
   ReturnType<typeof mapStateToProps> &
@@ -157,7 +165,9 @@ class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
                     freeSolo
                     multiple
                     onChange={(event, stockCodes) => {
-                      console.log(stockCodes.map(Number));
+                      this.props.stockCodeFilterActions.changeStockCodeFilter(
+                        stockCodes,
+                      );
                     }}
                     renderTags={(values: string[], props) =>
                       values.map((value, index) => {
