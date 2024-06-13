@@ -218,7 +218,7 @@ class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
           zIndex="10"
           style={{ opacity: 0.7, bottom: 0 }}
         >
-          出典:{' '}
+          出典:
           <Link
             target="_blank"
             href="https://disclosure2.edinet-fsa.go.jp/WEEK0010.aspx"
