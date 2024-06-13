@@ -53,8 +53,8 @@ class SecurityReport::SubscriberService
     class IndividualSubscriber
       def perform(document_id:, zip_path:)
         # zipファイルのダウンロード・保存
-        uri = URI("https://disclosure.edinet-fsa.go.jp/api/v1/documents/#{document_id}")
-        queries = { :type => 1 }
+        uri = URI("https://disclosure.edinet-fsa.go.jp/api/v2/documents/#{document_id}")
+        queries = { :type => 1, "Subscription-Key" => ENV["EDINET_API_KEY"] }
         uri.query = URI.encode_www_form(queries)
         uri.open do |file|
           # https://docs.ruby-lang.org/ja/latest/method/Kernel/m/open.html
