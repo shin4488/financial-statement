@@ -108,7 +108,7 @@ class FinancialStatementList extends React.Component<
                     }
                     subheader={
                       <div className="financial-statement-card-header">
-                        {`${statement.fiscalYearStartDate} - ${statement.fiscalYearEndDate}（${consolidationTypeLabel}）`}
+                        {`${statement.stockCode} : ${statement.fiscalYearStartDate} - ${statement.fiscalYearEndDate}（${consolidationTypeLabel}）`}
                       </div>
                     }
                   />
