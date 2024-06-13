@@ -44,6 +44,7 @@ class FinancialStatementList extends React.Component<
     const sameStockCodes =
       JSON.stringify(this.props.stockCodes) ===
       JSON.stringify(previousProps.stockCodes);
+    // 検索条件の状態が変わっていないのであれば、現在の表示は残しておく
     if (sameCashFlowFilter && sameStockCodes) {
       return;
     }
