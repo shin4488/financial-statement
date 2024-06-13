@@ -52,10 +52,12 @@ export const cashFlowTypes: CashFlowType[] = [
   { raises_or_falls: ['↓', '↑', '↑'], text: '救済型', value: 'rescuing' },
 ];
 
+type NumberSign = 'POSITIVE' | 'NEGATIVE';
+
 interface CashFlowTypeRequest {
-  isPositiveOperatingActivitiesCashFlow: boolean | null;
-  isPositiveInvestingActivitiesCashFlow: boolean | null;
-  isPositiveFinancingActivitiesCashFlow: boolean | null;
+  operatingActivitiesCashFlowSign: NumberSign | null;
+  investingActivitiesCashFlowSign: NumberSign | null;
+  financingActivitiesCashFlowSign: NumberSign | null;
 }
 
 export const cashFlowTypeRequestMap: Record<
@@ -63,48 +65,48 @@ export const cashFlowTypeRequestMap: Record<
   CashFlowTypeRequest
 > = {
   none: {
-    isPositiveOperatingActivitiesCashFlow: null,
-    isPositiveInvestingActivitiesCashFlow: null,
-    isPositiveFinancingActivitiesCashFlow: null,
+    operatingActivitiesCashFlowSign: null,
+    investingActivitiesCashFlowSign: null,
+    financingActivitiesCashFlowSign: null,
   },
   healthy: {
-    isPositiveOperatingActivitiesCashFlow: true,
-    isPositiveInvestingActivitiesCashFlow: false,
-    isPositiveFinancingActivitiesCashFlow: false,
+    operatingActivitiesCashFlowSign: 'POSITIVE',
+    investingActivitiesCashFlowSign: 'NEGATIVE',
+    financingActivitiesCashFlowSign: 'NEGATIVE',
   },
   active: {
-    isPositiveOperatingActivitiesCashFlow: true,
-    isPositiveInvestingActivitiesCashFlow: false,
-    isPositiveFinancingActivitiesCashFlow: true,
+    operatingActivitiesCashFlowSign: 'POSITIVE',
+    investingActivitiesCashFlowSign: 'NEGATIVE',
+    financingActivitiesCashFlowSign: 'POSITIVE',
   },
   stable: {
-    isPositiveOperatingActivitiesCashFlow: true,
-    isPositiveInvestingActivitiesCashFlow: true,
-    isPositiveFinancingActivitiesCashFlow: true,
+    operatingActivitiesCashFlowSign: 'POSITIVE',
+    investingActivitiesCashFlowSign: 'POSITIVE',
+    financingActivitiesCashFlowSign: 'POSITIVE',
   },
   improving: {
-    isPositiveOperatingActivitiesCashFlow: true,
-    isPositiveInvestingActivitiesCashFlow: true,
-    isPositiveFinancingActivitiesCashFlow: false,
+    operatingActivitiesCashFlowSign: 'POSITIVE',
+    investingActivitiesCashFlowSign: 'POSITIVE',
+    financingActivitiesCashFlowSign: 'NEGATIVE',
   },
   competitive: {
-    isPositiveOperatingActivitiesCashFlow: false,
-    isPositiveInvestingActivitiesCashFlow: false,
-    isPositiveFinancingActivitiesCashFlow: true,
+    operatingActivitiesCashFlowSign: 'NEGATIVE',
+    investingActivitiesCashFlowSign: 'NEGATIVE',
+    financingActivitiesCashFlowSign: 'POSITIVE',
   },
   restructuring: {
-    isPositiveOperatingActivitiesCashFlow: false,
-    isPositiveInvestingActivitiesCashFlow: true,
-    isPositiveFinancingActivitiesCashFlow: false,
+    operatingActivitiesCashFlowSign: 'NEGATIVE',
+    investingActivitiesCashFlowSign: 'POSITIVE',
+    financingActivitiesCashFlowSign: 'NEGATIVE',
   },
   reconsidering: {
-    isPositiveOperatingActivitiesCashFlow: false,
-    isPositiveInvestingActivitiesCashFlow: false,
-    isPositiveFinancingActivitiesCashFlow: false,
+    operatingActivitiesCashFlowSign: 'NEGATIVE',
+    investingActivitiesCashFlowSign: 'NEGATIVE',
+    financingActivitiesCashFlowSign: 'NEGATIVE',
   },
   rescuing: {
-    isPositiveOperatingActivitiesCashFlow: false,
-    isPositiveInvestingActivitiesCashFlow: true,
-    isPositiveFinancingActivitiesCashFlow: true,
+    operatingActivitiesCashFlowSign: 'NEGATIVE',
+    investingActivitiesCashFlowSign: 'POSITIVE',
+    financingActivitiesCashFlowSign: 'POSITIVE',
   },
 };

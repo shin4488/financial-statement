@@ -26,12 +26,12 @@ export default class FinancialStatementListStateService {
           `limit: ${financialStatementOffsetUnit}` +
           `, offset: ${offset}` +
           `, stockCodes: ${JSON.stringify(parameter.stockCodes)}` +
-          `, isPositiveOperatingActivitiesCashFlow: ` +
-          cashFlowRequest.isPositiveOperatingActivitiesCashFlow +
-          `, isPositiveInvestingActivitiesCashFlow: ` +
-          cashFlowRequest.isPositiveInvestingActivitiesCashFlow +
-          `, isPositiveFinancingActivitiesCashFlow: ` +
-          cashFlowRequest.isPositiveFinancingActivitiesCashFlow +
+          `, operatingActivitiesCashFlowSign: ` +
+          cashFlowRequest.operatingActivitiesCashFlowSign +
+          `, investingActivitiesCashFlowSign: ` +
+          cashFlowRequest.investingActivitiesCashFlowSign +
+          `, financingActivitiesCashFlowSign: ` +
+          cashFlowRequest.financingActivitiesCashFlowSign +
           `) {
             fiscalYearStartDate
             fiscalYearEndDate
