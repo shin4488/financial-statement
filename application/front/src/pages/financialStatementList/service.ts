@@ -3,7 +3,11 @@ import { FinancialStatement } from './state';
 import StringUtil from '@/plugins/utils/stringUtil';
 import { NumberUtil } from '@/plugins/utils/numberUtil';
 import ApolloClientService from '@/plugins/apollo/service';
-import { financialStatementOffsetUnit } from '@/constants/values';
+import {
+  cashFlowTypeRequestMap,
+  financialStatementOffsetUnit,
+} from '@/constants/values';
+import { FinancialStatementConditionParameter } from './parameter';
 
 export default class FinancialStatementListStateService {
   private apolloService: ApolloClientService;
@@ -12,15 +16,22 @@ export default class FinancialStatementListStateService {
     this.apolloService = new ApolloClientService();
   }
 
-  query(offset: number) {
+  query(offset: number, parameter: FinancialStatementConditionParameter) {
+    const cashFlowRequest = cashFlowTypeRequestMap[parameter.cashFlowType];
     const result = this.apolloService
       .query(
         `
         query {
-          companyFinancialStatements(limit: ` +
-          financialStatementOffsetUnit +
-          `, offset: ` +
-          offset +
+          companyFinancialStatements(` +
+          `limit: ${financialStatementOffsetUnit}` +
+          `, offset: ${offset}` +
+          `, stockCodes: ${JSON.stringify(parameter.stockCodes)}` +
+          `, operatingActivitiesCashFlowSign: ` +
+          cashFlowRequest.operatingActivitiesCashFlowSign +
+          `, investingActivitiesCashFlowSign: ` +
+          cashFlowRequest.investingActivitiesCashFlowSign +
+          `, financingActivitiesCashFlowSign: ` +
+          cashFlowRequest.financingActivitiesCashFlowSign +
           `) {
             fiscalYearStartDate
             fiscalYearEndDate

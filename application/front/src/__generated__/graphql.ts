@@ -80,6 +80,11 @@ export type MutationSandboxTestArgs = {
   input: SandboxTestInput;
 };
 
+export enum NumberSign {
+  Negative = 'NEGATIVE',
+  Positive = 'POSITIVE'
+}
+
 export type ProfitLoss = {
   __typename?: 'ProfitLoss';
   amount?: Maybe<ProfitLossAmount>;
@@ -110,8 +115,12 @@ export type Query = {
 
 
 export type QueryCompanyFinancialStatementsArgs = {
+  financingActivitiesCashFlowSign?: InputMaybe<NumberSign>;
+  investingActivitiesCashFlowSign?: InputMaybe<NumberSign>;
   limit: Scalars['Int']['input'];
   offset: Scalars['Int']['input'];
+  operatingActivitiesCashFlowSign?: InputMaybe<NumberSign>;
+  stockCodes?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export type SandboxBookmark = {
