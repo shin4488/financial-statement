@@ -6,11 +6,17 @@ class SecurityReport::FetcherService
       # 証券コードは内部的には5桁で保存しているが、通常4桁で扱われるため0パディングする
       stock_codes = condition[:stock_codes].map { |code| "#{code}0" }
       cash_flow_condition = {
-        is_positive_operating_activities_cash_flow: condition[:is_positive_operating_activities_cash_flow],
-        is_positive_investing_activities_cash_flow: condition[:is_positive_investing_activities_cash_flow],
-        is_positive_financing_activities_cash_flow: condition[:is_positive_financing_activities_cash_flow],
-      }
-      reports = SecurityReport.fetch_company_security_reports(limit:, offset:, stock_codes:, cash_flow_condition:)
+        operating_activities_cash_flow_sign: condition[:operating_activities_cash_flow_sign],
+        investing_activities_cash_flow_sign: condition[:investing_activities_cash_flow_sign],
+        financing_activities_cash_flow_sign: condition[:financing_activities_cash_flow_sign],
+      }.compact.presence
+      reports =
+        if cash_flow_condition.nil?
+          SecurityReport.fetch_company_security_reports(limit:, offset:, stock_codes:)
+        else
+          SecurityReport.fetch_company_security_reports_with_cash_flow_condition(limit:, offset:, stock_codes:, cash_flow_condition:)
+        end
+
       reports.map do |security_report|
         has_consolidation = security_report.has_consolidated_financial_statement
 
