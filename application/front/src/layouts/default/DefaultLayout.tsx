@@ -186,7 +186,6 @@ class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
                         {...params}
                         variant="standard"
                         label="証券コードで検索（複数可）"
-                        type="number"
                         InputProps={{
                           startAdornment: (
                             <>
