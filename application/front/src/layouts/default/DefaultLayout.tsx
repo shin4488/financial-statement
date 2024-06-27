@@ -87,7 +87,12 @@ class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
               <ListItemText primary="「自動切替」にチェックを入れると上記3つが自動で切替わります。グラフをマウスオーバー/タップすると一時的に切替えが止まります。" />
             </ListItem>
             <ListItem disablePadding dense>
-              <ListItemText primary="訂正報告書が最近出された財務情報は、昨年以前の会計年度でも上位に表示されます。" />
+              <ListItemText
+                primary="日本会計基準のデータのみ表示可能です。国際会計基準や米国会計基準のデータは表示・検索できません。"
+                primaryTypographyProps={{
+                  fontWeight: 'bold',
+                }}
+              />
             </ListItem>
           </List>
         }
