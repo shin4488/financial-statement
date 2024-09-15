@@ -35,7 +35,7 @@ import {
   changeStockCodeFilter,
 } from '@/store/slices/financialStatementFilterSlice';
 
-const autoPlayStatusLocalStorageKey = 'flazaIsStatementAutoPlay';
+const autoPlayStatusLocalStorageKey = 'investeeIsStatementAutoPlay';
 
 // store更新・アクセスするための設定
 const mapStateToProps = (state: RootState) => ({
