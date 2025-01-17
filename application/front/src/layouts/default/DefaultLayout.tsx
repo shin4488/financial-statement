@@ -35,6 +35,7 @@ import {
   changeCashFlowFilter,
   changeStockCodeFilter,
 } from '@/store/slices/financialStatementFilterSlice';
+import { DefaultLayoutState } from './state';
 
 const autoPlayStatusLocalStorageKey = 'investeeIsStatementAutoPlay';
 
@@ -58,20 +59,35 @@ type DefaultLayoutWithStoreProps = DefaultLayoutProps &
     navigate: NavigateFunction;
   };
 
-class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
+class DefaultLayout extends React.Component<
+  DefaultLayoutWithStoreProps,
+  DefaultLayoutState
+> {
+  state: Readonly<DefaultLayoutState> = {
+    isQuaryLoaded: false,
+  };
+
   componentDidMount(): void {
     const isAutoPlay =
       (localStorage.getItem(autoPlayStatusLocalStorageKey) || 'true') ===
       'true';
     this.props.actions.changeAutoPlayStatus(isAutoPlay);
-  }
-
-  render(): React.ReactNode {
     // urlクエリパラメータから検索条件となる証券コードを取得する
     const url = new URL(window.location.href);
     const joinedStockCodes = url.searchParams.get('stock-codes');
     const stockCodes =
       joinedStockCodes?.split(',').filter((x) => x !== '') || [];
+    this.props.stockCodeFilterActions.changeStockCodeFilter(stockCodes);
+    this.setState(() => ({
+      isQuaryLoaded: true,
+    }));
+  }
+
+  render(): React.ReactNode {
+    // 検索条件をurlクエリパラメータから取得するまでは画面描画しない
+    if (!this.state.isQuaryLoaded) {
+      return;
+    }
 
     const infoTooltip = (
       <Tooltip
@@ -202,7 +218,7 @@ class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
                         );
                       })
                     }
-                    defaultValue={stockCodes}
+                    defaultValue={this.props.stockCodes}
                     renderInput={(params) => (
                       <TextField
                         {...params}
