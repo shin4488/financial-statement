@@ -184,9 +184,15 @@ class FinancialStatementList extends React.Component<
   }
 
   load(offset: number): void {
+    // urlクエリパラメータから検索条件となる証券コードを取得する
+    const url = new URL(window.location.href);
+    const joinedStockCodes = url.searchParams.get('stock-codes');
+    const stockCodes =
+      joinedStockCodes?.split(',').filter((x) => x !== '') || [];
+
     const condition = {
       cashFlowType: this.props.cashFlowType,
-      stockCodes: this.props.stockCodes,
+      stockCodes: stockCodes,
     };
     this.state.service.query(offset, condition).then((result) => {
       const financialStatements = result.companyFinancialStatements;

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { ComponentType } from 'react';
+import { useNavigate, NavigateFunction } from 'react-router-dom';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { DefaultLayoutProps } from './props';
@@ -53,7 +54,9 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
 });
 type DefaultLayoutWithStoreProps = DefaultLayoutProps &
   ReturnType<typeof mapStateToProps> &
-  ReturnType<typeof mapDispatchToProps>;
+  ReturnType<typeof mapDispatchToProps> & {
+    navigate: NavigateFunction;
+  };
 
 class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
   componentDidMount(): void {
@@ -64,6 +67,12 @@ class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
   }
 
   render(): React.ReactNode {
+    // urlクエリパラメータから検索条件となる証券コードを取得する
+    const url = new URL(window.location.href);
+    const joinedStockCodes = url.searchParams.get('stock-codes');
+    const stockCodes =
+      joinedStockCodes?.split(',').filter((x) => x !== '') || [];
+
     const infoTooltip = (
       <Tooltip
         placement="bottom-start"
@@ -174,6 +183,13 @@ class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
                       this.props.stockCodeFilterActions.changeStockCodeFilter(
                         stockCodes,
                       );
+                      if (stockCodes.length === 0) {
+                        this.props.navigate('/');
+                        return;
+                      }
+
+                      const joinedStockedCode = stockCodes.join(',');
+                      this.props.navigate(`/?stock-codes=${joinedStockedCode}`);
                     }}
                     renderTags={(values: string[], props) =>
                       values.map((value, index) => {
@@ -186,6 +202,7 @@ class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
                         );
                       })
                     }
+                    defaultValue={stockCodes}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -237,4 +254,14 @@ class DefaultLayout extends React.Component<DefaultLayoutWithStoreProps> {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(DefaultLayout);
+function withNavigate<P>(
+  WrappedComponent: ComponentType<P & { navigate: NavigateFunction }>,
+) {
+  return function WithNavigate(props: Omit<P, 'navigate'>) {
+    const navigate = useNavigate();
+    return <WrappedComponent {...(props as P)} navigate={navigate} />;
+  };
+}
+
+const navigate = withNavigate(DefaultLayout);
+export default connect(mapStateToProps, mapDispatchToProps)(navigate);

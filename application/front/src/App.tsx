@@ -1,4 +1,5 @@
 import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
 import './types/mui/styles.d';
 import './App.css';
 import DefaultLayout from '@/layouts/default/DefaultLayout';
@@ -32,11 +33,13 @@ export default class App extends React.Component {
     return (
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <DefaultLayout>
-          <div className="App">
-            <FinancialStatementList />
-          </div>
-        </DefaultLayout>
+        <BrowserRouter>
+          <DefaultLayout>
+            <div className="App">
+              <FinancialStatementList />
+            </div>
+          </DefaultLayout>
+        </BrowserRouter>
       </ThemeProvider>
     );
   }
