@@ -72,15 +72,28 @@ class DefaultLayout extends React.Component<
       (localStorage.getItem(autoPlayStatusLocalStorageKey) || 'true') ===
       'true';
     this.props.actions.changeAutoPlayStatus(isAutoPlay);
-    // urlクエリパラメータから検索条件となる証券コードを取得する
-    const url = new URL(window.location.href);
-    const joinedStockCodes = url.searchParams.get('stock-codes');
-    const stockCodes =
-      joinedStockCodes?.split(',').filter((x) => x !== '') || [];
+    const stockCodes = this.getStockCodeByQuery();
     this.props.stockCodeFilterActions.changeStockCodeFilter(stockCodes);
     this.setState(() => ({
       isQuaryLoaded: true,
     }));
+  }
+
+  // ブラウザバック時にも検索条件が変わるようにする
+  componentDidUpdate(): void {
+    const stockCodes = this.getStockCodeByQuery();
+    const isDifferentQuery =
+      JSON.stringify(stockCodes) !== JSON.stringify(this.props.stockCodes);
+    if (isDifferentQuery) {
+      this.props.stockCodeFilterActions.changeStockCodeFilter(stockCodes);
+    }
+  }
+
+  getStockCodeByQuery(): string[] {
+    // urlクエリパラメータから検索条件となる証券コードを取得する
+    const url = new URL(window.location.href);
+    const joinedStockCodes = url.searchParams.get('stock-codes');
+    return joinedStockCodes?.split(',').filter((x) => x !== '') || [];
   }
 
   render(): React.ReactNode {
@@ -218,7 +231,7 @@ class DefaultLayout extends React.Component<
                         );
                       })
                     }
-                    defaultValue={this.props.stockCodes}
+                    value={this.props.stockCodes}
                     renderInput={(params) => (
                       <TextField
                         {...params}
