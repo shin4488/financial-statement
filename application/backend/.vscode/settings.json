@@ -1,0 +1,10 @@
+{
+  "files.trimTrailingWhitespace": true,
+  "editor.insertSpaces": true,
+  "search.exclude": {
+    "**/vendor": true
+  },
+  "[ruby]": {
+    "editor.tabSize": 2
+  }
+}

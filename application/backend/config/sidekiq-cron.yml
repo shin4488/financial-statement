@@ -1,0 +1,5 @@
+security_report_subscriber_job:
+  # 毎日2:00AM
+  cron: "0 0 2 * * *"
+  class: SecurityReportSubscriberJob
+  queue: default
