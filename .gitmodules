@@ -1,0 +1,6 @@
+[submodule "application/financial-statement-frontend"]
+	path = application/frontend
+	url = https://github.com/shin4488/financial-statement-frontend
+[submodule "application/financial-statement-backend"]
+	path = application/backend
+	url = https://github.com/shin4488/financial-statement-backend

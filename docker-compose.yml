@@ -11,18 +11,18 @@ services:
       - appfront
       - appserver
   appfront:
-    build: ./application/front
+    build: ./application/frontend
     volumes:
-      - ./application/front:/home/app/financialStatement
-      - ./application/front/node_modules:/home/app/financialStatement/node_modules
+      - ./application/frontend:/home/app/financialStatement
+      - ./application/frontend/node_modules:/home/app/financialStatement/node_modules
   appserver:
-    build: ./application/server
+    build: ./application/backend
     # サーバ処理の動作確認を行えるようにポート解放する
     ports:
       - 20000:3000
     volumes:
-      - ./application/server:/home/app/financialStatement
-      - ./application/server/vendor/bundle:/home/app/financialStatement/vendor/bundle
+      - ./application/backend:/home/app/financialStatement
+      - ./application/backend/vendor/bundle:/home/app/financialStatement/vendor/bundle
     depends_on:
       database:
         condition: service_healthy
