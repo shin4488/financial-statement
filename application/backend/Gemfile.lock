@@ -66,6 +66,7 @@ GEM
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       tzinfo (~> 2.0)
+    bigdecimal (4.0.1)
     bootsnap (1.16.0)
       msgpack (~> 1.2)
     builder (3.2.4)
@@ -127,6 +128,8 @@ GEM
     nio4r (2.5.9)
     nokogiri (1.15.4-aarch64-linux)
       racc (~> 1.4)
+    nokogiri (1.15.4-arm64-darwin)
+      racc (~> 1.4)
     pg (1.5.4)
     psych (5.1.0)
       stringio
@@ -185,6 +188,12 @@ GEM
       sprockets (> 3.0)
       sprockets-rails
       tilt
+    sentry-rails (6.3.0)
+      railties (>= 5.2.0)
+      sentry-ruby (~> 6.3.0)
+    sentry-ruby (6.3.0)
+      bigdecimal
+      concurrent-ruby (~> 1.0, >= 1.0.2)
     sidekiq (6.5.9)
       connection_pool (>= 2.2.5, < 3)
       rack (~> 2.0)
@@ -213,6 +222,7 @@ GEM
 
 PLATFORMS
   aarch64-linux
+  arm64-darwin-22
 
 DEPENDENCIES
   bootsnap
@@ -227,6 +237,8 @@ DEPENDENCIES
   rexml
   rubyzip
   sass-rails
+  sentry-rails
+  sentry-ruby
   sidekiq (~> 6.5)
   sidekiq-cron (~> 1.8)
   tzinfo-data
