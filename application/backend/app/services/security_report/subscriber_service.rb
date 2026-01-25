@@ -29,6 +29,13 @@ class SecurityReport::SubscriberService
           Rails.logger.error "security report subscribe error! document_id: #{document_id}"
           Rails.logger.error e.message
           Rails.logger.error e.backtrace.join("\n")
+          Sentry.with_scope do |scope|
+            scope.set_tags(document_id: document_id)
+            scope.add_attachment(path: zip_path, filename: File.basename(zip_path), content_type: 'application/zip') if File.exist?(zip_path)
+            transaction = scope.get_transaction
+            transaction&.set_data(:document_id, document_id)
+            Sentry.capture_exception(e)
+          end
         end
       end
     end
@@ -44,6 +51,12 @@ class SecurityReport::SubscriberService
             Rails.logger.error "generate zip path error! date: #{date}"
             Rails.logger.error e.message
             Rails.logger.error e.backtrace.join("\n")
+            Sentry.with_scope do |scope|
+              scope.set_tags(date: date)
+              transaction = scope.get_transaction
+              transaction&.set_data(:date, date)
+              Sentry.capture_exception(e)
+            end
             nil
           end
           # [["id1", "id2"], ["id3", "id4"]] => ["id1", "id2", "id3", "id4"]に変換
