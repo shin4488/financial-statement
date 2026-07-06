@@ -30,14 +30,24 @@ app/services/charts/
     pl_ifrs.rb          # IFRSはBS形式によらずPLは共通ロジック（科目の実在で分岐）
     cash_flow.rb        # 全形式共通
 app/graphql/
-  types/ ...            # 後述
+  types/
+    chart/
+      segment_type.rb
+      stack_bar_type.rb
+      stack_chart_type.rb
+      waterfall_step_type.rb
+      waterfall_chart_type.rb
+    number_sign_type.rb
+    financial_report_type.rb
+    query_type.rb         # 既存ファイルを置き換え
 app/services/reports/
-  search_query.rb       # 一覧検索
+  search_query.rb         # 一覧検索
 ```
 
 ## データ構造（structs.rb）
 
 ```ruby
+# app/services/charts/structs.rb
 module Charts
   # amount: 描画高さ（常に0以上） / signed_amount: 実際の値（ツールチップ表示用）
   # color_role: フロントのパレット対応キー（後述の固定enum）
@@ -60,6 +70,7 @@ end
 ## 汎用基底（builders/stack_base.rb）
 
 ```ruby
+# app/services/charts/builders/stack_base.rb
 module Charts
   module Builders
     class StackBase
@@ -104,6 +115,12 @@ module Charts
           credit = build_segments(credit_specs, base)
           return StackChart.unrenderable(unrenderable_note) if debit.empty? || equity.nil?
 
+          # 貸借検証は「バーを組む前」に生の値で行う。バー構築後のセグメント合計で検証すると、
+          # 債務超過時に挿入するspacer（描画用の詰め物）まで合計に含まれ常に不一致になる
+          debit_total = debit.sum(&:amount)
+          credit_total = credit.sum(&:signed_amount) + equity
+          return StackChart.unrenderable(unrenderable_note) unless balanced?(debit_total, credit_total)
+
           bars = [Bar.new(label: "借方", segments: debit)]
           if equity.negative?
             # 債務超過: 貸方は負債のみ（負債合計 > 資産合計の状態）。3本目のバーで
@@ -119,12 +136,6 @@ module Charts
           else
             bars << Bar.new(label: "貸方",
                             segments: credit + [seg("equity", equity_label, equity, "equity", base: base)])
-          end
-
-          debit_total = debit.sum(&:amount)
-          credit_total = bars.drop(1).flat_map(&:segments).sum { |s| s.signed_amount }
-          unless balanced?(debit_total, credit_total)
-            return StackChart.unrenderable(unrenderable_note)
           end
           StackChart.new(renderable: true, note: nil, bars: bars)
         end
@@ -149,6 +160,7 @@ end
 ## BS Builder（形式別）
 
 ```ruby
+# app/services/charts/builders/bs_jgaap_general.rb
 class Charts::Builders::BsJgaapGeneral < Charts::Builders::StackBase
   def build
     # 比率の分母をbs.assetsでなく「表示する4科目の合計」にする理由（現行アプリ踏襲）:
@@ -173,6 +185,7 @@ class Charts::Builders::BsJgaapGeneral < Charts::Builders::StackBase
   end
 end
 
+# app/services/charts/builders/bs_ifrs_classified.rb
 class Charts::Builders::BsIfrsClassified < Charts::Builders::StackBase
   def build
     two_sided_chart(
@@ -189,6 +202,7 @@ class Charts::Builders::BsIfrsClassified < Charts::Builders::StackBase
   end
 end
 
+# app/services/charts/builders/bs_ifrs_liquidity.rb
 class Charts::Builders::BsIfrsLiquidity < Charts::Builders::StackBase
   # 流動性配列: 区分がないため「現金及び現金同等物 + その他資産（導出）」の2段で表現
   def build
@@ -208,6 +222,7 @@ class Charts::Builders::BsIfrsLiquidity < Charts::Builders::StackBase
   end
 end
 
+# app/services/charts/builders/bs_jgaap_bank.rb
 class Charts::Builders::BsJgaapBank < Charts::Builders::StackBase
   # 銀行: 分析の定番である貸出金・有価証券・現金預け金 + 預金を内訳表示（01の実測タグ）
   def build
@@ -239,6 +254,7 @@ PLは貸借バランスが定義的に成立する（導出項目が差分を埋
 `two_sided_chart` は使わずBuilderごとに組み立てる。共通ヘルパ（`seg`/`ratio`）のみ利用。
 
 ```ruby
+# app/services/charts/builders/pl_jgaap_general.rb
 class Charts::Builders::PlJgaapGeneral < Charts::Builders::StackBase
   # 現行アプリと同じ構成: 借方[原価, 販管費, 営業利益] / 貸方[売上高(, 営業損失)]
   def build
@@ -265,6 +281,7 @@ class Charts::Builders::PlJgaapGeneral < Charts::Builders::StackBase
   end
 end
 
+# app/services/charts/builders/pl_jgaap_bank.rb
 class Charts::Builders::PlJgaapBank < Charts::Builders::StackBase
   # 銀行: 借方[経常費用, 経常利益] / 貸方[経常収益(, 経常損失)]
   def build
@@ -285,6 +302,7 @@ class Charts::Builders::PlJgaapBank < Charts::Builders::StackBase
   end
 end
 
+# app/services/charts/builders/pl_ifrs.rb
 class Charts::Builders::PlIfrs < Charts::Builders::StackBase
   # IFRS: 収益→税引前利益の骨格。費用の内訳は「ある科目だけ」使い、残差は「その他損益（純額）」
   # 検算済みの実例（01参照）:
@@ -337,6 +355,7 @@ end
 ## CF Builder（全形式共通）
 
 ```ruby
+# app/services/charts/builders/cash_flow.rb
 class Charts::Builders::CashFlow < Charts::Builders::StackBase
   STEPS = [
     ["cashBegin", "期首残高",                 "cf.cash_begin", "balance"],
@@ -366,6 +385,7 @@ end
 ## BuilderRegistry
 
 ```ruby
+# app/services/charts/builder_registry.rb
 module Charts
   module BuilderRegistry
     BS = {
@@ -398,6 +418,7 @@ end
 ## 検索（reports/search_query.rb）
 
 ```ruby
+# app/services/reports/search_query.rb
 module Reports
   class SearchQuery
     CF_CODES = {
@@ -438,45 +459,93 @@ end
 ## GraphQL
 
 金額は資産431兆（MUFG実測）などInt32を超えるため `GraphQL::Types::BigInt` を使う。
+既存の `app/graphql/types/base_object.rb` / `base_enum.rb` はそのまま使う。
+1ファイル1型（既存の `types/financial_statement/` 配下と同じ流儀）で以下を作成する:
 
 ```ruby
+# app/graphql/types/chart/segment_type.rb
 module Types
-  class SegmentType < BaseObject
-    field :key, String, null: false
-    field :label, String, null: false
-    field :amount, GraphQL::Types::BigInt, null: false          # 描画高さ（>=0）
-    field :signed_amount, GraphQL::Types::BigInt, null: false   # 実値（ツールチップ用）
-    field :ratio, Float, null: true                             # %（spacer等はnull）
-    field :color_role, String, null: false
+  module Chart
+    class SegmentType < Types::BaseObject
+      field :key, String, null: false
+      field :label, String, null: false
+      field :amount, GraphQL::Types::BigInt, null: false          # 描画高さ（>=0）
+      field :signed_amount, GraphQL::Types::BigInt, null: false   # 実値（ツールチップ用）
+      field :ratio, Float, null: true                             # %（spacer等はnull）
+      field :color_role, String, null: false
+    end
   end
+end
+```
 
-  class StackBarType < BaseObject
-    field :label, String, null: false
-    field :segments, [SegmentType], null: false
+```ruby
+# app/graphql/types/chart/stack_bar_type.rb
+module Types
+  module Chart
+    class StackBarType < Types::BaseObject
+      field :label, String, null: false
+      field :segments, [Types::Chart::SegmentType], null: false
+    end
   end
+end
+```
 
-  class StackChartType < BaseObject
-    field :renderable, Boolean, null: false
-    field :note, String, null: true
-    field :bars, [StackBarType], null: false
+```ruby
+# app/graphql/types/chart/stack_chart_type.rb
+module Types
+  module Chart
+    class StackChartType < Types::BaseObject
+      field :renderable, Boolean, null: false
+      field :note, String, null: true
+      field :bars, [Types::Chart::StackBarType], null: false
+    end
   end
+end
+```
 
-  class WaterfallStepType < BaseObject
-    field :key, String, null: false
-    field :label, String, null: false
-    field :amount, GraphQL::Types::BigInt, null: false
-    field :kind, String, null: false  # "balance" | "flow"
+```ruby
+# app/graphql/types/chart/waterfall_step_type.rb
+module Types
+  module Chart
+    class WaterfallStepType < Types::BaseObject
+      field :key, String, null: false
+      field :label, String, null: false
+      field :amount, GraphQL::Types::BigInt, null: false  # CFのみ符号付きで返す（増減の向きが情報のため）
+      field :kind, String, null: false                    # "balance" | "flow"
+    end
   end
+end
+```
 
-  class WaterfallChartType < BaseObject
-    field :renderable, Boolean, null: false
-    field :note, String, null: true
-    field :steps, [WaterfallStepType], null: false
+```ruby
+# app/graphql/types/chart/waterfall_chart_type.rb
+module Types
+  module Chart
+    class WaterfallChartType < Types::BaseObject
+      field :renderable, Boolean, null: false
+      field :note, String, null: true
+      field :steps, [Types::Chart::WaterfallStepType], null: false
+    end
   end
+end
+```
 
-  class FinancialReportType < BaseObject
+```ruby
+# app/graphql/types/number_sign_type.rb
+module Types
+  class NumberSignType < Types::BaseEnum
+    value "POSITIVE", value: :positive
+    value "NEGATIVE", value: :negative
+  end
+end
+```
+
+```ruby
+# app/graphql/types/financial_report_type.rb
+module Types
+  class FinancialReportType < Types::BaseObject
     field :id, ID, null: false
-    field :stock_code, String, null: true          # 4桁化して返す（末尾0を落とす）
+    field :stock_code, String, null: true          # 4桁化して返す（末尾0を落とす。resolver側で変換）
     field :company_name, String, null: true
     field :fiscal_year_start_date, String, null: false
     field :fiscal_year_end_date, String, null: false
@@ -484,24 +553,27 @@ module Types
     field :accounting_standard, String, null: false      # 表示中の財務諸表の基準（バッジ表示用）
     field :consolidation_type, String, null: false       # "consolidated" | "non_consolidated"
     field :presentation_format, String, null: false
-    field :balance_sheet, StackChartType, null: false
-    field :profit_loss, StackChartType, null: false
-    field :cash_flow, WaterfallChartType, null: false
+    field :balance_sheet, Types::Chart::StackChartType, null: false
+    field :profit_loss, Types::Chart::StackChartType, null: false
+    field :cash_flow, Types::Chart::WaterfallChartType, null: false
   end
+end
+```
 
-  class NumberSignType < BaseEnum
-    value "POSITIVE", value: :positive
-    value "NEGATIVE", value: :negative
-  end
-
-  class QueryType < BaseObject
-    field :financial_reports, [FinancialReportType], null: false do
-      argument :limit, Integer, required: true, validates: { numericality: { greater_than: 0, less_than_or_equal_to: 100 } }
-      argument :offset, Integer, required: true, validates: { numericality: { greater_than_or_equal_to: 0 } }
+```ruby
+# app/graphql/types/query_type.rb（既存ファイルを置き換える。切替タイミングは06参照）
+module Types
+  class QueryType < Types::BaseObject
+    field :financial_reports, [Types::FinancialReportType], null: false,
+          description: "有報の財務3表チャート一覧（提出日降順）" do
+      argument :limit, Integer, required: true,
+               validates: { numericality: { greater_than: 0, less_than_or_equal_to: 100 } }
+      argument :offset, Integer, required: true,
+               validates: { numericality: { greater_than_or_equal_to: 0 } }
       argument :stock_codes, [String], required: false
-      argument :operating_cf_sign, NumberSignType, required: false
-      argument :investing_cf_sign, NumberSignType, required: false
-      argument :financing_cf_sign, NumberSignType, required: false
+      argument :operating_cf_sign, Types::NumberSignType, required: false
+      argument :investing_cf_sign, Types::NumberSignType, required: false
+      argument :financing_cf_sign, Types::NumberSignType, required: false
     end
 
     def financial_reports(limit:, offset:, stock_codes: nil,
@@ -513,6 +585,9 @@ module Types
     end
 
     private
+      # 戻り値はシンボルキーのHash + チャート部分はStruct（後述の「配線の注意」参照）。
+      # 専用のPresenterクラスにしない理由: 整形がこのメソッド1つに収まる薄さであり、
+      # 科目・形式の知識は既にBuilder側に隔離されているため
       def present(report)
         fs = report.primary_financial_statement
         charts = Charts::BuilderRegistry.build_all(fs)
@@ -528,12 +603,33 @@ module Types
           accounting_standard: fs.accounting_standard,
           consolidation_type: fs.consolidation_type,
           presentation_format: fs.presentation_format,
-          **charts,
+          **charts,  # balance_sheet: / profit_loss: / cash_flow: が展開される
         }
       end
   end
 end
 ```
+
+スキーマ本体（`app/graphql/financial_statement_schema.rb`）は既存のまま
+`query Types::QueryType` を指しているので変更不要。
+
+## GraphQL配線の注意（graphql-ruby固有の落とし穴）
+
+1. **StructとHashのフィールド解決**: graphql-rubyはresolverが返したオブジェクトに対し
+   `field :signed_amount` → `object.signed_amount`（メソッド呼び出し）または
+   `object[:signed_amount]`（Hashキー）で値を引く。
+   - `Charts::Segment` 等のStructは**メソッド呼び出しで解決される**ためそのまま返せる
+   - `QueryType#present` が返すHashは**シンボルキー**にすること（文字列キーは解決されない）
+   - つまり「トップレベルはHash・チャート部分はStruct」の混在で問題ない。追加の変換層は書かない
+2. **BigIntスカラ**: `GraphQL::Types::BigInt` は文字列でシリアライズされる実装もあるため、
+   導入時にレスポンスを実際に確認する。文字列で返る場合はフロントのcodegen設定を
+   `scalars: { BigInt: 'number' }` ではなくカスタムパーサ（`Number(value)`）にする
+   （日本企業の金額はNumber安全域内・05参照）
+3. **N+1**: `SearchQuery` の `includes(primary_financial_statement: :items)` を外すと
+   企業件数×2のクエリになる。resolverのspecで `expect { ... }.to make_database_queries(count: 3..4)`
+   のような回数アサーションを1本入れておくと退行を防げる
+4. **スキーマの固定**: 実装後 `bundle exec rake graphql:dump_schema`（docs/improvements.md 1-5）で
+   `schema.graphql` をコミットし、以降のスキーマ変更をdiffでレビューできるようにする
 
 ## テスト方針（表示層）
 
@@ -544,3 +640,57 @@ end
   - `Bs*`: 債務超過ケース（equity負値の合成データ）、貸借1割乖離 → unrenderable
   - `CashFlow`: 5値そろい / cash_begin欠け → unrenderable
 - `SearchQuery` はDBありで: is_primary絞り込み、CF符号のEXISTS、証券コード0パディング
+
+### Builderスペックの実例（PlIfrs。1本書けば残りは同型）
+
+```ruby
+# spec/services/charts/builders/pl_ifrs_spec.rb
+RSpec.describe Charts::Builders::PlIfrs do
+  # 07_data_flow_example.md の検算例をそのままテストにする（単位: 円）
+  describe "武田薬品型（税引前損失・その他損益が費用側）" do
+    let(:items) do
+      { "pl.revenue" => 4_505_720_000_000, "pl.cost_of_sales" => 1_571_588_000_000,
+        "pl.sga" => 1_084_215_000_000, "pl.profit_before_tax" => -142_355_000_000 }
+    end
+    subject(:chart) { described_class.new(items).build }
+
+    it "借方=原価+販管費+その他費用純額、貸方=収益+税引前損失になる" do
+      debit, credit = chart.bars
+      expect(debit.segments.map(&:key)).to eq %w[costOfSales sga otherNet]
+      expect(credit.segments.map(&:key)).to eq %w[revenue lossBeforeTax]
+    end
+
+    it "その他損益（純額）が残差を正確に埋める（貸借一致）" do
+      debit, credit = chart.bars
+      other = debit.segments.find { |s| s.key == "otherNet" }
+      expect(other.amount).to eq 1_992_272_000_000        # 描画高さは絶対値
+      expect(other.signed_amount).to eq(-1_992_272_000_000)  # 実値は負
+      expect(debit.segments.sum(&:amount)).to eq credit.segments.sum(&:amount)
+    end
+  end
+
+  describe "収益が取得できない（東京海上型）" do
+    it "unrenderableになりnoteが入る" do
+      chart = described_class.new({ "pl.profit_before_tax" => 750_700_000_000 }).build
+      expect(chart.renderable).to be false
+      expect(chart.note).to include("表示に対応していません")
+      expect(chart.bars).to be_empty
+    end
+  end
+end
+```
+
+### 網羅すべきケース一覧（このマトリクスをそのままdescribeにする）
+
+| Builder | ケース | 入力の作り方 | 期待 |
+|---|---|---|---|
+| PlIfrs | 武田型 | 上記 | 借方3・貸方2 |
+| PlIfrs | 三菱商事型（その他が収益側） | 01の実測値 | 貸方に otherNet |
+| PlIfrs | 楽天型（営業費用一括） | pl.operating_expenses のみ | 借方に operatingExpenses |
+| PlIfrs | revenue欠落 | pl.revenueキーなし | unrenderable |
+| Bs各種 | 正常系 | 01の実測値 | 2本バー・比率合計≒100 |
+| Bs各種 | 債務超過 | equityを負にした合成値 | 3本目バー + spacer |
+| Bs各種 | 貸借乖離>10% | 資産だけ2倍にした合成値 | unrenderable |
+| BsIfrsLiquidity | 現金欠落 | bs.cash_and_equivalentsなし | unrenderable（その他資産が導出不能） |
+| CashFlow | 正常系 | 5点そろい | steps5件・kind正しい |
+| CashFlow | cash_begin欠落 | 4点のみ | unrenderable |

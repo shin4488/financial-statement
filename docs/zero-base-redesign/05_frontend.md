@@ -20,6 +20,94 @@
 具体的なデータが各層をどう流れるかは [07_data_flow_example.md](07_data_flow_example.md) を参照
 （同じ `StackChart` 契約に武田(IFRS)と三菱UFJ(銀行)が乗る実データ例がある）。
 
+## 0.5. 雛形と配線（最初にやること）
+
+現行スタック（CRA + craco + TypeScript）を踏襲する前提。既存の `src/` を段階的に置き換える。
+
+```bash
+cd application/frontend
+
+# 依存の追加はなし（@apollo/client / graphql / recharts / react-router-dom は導入済み）。
+# 削除するもの（ゼロベース化で不要になる。一覧ページ移行が終わってから外す）:
+#   @reduxjs/toolkit react-redux（URLクエリ同期に置き換え・§9）
+
+mkdir -p src/features/financialReports/{api,components}
+```
+
+`codegen.ts`（graphql-codegen設定。スキーマファイル参照方式 — バックエンド起動不要にする）:
+
+```ts
+// codegen.ts（リポジトリ直下。既存ファイルがあれば置き換え）
+import type { CodegenConfig } from '@graphql-codegen/cli';
+
+const config: CodegenConfig = {
+  // バックエンドで `rake graphql:dump_schema` してコミットされた schema.graphql を参照する
+  // （docs/improvements.md 1-5。submodule構成なら相対パスで届く）
+  schema: '../backend/schema.graphql',
+  documents: ['src/features/**/*.query.ts'],
+  generates: {
+    'src/__generated__/': {
+      preset: 'client',
+      config: {
+        scalars: { BigInt: 'number' },  // §3参照。文字列で返る実装だった場合はカスタムパーサに変更
+      },
+    },
+  },
+};
+export default config;
+```
+
+Apollo Clientの初期化（`src/plugins/apollo/client.ts`）:
+
+```ts
+// src/plugins/apollo/client.ts
+import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
+
+export const apolloClient = new ApolloClient({
+  // nginx経由の相対パス（web/sites-enabledで /api → appserver にプロキシされる）。
+  // ホストをハードコードしないことで開発(localhost:10000)と本番(investee.info)を同一コードにする
+  link: new HttpLink({ uri: '/api/graphql' }),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          // 無限スクロール: offsetが違う結果を同一リストに連結する
+          financialReports: {
+            keyArgs: ['stockCodes', 'operatingCfSign', 'investingCfSign', 'financingCfSign'],
+            merge: (existing = [], incoming) => [...existing, ...incoming],
+          },
+        },
+      },
+    },
+  }),
+});
+```
+
+`App.tsx` のルーティング:
+
+```tsx
+// src/App.tsx
+import { ApolloProvider } from '@apollo/client';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';  // 企業別URL対応（improvements 2-1）まで不要なら省略可
+import { apolloClient } from '@/plugins/apollo/client';
+import { FinancialReportListPage } from '@/features/financialReports/FinancialReportListPage';
+
+export default function App() {
+  return (
+    <ApolloProvider client={apolloClient}>
+      <HelmetProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<FinancialReportListPage />} />
+          </Routes>
+        </BrowserRouter>
+      </HelmetProvider>
+    </ApolloProvider>
+  );
+}
+```
+
 ## 1. ディレクトリ構成（feature-based）
 
 ```
@@ -34,7 +122,8 @@ src/
       WaterfallChart.tsx             # 仕組み6: 汎用ウォーターフォール（CF）
       ChartUnavailable.tsx           # 仕組み5: 表示不可の代替
       ReportCard.tsx                 # 1企業1期分のカード
-    FinancialReportListPage.tsx      # 一覧ページ（検索条件・無限スクロール）
+      SearchForm.tsx                 # 検索フォーム（URLクエリ同期・CFプリセット）
+    FinancialReportListPage.tsx      # 一覧ページ（無限スクロール）
   plugins/apollo/client.ts
 ```
 
@@ -42,9 +131,11 @@ src/
 Reduxは導入しない。現行アプリでのRedux用途はフィルタ条件の共有のみで、
 URLクエリ同期の方が「検索結果をURLで共有できる」というSEO/UX上の利点も兼ねるため。
 
-## 2. データ契約（types.ts）
+## 2. データ契約（概念の説明。実ファイルは§9の types.ts）
 
-codegenの生成型をre-exportするが、契約の意図をコメントで固定しておく:
+バックエンドと合意している構造は以下。**この形の型を手書きはしない**——
+実際の `api/types.ts` はcodegen生成型からの導出で作る（§9参照。スキーマ変更時に型ズレが起きないため）。
+ここではフィールドの意味・制約をコメント付きで固定する:
 
 ```ts
 // バックエンドの Charts::Segment/Bar/StackChart（04参照）と1:1対応。
@@ -69,7 +160,7 @@ export interface WaterfallStep {
 export interface WaterfallChart { renderable: boolean; note: string | null; steps: WaterfallStep[] }
 ```
 
-## 3. GraphQLクエリ
+## 3. GraphQLクエリ（内容の説明。実ファイルは§9の financialReports.query.ts）
 
 ```graphql
 query FinancialReports(
@@ -99,17 +190,13 @@ fragment StackChartFields on StackChart {
 }
 ```
 
-codegen設定の要点（`codegen.ts`）:
-
-```ts
-// 金額はBigIntスカラ。日本企業の最大値（三菱UFJの総資産431兆 = 4.3e14）は
-// Number.MAX_SAFE_INTEGER (9e15) 内に収まるためnumberへマップする
-config: { scalars: { BigInt: 'number' } }
-```
+codegen設定は§0.5の `codegen.ts` を参照（BigIntをnumberにマップする理由:
+日本企業の最大値=三菱UFJの総資産431兆円=4.3e14 は Number.MAX_SAFE_INTEGER(9e15) 内に収まる）。
 
 ## 4. colorRoles.ts（仕組み2: 色の契約）
 
 ```ts
+// src/features/financialReports/components/colorRoles.ts
 // バックエンドの Charts::Builders が発行する colorRole の全量。
 // 「科目→色」でなく「役割→色」にすることで、新形式の科目（例: 銀行の貸出金）にも
 // 既存の役割（asset2）を割り当てるだけで一貫した見た目になる。
@@ -136,6 +223,7 @@ export const stackLabelColor = '#FFFFFF';
 ## 5. StackedBarChart.tsx（仕組み1,3,4の実装）
 
 ```tsx
+// src/features/financialReports/components/StackedBarChart.tsx
 import { Bar, BarChart, LabelList, ResponsiveContainer, Tooltip, YAxis } from 'recharts';
 import { colorByRole, stackLabelColor } from './colorRoles';
 import { ChartUnavailable } from './ChartUnavailable';
@@ -228,6 +316,7 @@ export function StackedBarChart({ chart }: { chart: StackChart }) {
 ## 6. WaterfallChart.tsx（仕組み6の実装）
 
 ```tsx
+// src/features/financialReports/components/WaterfallChart.tsx
 import { Bar, BarChart, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ChartUnavailable } from './ChartUnavailable';
 import type { WaterfallChart as WaterfallChartData, WaterfallStep } from '../api/types';
@@ -307,6 +396,7 @@ export function WaterfallChart({ chart }: { chart: WaterfallChartData }) {
 ## 7. ChartUnavailable.tsx（仕組み5）
 
 ```tsx
+// src/features/financialReports/components/ChartUnavailable.tsx
 // 「表示不可」は正常系（保険IFRSのPL・US GAAP等）。エラーバウンダリではなくデータとして描く。
 // noteはバックエンドが形式判定の文脈を知った上で書いた文言なので、そのまま出す
 export function ChartUnavailable({ note }: { note?: string | null }) {
@@ -321,6 +411,7 @@ export function ChartUnavailable({ note }: { note?: string | null }) {
 ## 8. ReportCard.tsx
 
 ```tsx
+// src/features/financialReports/components/ReportCard.tsx
 import { StackedBarChart } from './StackedBarChart';
 import { WaterfallChart } from './WaterfallChart';
 import type { FinancialReport } from '../api/types';
@@ -350,35 +441,198 @@ export function ReportCard({ report }: { report: FinancialReport }) {
 }
 ```
 
-## 9. FinancialReportListPage.tsx（骨子）
+## 9. FinancialReportListPage.tsx（一覧ページ・完全版）
+
+検索条件はURLクエリに持つ（結果画面をURLで共有・ブックマックできる。Redux廃止の代替 + SEO/UX）。
+無限スクロールは導入済みの `react-infinite-scroller` を使う。
 
 ```tsx
-export function FinancialReportListPage() {
-  // 検索条件はURLクエリに持つ: 結果画面をURLで共有・ブックマークできる（Redux廃止の代替 + SEO/UX）
+// src/features/financialReports/FinancialReportListPage.tsx
+import { useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useQuery } from '@apollo/client';
+import InfiniteScroll from 'react-infinite-scroller';
+import { FINANCIAL_REPORTS_QUERY, PAGE_SIZE } from './api/financialReports.query';
+import { ReportCard } from './components/ReportCard';
+import { SearchForm, CF_PRESETS, type CfPresetKey } from './components/SearchForm';
+
+// URLクエリ（例: /?codes=7203,4502&cf=excellent）→ GraphQL変数
+function useQueryVariables() {
   const [searchParams] = useSearchParams();
-  const variables = {
-    limit: 20,
-    offset: 0,
-    stockCodes: searchParams.get('codes')?.split(',').filter(Boolean) ?? null,
-    operatingCfSign: parseSign(searchParams.get('ocf')),
-    investingCfSign: parseSign(searchParams.get('icf')),
-    financingCfSign: parseSign(searchParams.get('fcf')),
-  };
-  const { data, fetchMore } = useFinancialReportsQuery({ variables });
+  return useMemo(() => {
+    const codes = searchParams.get('codes')?.split(',').filter(Boolean) ?? null;
+    const preset = CF_PRESETS[(searchParams.get('cf') ?? '') as CfPresetKey];
+    return {
+      limit: PAGE_SIZE,
+      offset: 0,
+      stockCodes: codes,
+      operatingCfSign: preset?.operating ?? null,
+      investingCfSign: preset?.investing ?? null,
+      financingCfSign: preset?.financing ?? null,
+    };
+  }, [searchParams]);
+}
+
+export function FinancialReportListPage() {
+  const variables = useQueryVariables();
+  const { data, loading, fetchMore } = useQuery(FINANCIAL_REPORTS_QUERY, {
+    variables,
+    notifyOnNetworkStatusChange: true,  // fetchMore中もloadingを反映させる
+  });
+  const reports = data?.financialReports ?? [];
+  // 「最後のページ」の判定はAPIに件数フィールドを増やさず、
+  // 「直近の取得件数がページサイズ未満なら終端」で行う（一覧APIをシンプルに保つ意図）
+  const hasMore = reports.length % PAGE_SIZE === 0 && reports.length > 0;
 
   return (
-    <>
-      <SearchForm />  {/* 証券コード入力・CFパターン選択 → URLクエリ更新 */}
-      <InfiniteScroll loadMore={(page) => fetchMore({ variables: { offset: page * 20 } })} hasMore>
-        {data?.financialReports.map((r) => <ReportCard key={r.id} report={r} />)}
+    <main>
+      <SearchForm />
+      <InfiniteScroll
+        loadMore={() => {
+          if (loading) return;  // 多重発火ガード（scroller側は連打してくる）
+          // offsetだけ進める。結果の連結はApolloのtypePolicies（§0.5のmerge）が行う
+          fetchMore({ variables: { ...variables, offset: reports.length } });
+        }}
+        hasMore={hasMore}
+        loader={<div key="loader">読み込み中…</div>}
+      >
+        {reports.map((r) => (
+          <ReportCard key={r.id} report={r} />
+        ))}
       </InfiniteScroll>
-    </>
+      {!loading && reports.length === 0 && <p>条件に一致する企業がありません。</p>}
+    </main>
   );
 }
 ```
 
-CFパターン選択（「優良型: 営業+ 投資- 財務-」等のプリセット→3符号の組合せ）は
-現行アプリの `cashFlowTypeRequestMap` の発想をそのまま移植する。
+```tsx
+// src/features/financialReports/components/SearchForm.tsx
+import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+
+// CFパターンのプリセット（現行アプリの cashFlowTypeRequestMap と同じ発想）。
+// キーがURLクエリ値になる（例: ?cf=excellent）
+export const CF_PRESETS = {
+  excellent: { label: '優良型（営業+ 投資- 財務-）', operating: 'POSITIVE', investing: 'NEGATIVE', financing: 'NEGATIVE' },
+  aggressive: { label: '積極投資型（営業+ 投資- 財務+）', operating: 'POSITIVE', investing: 'NEGATIVE', financing: 'POSITIVE' },
+  restructuring: { label: '事業再構築型（営業+ 投資+ 財務-）', operating: 'POSITIVE', investing: 'POSITIVE', financing: 'NEGATIVE' },
+  danger: { label: '危険型（営業- 投資+ 財務+）', operating: 'NEGATIVE', investing: 'POSITIVE', financing: 'POSITIVE' },
+} as const;
+export type CfPresetKey = keyof typeof CF_PRESETS;
+
+export function SearchForm() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  // 入力途中の値はローカルstate、確定した検索条件だけがURL（=クエリ変数）になる
+  const [codesInput, setCodesInput] = useState(searchParams.get('codes') ?? '');
+  const cf = searchParams.get('cf') ?? '';
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const next = new URLSearchParams(searchParams);
+    // 4桁数字以外は捨てる（0パディング等の証券コード仕様はバックエンドの責務なのでここでは触らない）
+    const codes = codesInput.split(/[,\s]+/).filter((c) => /^\d{4}$/.test(c));
+    codes.length ? next.set('codes', codes.join(',')) : next.delete('codes');
+    setSearchParams(next);
+  };
+
+  const selectCf = (value: string) => {
+    const next = new URLSearchParams(searchParams);
+    value ? next.set('cf', value) : next.delete('cf');
+    setSearchParams(next);
+  };
+
+  return (
+    <form onSubmit={submit} className="search-form">
+      <input
+        value={codesInput}
+        onChange={(e) => setCodesInput(e.target.value)}
+        placeholder="証券コード4桁（カンマ区切りで複数可）"
+        inputMode="numeric"
+      />
+      <button type="submit">検索</button>
+      <select value={cf} onChange={(e) => selectCf(e.target.value)}>
+        <option value="">CFパターン: 指定なし</option>
+        {Object.entries(CF_PRESETS).map(([key, preset]) => (
+          <option key={key} value={key}>{preset.label}</option>
+        ))}
+      </select>
+    </form>
+  );
+}
+```
+
+```ts
+// src/features/financialReports/api/financialReports.query.ts
+// graphql() は codegen（client-preset）が生成するタグ関数。
+// クエリ文字列を変更したら `npm run compile` で型を再生成すること
+import { graphql } from '@/__generated__';
+
+export const PAGE_SIZE = 20;
+
+export const FINANCIAL_REPORTS_QUERY = graphql(`
+  query FinancialReports(
+    $limit: Int!, $offset: Int!, $stockCodes: [String!],
+    $operatingCfSign: NumberSign, $investingCfSign: NumberSign, $financingCfSign: NumberSign
+  ) {
+    financialReports(
+      limit: $limit, offset: $offset, stockCodes: $stockCodes,
+      operatingCfSign: $operatingCfSign, investingCfSign: $investingCfSign, financingCfSign: $financingCfSign
+    ) {
+      id
+      stockCode
+      companyName
+      fiscalYearStartDate
+      fiscalYearEndDate
+      accountingStandard
+      consolidationType
+      balanceSheet { ...StackChartFields }
+      profitLoss { ...StackChartFields }
+      cashFlow {
+        renderable
+        note
+        steps { key label amount kind }
+      }
+    }
+  }
+`);
+
+export const STACK_CHART_FRAGMENT = graphql(`
+  fragment StackChartFields on StackChart {
+    renderable
+    note
+    bars {
+      label
+      segments { key label amount signedAmount ratio colorRole }
+    }
+  }
+`);
+```
+
+```ts
+// src/features/financialReports/api/types.ts
+// コンポーネントのpropsに使う型。codegenの生成型（FinancialReportsQuery）から導出し、
+// 手書きの型定義を持たない（スキーマ変更時に型ズレが起きない）
+import type { FinancialReportsQuery } from '@/__generated__/graphql';
+
+export type FinancialReport = FinancialReportsQuery['financialReports'][number];
+export type StackChart = FinancialReport['balanceSheet'];
+export type StackBar = StackChart['bars'][number];
+export type Segment = StackBar['segments'][number];
+export type WaterfallChart = FinancialReport['cashFlow'];
+export type WaterfallStep = WaterfallChart['steps'][number];
+```
+
+最低限のスタイル（`src/index.css` に追記。MUIに寄せる場合は置き換えてよい）:
+
+```css
+.search-form { display: flex; gap: 8px; padding: 16px; }
+.report-card { border: 1px solid #e0e0e0; border-radius: 8px; margin: 16px; padding: 16px; }
+.report-card .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.report-card .badge { background: #eef; border-radius: 4px; padding: 2px 8px; margin-left: 8px; font-size: 12px; }
+.chart-unavailable { display: flex; align-items: center; justify-content: center;
+  height: 300px; color: #757575; background: #fafafa; border-radius: 4px; text-align: center; }
+```
 
 ## 10. 新形式追加時にフロントが無変更で済む根拠（総括）
 

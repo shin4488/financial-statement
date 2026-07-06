@@ -4,6 +4,35 @@
 > 実装時は必ず併読すること（Extractor出力ハッシュの具体形、フォールバックのヒット例、
 > 「キーがない=開示なし」の実例が載っている）。
 
+## 0. 事前準備
+
+### Gemfile
+
+```ruby
+gem "nokogiri"   # XBRLパース用。REXML（現行）は巨大TextBlockでentity expansionエラーになるため置き換える
+gem "rubyzip"    # 既存Gemfileに入っているはず（zip展開）。なければ追加
+```
+
+`bundle install` 後、既存コードの `REXML` 依存（`AppFile::XmlParser`）はこの再設計では使わない
+（旧コードの削除タイミングは [06](06_rollout.md)）。
+
+### ジョブ登録（sidekiq-cron）
+
+`config/sidekiq-cron.yml` のエントリを新ジョブに差し替える:
+
+```yaml
+daily_ingestion_job:
+  # 毎日2:00（現行と同じ時刻。EDINETの書類一覧は前日分が対象なので深夜でよい）
+  cron: "0 0 2 * * *"
+  class: DailyIngestionJob
+  queue: default
+```
+
+### 環境変数
+
+新規追加はなし。`EDINET_API_KEY` を既存どおり `config/application.yml`（figaro・gitignore済み）で
+供給する。テストでは実APIを呼ばない（webmockで遮断・実XBRLはfixture）。
+
 ## ディレクトリ構成
 
 ```
@@ -34,6 +63,7 @@ app/
 外部I/Oをここに集約する。APIキーは環境変数。レート制限（403対策）のため同期・逐次実行が前提。
 
 ```ruby
+# app/lib/edinet/client.rb
 module Edinet
   class Client
     BASE = "https://disclosure.edinet-fsa.go.jp/api/v2".freeze
@@ -94,29 +124,16 @@ end
 ## Xbrl::Document
 
 fact検索のプリミティブ。**ここより上の層はXMLを知らない**。
-REXMLは巨大TextBlockで entity expansion エラーを起こすため Nokogiri を採用する（Gemfileに追加）。
+
+設計判断2点:
+- REXML（現行実装）ではなく**Nokogiri**を使う。REXMLは有報の巨大TextBlock（HTML断片）で
+  entity expansionエラーを起こすことを実測で確認済みのため
+- `remove_namespaces!` は**使わない**。企業拡張タクソノミ要素（例: NTTの
+  `jpcrp030000-asr_E04430-000:OperatingRevenuesIFRS`）と標準要素が同名で衝突し得るため、
+  「namespace URIがどの標準タクソノミか」で引く
 
 ```ruby
-module Xbrl
-  class Document
-    def self.load(path)
-      new(Nokogiri::XML(File.read(path)))
-    end
-
-    def initialize(doc)
-      @doc = doc
-      @doc.remove_namespaces!  # プレフィクスは要素名に含めて比較する方式にしない。下記参照
-    end
-    ...
-  end
-end
-```
-
-**実装上の注意（名前空間の扱い）**: `remove_namespaces!` は拡張タクソノミ要素
-（例: NTTの `jpcrp030000-asr_E04430-000:OperatingRevenuesIFRS`）と標準要素の衝突を招くため**使わない**。
-以下のように「namespace URIのプレフィクス部」で引く実装にする:
-
-```ruby
+# app/lib/xbrl/document.rb
 module Xbrl
   class Document
     NS = {
@@ -179,6 +196,7 @@ end
 ## Ingestion::DeiExtractor
 
 ```ruby
+# app/services/ingestion/dei_extractor.rb
 module Ingestion
   class DeiExtractor
     FILING = "FilingDateInstant".freeze
@@ -228,6 +246,7 @@ end
 ## Ingestion::FormatRegistry / FormatDetector
 
 ```ruby
+# app/services/ingestion/format_registry.rb
 module Ingestion
   module FormatRegistry
     JGAAP_GENERAL   = "jgaap_general"
@@ -246,7 +265,13 @@ module Ingestion
 
     def self.extractor_for(format) = EXTRACTORS[format]  # unsupportedはnil
   end
+end
+```
 
+```ruby
+# app/services/ingestion/format_detector.rb
+# （FormatRegistryとは別ファイル: Zeitwerkはクラス名とファイル名の一致を要求する）
+module Ingestion
   class FormatDetector
     # 日本基準の業種DEIコード → 形式。未知の業種はunsupported（安全側）
     # 実測済み: cte=一般（電気通信含む汎用）, bnk=銀行。空値も一般扱い
@@ -288,6 +313,7 @@ end
 ### 基底クラス
 
 ```ruby
+# app/services/ingestion/extractors/base.rb
 module Ingestion
   module Extractors
     class Base
@@ -337,6 +363,7 @@ end
 ### JgaapGeneral（現行アプリのマッピングを移植 + 期首/期末現金を追加）
 
 ```ruby
+# app/services/ingestion/extractors/jgaap_general.rb
 class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
   INSTANT_MAPPING = {
     "bs.current_assets"               => "jppfs_cor:CurrentAssets",
@@ -401,6 +428,7 @@ end
 ### JgaapBank（三菱UFJ FGで実測済みのタグ）
 
 ```ruby
+# app/services/ingestion/extractors/jgaap_bank.rb
 class Ingestion::Extractors::JgaapBank < Ingestion::Extractors::Base
   INSTANT_MAPPING = {
     # 銀行は流動/固定区分がないため合計3科目 + 業種固有の内訳のみ。
@@ -446,6 +474,7 @@ end
 ### IfrsClassified（武田・三菱商事・NTTで実測済み）
 
 ```ruby
+# app/services/ingestion/extractors/ifrs_classified.rb
 class Ingestion::Extractors::IfrsClassified < Ingestion::Extractors::Base
   INSTANT_MAPPING = {
     "bs.current_assets"          => "jpigp_cor:CurrentAssetsIFRS",
@@ -511,6 +540,7 @@ end
 他方に波及して「形式ごとに独立して保守できる」利点が消えるため。重複はマッピング定数のみで許容）。
 
 ```ruby
+# app/services/ingestion/extractors/ifrs_liquidity.rb
 class Ingestion::Extractors::IfrsLiquidity < Ingestion::Extractors::Base
   INSTANT_MAPPING = {
     "bs.assets"                        => "jpigp_cor:AssetsIFRS",
@@ -537,6 +567,7 @@ end
 ## Ingestion::ReportIngester（オーケストレーション + 永続化）
 
 ```ruby
+# app/services/ingestion/report_ingester.rb
 module Ingestion
   class ReportIngester
     def initialize(client: Edinet::Client.new,
@@ -639,6 +670,7 @@ end
 ## 日次実行
 
 ```ruby
+# app/services/ingestion/daily_ingestion_service.rb
 module Ingestion
   class DailyIngestionService
     def self.run(from_date: Time.zone.yesterday, to_date: Time.zone.yesterday)
@@ -667,6 +699,7 @@ module Ingestion
   end
 end
 
+# app/jobs/daily_ingestion_job.rb
 class DailyIngestionJob < ApplicationJob
   def perform = Ingestion::DailyIngestionService.run
 end
@@ -678,3 +711,83 @@ end
 - `unsupported` 形式・科目が取れないことは**エラーではない**（行を作らないだけ）。
   ただし `is_primary` な財務諸表で `bs.assets` すら取れなかった場合は形式判定ミスの可能性が
   高いためSentryに警告イベントを送る（取込自体は継続）
+
+## 層ごとの動作確認（実装しながら `rails c` で確かめる手順）
+
+下から順に作る・確かめる。各層が前の層だけに依存するので、この順なら手戻りがない。
+
+```ruby
+# --- (1) Edinet::Client 単体 ---
+client = Edinet::Client.new
+metas = client.list_annual_reports(date: "2026-06-17")
+metas.size            # 6月中旬なら数十〜数百件
+metas.find { |m| m.doc_id == "S100YB5L" }  # 武田薬品が入っているはず（01の実測日）
+
+require "tmpdir"
+Dir.mktmpdir do |dir|
+  path = client.download_xbrl(doc_id: "S100YB5L", work_dir: dir)
+  puts File.size(path)  # 数MBのXBRLが展開される
+
+  # --- (2) Xbrl::Document 単体 ---
+  xbrl = Xbrl::Document.load(path)
+  xbrl.money("jpigp_cor:AssetsIFRS", "CurrentYearInstant")    # => 15511506000000（01の実測値）
+  xbrl.money("jppfs_cor:Assets", "CurrentYearInstant")        # => nil（IFRS企業の連結にjppfsはない）
+  xbrl.text("jpdei_cor:AccountingStandardsDEI", "FilingDateInstant")  # => "IFRS"
+
+  # --- (3) DeiExtractor / FormatDetector 単体 ---
+  dei = Ingestion::DeiExtractor.new.extract(xbrl)
+  dei.accounting_standard   # => "ifrs"
+  Ingestion::FormatDetector.new.detect(
+    xbrl, accounting_standard: "ifrs", industry_code: dei.consolidated_industry_code,
+    consolidation: Ingestion::Extractors::Base::CONSOLIDATED)  # => "ifrs_classified"
+
+  # --- (4) Extractor 単体 ---
+  items = Ingestion::Extractors::IfrsClassified.new(xbrl, "").extract
+  items["pl.revenue"]        # => 4505720000000
+  items.key?("pl.gross_profit")  # => false（武田は非開示。キー自体がないのが正しい）
+end
+
+# --- (5) ReportIngester（DB書き込みまで通し） ---
+Dir.mktmpdir { |dir| Ingestion::ReportIngester.new.ingest(doc_id: "S100YB5L", work_dir: dir) }
+Report.last.primary_financial_statement.items_hash["bs.assets"]  # => 15511506000000
+```
+
+## Extractorのスペック実例（1件書けば残りは同型）
+
+```ruby
+# spec/services/ingestion/extractors/ifrs_classified_spec.rb
+RSpec.describe Ingestion::Extractors::IfrsClassified do
+  # fixtureは spec/support/fixtures/download_xbrl.rb で取得した実XBRL（06参照）
+  let(:xbrl) { Xbrl::Document.load("spec/fixtures/xbrl/S100YB5L.xbrl") }
+
+  describe "#extract（連結）" do
+    subject(:items) { described_class.new(xbrl, Ingestion::Extractors::Base::CONSOLIDATED).extract }
+
+    # 期待値は 01_xbrl_format_research.md の実測表から転記する。
+    # 「なんとなく通る値」ではなく必ず実測表と突き合わせること（表の方が正）
+    it "BS/PL/CFの骨格科目を実測値どおり抽出する" do
+      expect(items).to include(
+        "bs.assets"           => 15_511_506_000_000,
+        "bs.equity"           => 7_430_649_000_000,
+        "pl.revenue"          => 4_505_720_000_000,
+        "pl.profit_before_tax" => -142_355_000_000,
+        "cf.operating"        => 1_041_431_000_000,
+        "cf.cash_begin"       => 385_113_000_000,
+      )
+    end
+
+    it "のれんと無形資産を合算する（武田は別掲タグのため）" do
+      expect(items["bs.goodwill_and_intangibles"]).to eq 5_809_010_000_000 + 3_419_348_000_000
+    end
+
+    it "非開示の科目はキー自体を作らない" do
+      expect(items).not_to have_key("pl.gross_profit")       # 武田は売上総利益を開示しない
+      expect(items).not_to have_key("pl.operating_expenses") # 営業費用一括型でもない
+    end
+  end
+end
+```
+
+他形式のスペックも同じ構造で書く。**必ず入れるべき観点**:
+`IfrsLiquidity`=分類系キーが無いこと（楽天）、`JgaapBank`=pl.revenueが無く
+pl.ordinary_revenueがあること（三菱UFJ）、収益フォールバック=サマリタグで取れること（NTT）。

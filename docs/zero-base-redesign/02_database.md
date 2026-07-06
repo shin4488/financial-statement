@@ -11,6 +11,28 @@ companies 1 ─── * reports 1 ─── * financial_statements 1 ─── *
   （IFRS企業でも単体は日本基準、という実態を正確にモデリングする）
 - `financial_statement_items` = 正規化済み科目の縦持ち
 
+## マイグレーションの作成・実行手順
+
+```bash
+# 生成（backendリポジトリで実行。docker環境なら docker compose exec appserver を頭に付ける）
+bin/rails generate migration CreateCoreTables
+# → db/migrate/XXXXXXXXXXXXXX_create_core_tables.rb が生成されるので、
+#   下のDDLの class 定義丸ごとで中身を置き換える
+
+# 実行
+bin/rails db:migrate
+
+# 巻き戻せることも必ず確認する（create_tableのみなのでchangeメソッドで自動逆行可能）
+bin/rails db:rollback
+bin/rails db:migrate
+
+# db/schema.rb が更新されるので、マイグレーションファイルと一緒にコミットする
+```
+
+既存テーブル（`companies` / `security_reports`）との共存戦略は [06_rollout.md](06_rollout.md) を
+**先に読むこと**。新スキーマの `companies` は旧テーブルと名前が衝突するため、
+旧アプリと並行稼働させる場合はそちらの手順（旧テーブルのリネーム）が先になる。
+
 ## DDL（マイグレーション）
 
 ```ruby
@@ -78,10 +100,12 @@ end
 ## モデル
 
 ```ruby
+# app/models/company.rb
 class Company < ApplicationRecord
   has_many :reports
 end
 
+# app/models/report.rb
 class Report < ApplicationRecord
   belongs_to :company
   has_many :financial_statements
@@ -90,11 +114,14 @@ class Report < ApplicationRecord
   enum :accounting_standard, { japan_gaap: 0, us_gaap: 1, ifrs: 2 }
 end
 
+# app/models/financial_statement.rb
 class FinancialStatement < ApplicationRecord
   belongs_to :report
   has_many :items, class_name: "FinancialStatementItem"
   enum :consolidation_type, { consolidated: 0, non_consolidated: 1 }
   enum :accounting_standard, { japan_gaap: 0, us_gaap: 1, ifrs: 2 }, prefix: true
+  # モデル→Ingestion名前空間への参照になるが許容する（形式の正当な値一覧の管理場所を
+  # FormatRegistry 1箇所に限定する方を優先。二重管理にすると形式追加時に片方を忘れる）
   validates :presentation_format, inclusion: { in: Ingestion::FormatRegistry::ALL }
 
   # {item_code => amount} のハッシュ。ChartBuilderへの入力形式
@@ -105,10 +132,57 @@ class FinancialStatement < ApplicationRecord
   end
 end
 
+# app/models/financial_statement_item.rb
 class FinancialStatementItem < ApplicationRecord
   belongs_to :financial_statement
   validates :item_code, inclusion: { in: FinancialStatements::ItemCodes::ALL }
   validates :amount, presence: true
+end
+```
+
+### モデルのテストデータ（FactoryBot。1-3のテスト基盤導入後）
+
+```ruby
+# spec/factories/financial_statements.rb
+FactoryBot.define do
+  factory :company do
+    sequence(:edinet_code) { |n| format("E%05d", n) }
+    stock_code { "45020" }  # 5桁で持つ（4桁化はAPI境界の責務）
+    name_ja { "テスト株式会社" }
+  end
+
+  factory :report do
+    company
+    fiscal_year_start_date { Date.new(2025, 4, 1) }
+    fiscal_year_end_date { Date.new(2026, 3, 31) }
+    filing_date { Date.new(2026, 6, 20) }
+    accounting_standard { :ifrs }
+    has_consolidated_statement { true }
+    sequence(:edinet_document_id) { |n| format("S%07d", n) }
+  end
+
+  factory :financial_statement do
+    report
+    consolidation_type { :consolidated }
+    accounting_standard { :ifrs }
+    presentation_format { "ifrs_classified" }
+    is_primary { true }
+
+    # 科目はtransientで渡せるようにするとテストが読みやすい:
+    #   create(:financial_statement, items_hash: { "bs.assets" => 100, ... })
+    transient { items_hash { {} } }
+    after(:create) do |fs, evaluator|
+      evaluator.items_hash.each do |code, amount|
+        create(:financial_statement_item, financial_statement: fs, item_code: code, amount: amount)
+      end
+    end
+  end
+
+  factory :financial_statement_item do
+    financial_statement
+    item_code { "bs.assets" }
+    amount { 1_000_000 }
+  end
 end
 ```
 
@@ -117,10 +191,18 @@ end
 `app/models/concerns/` ではなく独立ファイル `app/lib/financial_statements/item_codes.rb`。
 **科目の追加はこのファイルの1行追加**（DBマイグレーション不要）。
 
+> **ファイル配置の規約（Zeitwerk）**: Rails 7は `app/` 直下の全ディレクトリを自動で
+> オートロードパスに加えるため、`app/lib/` に置けば `require` 不要で参照できる。
+> ただしファイルパスとモジュール名の対応が厳密（`app/lib/financial_statements/item_codes.rb`
+> → `FinancialStatements::ItemCodes`）。ズレると `NameError` ではなく
+> `expected file ... to define constant ...` というZeitwerkエラーになるので、
+> クラス名を変えるときは必ずファイル名も揃えること。
+
 コメントを1コードずつ書けるよう `%w[]` ではなく通常の配列リテラルで定義する
 （`%w[]` 内にはコメントを書けないため。この可読性はレジストリの本質的な価値なので崩さないこと）:
 
 ```ruby
+# app/lib/financial_statements/item_codes.rb
 module FinancialStatements
   module ItemCodes
     # 科目コードの命名規則: "<財務諸表>.<科目のスネークケース英名>"
