@@ -9,13 +9,13 @@ export const colorByRole: Record<string, string> = {
   asset4: '#576CBC',
   liability1: '#FEBBCC', // 負債・第1階層
   liability2: '#E48586',
-  equity: '#8EC3B0', // 資本・純資産
-  revenue: '#8EC3B0', // 収益
+  equity: '#8EC3B0', // 資本・純資産（債務超過時も同色。値の負はラベル・ツールチップで示す）
+  revenue: '#A1C2F1', // 収益
   expense1: '#FEBBCC', // 費用（原価・経常費用・営業費用）
   expense2: '#E48586', // 費用（販管費）
   expense3: '#D77FA1', // 費用（導出項目: その他損益純額など）
-  profit: '#6196A6', // 利益
-  loss: '#BF3131', // 損失・債務超過
+  profit: '#8EC3B0', // 利益
+  loss: '#F7C04A', // 損失（営業損失・経常損失・税引前損失）
   spacer: 'transparent', // 債務超過バーの位置合わせ用詰め物
 };
 
