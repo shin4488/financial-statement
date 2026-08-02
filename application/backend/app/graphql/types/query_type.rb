@@ -7,6 +7,8 @@ module Types
     # Add root-level fields here.
     # They will be entry points for queries on your schema.
 
+    field :financial_reports, resolver: Resolvers::FinancialReports
+
     field :company_financial_statements, [FinancialStatement::CompanyFinancialStatementType], "Find Company Financial Statement by limit" do
       argument :limit, Integer, validates: { numericality: { greater_than: 0 } }
       argument :offset, Integer, validates: { numericality: { greater_than_or_equal_to: 0 } }

@@ -40,6 +40,9 @@ gem 'rexml'
 gem 'rubyzip', require: 'zip'
 gem "figaro"
 
+# XBRLパース用。REXMLは有報の巨大TextBlock（HTML断片）でentity expansionエラーになるためNokogiriを使う
+gem "nokogiri"
+
 gem 'lograge'
 gem "sentry-ruby"
 gem "sentry-rails"
@@ -54,6 +57,10 @@ gem "sentry-rails"
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri mingw x64_mingw ]
+
+  gem "rspec-rails", "~> 6.1"
+  gem "factory_bot_rails", "~> 6.4"
+  gem "webmock", "~> 3.19"
 end
 
 group :development do
