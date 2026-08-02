@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe Charts::Builders::PlIfrs do
-  # 実XBRLからの実測値をそのまま期待値に使う（単位: 円）
+  # 単位: 円
   describe "原価・販管費開示 + 税引前損失（その他損益が費用側）" do
     let(:items) do
       { "pl.revenue" => 4_505_720_000_000, "pl.cost_of_sales" => 1_571_588_000_000,
@@ -42,6 +42,12 @@ RSpec.describe Charts::Builders::PlIfrs do
       expect(credit.segments.map(&:key)).to include("otherNet")
       expect(debit.segments.map(&:key)).to include("profitBeforeTax")
       expect(debit.segments.sum(&:amount)).to eq credit.segments.sum(&:amount)
+    end
+
+    it "otherNetは収益と別の導出項目専用ロールになる" do
+      _, credit = chart.bars
+      other = credit.segments.find { |s| s.key == "otherNet" }
+      expect(other.color_role).to eq "revenue2"
     end
   end
 
