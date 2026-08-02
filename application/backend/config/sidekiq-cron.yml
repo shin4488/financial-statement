@@ -1,5 +1,5 @@
-security_report_subscriber_job:
-  # 毎日2:00AM
+daily_ingestion_job:
+  # 毎日2:00AM（EDINETの書類一覧は前日分を取得するため深夜でよい）
   cron: "0 0 2 * * *"
-  class: SecurityReportSubscriberJob
+  class: DailyIngestionJob
   queue: default

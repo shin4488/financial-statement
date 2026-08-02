@@ -14,13 +14,10 @@ Sidekiq.configure_server do |config|
         config_file_path = "config/sidekiq-cron.yml"
         if File.exist?(config_file_path)
             sidekiq_configuration = YAML.load_file(config_file_path)
-            job_names = sidekiq_configuration.keys
-            # サーバ起動時にジョブの2重登録防止のため、登録済みジョブはいったん削除
-            job_names.each do |job_name|
-                job = Sidekiq::Cron::Job.find(job_name)
-                job.destroy unless job.nil?
-            end
-
+            # ymlをcron登録の唯一の正とする: 全ジョブを削除してから登録し直す。
+            # yml掲載分だけを削除する方式だと、ymlから外したジョブがRedisに残って
+            # 永久に実行され続けてしまう（2重登録防止も兼ねる）
+            Sidekiq::Cron::Job.all.each(&:destroy)
             Sidekiq::Cron::Job.load_from_hash(sidekiq_configuration)
         end
     end
