@@ -28,7 +28,7 @@ RSpec.describe "Charts::Builders BS各種" do
       expect(spacer.color_role).to eq "spacer"
       expect(spacer.ratio).to be_nil
       expect(spacer.amount).to eq 1_000 # 負債1100 - |資本100| = 資産合計
-      expect(equity.color_role).to eq "loss"
+      expect(equity.color_role).to eq "equity" # 債務超過でも色は変えず負値で伝える
       expect(equity.signed_amount).to eq(-100)
     end
 
