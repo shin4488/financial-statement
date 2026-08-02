@@ -23,7 +23,7 @@ const toCashFlowSign = (sign: 'POSITIVE' | 'NEGATIVE' | null) =>
     ? CashFlowSign.Negative
     : null;
 
-// URLクエリ（例: /v2?stock-codes=7203,4502&cash-flow-type=healthy）→ GraphQL変数。
+// URLクエリ（例: /?stock-codes=7203,4502&cash-flow-type=healthy）→ GraphQL変数。
 // 検索条件をReduxでなくURLに持つ理由: 検索結果画面をURLで共有・ブックマークできる
 function useQueryVariables() {
   const [searchParams] = useSearchParams();
