@@ -5,6 +5,11 @@ description: GitHub上でtagとreleaseを作成する手順。命名(release-X.Y
 
 # リリース作成（tag + GitHub Release）
 
+## 対象ブランチ
+
+**常に各リポジトリの `main` の先端コミット**にタグを付ける（`gh release create` の `--target main` で明示）。
+featureブランチや過去のコミットへのタグ付けはしない。リリースしたい変更は先にPRでmainへマージしてから行う。
+
 ## 命名規則（既存踏襲）
 
 - タグ名 = リリース名 = **`release-X.Y.Z`**（例: `release-1.1.11`, `release-1.2.1`）
