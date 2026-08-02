@@ -1,6 +1,6 @@
 # 財務3表チャート 新アーキテクチャ（実装済み）
 
-`docs/zero-base-redesign/` の設計を実装したもの。このディレクトリは**実際に動いているコード**の構造とその意図を説明する（設計案との差分も記載）。
+このディレクトリは**実際に動いているコード**の構造とその意図を説明する。
 
 ## 何が問題だったか
 
@@ -71,7 +71,7 @@ application/backend
     types/chart/                         # StackChart / WaterfallChart 型
 application/frontend
   src/shared/financialCharts/            # 汎用チャートキット（Chrome拡張と共有可能）
-  src/features/financialReports/         # /v2 ページ（Webアプリ固有）
+  src/features/financialReports/         # 一覧ページ（Webアプリ固有）
 ```
 
 ## ドキュメント構成
@@ -81,18 +81,20 @@ application/frontend
 | [01_data_model.md](01_data_model.md) | DBスキーマ・縦持ちの実データ例・「行がない=開示なし」の規約 |
 | [02_ingestion.md](02_ingestion.md) | 取込パイプライン・形式判定・Extractor・新形式の追加手順 |
 | [03_serving.md](03_serving.md) | ChartBuilder・チャート契約（GraphQL）・実レスポンス例 |
-| [04_frontend.md](04_frontend.md) | 汎用チャートキット・Chrome拡張との共通化方針・/v2ページ |
-| [05_deviations.md](05_deviations.md) | 設計ドキュメント（zero-base-redesign）からの変更点とその理由 |
+| [04_frontend.md](04_frontend.md) | 汎用チャートキット・Chrome拡張との共通化方針・一覧ページ |
+| [05_deviations.md](05_deviations.md) | 設計段階からの変更点とその理由（実装時の判断記録） |
+| [06_xbrl_format_research.md](06_xbrl_format_research.md) | 6社・4形式の実XBRL調査結果（タグ・実測値。スペックの期待値の出典） |
+| [07_legacy_cleanup.md](07_legacy_cleanup.md) | 旧系統（SecurityReport系）の削除・変更リストと実施順序 |
 
-## 既存機能との関係（重要）
+## 旧系統（SecurityReport系）との関係
 
-**完全追加型で共存している。既存のテーブル・モデル・クエリ・画面は無変更。**
+2026-08-02に切替済み。**旧系統はコードとして残置したまま停止**している。
 
-| | 既存（従来どおり動く） | 新実装（今回追加） |
+| | 旧系統（停止・残置） | 現行 |
 |---|---|---|
-| テーブル | `companies` / `security_reports` | `companies`（共用）+ `reports` / `financial_statements` / `financial_statement_items` |
-| GraphQL | `companyFinancialStatements` | `financialReports` |
-| 画面 | `/`（トップ） | `/v2` |
-| 日次バッチ | `SecurityReportSubscriberJob`（cron登録のまま） | `DailyIngestionJob`（**cron未登録**・手動rakeで実行） |
+| テーブル | `security_reports`（2026-08-02時点で凍結・削除しない） | `companies`（共用）+ `reports` / `financial_statements` / `financial_statement_items` |
+| GraphQL | `companyFinancialStatements`（Chrome拡張の移行完了まで提供継続） | `financialReports` |
+| 画面 | ルーティングなし（コードのみ残置） | `/` |
+| 日次バッチ | cron解除済み | `DailyIngestionJob`（毎日2:00） |
 
-切替（旧の削除）は `docs/zero-base-redesign/06_rollout.md` の手順に従って別途行う。
+旧系統の削除・変更リストと実施順序は [07_legacy_cleanup.md](07_legacy_cleanup.md)。

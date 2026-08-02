@@ -1,4 +1,4 @@
-# フロントエンド（/v2 + 共有チャートキット）
+# フロントエンド（一覧ページ + 共有チャートキット）
 
 ## ディレクトリの分け方 = 共有できるか否か
 
@@ -13,7 +13,7 @@ flowchart TB
         K5["types.ts（構造的型）"]
     end
     subgraph feature["src/features/financialReports/ ＝ Webアプリ固有"]
-        F1["FinancialReportListPage.tsx（/v2）"]
+        F1["FinancialReportListPage.tsx（一覧ページ）"]
         F2["ReportListLayout.tsx（AppBar・検索）"]
         F3["ReportCard.tsx（MUIカード+カルーセル）"]
         F4["api/ apolloClient.ts（GraphQL接続）"]
@@ -78,24 +78,24 @@ API（bars×segments）                     recharts（rows×columns）
 - サブヘッダに日本基準以外のとき `（連結・IFRS）` と基準を表示
 - 表示不可のとき業種ハードコードでなく APIの `note` を表示
 
-## /v2 ページの状態管理
+## 一覧ページの状態管理
 
 ```
-URLクエリが唯一の検索状態:  /v2?stock-codes=7203,4502&cash-flow-type=healthy
+URLクエリが唯一の検索状態:  /?stock-codes=7203,4502&cash-flow-type=healthy
    ├→ GraphQL変数へ変換（cashFlowTypeRequestMap を再利用）
    └→ URLで検索結果を共有・ブックマークできる（Redux不使用。自動切替のみ既存スライス共有）
 
 無限スクロール: Apollo typePolicies の merge で offset 違いの結果を連結
-               （専用ApolloClientを/v2配下だけに提供。既存ページのキャッシュ設定に触れない）
+               （専用ApolloClientをこのページ配下だけに提供し、他と独立に保つ）
 ```
 
 ## 本番デプロイ時の確認事項
 
-- **nginxのSPAフォールバック**: `/v2` への直アクセス・リロードが index.html に
+- **nginxのSPAフォールバック**: 一覧ページへの直アクセス・リロードが index.html に
   フォールバックする必要がある（`try_files $uri /index.html;` 相当）。
   リポジトリ内の `web/` は開発用のdevサーバproxy（devサーバが自前でフォールバックする）
   のため、この問題は本番のnginx設定側でのみ起きる。デプロイ前に
-  `https://investee.info/v2` の直アクセスとリロードを確認すること
+  `https://investee.info/` の直アクセスとリロードを確認すること
 
 ## codegen
 

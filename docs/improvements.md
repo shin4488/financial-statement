@@ -139,7 +139,7 @@ CIワークフローも各submoduleリポジトリ側に置く（詳細は [CLAU
    リポジトリにXBRLを直接コミットしてもよい—公開情報であり1ファイル数MB×6）:
    ```ruby
    # 使い方: EDINET_API_KEY=xxx bundle exec ruby spec/support/fixtures/download_xbrl.rb
-   # docs/zero-base-redesign/01 の検証済み6社を spec/fixtures/xbrl/ に保存する
+   # docs/architecture/06_xbrl_format_research.md の検証済み6社を spec/fixtures/xbrl/ に保存する
    DOC_IDS = %w[S100YB5L S100YB25 S100YCP3 S100XTNW S100YLS8 S100YJQO]
    # （中身は Edinet::Client#download_xbrl と同じ処理。既存ならスキップ）
    ```
@@ -150,7 +150,7 @@ CIワークフローも各submoduleリポジトリ側に置く（詳細は [CLAU
      it "IFRS企業（武田薬品）を読める" do
        result = described_class.new("spec/fixtures/xbrl/S100YB5L.xbrl").read
        expect(result[:accounting_standard]).to eq "ifrs"
-       # 期待値は docs/zero-base-redesign/01_xbrl_format_research.md の実測表から転記
+       # 期待値は docs/architecture/06_xbrl_format_research.md の実測表から転記
        expect(result[:non_consolidated_statement][:current_asset]).to eq 602_273_000_000
      end
    end
@@ -275,7 +275,7 @@ CIワークフローも各submoduleリポジトリ側に置く（詳細は [CLAU
    ```
 5. 企業ページに `Corporation` のJSON-LD（name, tickerSymbol）を出力
 6. 検索条件のURLクエリ同期: フィルタ変更時に `setSearchParams({ codes, ocf, ... })`、
-   初期化時にURLから復元（ゼロベース再設計 [05](zero-base-redesign/05_frontend.md) §9 と同じ方式）
+   初期化時にURLから復元（financialReports一覧ページと同じ方式）
 7. SPAの直リンク対応: nginx（`web/`）に `try_files $uri /index.html;` があることを確認
    （なければ追加。ないと `/companies/7203` 直アクセスが404になる）
 
@@ -390,7 +390,7 @@ CLAUDE.md作成済み。運用ルール: 設計変更時はCLAUDE.mdとdocs/の�
              prompt: "/review"
    ```
 3. CLAUDE.md（リポジトリごとに簡易版を配置）に「レビュー観点」を書いておくと精度が上がる:
-   XBRLタグ名は docs/zero-base-redesign/01 の実測表と一致するか・コンテキストの
+   XBRLタグ名は docs/architecture/06_xbrl_format_research.md の実測表と一致するか・コンテキストの
    Instant/Duration取り違えがないか・「開示なし=行なし」規約を破っていないか等
 
 ### 3-3. 財務コメントの自動生成（SEOコンテンツ兼用）
@@ -443,7 +443,7 @@ CLAUDE.md作成済み。運用ルール: 設計変更時はCLAUDE.mdとdocs/の�
 1. 取込時に `unsupported` 判定されたら、factダンプ（要素名×コンテキスト×値のTSV）を
    S3等に保存し、`unsupported_format_samples` テーブルに (業種コード, docID, パス) を記録
 2. 週次ジョブ: 業種コードごとにサンプル1件のfactダンプをClaude APIに投げる。プロンプト骨子:
-   「以下は日本基準・業種コードXXXの有報XBRLのfact一覧。`docs/zero-base-redesign/02` の
+   「以下は日本基準・業種コードXXXの有報XBRLのfact一覧。`docs/architecture/01_data_model.md` の
    科目コード一覧に対応するタグを、根拠となる値の整合性（合計=内訳の和）と共に提案せよ」
 3. 提案をGitHub Issueとして自動起票（gh CLI or API）。**自動でコードに反映しない**——
    マッピングの正しさは人間が実測値と突き合わせて確認し、Extractorクラスとして実装する
