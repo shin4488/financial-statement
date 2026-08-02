@@ -25,5 +25,5 @@ bundle exec rails runner '
 | S100YQ6Y | イオン | jgaap_general / 営業収益型（OperatingRevenue1・OperatingCostのペア優先） |
 | S100YR8L | インスペック | jgaap_general / 単体のみ / 売上原価=当期製品製造原価（CostOfProductsManufactured） |
 
-期待値の出典は docs/zero-base-redesign/01_xbrl_format_research.md の実測表。
+期待値の出典は docs/architecture/06_xbrl_format_research.md の実測表。
 フィクスチャが存在しない場合、該当スペックはskipされる。

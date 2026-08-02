@@ -1,0 +1,31 @@
+# figaro用の環境変数定義のサンプル。
+# このファイルを config/application.yml にコピーして各自の値を設定する
+# （application.yml はシークレットを含むためgit管理外）。
+#
+# このsampleに書いてよいのは「プレースホルダ」と「ローカルdocker開発用のデフォルト値
+# （コミット済みのDockerfileに書かれているものと同じ）」だけ。
+# 本番の実値・ホスト名・接続文字列・発行済みキーの類は絶対に書かないこと
+
+# EDINET API v2 のAPIキー。EDINETのAPI利用登録ページで各自発行する
+EDINET_API_KEY: "your-edinet-api-key"
+
+# PostgreSQL接続情報（以下はdocker composeのdatabaseサービス用のデフォルト値）
+POSTGRES_DATABASE_NAME: "financial_statement_development"
+POSTGRES_HOST_NAME: "database"
+POSTGRES_PORT: "5432"
+POSTGRES_USER_NAME: "financial_statement_admin"
+POSTGRES_PASSWORD: "your-postgres-password"
+
+# Redis接続情報（sidekiq用。以下はdocker composeのcacheサービス用のデフォルト値）
+REDIS_HOST_NAME: "cache"
+REDIS_PORT: "6379"
+# REDIS_PASSWORD: ""  # パスワード運用時のみ設定
+
+# DNSリバインディング対策で許可するホスト名（本番のみ。開発では未設定でよい）
+# SERVER_HOST_NAME: ""
+
+# Sentryのエラー通知先DSN（未設定なら通知は無効化される）
+# SENTRY_DSN: ""
+
+# 本番のみ: Railsのsecret_key_base（`bin/rails secret` で各自生成する）
+# SECRET_KEY_BASE: ""
