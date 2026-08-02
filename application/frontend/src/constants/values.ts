@@ -1,5 +1,9 @@
 export const financialStatementOffsetUnit = 30;
 
+// カルーセル自動切替設定のlocalStorageキー。
+// 保存済みのユーザ設定を引き継ぐ必要があるため値を変えないこと
+export const autoPlayStatusLocalStorageKey = 'investeeIsStatementAutoPlay';
+
 export const barChartWidth = '90%';
 export const barChartHeight = 400;
 
