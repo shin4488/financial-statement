@@ -33,3 +33,6 @@ security_reports
 config/credentials.yml.enc
 deploy.sh
 config/application.yml
+
+# 実XBRLフィクスチャは数MB/件のためコミットしない（取得方法: spec/fixtures/xbrl/README.md）
+spec/fixtures/xbrl/*.xbrl
