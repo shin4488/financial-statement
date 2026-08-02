@@ -2,7 +2,7 @@
 class Ingestion::Extractors::JgaapBank < Ingestion::Extractors::Base
   INSTANT_MAPPING = {
     # 銀行は流動/固定区分がないため合計3科目 + 業種固有の内訳のみ。
-    # 合計科目のタグは一般事業会社と同じ汎用タグであることを実測で確認済み
+    # 合計科目のタグは一般事業会社と同じ汎用タグ
     "bs.assets"               => "jppfs_cor:Assets",
     "bs.liabilities"          => "jppfs_cor:Liabilities",
     "bs.equity"               => "jppfs_cor:NetAssets",

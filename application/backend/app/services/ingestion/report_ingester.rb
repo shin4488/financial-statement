@@ -37,7 +37,7 @@ module Ingestion
                     dei.accounting_standard, dei.consolidated_industry_code]
         end
         # 単体は日本基準固定: IFRS・US GAAP適用企業でも単体財務諸表は日本基準（jppfs）で
-        # タグ付けされることを実測済みのため
+        # タグ付けされるため
         specs << [:non_consolidated, Extractors::Base::NON_CONSOLIDATED,
                   "japan_gaap", dei.non_consolidated_industry_code]
 

@@ -49,7 +49,7 @@ RSpec.describe Charts::Builders::PlJgaapGeneral do
   end
 
   describe "貸借の1割超乖離" do
-    it "原価が科目ゆれで取れていない企業はunrenderable（実測値・単位: 円）" do
+    it "原価が科目ゆれで取れていない企業はunrenderable（単位: 円）" do
       chart = described_class.new({
         "pl.revenue" => 2_478_950_000, "pl.sga" => 748_887_000,
         "pl.operating_profit" => 108_348_000 }).build

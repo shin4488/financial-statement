@@ -45,7 +45,7 @@ RSpec.describe "Charts::Builders BS各種" do
         "bs.non_current_liabilities" => 5_248_784, "bs.equity" => 7_430_649 }
     end
 
-    it "借方2段・貸方3段で貸借一致する（実測値・単位: 百万円）" do
+    it "借方2段・貸方3段で貸借一致する（単位: 百万円）" do
       chart = described_class.new(items).build
       debit, credit = chart.bars
       expect(debit.segments.map(&:key)).to eq %w[currentAssets nonCurrentAssets]
@@ -81,7 +81,7 @@ RSpec.describe "Charts::Builders BS各種" do
         "bs.equity" => 23_744_152 }
     end
 
-    it "その他資産・その他負債が残差で導出される（実測値・単位: 百万円）" do
+    it "その他資産・その他負債が残差で導出される（単位: 百万円）" do
       chart = described_class.new(items).build
       debit, credit = chart.bars
       other_assets = debit.segments.find { |s| s.key == "otherAssets" }

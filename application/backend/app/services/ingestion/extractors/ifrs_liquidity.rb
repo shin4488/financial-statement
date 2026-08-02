@@ -14,7 +14,7 @@ class Ingestion::Extractors::IfrsLiquidity < Ingestion::Extractors::Base
     "cf.cash_end"                      => "jpigp_cor:CashAndCashEquivalentsIFRS",
   }.freeze
 
-  # PL/CFのタグ体系はBSの様式（511000/512000）と独立に共通であることを実測済みのため、
+  # PL/CFのタグ体系はBSの様式（511000/512000）と独立に共通のため、
   # 意図的に定数を共有する。将来分岐したらコピーして独立させる
   DURATION_MAPPING = Ingestion::Extractors::IfrsClassified::DURATION_MAPPING
 

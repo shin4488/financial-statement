@@ -7,7 +7,7 @@ RSpec.describe Ingestion::Extractors::IfrsClassified do
                           Ingestion::Extractors::Base::CONSOLIDATED).extract
     end
 
-    it "BS/PL/CFの骨格科目を実測値どおり抽出する" do
+    it "BS/PL/CFの骨格科目を期待値どおり抽出する" do
       expect(items).to include(
         "bs.assets" => 15_511_506_000_000,
         "bs.equity" => 7_430_649_000_000,
@@ -37,7 +37,7 @@ RSpec.describe Ingestion::Extractors::IfrsClassified do
   end
 
   describe "#extract（連結・S100YB25: 合算のれんタグ + Revenue2IFRS）" do
-    it "収益がRevenue2IFRSフォールバックで取れ、資産が実測値と一致する" do
+    it "収益がRevenue2IFRSフォールバックで取れ、資産が一致する" do
       items = described_class.new(load_xbrl_fixture("S100YB25"),
                                   Ingestion::Extractors::Base::CONSOLIDATED).extract
       expect(items["bs.assets"]).to eq 24_151_695_000_000

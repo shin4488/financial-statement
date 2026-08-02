@@ -21,7 +21,7 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
   DURATION_MAPPING = {
     # 売上高は業種による科目ゆれ（完成工事高など）があるためフォールバックリストで引く（順序が優先度）。
     # OperatingRevenue1（営業収益）を売上高より先に置く理由: 営業収益型（売上高+営業収入を
-    # 営業収益として開示する小売等。実測済み）は両方のタグを持ち、営業利益と貸借が合う
+    # 営業収益として開示する小売等）は両方のタグを持ち、営業利益と貸借が合う
     # トップラインは営業収益の方であるため
     "pl.revenue" => %w[
       jppfs_cor:OperatingRevenue1
@@ -32,7 +32,7 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
     # OperatingCost（営業原価）を先頭に置く理由: OperatingRevenue1とペアの原価であり、
     # 営業収益型ではCostOfSales（売上原価）も併記されるが、そちらは売上高側の原価のため。
     # CostOfProductsManufactured（当期製品製造原価）を末尾に置く理由: 売上原価の代わりに
-    # これでPL本表を開示する製造業がある（実測済み）が、通常の製造業では製造原価明細の
+    # これでPL本表を開示する製造業があるが、通常の製造業では製造原価明細の
     # 項目として売上原価と併記されるため、CostOfSales系が取れるならそちらが正
     "pl.cost_of_sales" => %w[
       jppfs_cor:OperatingCost
