@@ -47,4 +47,20 @@ RSpec.describe Charts::Builders::PlJgaapGeneral do
     expect(described_class.new({ "pl.revenue" => 100 }).build.renderable).to be false
     expect(described_class.new({ "pl.revenue" => 0, "pl.operating_profit" => 1 }).build.renderable).to be false
   end
+
+  describe "貸借の1割超乖離" do
+    it "原価が科目ゆれで取れていない企業はunrenderable（実測値・単位: 円）" do
+      chart = described_class.new({
+        "pl.revenue" => 2_478_950_000, "pl.sga" => 748_887_000,
+        "pl.operating_profit" => 108_348_000 }).build
+      expect(chart.renderable).to be false
+    end
+
+    it "乖離が1割以内なら描画される" do
+      chart = described_class.new({
+        "pl.revenue" => 1_000, "pl.cost_of_sales" => 600, "pl.sga" => 250,
+        "pl.operating_profit" => 100 }).build
+      expect(chart.renderable).to be true
+    end
+  end
 end
