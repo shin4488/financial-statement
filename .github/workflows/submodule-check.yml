@@ -1,0 +1,21 @@
+name: submodule-check
+# mainへのpush時のみ検証する。PR段階では、submoduleの参照先が未マージの
+# featureブランチを指すのが正常な運用（backend/frontend→親の順でマージする）のため
+on:
+  push:
+    branches: [main]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: submoduleの参照コミットが各リポジトリのmainに含まれるか検証
+        # squashマージするとsubmoduleの参照コミットがmainから消えて迷子になる事故の検知
+        run: |
+          git submodule foreach '
+            git fetch origin main --quiet
+            git merge-base --is-ancestor HEAD origin/main \
+              || { echo "::error::$name がmainに存在しないコミットを参照しています(squashマージの疑い)"; exit 1; }
+          '
