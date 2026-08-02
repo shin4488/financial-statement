@@ -59,7 +59,8 @@ module Charts
             spacer_amount = credit.sum(&:amount) + equity # = 負債合計 - |純資産| = 資産合計
             bars << Bar.new(label: "債務超過", segments: [
               seg("spacer", "", spacer_amount, "spacer", base: nil), # base:nil → ratio非表示
-              seg("equity", equity_label, -equity, "loss", base: base, signed: equity),
+              # 債務超過でも色はequityのまま（負であることはラベル・ツールチップの負値で伝える）
+              seg("equity", equity_label, -equity, "equity", base: base, signed: equity),
             ])
           else
             bars << Bar.new(label: "貸方",
