@@ -1,0 +1,45 @@
+// バックエンドの Charts::Builders が発行する colorRole の全量。
+// 「科目→色」でなく「役割→色」にすることで、形式を追加するときも科目（例: 銀行の貸出金）に
+// 定義済みの役割（asset2）を割り当てるだけで一貫した見た目になる。
+// このキー一覧はバックエンドと共有する契約なので、追加はバックエンドのenumと同時に行うこと
+export const colorByRole: Record<string, string> = {
+  asset1: '#A1C2F1', // 資産・第1階層（流動資産/現金系）
+  asset2: '#5A96E3', // 資産・第2階層
+  asset3: '#7286D3',
+  asset4: '#576CBC',
+  liability1: '#FEBBCC', // 負債・第1階層
+  liability2: '#E48586',
+  equity: '#8EC3B0', // 資本・純資産
+  revenue: '#8EC3B0', // 収益
+  expense1: '#FEBBCC', // 費用（原価・経常費用・営業費用）
+  expense2: '#E48586', // 費用（販管費）
+  expense3: '#D77FA1', // 費用（導出項目: その他損益純額など）
+  profit: '#6196A6', // 利益
+  loss: '#BF3131', // 損失・債務超過
+  spacer: 'transparent', // 債務超過バーの位置合わせ用詰め物
+};
+
+export const stackLabelColor = '#FFFFFF';
+
+// バックエンドが未知のroleを返した場合の色（グレー）。
+// このマップはBE/FE間で唯一ドリフトし得る契約点なので、undefinedのまま
+// rechartsのデフォルト色で無言に描かれるより、目に見える形で気づけるようにする
+const FALLBACK_COLOR = '#9E9E9E';
+const warnedRoles = new Set<string>();
+
+export function colorForRole(role: string): string {
+  const color = colorByRole[role];
+  if (color !== undefined) {
+    return color;
+  }
+  // 警告はroleごとに1回だけ（セグメント数*再レンダリングで氾濫させない）
+  if (!warnedRoles.has(role)) {
+    warnedRoles.add(role);
+    // 契約ドリフトの検知が目的の意図的なconsole出力（UIには出しようがないため）
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[financialCharts] 未知のcolorRole "${role}" を受信。colorRoles.tsへの追加が必要（バックエンドのenumと同時に変更する契約）`,
+    );
+  }
+  return FALLBACK_COLOR;
+}

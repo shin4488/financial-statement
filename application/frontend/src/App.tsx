@@ -1,9 +1,10 @@
 import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './types/mui/styles.d';
 import './App.css';
 import DefaultLayout from '@/layouts/default/DefaultLayout';
 import FinancialStatementList from '@/pages/financialStatementList/FinancialStatementList';
+import FinancialReportListPage from '@/features/financialReports/FinancialReportListPage';
 import FirebaseAnalytics from './plugins/firebase/analytics';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 
@@ -34,11 +35,20 @@ export default class App extends React.Component {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <BrowserRouter>
-          <DefaultLayout>
-            <div className="App">
-              <FinancialStatementList />
-            </div>
-          </DefaultLayout>
+          <Routes>
+            {/* 汎用チャート契約版の一覧。トップ（FinancialStatementList）と切替判断がつくまで並存させる */}
+            <Route path="/v2" element={<FinancialReportListPage />} />
+            <Route
+              path="*"
+              element={
+                <DefaultLayout>
+                  <div className="App">
+                    <FinancialStatementList />
+                  </div>
+                </DefaultLayout>
+              }
+            />
+          </Routes>
         </BrowserRouter>
       </ThemeProvider>
     );

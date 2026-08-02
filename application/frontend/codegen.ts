@@ -11,6 +11,12 @@ const config: CodegenConfig = {
       presetConfig: {
         gqlTagName: 'gql',
       },
+      config: {
+        scalars: {
+          // MoneyスカラはJSON数値のまま届く（バックエンドのTypes::MoneyType参照）
+          Money: 'number',
+        },
+      },
     },
   },
   ignoreNoDocuments: true,
