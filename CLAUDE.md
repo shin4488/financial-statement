@@ -43,11 +43,12 @@ docker-compose.yml     # 全体起動（web:10000, api:20000）
   現行実装はjppfs_corのみ対応のため、IFRS企業の連結は0で保存される既知課題
 - IFRS企業でも**単体財務諸表は日本基準**でタグ付けされる
 - 銀行・保険など特定業種は日本基準でも別フォーマット（業種DEIコード bnk/INS等）
-- **実装済みアーキテクチャの正は `docs/architecture/`**（縦持ち新実装:
-  Disclosureモデル・Ingestion・Charts・financialReportsクエリ・/v2画面の解説と設計意図）。
-  `docs/zero-base-redesign/`（設計案）・`docs/ifrs-support/`（段階改修案）は設計時の資料
+- **実装済みアーキテクチャの正は `docs/architecture/`**（縦持ち実装:
+  Disclosureモデル・Ingestion・Charts・financialReportsクエリ・一覧画面の解説と設計意図）。
+  旧系統（SecurityReport系）はコードのみ残置・停止中で、削除手順は
+  `docs/architecture/07_legacy_cleanup.md` にある
 - **XBRLタグを扱う作業の前に必ず
-  `docs/zero-base-redesign/01_xbrl_format_research.md`（6社実測データ）を読むこと**
+  `docs/architecture/06_xbrl_format_research.md`（6社実測データ）を読むこと**
 
 ## 改善バックログ
 

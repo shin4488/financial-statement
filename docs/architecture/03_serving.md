@@ -126,7 +126,7 @@ query {
 ## テスト
 
 Builderは純関数（`{科目コード=>金額}` → Struct）なのでDBなしで網羅。
-期待値は実測表（`docs/zero-base-redesign/01_xbrl_format_research.md`）から転記:
+期待値は実測表（`docs/architecture/06_xbrl_format_research.md`）から転記:
 
 | ケース | スペック |
 |---|---|
