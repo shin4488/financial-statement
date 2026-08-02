@@ -7,7 +7,7 @@ RSpec.describe Charts::Builders::CashFlow do
       "cf.cash_end" => 90_045_500 }
   end
 
-  it "5ステップがkind付き・符号付きで返る（実測値・単位: 百万円）" do
+  it "5ステップがkind付き・符号付きで返る（単位: 百万円）" do
     chart = described_class.new(items).build
     expect(chart.renderable).to be true
     expect(chart.steps.map(&:key)).to eq %w[cashBegin operating investing financing cashEnd]

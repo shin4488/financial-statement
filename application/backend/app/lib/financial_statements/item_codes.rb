@@ -62,7 +62,7 @@ module FinancialStatements
     ].freeze
 
     CF = [
-      # ---- 全形式共通（CFは基準・業種によらず構造が同一。01の実測で6社全社取得できた）----
+      # ---- 全形式共通（CFは基準・業種によらず構造が同一）----
       "cf.cash_begin",                    # 現金及び現金同等物の期首残高（前期末 Prior1YearInstant）
       "cf.operating",                     # 営業活動によるキャッシュ・フロー
       "cf.investing",                     # 投資活動によるキャッシュ・フロー

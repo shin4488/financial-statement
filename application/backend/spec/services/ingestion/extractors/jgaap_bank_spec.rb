@@ -7,7 +7,7 @@ RSpec.describe Ingestion::Extractors::JgaapBank do
                           Ingestion::Extractors::Base::CONSOLIDATED).extract
     end
 
-    it "銀行の骨格科目を実測値どおり抽出する" do
+    it "銀行の骨格科目を期待値どおり抽出する" do
       expect(items).to include(
         "bs.assets" => 431_731_548_000_000,
         "bs.equity" => 23_744_152_000_000,

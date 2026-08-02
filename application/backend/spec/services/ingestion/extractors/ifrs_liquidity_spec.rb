@@ -7,7 +7,7 @@ RSpec.describe Ingestion::Extractors::IfrsLiquidity do
                           Ingestion::Extractors::Base::CONSOLIDATED).extract
     end
 
-    it "合計科目と営業費用一括を実測値どおり抽出する" do
+    it "合計科目と営業費用一括を期待値どおり抽出する" do
       expect(items).to include(
         "bs.assets" => 28_804_400_000_000,
         "bs.equity" => 1_354_232_000_000,

@@ -23,9 +23,12 @@ class Charts::Builders::PlIfrs < Charts::Builders::StackBase
     debit = expense_specs.map { |key, label, v, role| seg(key, label, v, role, base: revenue) }
     credit = [seg("revenue", "収益", revenue, "revenue", base: revenue)]
     if other_net.negative?
+      # expense3/revenue2はどちらも「導出項目」専用のロール。
+      # 実在の科目（原価・販管費・収益）と同系色だと導出項目だと見分けがつかないため、
+      # どちら側に積まれても同じ専用色になるようロールを分けている
       debit << seg("otherNet", "その他損益（純額）", -other_net, "expense3", base: revenue, signed: other_net)
     elsif other_net.positive?
-      credit << seg("otherNet", "その他損益（純額）", other_net, "revenue", base: revenue)
+      credit << seg("otherNet", "その他損益（純額）", other_net, "revenue2", base: revenue)
     end
     # other_net.zero? の場合はセグメント自体を出さない（高さ0の積み上げは無意味なため）
     if pbt.negative?

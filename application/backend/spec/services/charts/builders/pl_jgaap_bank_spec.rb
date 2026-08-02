@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe Charts::Builders::PlJgaapBank do
-  describe "経常黒字（実測値・単位: 円）" do
+  describe "経常黒字（単位: 円）" do
     let(:items) do
       { "pl.ordinary_revenue" => 14_620_843_000_000,
         "pl.ordinary_expenses" => 11_210_651_000_000,

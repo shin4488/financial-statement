@@ -2,7 +2,7 @@
 #
 # 設計判断2点:
 # - REXMLではなくNokogiriを使う。REXMLは有報の巨大TextBlock（HTML断片）で
-#   entity expansionエラーを起こすことを実測で確認済みのため
+#   entity expansionエラーを起こすため
 # - remove_namespaces! は使わない。企業拡張タクソノミ要素（jpcrp030000-asr_EXXXXX-000:〜）と
 #   標準要素が同名で衝突し得るため、「namespace URIがどの標準タクソノミか」で引く
 module Xbrl
@@ -34,7 +34,7 @@ module Xbrl
         # 意味の保証がないため、必要になったら NS に追加する形で明示的にオプトインする）
         prefix = NS.find { |_, pattern| el.namespace&.href&.match?(pattern) }&.first
         next if prefix.nil?
-        # ||= : 同じ要素*同じコンテキストのfactは本表と注記で重複出現することがある（実測あり）。
+        # ||= : 同じ要素*同じコンテキストのfactは本表と注記で重複出現することがある。
         # 値は同一のはずだが、万一異なっても文書の先頭側（本表側）を採用する
         @facts[[prefix, el.name, ctx]] ||= el.text&.strip
       end

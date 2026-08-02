@@ -7,7 +7,7 @@ Extractor系スペックの入力に使う実際の有報XBRL。1件数MBある�
 bundle exec rails runner '
   client = Edinet::Client.new
   dir = Rails.root.join("spec/fixtures/xbrl").to_s
-  %w[S100YB5L S100YB25 S100YCP3 S100XTNW S100YLS8 S100YJQO].each do |doc_id|
+  %w[S100YB5L S100YB25 S100YCP3 S100XTNW S100YLS8 S100YJQO S100YQ6Y S100YR8L].each do |doc_id|
     path = client.download_xbrl(doc_id: doc_id, work_dir: dir)
     puts "#{doc_id}: #{path}"
   end
@@ -22,6 +22,8 @@ bundle exec rails runner '
 | S100XTNW | 楽天グループ | ifrs_liquidity判定 / 営業費用一括 / 当期赤字 |
 | S100YLS8 | 東京海上HD | ifrs_liquidity / PL表示不可（収益が標準タグに存在しない） |
 | S100YJQO | 三菱UFJ FG | jgaap_bank判定（業種DEI=bnk） / 経常収益型PL / 営業CF巨額マイナス |
+| S100YQ6Y | イオン | jgaap_general / 営業収益型（OperatingRevenue1・OperatingCostのペア優先） |
+| S100YR8L | インスペック | jgaap_general / 単体のみ / 売上原価=当期製品製造原価（CostOfProductsManufactured） |
 
 期待値の出典は docs/zero-base-redesign/01_xbrl_format_research.md の実測表。
 フィクスチャが存在しない場合、該当スペックはskipされる。
