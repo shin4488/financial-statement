@@ -34,10 +34,10 @@ import {
   cashFlowTypes,
 } from '@/constants/values';
 
-// DefaultLayoutと見た目を揃えた/v2用のシェル。DefaultLayoutを再利用しない理由:
-// あちらは検索条件をReduxに書き、検索時に "/"（FinancialStatementListの一覧）へ遷移するため、
-// URLクエリを正とする/v2の検索と両立しない。自動切替だけはautoPlayStatusSliceを
-// 共有する（AppCarouselがそこを参照しており、二重管理を避けるため）
+// 一覧ページのシェル（AppBar・フッター）。DefaultLayoutを再利用しない理由:
+// あちらは検索条件をReduxに書く作りで、URLクエリを正とするこの画面と両立しない。
+// 自動切替だけはautoPlayStatusSliceを共有する
+// （AppCarouselがそこを参照しており、二重管理を避けるため）
 export function ReportListLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -60,7 +60,7 @@ export function ReportListLayout({ children }: { children: React.ReactNode }) {
       next.set('cash-flow-type', cfType);
     }
     const query = next.toString();
-    navigate(query ? `/v2?${query}` : '/v2');
+    navigate(query ? `/?${query}` : '/');
   };
 
   const infoTooltip = (
