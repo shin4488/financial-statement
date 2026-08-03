@@ -7,8 +7,10 @@ module Ingestion
       @client, @dei_extractor, @detector = client, dei_extractor, detector
     end
 
-    # 1有報の取込。財務諸表がない書類（訂正のみ等）は何もしない
-    def ingest(doc_id:, work_dir:)
+    # 1有報の取込。財務諸表がない書類（訂正のみ等）は何もしない。
+    # expected_sec_code: EDINETの書類一覧API（金融庁側メタデータ）のsecCode。
+    # docID指定のrakeタスク経由では取得できないためnil可（突合をスキップ）
+    def ingest(doc_id:, work_dir:, expected_sec_code: nil)
       xbrl_path = @client.download_xbrl(doc_id: doc_id, work_dir: work_dir)
       return if xbrl_path.nil?
 
@@ -18,6 +20,18 @@ module Ingestion
         # 会計基準不明のまま取り込むと形式判定できないためスキップ。ただし黙殺すると
         # 「特定企業だけデータが無い」原因を追えなくなるため警告だけ残す
         Sentry.capture_message("accounting standard unknown: #{doc_id}", level: :warning)
+        return
+      end
+      # 文書内DEIは提出者が書いた値のため、企業マスタのキーとして信頼する前に検証する。
+      # 権威ある一覧メタデータと食い違う書類（なりすまし・提出ミス）は他社レコードを
+      # 上書きし得るため取り込まない
+      unless dei.edinet_code.to_s.match?(/\A[A-Z]\d{5}\z/)
+        Sentry.capture_message("invalid edinet code in DEI: #{doc_id} (#{dei.edinet_code.inspect})", level: :error)
+        return
+      end
+      if expected_sec_code && dei.stock_code.present? && dei.stock_code != expected_sec_code
+        Sentry.capture_message(
+          "sec code mismatch: #{doc_id} (list=#{expected_sec_code} dei=#{dei.stock_code})", level: :error)
         return
       end
 

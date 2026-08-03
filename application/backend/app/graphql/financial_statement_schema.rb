@@ -1,9 +1,17 @@
 class FinancialStatementSchema < GraphQL::Schema
-  mutation(Types::MutationType)
   query(Types::QueryType)
 
   # For batch-loading (see https://graphql-ruby.org/dataloader/overview.html)
   use GraphQL::Dataloader
+
+  # 公開・未認証エンドポイントのため、1リクエストで実行できる総量を制限する
+  # （エイリアス大量並記による増幅DoS対策）。
+  # 通常の一覧クエリは複雑度40前後、graphql-codegenのイントロスペクションは200前後。
+  # depthは、実クエリが5に対しイントロスペクションが13と最も深い。codegenの
+  # バージョン差で失敗しないよう余裕を取る（スキーマに再帰型がなく、実クエリの深さは
+  # スキーマ構造で頭打ちになるため、depthを緩めても増幅の余地は増えない）
+  max_complexity 400
+  max_depth 20
 
   # GraphQL-Ruby calls this when something goes wrong while running a query:
   def self.type_error(err, context)

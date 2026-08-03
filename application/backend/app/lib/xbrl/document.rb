@@ -40,6 +40,10 @@ module Xbrl
       end
     end
 
+    # DBのbigint（8バイト整数）に収まる値域。XBRL上の異常値（極端な桁数）を
+    # insert時のDBエラーにせず「開示なし」として落とすための境界
+    BIGINT_RANGE = (-2**63..2**63 - 1)
+
     # "jppfs_cor:NetSales" 形式のqnameとコンテキストで整数値を引く。なければnil
     def money(qname, context)
       prefix, name = qname.split(":")
@@ -47,7 +51,8 @@ module Xbrl
       return nil if raw.nil? || raw.empty?
       # exception: false → 数値でない値（空タグ・テキスト）はnil扱い。
       # to_iを使わない理由: to_iは"abc"を0にしてしまい「開示なし」と「ゼロ」の区別が壊れる
-      Integer(raw, exception: false)
+      value = Integer(raw, exception: false)
+      BIGINT_RANGE.cover?(value) ? value : nil
     end
 
     # フォールバックリスト: 最初に値が取れたものを返す（リストの並び順=優先度）

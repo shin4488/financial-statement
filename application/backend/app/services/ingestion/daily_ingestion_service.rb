@@ -17,7 +17,8 @@ module Ingestion
             # 1件の失敗を他社に波及させないため書類単位で隔離。
             # EDINETはリクエスト過多で403になるため同期・逐次実行（並列化しない）
             begin
-              ingester.ingest(doc_id: meta.doc_id, work_dir: work_dir)
+              ingester.ingest(doc_id: meta.doc_id, work_dir: work_dir,
+                              expected_sec_code: meta.sec_code)
               Rails.logger.info("ingested #{meta.doc_id} #{meta.filer_name}")
             rescue => e
               Rails.logger.error("ingest failed #{meta.doc_id}: #{e.message}")
