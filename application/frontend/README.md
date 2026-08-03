@@ -1,46 +1,73 @@
-# Getting Started with Create React App
+# investee フロントエンド（React SPA）
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+上場企業の財務3表を積み上げグラフ・ウォーターフォールグラフで表示する画面。
+本番: https://investee.info
 
-## Available Scripts
+**このリポジトリは親リポジトリ [financial-statement](https://github.com/shin4488/financial-statement) の
+git submodule**（`application/frontend`）。設計ドキュメントとdocker-compose定義は親リポジトリ側にある。
 
-In the project directory, you can run:
+## 技術スタック
 
-### `yarn start`
+| 項目 | 内容 |
+|---|---|
+| ビルド | Create React App + craco / TypeScript |
+| データ取得 | Apollo Client（GraphQL） + graphql-codegen（型の自動生成） |
+| UI | MUI / recharts |
+| 状態管理 | 検索条件はURLクエリ、カルーセルの自動切替のみRedux Toolkit |
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## セットアップ
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+親リポジトリで `docker compose up` すると、バックエンド・DB込みで一括起動する
+（画面は http://localhost:10000）。単体で動かす場合:
 
-### `yarn test`
+```bash
+yarn install
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+yarn start
+```
 
-### `yarn build`
+## GraphQLの型生成
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+バックエンドのスキーマ変更後に実行する。**バックエンドの起動が必要**
+（`codegen.ts` の `schema` がAPIのエンドポイントを指しているため）:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+docker compose exec appfront npm run compile
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+`src/__generated__/` が更新される。クエリ文字列を変更したときも実行すること。
 
-### `yarn eject`
+## 検証
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```bash
+npx tsc --noEmit && npx eslint 'src/**/*.{ts,tsx}' && npx prettier --check 'src/**/*.{ts,tsx}'
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+CI=false yarn build
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## 主要な構成
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```
+src/
+  features/financialReports/     # 一覧ページ（Webアプリ固有）
+    FinancialReportListPage.tsx  #   URLクエリ → GraphQL変数・無限スクロール
+    components/                  #   カード・レイアウト（AppBar/検索/フッター）
+    api/                         #   クエリ定義と型
+  shared/financialCharts/        # 汎用チャートキット（Chrome拡張と共有可能）
+    StackedBarChart.tsx          #   BS・PL（積み上げ棒）
+    WaterfallChart.tsx           #   CF（ウォーターフォール）
+    colorRoles.ts                #   役割→色の対応（バックエンドのenumと同時に変更する契約）
+  components/appCarousel/        # BS→PL→CFの自動切替カルーセル
+  plugins/firebase/              # アナリティクス
+```
 
-## Learn More
+**チャートは「科目」を知らない**（バックエンドが色の役割・ラベル・積み上げ順まで決めて返す）。
+新しい会計基準・業種への対応でフロントを触る必要はない。設計意図は親リポジトリの
+`docs/architecture/04_frontend.md` を参照。
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+旧一覧ページ（`src/pages/financialStatementList/` と `src/components/*BarChart/`）は
+停止・残置中。削除手順は `docs/architecture/07_legacy_cleanup.md`。
