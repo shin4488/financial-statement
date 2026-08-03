@@ -28,8 +28,14 @@ const toCashFlowSign = (sign: 'POSITIVE' | 'NEGATIVE' | null) =>
 function useQueryVariables() {
   const [searchParams] = useSearchParams();
   return useMemo(() => {
+    // 件数上限はサーバ側バリデーション（stockCodes最大100件）と対:
+    // 細工URLで巨大な配列を送ってエラー画面になるのを防ぐ
     const codes =
-      searchParams.get('stock-codes')?.split(',').filter(Boolean) ?? null;
+      searchParams
+        .get('stock-codes')
+        ?.split(',')
+        .filter(Boolean)
+        .slice(0, 100) ?? null;
     const cfType = (searchParams.get('cash-flow-type') ??
       'none') as CashFlowTypeValue;
     const cfRequest =
@@ -38,9 +44,15 @@ function useQueryVariables() {
       limit: financialStatementOffsetUnit,
       offset: 0,
       stockCodes: codes,
-      operatingCfSign: toCashFlowSign(cfRequest.operatingActivitiesCashFlowSign),
-      investingCfSign: toCashFlowSign(cfRequest.investingActivitiesCashFlowSign),
-      financingCfSign: toCashFlowSign(cfRequest.financingActivitiesCashFlowSign),
+      operatingCfSign: toCashFlowSign(
+        cfRequest.operatingActivitiesCashFlowSign,
+      ),
+      investingCfSign: toCashFlowSign(
+        cfRequest.investingActivitiesCashFlowSign,
+      ),
+      financingCfSign: toCashFlowSign(
+        cfRequest.financingActivitiesCashFlowSign,
+      ),
     };
   }, [searchParams]);
 }
