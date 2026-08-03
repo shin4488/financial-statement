@@ -5,6 +5,12 @@ class FinancialStatementSchema < GraphQL::Schema
   # For batch-loading (see https://graphql-ruby.org/dataloader/overview.html)
   use GraphQL::Dataloader
 
+  # 公開・未認証エンドポイントのため、1リクエストで実行できる総量を制限する
+  # （エイリアス大量並記による増幅DoS対策）。
+  # 通常の一覧クエリは複雑度40前後、graphql-codegenのイントロスペクションは200前後
+  max_complexity 400
+  max_depth 15
+
   # GraphQL-Ruby calls this when something goes wrong while running a query:
   def self.type_error(err, context)
     # if err.is_a?(GraphQL::InvalidNullError)

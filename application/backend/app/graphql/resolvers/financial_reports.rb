@@ -10,7 +10,9 @@ module Resolvers
              validates: { numericality: { greater_than: 0, less_than_or_equal_to: 100 } }
     argument :offset, Integer, required: true,
              validates: { numericality: { greater_than_or_equal_to: 0 } }
-    argument :stock_codes, [String], required: false
+    # 件数上限はlimitと同水準: 無制限だと巨大なIN句を未認証で生成できてしまうため
+    argument :stock_codes, [String], required: false,
+             validates: { length: { maximum: 100 } }
     argument :operating_cf_sign, Types::CashFlowSignType, required: false
     argument :investing_cf_sign, Types::CashFlowSignType, required: false
     argument :financing_cf_sign, Types::CashFlowSignType, required: false
