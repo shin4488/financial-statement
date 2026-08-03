@@ -31,7 +31,15 @@ Rails.application.configure do
   # config.action_dispatch.x_sendfile_header = "X-Accel-Redirect" # for NGINX
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
+  # 有効にしないこと: リダイレクトは前段のnginxが既に301しており、このアプリはCookieを
+  # 発行しないためセキュアCookieも無意味。一方nginxはX-Forwarded-Protoを転送していないため、
+  # 有効にすると無限リダイレクトでサイトが停止する（Rails 7.0にassume_sslは無い）
   # config.force_ssl = true
+
+  # セキュリティヘッダは前段のnginxで一元管理する。Railsの既定値を残すと同じヘッダが
+  # 二重に返り、特にX-Frame-OptionsがSAMEORIGIN(Rails)とDENY(nginx)で食い違う
+  # （複数指定時の挙動は仕様上未定義）。出所をnginxだけにする
+  config.action_dispatch.default_headers = {}
 
   # Include generic and useful information about system operation, but avoid logging too much
   # information to avoid inadvertent exposure of personally identifiable information (PII).
