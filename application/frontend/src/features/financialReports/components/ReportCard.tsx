@@ -20,7 +20,17 @@ const nonJgaapBadge: Record<string, string> = {
 export function ReportCard({ report }: { report: FinancialReport }) {
   const consolidationTypeLabel =
     report.consolidationType === 'consolidated' ? '連結' : '単体';
-  const standardLabel = nonJgaapBadge[report.accountingStandard];
+  // hasOwnPropertyで引く: 素の[]アクセスだとaccountingStandardが"constructor"等のとき
+  // Object.prototypeのメンバーがラベルとして描画されるため
+  const standardLabel = Object.prototype.hasOwnProperty.call(
+    nonJgaapBadge,
+    report.accountingStandard,
+  )
+    ? nonJgaapBadge[report.accountingStandard]
+    : undefined;
+  const kabutanUrl = `https://kabutan.jp/stock/?code=${encodeURIComponent(
+    report.stockCode ?? '',
+  )}`;
   const subheaderSuffix = standardLabel
     ? `（${consolidationTypeLabel}・${standardLabel}）`
     : `（${consolidationTypeLabel}）`;
@@ -34,14 +44,17 @@ export function ReportCard({ report }: { report: FinancialReport }) {
               title={`${report.companyName}（株探）`}
               underline="none"
               target="_blank"
-              href={`https://kabutan.jp/stock/?code=${report.stockCode}`}
+              // MUIのLinkはrelを自動付与しないため明示する。
+              // noreferrer: 検索条件を含むURLが遷移先に渡るのを防ぐ
+              rel="noopener noreferrer"
+              href={kabutanUrl}
             >
               <span
                 onClick={() =>
                   FirebaseAnalytics.logClickEvent({
                     content_type: 'url',
                     link_domain: 'kabutan.jp',
-                    link_url: `https://kabutan.jp/stock/?code=${report.stockCode}`,
+                    link_url: kabutanUrl,
                     custom_stock_code: report.stockCode ?? '',
                     custom_title: report.companyName ?? '',
                     custom_timespan: `${report.fiscalYearStartDate}-${report.fiscalYearEndDate}`,

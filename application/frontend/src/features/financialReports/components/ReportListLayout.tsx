@@ -216,6 +216,9 @@ export function ReportListLayout({ children }: { children: React.ReactNode }) {
         出典:
         <Link
           target="_blank"
+          // MUIのLinkはrelを自動付与しないため明示する。
+          // noreferrer: 検索条件を含むURLが遷移先に渡るのを防ぐ
+          rel="noopener noreferrer"
           href="https://disclosure2.edinet-fsa.go.jp/WEEK0010.aspx"
           underline="none"
         >
