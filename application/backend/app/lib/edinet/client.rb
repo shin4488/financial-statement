@@ -12,9 +12,13 @@ module Edinet
     # EDINETのdocIDは英大文字+数字8桁（例: S100YB5L）。外部由来の値をファイルパス・URLに
     # 埋め込む前の形式ガード（rakeタスクの手入力ミス対策を兼ねる）
     DOC_ID_PATTERN = /\A[A-Z0-9]{8}\z/.freeze
-    # 有報zipの1エントリの展開サイズ上限。実測の有報XBRLは数MB程度のため、
+    # 有報zipの1エントリの展開サイズ上限（500MB）。実測の有報XBRLは数MB程度のため、
     # これを大きく超えるものは異常（zip爆弾・EDINET側の障害）として展開しない
     MAX_ENTRY_SIZE = 500 * 1024 * 1024
+    # ダウンロードするzip自体のサイズ上限（500MB）。実測の有報zipは1書類あたり数MBで、
+    # EDINET側の障害で巨大なレスポンスが返ってきたときに一時ディレクトリを
+    # 埋め尽くさないための可用性ガード
+    MAX_ZIP_SIZE = 500 * 1024 * 1024
 
     DocumentMeta = Struct.new(:doc_id, :sec_code, :filer_name, :doc_type_code, keyword_init: true)
 
@@ -49,8 +53,12 @@ module Edinet
       # 書類取得APIの type=1 は「提出本文書及び監査報告書」のzip
       uri = URI("#{BASE}/documents/#{doc_id}")
       uri.query = URI.encode_www_form(type: 1, "Subscription-Key" => api_key)
-      # copy_stream: レスポンス全体をStringに載せず直接ファイルへ書く（巨大レスポンスでのOOM対策）
-      uri.open { |src| IO.copy_stream(src, zip_path) }
+      # copy_stream: レスポンス全体をStringに載せず直接ファイルへ書く（巨大レスポンスでのOOM対策）。
+      # 上限+1バイトまで読んで超過を検出する（Content-Lengthは信用せず実バイト数で判定）
+      uri.open { |src| IO.copy_stream(src, zip_path, MAX_ZIP_SIZE + 1) }
+      if File.size(zip_path) > MAX_ZIP_SIZE
+        raise "EDINET zip too large: #{doc_id} (> #{MAX_ZIP_SIZE} bytes)"
+      end
 
       xbrl_path = nil
       Zip::File.open(zip_path) do |zip|
