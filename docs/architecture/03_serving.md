@@ -122,6 +122,10 @@ query {
   `EXISTS (SELECT 1 FROM financial_statement_items WHERE item_code=? AND amount > 0)`
   （`(item_code, amount)` 複合インデックスで評価）
 - 既存クエリ `companyFinancialStatements` とは独立に同居
+- **未認証で誰でも叩けるエンドポイントのため入力量に上限がある**:
+  `limit` は1〜100、`stockCodes` は最大100件、スキーマ全体で `max_complexity 400` /
+  `max_depth 15`（`financial_statement_schema.rb`）。実測では一覧クエリが複雑度40、
+  graphql-codegenのイントロスペクションが187。フィールドを増やすときはこの余裕を確認する
 
 ## テスト
 
