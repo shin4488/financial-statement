@@ -6,6 +6,12 @@ module Resolvers
     type [Types::FinancialReportType], null: false
     description "有報の財務3表チャート一覧（提出日降順）"
 
+    # 既定の複雑度は引数を見ないため limit:1 と limit:100 が同コスト扱いになり、
+    # エイリアスを並べるだけで上限内に高負荷リクエストを作れてしまう。
+    # 実測したコストは「エイリアス数 x (固定コスト + 件数比例分)」の形のため、
+    # child_complexityで固定コスト分を、limitの項で件数比例分を負担させる
+    complexity ->(_ctx, args, child_complexity) { child_complexity + args[:limit] / 2 }
+
     argument :limit, Integer, required: true,
              validates: { numericality: { greater_than: 0, less_than_or_equal_to: 100 } }
     argument :offset, Integer, required: true,
