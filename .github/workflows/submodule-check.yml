@@ -4,6 +4,9 @@ name: submodule-check
 on:
   push:
     branches: [main]
+# 既定はリポジトリ設定依存のため、必要な読み取りのみを明示する（最小権限）
+permissions:
+  contents: read
 jobs:
   check:
     runs-on: ubuntu-latest
