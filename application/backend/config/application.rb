@@ -2,16 +2,13 @@ require_relative "boot"
 
 require "rails"
 # Pick the frameworks you want:
+# ActiveStorage・ActionMailer/Mailbox/Text・ActionCableは未使用のため読み込まない
+# （未認証で到達可能な /rails/active_storage/* 等のエンドポイントが本番に生えるのを防ぐ）
 require "active_model/railtie"
 require "active_job/railtie"
 require "active_record/railtie"
-require "active_storage/engine"
 require "action_controller/railtie"
-require "action_mailer/railtie"
-require "action_mailbox/engine"
-require "action_text/engine"
 require "action_view/railtie"
-require "action_cable/engine"
 
 require "net/http"
 require "open-uri"
@@ -44,7 +41,6 @@ module FinancialStatement
     # DBに書かれている時刻をどのタイムゾーンとして解釈するか、時刻をDBに書き込むときどのタイムゾーンで書き込むか（DBのタイムゾーン）
     config.active_record.default_timezone = :utc
 
-    config.middleware.use ActionDispatch::Session::CookieStore
     config.paths.add 'lib', eager_load: true
     # https://weseek.co.jp/tech/680/
     # DNSリバインディング攻撃制御に対応するため、nginxで定義されているサーバ名からのリクエストは受け付ける
