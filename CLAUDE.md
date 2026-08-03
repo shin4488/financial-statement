@@ -22,27 +22,33 @@ docker-compose.yml     # 全体起動（web:10000, api:20000）
 ## バックエンド（application/backend）
 
 - Rails 7 + GraphQL（エンドポイント `/graphql`）+ Sidekiq（sidekiq-cronで日次取込）
-- データ取込の流れ: `SecurityReport::SubscriberService`（EDINET API→zip→XBRL）
-  → `SecurityReport::ReaderRepository`（XBRLパース）→ `Company`/`SecurityReport` upsert
-- 参照系: `Types::QueryType#company_financial_statements` → `SecurityReport::FetcherService`
+- データ取込の流れ: `Ingestion::DailyIngestionService`（`DailyIngestionJob`が毎日2:00に実行）
+  → `Edinet::Client`（EDINET API→zip）→ `Xbrl::Document`（パース）
+  → `Ingestion::ReportIngester`（形式判定・Extractor・`Disclosure::*` upsert）
+- 参照系: `Types::QueryType#financial_reports` → `Resolvers::FinancialReports`
+  → `Disclosure::SearchQuery` + `Charts::BuilderRegistry`
 - 環境変数は `config/application.yml`（figaro形式・gitignore済みのローカルファイル。
   シークレットを含むため**このファイルの中身をコミット・ログ・ドキュメントに転記しないこと**）
 - EDINET APIはリクエスト過多で403になるため**同期・逐次実行が前提**（並列化しない）
+- 公開・未認証エンドポイントのため、スキーマに `max_complexity` / `max_depth` の上限がある
+  （`app/graphql/financial_statement_schema.rb`。フィールドを増やすときは上限に収まるか確認する）
 
 ## フロントエンド（application/frontend）
 
 - CRA(craco) + TypeScript + Apollo Client + Redux Toolkit + MUI + recharts
 - GraphQLの型生成: `npm run compile`（graphql-codegen。バックエンド起動が必要）
-- 主要ページ: `src/pages/financialStatementList/`、チャート: `src/components/*BarChart/`
+- 主要ページ: `src/features/financialReports/`、汎用チャート: `src/shared/financialCharts/`
+  （旧 `src/pages/financialStatementList/` と `src/components/*BarChart/` は停止・残置）
 
 ## ドメイン知識（重要）
 
 - 証券コードはEDINET上5桁、UI上は4桁（末尾0を付けて検索する）
 - 会計基準はDEIタグ `AccountingStandardsDEI`（Japan GAAP / US GAAP / IFRS）で判定
 - **IFRS企業の連結財務諸表は `jpigp_cor` 名前空間**（日本基準は `jppfs_cor`）。
-  現行実装はjppfs_corのみ対応のため、IFRS企業の連結は0で保存される既知課題
+  現行実装はIFRS（`ifrs_classified` / `ifrs_liquidity`）と日本基準の銀行にも対応済み
 - IFRS企業でも**単体財務諸表は日本基準**でタグ付けされる
-- 銀行・保険など特定業種は日本基準でも別フォーマット（業種DEIコード bnk/INS等）
+- 銀行・保険など特定業種は日本基準でも別フォーマット（業種DEIコード bnk/INS等）。
+  銀行は対応済み、保険・米国基準は `unsupported`（グラフの代わりに説明文を出す正常系）
 - **実装済みアーキテクチャの正は `docs/architecture/`**（縦持ち実装:
   Disclosureモデル・Ingestion・Charts・financialReportsクエリ・一覧画面の解説と設計意図）。
   旧系統（SecurityReport系）はコードのみ残置・停止中で、削除手順は

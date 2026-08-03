@@ -261,31 +261,8 @@ mainへのpush時に「submoduleの参照コミットがmainに含まれるか�
 
 ## 3. AI活用
 
-### 3-2. PR自動レビュー
-
-- **意図**: 個人開発でレビュアー不在。XBRL周りはタグ名typo等の機械的な見落としが起きやすい
-
-**手順**（backend/frontend各リポジトリ・30分ずつ）:
-
-1. リポジトリのSecretsに `ANTHROPIC_API_KEY` を登録
-2. `.github/workflows/claude-review.yml`:
-   ```yaml
-   name: claude-review
-   on:
-     pull_request: { types: [opened, synchronize] }
-   jobs:
-     review:
-       runs-on: ubuntu-latest
-       permissions: { contents: read, pull-requests: write }
-       steps:
-         - uses: anthropics/claude-code-action@v1
-           with:
-             anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-             prompt: "/review"
-   ```
-3. CLAUDE.md（リポジトリごとに簡易版を配置）に「レビュー観点」を書いておくと精度が上がる:
-   XBRLタグ名は docs/architecture/06_xbrl_format_research.md の実測表と一致するか・コンテキストの
-   Instant/Duration取り違えがないか・「開示なし=行なし」規約を破っていないか等
+（PR自動レビューは不採用: レビューはローカルのClaude Codeで実施できるため、
+CI常設のAPIコスト・Secrets管理に見合わない）
 
 ### 3-3. 財務コメントの自動生成（SEOコンテンツ兼用）
 
@@ -409,6 +386,5 @@ mainへのpush時に「submoduleの参照コミットがmainに含まれるか�
 
 1. **1-2 CI**（以後の全変更の安全網。1-4と1-5もこの中で同時に済ませる）
 2. **2-1 企業別URL + 2-3 動的sitemap**（SEOの土台）
-3. **3-2 PR自動レビュー**（導入コスト最小のAI活用）
-4. **2-2 SSR / 3-3 コメント生成**（サイト価値の本丸）
-5. 3-4〜3-7 は順次
+3. **2-2 SSR / 3-3 コメント生成**（サイト価値の本丸）
+4. 3-4〜3-7 は順次

@@ -6,14 +6,21 @@
 flowchart TB
     A["EDINET API v2<br>Edinet::Client"] -->|"zip → PublicDoc/*.xbrl"| B["Xbrl::Document<br>全factを1passでハッシュ化"]
     B --> C["Ingestion::DeiExtractor<br>企業名・期間・会計基準・業種DEI"]
-    C --> D{"Ingestion::FormatDetector<br>形式判定（下図）"}
+    C --> V{"DEI検証<br>EDINETコード形式・<br>一覧APIのsecCodeと突合"}
+    V -->|不一致| X["取込せずSentry通知"]
+    V -->|一致| D{"Ingestion::FormatDetector<br>形式判定（下図）"}
     D --> E["Ingestion::Extractors::*<br>形式別: タグ → 科目コード"]
     E --> F["Ingestion::ReportIngester#persist<br>1有報 = 1トランザクション"]
     F --> G[("companies / reports /<br>financial_statements / items")]
 ```
 
-- 実行入口は2つ: `DailyIngestionJob`（日次・**cron未登録**）と
+- 実行入口は2つ: `DailyIngestionJob`（日次・毎日2:00に`sidekiq-cron`で実行）と
   `rake 'ingestion:backfill[from,to]'` / `rake 'ingestion:documents[docID...]'`（手動）
+- **DEIは提出者が書いた値のため、企業マスタのキーとして使う前に検証する**:
+  EDINETコードの形式（`[A-Z]\d{5}`）と、金融庁の一覧API（`documents.json`）が返す
+  `secCode` との突合。食い違う書類は他社レコードを上書きし得るため取り込まない
+  （なりすまし・提出ミスの両方が同じ経路で起きる）。docID指定のrakeタスクは
+  一覧メタデータを持たないため証券コードの突合はスキップされる
 - EDINETはリクエスト過多で403になるため**同期・逐次**（並列化しない）+
   書類間に1秒スリープ。一覧APIはHTTPステータスを明示チェック（403を早期に検出）
 - 失敗の隔離境界は「1書類」と「1日」。1社の失敗が他社に波及しない（Sentryに通知）

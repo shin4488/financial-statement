@@ -79,20 +79,17 @@ DB接続情報などの環境変数は各Dockerfileに定義済みで、手動�
 
 ### データ投入
 
-起動直後のDBは空。EDINETから有報を取り込むには:
+起動直後のDBは空。EDINETから有報を取り込むには（EDINET APIキーが必要）:
 
 ```bash
-docker compose exec appserver bundle exec rails c
+# 方法1: 日付範囲を指定して取込（その期間に提出された全上場企業の有報）
+docker compose exec appserver bundle exec rake 'ingestion:backfill[2026-06-20,2026-06-30]'
 ```
 
-```ruby
-# 方法1: 日付範囲を指定して取込（その期間に提出された全上場企業の有報）
-SecurityReport::SubscriberService.subscribe(from_date: Date.new(2026, 6, 20), to_date: Date.new(2026, 6, 30))
-
+```bash
 # 方法2: EDINETの書類管理番号（docID）を指定して取込
-# 例は各会計基準・業種の検証用6社（詳細: docs/zero-base-redesign/01_xbrl_format_research.md）
-SecurityReport::SubscriberService.subscribe_by_target_document_ids(
-  target_document_ids: %w[S100YB5L S100YB25 S100YCP3 S100XTNW S100YLS8 S100YJQO])
+# 例は各会計基準・業種の検証用6社（詳細: docs/architecture/06_xbrl_format_research.md）
+docker compose exec appserver bundle exec rake 'ingestion:documents[S100YB5L S100YB25 S100YCP3 S100XTNW S100YLS8 S100YJQO]'
 ```
 
 ※ EDINET APIはリクエスト過多で403を返すため、取込は同期・逐次実行が前提（並列化しないこと）。
@@ -122,21 +119,32 @@ npm run compile        # graphql-codegen。src/__generated__/ が更新される
 ### 日次バッチ
 
 `sidekiq-cron` により毎日2:00に前日提出分の有報を自動取込する
-（`application/backend/config/sidekiq-cron.yml` / `SecurityReportSubscriberJob`）。
+（`application/backend/config/sidekiq-cron.yml` / `DailyIngestionJob`）。
 Sidekiqはappserverコンテナの起動スクリプト内で一緒に立ち上がる。
 
 ## ドキュメント
 
 | パス | 内容 |
 |---|---|
-| [docs/zero-base-redesign/](docs/zero-base-redesign/README.md) | ゼロベース再設計案（**推奨**。IFRS・銀行等の多形式対応の実装方針。6社の実XBRL調査に基づく） |
-| [docs/ifrs-support/](docs/ifrs-support/README.md) | IFRS対応の段階改修案（既存テーブル前提の代替案） |
+| [docs/architecture/](docs/architecture/README.md) | **実装済みアーキテクチャの正**（縦持ちデータモデル・取込・チャート・一覧画面の解説と設計意図） |
 | [docs/improvements.md](docs/improvements.md) | DX / SEO / AI活用の改善バックログ（作業手順つき） |
 | [CLAUDE.md](CLAUDE.md) | AIエージェント向けコンテキスト（ドメイン知識・既知課題の要約） |
 
-## 既知の課題
+## 対応状況と既知の課題
 
-- **IFRS企業の連結財務諸表が0で保存される**: IFRSの連結はXBRL上 `jpigp_cor` 名前空間だが、
-  現行実装は日本基準の `jppfs_cor` のみ参照しているため。対応方針は `docs/zero-base-redesign/`
-- **銀行・保険など特定業種は未対応**: 日本基準でも業種固有の様式のため表示されない
+表示できる形式は「会計基準 × 表示様式」で決まる（詳細は
+[docs/architecture/README.md](docs/architecture/README.md)）。
+
+| 形式 | 対象 | 状態 |
+|---|---|---|
+| `jgaap_general` | 日本基準・一般事業会社 | 対応済み |
+| `jgaap_bank` | 日本基準・銀行 | 対応済み |
+| `ifrs_classified` / `ifrs_liquidity` | IFRS（連結） | 対応済み |
+| `unsupported` | 米国基準・日本基準の保険等 | チャートの代わりに説明文を表示（正常系） |
+
+- **米国基準・日本基準の保険業などは未対応**: 上記 `unsupported` として扱われ、
+  グラフの代わりにその旨が表示される。追加はExtractor・Builderのファイル追加のみで済む
+  （マイグレーション不要。手順は [docs/architecture/02_ingestion.md](docs/architecture/02_ingestion.md)）
+- **旧系統（SecurityReport系）がコードとして残置・停止中**: 削除手順は
+  [docs/architecture/07_legacy_cleanup.md](docs/architecture/07_legacy_cleanup.md)
 - その他は [docs/improvements.md](docs/improvements.md) を参照
