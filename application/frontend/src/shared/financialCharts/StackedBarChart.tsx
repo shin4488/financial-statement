@@ -33,10 +33,12 @@ export function toStackRows(chart: StackChart): {
   const columns: StackColumn[] = [];
   const rows = chart.bars.map((bar) => {
     // __segments: この行のセグメントメタ（実値など）。ツールチップはここから引くため、
-    // フロントは科目辞書を一切持たない
+    // フロントは科目辞書を一切持たない。
+    // Object.create(null): キーがAPI由来のため、"__proto__"等でも
+    // プロトタイプに干渉しない素のマップとして扱う
     const row = {
       name: bar.label,
-      __segments: {} as Record<string, Segment>,
+      __segments: Object.create(null) as Record<string, Segment>,
     } as Row;
     bar.segments.forEach((s) => {
       if (!columns.some((c) => c.key === s.key)) {
@@ -74,7 +76,11 @@ export function StackedBarChart({
   const { rows, columns } = toStackRows(chart);
 
   return (
-    <ResponsiveContainer className="bar-container" width={width} height={height}>
+    <ResponsiveContainer
+      className="bar-container"
+      width={width}
+      height={height}
+    >
       <BarChart data={rows}>
         {/* Y軸反転: 積み上げを「上から下」に描く（BSの「上=流動・下=純資産」の慣習を保つ）。
             domainのdataMaxで最も高いバーに全バーの縮尺を合わせる */}

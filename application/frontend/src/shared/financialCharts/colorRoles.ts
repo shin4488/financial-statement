@@ -31,9 +31,10 @@ const FALLBACK_COLOR = '#9E9E9E';
 const warnedRoles = new Set<string>();
 
 export function colorForRole(role: string): string {
-  const color = colorByRole[role];
-  if (color !== undefined) {
-    return color;
+  // hasOwnPropertyで引く: 素の[]アクセスだとroleが"constructor"等のとき
+  // Object.prototypeのメンバーが色として返ってしまうため
+  if (Object.prototype.hasOwnProperty.call(colorByRole, role)) {
+    return colorByRole[role];
   }
   // 警告はroleごとに1回だけ（セグメント数*再レンダリングで氾濫させない）
   if (!warnedRoles.has(role)) {
