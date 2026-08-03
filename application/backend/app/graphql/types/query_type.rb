@@ -11,10 +11,11 @@ module Types
 
     field :company_financial_statements, [FinancialStatement::CompanyFinancialStatementType], "Find Company Financial Statement by limit" do
       # 上限値はDoS対策（未認証で全件相当を引き出せないようにする）。
-      # 利用者はChrome拡張のみのため、通常利用を大きく上回る余裕を持たせた値にしている
-      argument :limit, Integer, validates: { numericality: { greater_than: 0, less_than_or_equal_to: 1000 } }
+      # 唯一の利用者であるChrome拡張は移行前・移行後とも limit: 100 固定のため、
+      # 新クエリ financialReports と同じ100に揃える
+      argument :limit, Integer, validates: { numericality: { greater_than: 0, less_than_or_equal_to: 100 } }
       argument :offset, Integer, validates: { numericality: { greater_than_or_equal_to: 0 } }
-      argument :stock_codes, [String], required: false, validates: { length: { maximum: 1000 } }
+      argument :stock_codes, [String], required: false, validates: { length: { maximum: 100 } }
       argument :operating_activities_cash_flow_sign, FinancialStatement::NumberSignType, required: false
       argument :investing_activities_cash_flow_sign, FinancialStatement::NumberSignType, required: false
       argument :financing_activities_cash_flow_sign, FinancialStatement::NumberSignType, required: false
