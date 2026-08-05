@@ -17,10 +17,7 @@ flowchart TB
 - 実行入口は2つ: `DailyIngestionJob`（日次・毎日2:00に`sidekiq-cron`で実行）と
   `rake 'ingestion:backfill[from,to]'` / `rake 'ingestion:documents[docID...]'`（手動）
 - **DEIは提出者が書いた値のため、企業マスタのキーとして使う前に検証する**:
-  EDINETコードの形式（`[A-Z]\d{5}`）と、金融庁の一覧API（`documents.json`）が返す
-  `secCode` との突合。食い違う書類は他社レコードを上書きし得るため取り込まない
-  （なりすまし・提出ミスの両方が同じ経路で起きる）。docID指定のrakeタスクは
-  一覧メタデータを持たないため証券コードの突合はスキップされる
+  EDINETコードの形式（`[A-Z]\d{5}`）と、金融庁の一覧API（`documents.json`）が返す`secCode` との突合。食い違う書類は他社レコードを上書きし得るため取り込まない（なりすまし・提出ミスの両方が同じ経路で起きる）。docID指定のrakeタスクは一覧メタデータを持たないため証券コードの突合はスキップされる
 - EDINETはリクエスト過多で403になるため**同期・逐次**（並列化しない）+
   書類間に1秒スリープ。一覧APIはHTTPステータスを明示チェック（403を早期に検出）
 - 失敗の隔離境界は「1書類」と「1日」。1社の失敗が他社に波及しない（Sentryに通知）
@@ -38,9 +35,7 @@ flowchart TB
 
 放置するとその日の有報が欠落したままになるため、`list failed` は必ず再実行すること。
 
-既知のエッジ（fail-safe方向・対応不要）: 「連結廃止をDEIで伝え、かつ財務factを含まない
-訂正有報」が来ると、連結行の削除と単体行の更新スキップが同時に起こり、`is_primary` の行が
-一時的に無くなってその有報が一覧から消える（Sentry警告あり。次の正常な取込で復元される）。
+既知のエッジ（fail-safe方向・対応不要）: 「連結廃止をDEIで伝え、かつ財務factを含まない訂正有報」が来ると、連結行の削除と単体行の更新スキップが同時に起こり、`is_primary` の行が一時的に無くなってその有報が一覧から消える（Sentry警告あり。次の正常な取込で復元される）。
 
 ## 形式判定（FormatDetector）
 
@@ -62,52 +57,42 @@ flowchart TB
 
 ## Extractor = 「タグ → 科目コード」の対応表
 
-形式1つ = クラス1つ。中身はほぼ宣言的なマッピング定数（コードを読む場所はここだけ）。
+形式1つ = クラス1つ。中身はほぼ宣言的なマッピング定数で、コードを読む場所はここだけになる。
 
 ```ruby
 # 例: JgaapBank（抜粋）。実物は app/services/ingestion/extractors/jgaap_bank.rb
 INSTANT_MAPPING = {                     # BS残高系 = CurrentYearInstant コンテキスト
   "bs.assets"   => "jppfs_cor:Assets",  # 合計は一般企業と同じ汎用タグ
   "bs.loans"    => "jppfs_cor:LoansAndBillsDiscountedAssetsBNK",
-  "bs.deposits" => "jppfs_cor:DepositsLiabilitiesBNK",
 }
 DURATION_MAPPING = {                    # PL/CF増減系 = CurrentYearDuration コンテキスト
   "pl.ordinary_revenue" => "jppfs_cor:OrdinaryIncomeBNK",  # 経常収益（トップライン）
-  "pl.ordinary_profit"  => "jppfs_cor:OrdinaryIncome",     # 経常利益（別物！BNKなし）
+  "pl.ordinary_profit"  => "jppfs_cor:OrdinaryIncome",     # 経常利益（別物。BNKなし）
 }
 ```
 
-マッピングで表せないものだけ `extract_extras` フックに書く:
+値を配列にするとフォールバックリストになり、先に取れたタグを採用する。企業ごとの科目名のゆれ（完成工事高・営業収益など）はこれで吸収している。
 
-| ケース | 例 |
-|---|---|
-| 別コンテキスト参照 | CF期首残高（前期末 = `Prior1YearInstant`） |
-| 複数タグの合算 | のれん+無形資産（別掲する企業と合算タグの企業がいる） |
+マッピングで表せないものだけ `extract_extras` フックに書く。現在あるのはCF期首残高（前期末という別コンテキストを見る）と、のれん+無形資産の合算の2種類だけ。
 
-フォールバックリスト（配列で書くと先勝ち）:
-
-```ruby
-"pl.revenue" => %w[
-  jpigp_cor:RevenueIFRS                          # 標準タグ3系列を順に
-  jpigp_cor:Revenue2IFRS
-  jpigp_cor:NetSalesIFRS
-  jpcrp_cor:RevenueIFRSSummaryOfBusinessResults  # 最後の砦: 経営指標サマリ
-]                                                 # （本表が企業拡張タグのみの企業対策）
-```
+**全形式・全科目のタグ対応は [05_taxonomy_mapping.md](05_taxonomy_mapping.md) に一覧がある。**
 
 ## 出力例（同じ入口から形式ごとに違う科目が出る）
 
-```
-武田薬品（ifrs_classified）             三菱UFJ FG（jgaap_bank）
-{                                       {
-  "bs.current_assets" => 3.09兆,          "bs.loans"    => 133.8兆,
-  "bs.assets"         => 15.5兆,          "bs.deposits" => 239.4兆,
-  "pl.revenue"        => 4.5兆,           "pl.ordinary_revenue" => 14.6兆,
-  "pl.profit_before_tax" => -0.14兆,      "cf.operating" => -23.1兆,
-  ...                                     ...
-}                                       }
-※ キーがない = 開示なし（東京海上のPLはpl.revenueキー自体が出ない）
-```
+Extractorの戻り値は `{科目コード => 金額}` のハッシュで、形式によって入るキーが変わる。
+
+| 科目コード | 武田薬品（ifrs_classified） | 三菱UFJ FG（jgaap_bank） |
+|---|---|---|
+| bs.assets | 15.5兆 | 431.7兆 |
+| bs.current_assets | 3.09兆 | キーなし（銀行に流動区分がない） |
+| bs.loans | キーなし | 133.8兆 |
+| bs.deposits | キーなし | 239.4兆 |
+| pl.revenue | 4.5兆 | キーなし（銀行は売上高がない） |
+| pl.ordinary_revenue | キーなし | 14.6兆 |
+| pl.profit_before_tax | -0.14兆 | 3.3兆 |
+| cf.operating | 1.04兆 | -23.1兆 |
+
+キーが無い = 開示なし。東京海上のPLは `pl.revenue` のキー自体が出ない。
 
 ## 新形式の追加手順（例: 日本基準・保険業）
 

@@ -1,8 +1,6 @@
 # 旧系統の削除・変更リスト（新系統の安定確認後に実施）
 
-2026-08-02の切替で**旧系統はコードとして残したまま停止**した（日次cronは`DailyIngestionJob`のみ、
-画面は`/`が新一覧・旧ページはルーティングなし）。新系統の安定を確認できたら、
-このリストを上から潰して旧系統を削除する。
+2026-08-02の切替で**旧系統はコードとして残したまま停止**した（日次cronは`DailyIngestionJob`のみ、画面は`/`が新一覧・旧ページはルーティングなし）。新系統の安定を確認できたら、このリストを上から潰して旧系統を削除する。
 
 ## 大前提
 
@@ -10,8 +8,7 @@
   （旧cron停止に伴い2026-08-02時点の内容で凍結。閲覧・検証用）
 - `companies`テーブルは**新系統（`Disclosure::Company`）が使用中**のため削除・変更禁止
 - **Chrome拡張が`companyFinancialStatements`クエリを使用中**。拡張が`financialReports`へ
-  移行し、ストア審査を通過してユーザーに行き渡るまで、バックエンドの旧クエリ系統は削除禁止
-  （拡張のデータソース`security_reports`は凍結済みのため、移行が遅れるほど拡張の表示は古くなる）
+  移行し、ストア審査を通過してユーザーに行き渡るまで、バックエンドの旧クエリ系統は削除禁止（拡張のデータソース`security_reports`は凍結済みのため、移行が遅れるほど拡張の表示は古くなる）
 
 ## 削除の順序
 
@@ -42,9 +39,7 @@ flowchart LR
 
 削除しないもの（新系統が使用中）:
 
-`Disclosure::*` / `Ingestion::*` / `Charts::*` / `Xbrl::Document` / `Edinet::Client` /
-`FinancialStatements::ItemCodes` / `Resolvers::FinancialReports` / `Types::Chart::*` /
-`Types::MoneyType` / `Types::CashFlowSignType` / `DailyIngestionJob` / `lib/tasks/ingestion.rake`
+`Disclosure::*` / `Ingestion::*` / `Charts::*` / `Xbrl::Document` / `Edinet::Client` /`FinancialStatements::ItemCodes` / `Resolvers::FinancialReports` / `Types::Chart::*` /`Types::MoneyType` / `Types::CashFlowSignType` / `DailyIngestionJob` / `lib/tasks/ingestion.rake`
 
 ## ③ フロントエンド（application/frontend）
 

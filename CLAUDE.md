@@ -54,7 +54,7 @@ docker-compose.yml     # 全体起動（web:10000, api:20000）
   旧系統（SecurityReport系）はコードのみ残置・停止中で、削除手順は
   `docs/architecture/07_legacy_cleanup.md` にある
 - **XBRLタグを扱う作業の前に必ず
-  `docs/architecture/06_xbrl_format_research.md`（6社実測データ）を読むこと**
+  `docs/architecture/06_xbrl_research.md`（6社実測データ）を読むこと**
 
 ## 改善バックログ
 

@@ -88,7 +88,7 @@ docker compose exec appserver bundle exec rake 'ingestion:backfill[2026-06-20,20
 
 ```bash
 # 方法2: EDINETの書類管理番号（docID）を指定して取込
-# 例は各会計基準・業種の検証用6社（詳細: docs/architecture/06_xbrl_format_research.md）
+# 例は各会計基準・業種の検証用6社（詳細: docs/architecture/06_xbrl_research.md）
 docker compose exec appserver bundle exec rake 'ingestion:documents[S100YB5L S100YB25 S100YCP3 S100XTNW S100YLS8 S100YJQO]'
 ```
 
