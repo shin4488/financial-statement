@@ -1,7 +1,6 @@
 # XBRL形式 実地調査結果（6社・4形式）
 
-EDINET API v2 で実際に有報XBRLを取得し、全factをダンプして分析した結果。
-既存アプリの `SecurityReport::ReaderRepository` の実行結果とも突き合わせている。
+EDINET API v2 で実際に有報XBRLを取得し、全factをダンプして分析した結果。既存アプリの `SecurityReport::ReaderRepository` の実行結果とも突き合わせている。
 
 ## 調査対象
 
@@ -23,37 +22,22 @@ EDINET API v2 で実際に有報XBRLを取得し、全factをダンプして分�
 ### 共通事項（全6社）
 
 - コンテキストID体系は全形式共通:
-  連結=`CurrentYearInstant` / `CurrentYearDuration` / `Prior1YearInstant`（サフィックスなし）、
-  単体=`〜_NonConsolidatedMember`。
+  連結=`CurrentYearInstant` / `CurrentYearDuration` / `Prior1YearInstant`（サフィックスなし）、単体=`〜_NonConsolidatedMember`。
 - DEI（`jpdei_cor`）は全形式共通に取得可能:
-  `AccountingStandardsDEI`（"Japan GAAP"/"US GAAP"/"IFRS"）、`EDINETCodeDEI`、`SecurityCodeDEI`、
-  `CurrentFiscalYearStartDateDEI`/`EndDateDEI`、`WhetherConsolidatedFinancialStatementsArePreparedDEI`、
-  `IndustryCodeWhenConsolidatedFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI`（例: cte/bnk/INS）。
+  `AccountingStandardsDEI`（"Japan GAAP"/"US GAAP"/"IFRS"）、`EDINETCodeDEI`、`SecurityCodeDEI`、`CurrentFiscalYearStartDateDEI`/`EndDateDEI`、`WhetherConsolidatedFinancialStatementsArePreparedDEI`、`IndustryCodeWhenConsolidatedFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI`（例: cte/bnk/INS）。
 - **IFRS企業の単体財務諸表は日本基準**（`jppfs_cor` + `_NonConsolidatedMember`）で全社タグ付けされていた。
 - **CFの3区分と現金同等物は全形式で取得可能**（タグ名は基準別に異なるのみ。下表）。
 
 ### 形式1: jgaap_general（日本基準・一般）
 
-現行アプリが対応している形式。`jppfs_cor` 名前空間。
-BS=流動資産/固定資産（有形・無形・投資その他の3分類）/流動負債/固定負債/純資産、
-PL=売上高→営業利益→経常利益→特別損益→当期純利益。
-売上高・売上原価は業種による科目ゆれあり（完成工事高など。現行実装のフォールバックリストを踏襲）。
+現行アプリが対応している形式。`jppfs_cor` 名前空間。BS=流動資産/固定資産（有形・無形・投資その他の3分類）/流動負債/固定負債/純資産、PL=売上高→営業利益→経常利益→特別損益→当期純利益。売上高・売上原価は業種による科目ゆれあり（完成工事高など。現行実装のフォールバックリストを踏襲）。
 
 ### 形式2: jgaap_bank（日本基準・銀行）— 三菱UFJ FGで実測
 
 - BS: **流動/固定の区分が存在しない**。資産・負債は業種固有の内訳科目
-  （`〜AssetsBNK` / `〜LiabilitiesBNK` サフィックス）。
-  ただし**合計は汎用タグで取れる**: `jppfs_cor:Assets`（431.7兆）/ `jppfs_cor:Liabilities`（408.0兆）/ `jppfs_cor:NetAssets`（23.7兆）。
-  主要内訳（実測、いずれも `CurrentYearInstant`）:
-  - `jppfs_cor:LoansAndBillsDiscountedAssetsBNK` 貸出金 133.8兆
-  - `jppfs_cor:SecuritiesAssetsBNK` 有価証券 85.7兆
-  - `jppfs_cor:CashAndDueFromBanksAssetsBNK` 現金預け金 90.0兆
-  - `jppfs_cor:DepositsLiabilitiesBNK` 預金 239.4兆
+  （`〜AssetsBNK` / `〜LiabilitiesBNK` サフィックス）。ただし**合計は汎用タグで取れる**: `jppfs_cor:Assets`（431.7兆）/ `jppfs_cor:Liabilities`（408.0兆）/ `jppfs_cor:NetAssets`（23.7兆）。主要内訳（実測、いずれも `CurrentYearInstant`）:- `jppfs_cor:LoansAndBillsDiscountedAssetsBNK` 貸出金 133.8兆- `jppfs_cor:SecuritiesAssetsBNK` 有価証券 85.7兆- `jppfs_cor:CashAndDueFromBanksAssetsBNK` 現金預け金 90.0兆- `jppfs_cor:DepositsLiabilitiesBNK` 預金 239.4兆
 - PL: 売上高・営業利益は存在せず**経常収益/経常費用**型:
-  - `jppfs_cor:OrdinaryIncomeBNK` 経常収益 14.62兆（※BNKサフィックス付き）
-  - `jppfs_cor:OrdinaryExpensesBNK` 経常費用 11.21兆
-  - `jppfs_cor:OrdinaryIncome` 経常利益 3.41兆（※**汎用タグと同名**。BNKなしが経常利益）
-  - 特別損益・`IncomeBeforeIncomeTaxes`・`ProfitLoss`・`ProfitLossAttributableToOwnersOfParent` は一般形式と同じ汎用タグ
+  - `jppfs_cor:OrdinaryIncomeBNK` 経常収益 14.62兆（※BNKサフィックス付き）- `jppfs_cor:OrdinaryExpensesBNK` 経常費用 11.21兆- `jppfs_cor:OrdinaryIncome` 経常利益 3.41兆（※**汎用タグと同名**。BNKなしが経常利益）- 特別損益・`IncomeBeforeIncomeTaxes`・`ProfitLoss`・`ProfitLossAttributableToOwnersOfParent` は一般形式と同じ汎用タグ
 - CF: **汎用タグがそのまま使われる**: `NetCashProvidedByUsedInOperatingActivities`（-23.1兆。銀行は営業CFが巨額になる）
   / `...InvestmentActivities` / `...InFinancingActivities` / `CashAndCashEquivalents`（期首=Prior1YearInstant）。
 
@@ -62,15 +46,11 @@ PL=売上高→営業利益→経常利益→特別損益→当期純利益。
 `jpigp_cor` 名前空間（IFRSタクソノミの様式511000）。
 
 - BS: `CurrentAssetsIFRS` / `NonCurrentAssetsIFRS` / `AssetsIFRS` /
-  `TotalCurrentLiabilitiesIFRS`（※Totalプレフィクス付き）/
-  `NonCurrentLabilitiesIFRS`（※**タクソノミ公式のタイポ**。1g_IFRS_ElementList.xlsxでも確認）/
-  `LiabilitiesIFRS` / `EquityAttributableToOwnersOfParentIFRS` / `NonControllingInterestsIFRS` / `EquityIFRS`。
-  のれん・無形は企業差: 武田=`GoodwillIFRS`+`IntangibleAssetsIFRS` 別掲、三菱商事=`GoodwillAndIntangibleAssetsIFRS` 合算。
+  `TotalCurrentLiabilitiesIFRS`（※Totalプレフィクス付き）/`NonCurrentLabilitiesIFRS`（※**タクソノミ公式のタイポ**。1g_IFRS_ElementList.xlsxでも確認）/`LiabilitiesIFRS` / `EquityAttributableToOwnersOfParentIFRS` / `NonControllingInterestsIFRS` / `EquityIFRS`。のれん・無形は企業差: 武田=`GoodwillIFRS`+`IntangibleAssetsIFRS` 別掲、三菱商事=`GoodwillAndIntangibleAssetsIFRS` 合算。
 - PL: 骨格（税引前利益から下）は共通、中間は企業差が大きい:
   - 武田: `RevenueIFRS` → `CostOfSalesIFRS`/`SellingGeneralAndAdministrativeExpensesIFRS` →
     `OperatingProfitLossIFRS` あり。**売上総利益タグなし**
-  - 三菱商事: `Revenue2IFRS`（収益）→ `GrossProfitIFRS` あり。**営業利益タグなし**
-  - NTT: 収益が**企業拡張タグ** `jpcrp030000-asr_E04430-000:OperatingRevenuesIFRS`（営業収益14.41兆）。
+  - 三菱商事: `Revenue2IFRS`（収益）→ `GrossProfitIFRS` あり。**営業利益タグなし**- NTT: 収益が**企業拡張タグ** `jpcrp030000-asr_E04430-000:OperatingRevenuesIFRS`（営業収益14.41兆）。
     標準の `jpigp_cor` に収益factなし。費用は `OperatingExpensesIFRS`（営業費用一括12.70兆）、
     `OperatingProfitLossIFRS` あり
   - 全社共通: `ProfitLossBeforeTaxIFRS` / `IncomeTaxExpenseIFRS` / `ProfitLossIFRS` /
@@ -80,14 +60,10 @@ PL=売上高→営業利益→経常利益→特別損益→当期純利益。
 
 ### 形式4: ifrs_liquidity（IFRS・流動性配列）— 楽天・東京海上で実測
 
-`jpigp_cor`（様式512000）。**`CurrentAssetsIFRS` 等の流動/非流動タグが1件も存在しない**
-（楽天のfactダンプで `CurrentAssetsIFRS` 出現0件を確認。512000様式ツリー自体に流動/非流動の要素がない）。
+`jpigp_cor`（様式512000）。**`CurrentAssetsIFRS` 等の流動/非流動タグが1件も存在しない**（楽天のfactダンプで `CurrentAssetsIFRS` 出現0件を確認。512000様式ツリー自体に流動/非流動の要素がない）。
 
 - BS: 資産・負債がフラットな科目列 + 合計のみ:
-  `AssetsIFRS` / `LiabilitiesIFRS` / `EquityIFRS` / `EquityAttributableToOwnersOfParentIFRS` /
-  `NonControllingInterestsIFRS` / `CashAndCashEquivalentsIFRS`。
-  内訳は `〜AssetsIFRS` / `〜LiabilitiesIFRS` サフィックスの科目（例: 楽天 `TradeReceivables2AssetsIFRS`、
-  `BondsAndBorrowingsLiabilitiesIFRS`）で企業ごとに構成が異なる。
+  `AssetsIFRS` / `LiabilitiesIFRS` / `EquityIFRS` / `EquityAttributableToOwnersOfParentIFRS` /`NonControllingInterestsIFRS` / `CashAndCashEquivalentsIFRS`。内訳は `〜AssetsIFRS` / `〜LiabilitiesIFRS` サフィックスの科目（例: 楽天 `TradeReceivables2AssetsIFRS`、`BondsAndBorrowingsLiabilitiesIFRS`）で企業ごとに構成が異なる。
 - PL:
   - 楽天: `RevenueIFRS`（2.50兆）→ `OperatingExpensesIFRS`（営業費用一括2.40兆）→
     `OperatingProfitLossIFRS`。原価/販管費の分解なし
@@ -104,8 +80,7 @@ PL=売上高→営業利益→経常利益→特別損益→当期純利益。
 - **511000 財政状態計算書（流動／非流動）** と **512000 財政状態計算書（流動性配列）** の
   2様式が公式に存在する。512000には流動/非流動の合計要素自体がない
 - **521000 損益計算書**: 収益の標準要素は `RevenueIFRS`（売上収益）/ `NetSalesIFRS`（売上高）/
-  `Revenue2IFRS`（収益）の3系列。`GrossProfitIFRS`・`OperatingProfitLossIFRS` は任意項目。
-  `OperatingExpensesIFRS`（営業費用）あり。経常利益・特別損益に相当する要素は存在しない
+  `Revenue2IFRS`（収益）の3系列。`GrossProfitIFRS`・`OperatingProfitLossIFRS` は任意項目。`OperatingExpensesIFRS`（営業費用）あり。経常利益・特別損益に相当する要素は存在しない
 - **540000 CF計算書**: `NetCashProvidedByUsedInOperatingActivitiesIFRS` 等の3区分 +
   `NetIncreaseDecreaseInCashAndCashEquivalentsIFRS` + `CashAndCashEquivalentsIFRS`
 - 要素メタデータとして periodType（instant/duration）と balance（debit/credit）が定義されており、
