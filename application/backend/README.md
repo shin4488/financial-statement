@@ -86,7 +86,7 @@ app/graphql/
 ```
 
 設計意図・XBRLの形式ごとの差異は親リポジトリの `docs/architecture/` を参照。
-**XBRLタグを扱う作業の前に必ず `docs/architecture/06_xbrl_format_research.md` を読むこと。**
+**XBRLタグを扱う作業の前に必ず `docs/architecture/06_xbrl_research.md` を読むこと。**
 
 `/graphql` は公開・未認証エンドポイントのため、スキーマに複雑度・深さの上限がある。
 フィールドを増やすときは上限に収まるか確認する（`financial_statement_schema.rb`）。
