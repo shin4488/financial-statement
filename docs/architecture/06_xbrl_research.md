@@ -1,6 +1,6 @@
 # XBRL形式 実地調査結果（6社・4形式）
 
-EDINET API v2 で実際に有報XBRLを取得し、全factをダンプして分析した結果。既存アプリの `SecurityReport::ReaderRepository` の実行結果とも突き合わせている。
+EDINET API v2 で実際に有報XBRLを取得し、全factをダンプして分析した結果。旧系統の `SecurityReport::ReaderRepository`（調査当時。2026-08-06に削除済み）の実行結果とも突き合わせている。
 
 ## 調査対象
 

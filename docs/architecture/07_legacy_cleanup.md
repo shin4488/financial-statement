@@ -23,19 +23,21 @@ flowchart LR
 
 削除するファイル:
 
-- [ ] `app/services/security_report/subscriber_service.rb` / `fetcher_service.rb`
-- [ ] `app/repositories/security_report/reader_repository.rb` / `document_repository.rb`
-- [ ] `app/jobs/security_report_subscriber_job.rb`
+- [x] `app/services/security_report/subscriber_service.rb`（2026-08-06削除）
+- [ ] `app/services/security_report/fetcher_service.rb`（旧クエリのresolverが使用中 — ①完了が前提）
+- [x] `app/repositories/security_report/reader_repository.rb` / `document_repository.rb`（2026-08-06削除）
+- [x] `app/jobs/security_report_subscriber_job.rb`（2026-08-06削除）
 - [ ] `app/models/security_report.rb`
 - [ ] `app/models/company.rb`（トップレベルの旧モデル。`Disclosure::Company`と同じテーブルを指す別クラス）
 - [ ] `app/graphql/types/financial_statement/` 配下すべて（旧クエリの型ツリー）
-- [ ] `lib/app_file/xml_parser.rb`（REXML依存。`Xbrl::Document`に置換済み）
+- [x] `lib/app_file/xml_parser.rb`（REXML依存。`Xbrl::Document`に置換済み）（2026-08-06削除）
 
 変更するファイル:
 
 - [ ] `app/graphql/types/query_type.rb`: `companyFinancialStatements` フィールドと
       そのresolverメソッドを削除（**スキーマ破壊変更 — ①完了が前提**）
-- [ ] `Gemfile`: `gem 'rexml'` を削除（xml_parser.rbと同時。`bundle install`でlock更新）
+- [x] `Gemfile`: `gem 'rexml'` を削除（xml_parser.rbと同時。`bundle install`でlock更新）
+      （2026-08-06削除。lock上は他gemの推移的依存として残る）
 
 削除しないもの（新系統が使用中）:
 
@@ -45,19 +47,20 @@ flowchart LR
 
 削除するファイル:
 
-- [ ] `src/pages/financialStatementList/` 一式（旧一覧ページ）
-- [ ] `src/layouts/default/` 一式（旧AppBar。`ReportListLayout`に置換済み）
-- [ ] `src/components/balanceSheetBarChart/` / `profitLossBarChart/` / `cashFlowBarChart/` /
+- [x] `src/pages/financialStatementList/` 一式（旧一覧ページ）（2026-08-06削除）
+- [x] `src/layouts/default/` 一式（旧AppBar。`ReportListLayout`に置換済み）（2026-08-06削除）
+- [x] `src/components/balanceSheetBarChart/` / `profitLossBarChart/` / `cashFlowBarChart/` /
       `waterFlowBarChart/` / `financialStatementBarChart/` / `chartAlternative/`
-      （科目別チャート部品。`shared/financialCharts`に置換済み）
-- [ ] `src/plugins/apollo/service.ts`（旧クエリ用クライアント。新系統は`features/financialReports/apolloClient.ts`）
-- [ ] `src/store/slices/financialStatementFilterSlice.ts`（検索条件はURLクエリに移行済み）
+      （科目別チャート部品。`shared/financialCharts`に置換済み）（2026-08-06削除）
+- [x] `src/plugins/apollo/service.ts`（旧クエリ用クライアント。新系統は`features/financialReports/apolloClient.ts`）（2026-08-06削除）
+- [x] `src/store/slices/financialStatementFilterSlice.ts`（検索条件はURLクエリに移行済み）
+      （2026-08-06削除。旧slice専用の`ChangeCashFlowFilterAction` / `ChangeStockCodeFilterAction`も削除）
 
 変更するファイル:
 
-- [ ] `src/store/store.ts`: `financialStatementFilter` slice の登録を削除（`autoPlayStatus`は残す）
-- [ ] `src/constants/values.ts`: 旧チャート専用の定数を削除
-      （`barChartWidth` / `barChartHeight` / `tooltipStyle` / `stackLabelListFillColor`）
+- [x] `src/store/store.ts`: `financialStatementFilter` slice の登録を削除（`autoPlayStatus`は残す）（2026-08-06実施）
+- [x] `src/constants/values.ts`: 旧チャート専用の定数を削除
+      （`barChartWidth` / `barChartHeight` / `tooltipStyle` / `stackLabelListFillColor`）（2026-08-06実施）
 
 削除しないもの（新系統が使用中）:
 
@@ -76,7 +79,7 @@ flowchart LR
 
 ## 削除後の確認
 
-- [ ] `bundle exec rspec` 全合格 / `rails zeitwerk:check`
-- [ ] `npx tsc --noEmit` / webpackビルド成功
-- [ ] `/` の表示・検索・無限スクロール、`/api/graphql` の `financialReports`
+- [x] `bundle exec rspec` 全合格 / `rails zeitwerk:check`（2026-08-06、71 examples, 0 failures）
+- [x] `npx tsc --noEmit` / webpackビルド成功（2026-08-06）
+- [x] `/` の表示・検索・無限スクロール、`/api/graphql` の `financialReports`（2026-08-06、ローカルdockerで確認）
 - [ ] Chrome拡張の表示（②の後）

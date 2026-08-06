@@ -35,7 +35,7 @@ flowchart TB
 | 型は構造的型（`types.ts`）で受ける | codegen生成型と構造が一致するため**変換なしで代入できる** |
 | スタイルはコンポーネント内で完結 | 外部CSSを要求しない |
 
-→ Chrome拡張側は**このディレクトリをコピーして同じクエリ結果を渡すだけ**。科目別チャート部品（balanceSheetBarChart / profitLossBarChart / cashFlowBarChart…）を両リポジトリで二重保守する状態が解消される。
+→ Chrome拡張側は**このディレクトリをコピーして同じクエリ結果を渡すだけ**。科目別チャート部品（balanceSheetBarChart / profitLossBarChart / cashFlowBarChart…）を両リポジトリで二重保守する状態が解消される（Webアプリ側の同部品は2026-08-06に削除済み）。
 
 ### 拡張側実装時のTODO（コードレビュー指摘・忘れ防止）
 
