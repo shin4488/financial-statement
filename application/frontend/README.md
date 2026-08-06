@@ -68,6 +68,3 @@ src/
 **チャートは「科目」を知らない**（バックエンドが色の役割・ラベル・積み上げ順まで決めて返す）。
 新しい会計基準・業種への対応でフロントを触る必要はない。設計意図は親リポジトリの
 `docs/architecture/04_frontend.md` を参照。
-
-旧一覧ページ（`src/pages/financialStatementList/` と `src/components/*BarChart/`）は
-2026-08-06に削除済み。経緯は親リポジトリの `docs/architecture/07_legacy_cleanup.md`。
