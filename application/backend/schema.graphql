@@ -1,60 +1,6 @@
-type BalanceSheet {
-  amount: BalanceSheetAmount
-  ratio: BalanceSheetRatio
-}
-
-type BalanceSheetAmount {
-  currentAsset: BigInt
-  currentLiability: BigInt
-  intangibleAsset: BigInt
-  investmentAndOtherAsset: BigInt
-  netAsset: BigInt
-  noncurrentLiability: BigInt
-  propertyPlantAndEquipment: BigInt
-}
-
-type BalanceSheetRatio {
-  currentAsset: Float
-  currentLiability: Float
-  intangibleAsset: Float
-  investmentAndOtherAsset: Float
-  netAsset: Float
-  noncurrentLiability: Float
-  propertyPlantAndEquipment: Float
-}
-
-"""
-Represents non-fractional signed whole numeric values. Since the value may
-exceed the size of a 32-bit integer, it's encoded as a string.
-"""
-scalar BigInt
-
-type CashFlow {
-  endingCash: BigInt
-  financingActivitiesCashFlow: BigInt
-  investingActivitiesCashFlow: BigInt
-  operatingActivitiesCashFlow: BigInt
-  startingCash: BigInt
-}
-
 enum CashFlowSign {
   NEGATIVE
   POSITIVE
-}
-
-type CompanyFinancialStatement {
-  balanceSheet: BalanceSheet
-  cashFlow: CashFlow
-  companyJapaneseName: String
-  consolidatedInductoryCode: String
-  filingDate: String
-  fiscalYearEndDate: String
-  fiscalYearStartDate: String
-  hasConsolidatedFinancialStatement: Boolean
-  id: ID!
-  nonConsolidatedInductoryCode: String
-  profitLoss: ProfitLoss
-  stockCode: String
 }
 
 type FinancialReport {
@@ -88,36 +34,7 @@ type FinancialReport {
 """
 scalar Money
 
-enum NumberSign {
-  NEGATIVE
-  POSITIVE
-}
-
-type ProfitLoss {
-  amount: ProfitLossAmount
-  ratio: ProfitLossRatio
-}
-
-type ProfitLossAmount {
-  netSales: BigInt
-  operatingIncome: BigInt
-  originalCost: BigInt
-  sellingGeneralExpense: BigInt
-}
-
-type ProfitLossRatio {
-  netSales: Float
-  operatingIncome: Float
-  originalCost: Float
-  sellingGeneralExpense: Float
-}
-
 type Query {
-  """
-  Find Company Financial Statement by limit
-  """
-  companyFinancialStatements(financingActivitiesCashFlowSign: NumberSign, investingActivitiesCashFlowSign: NumberSign, limit: Int!, offset: Int!, operatingActivitiesCashFlowSign: NumberSign, stockCodes: [String!]): [CompanyFinancialStatement!]
-
   """
   有報の財務3表チャート一覧（提出日降順）
   """
