@@ -14,69 +14,14 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  /** Represents non-fractional signed whole numeric values. Since the value may exceed the size of a 32-bit integer, it's encoded as a string. */
-  BigInt: { input: any; output: any; }
   /** 円単位の金額。Int32の範囲を超え得るがJSON上は数値のまま返す */
   Money: { input: number; output: number; }
-};
-
-export type BalanceSheet = {
-  __typename?: 'BalanceSheet';
-  amount?: Maybe<BalanceSheetAmount>;
-  ratio?: Maybe<BalanceSheetRatio>;
-};
-
-export type BalanceSheetAmount = {
-  __typename?: 'BalanceSheetAmount';
-  currentAsset?: Maybe<Scalars['BigInt']['output']>;
-  currentLiability?: Maybe<Scalars['BigInt']['output']>;
-  intangibleAsset?: Maybe<Scalars['BigInt']['output']>;
-  investmentAndOtherAsset?: Maybe<Scalars['BigInt']['output']>;
-  netAsset?: Maybe<Scalars['BigInt']['output']>;
-  noncurrentLiability?: Maybe<Scalars['BigInt']['output']>;
-  propertyPlantAndEquipment?: Maybe<Scalars['BigInt']['output']>;
-};
-
-export type BalanceSheetRatio = {
-  __typename?: 'BalanceSheetRatio';
-  currentAsset?: Maybe<Scalars['Float']['output']>;
-  currentLiability?: Maybe<Scalars['Float']['output']>;
-  intangibleAsset?: Maybe<Scalars['Float']['output']>;
-  investmentAndOtherAsset?: Maybe<Scalars['Float']['output']>;
-  netAsset?: Maybe<Scalars['Float']['output']>;
-  noncurrentLiability?: Maybe<Scalars['Float']['output']>;
-  propertyPlantAndEquipment?: Maybe<Scalars['Float']['output']>;
-};
-
-export type CashFlow = {
-  __typename?: 'CashFlow';
-  endingCash?: Maybe<Scalars['BigInt']['output']>;
-  financingActivitiesCashFlow?: Maybe<Scalars['BigInt']['output']>;
-  investingActivitiesCashFlow?: Maybe<Scalars['BigInt']['output']>;
-  operatingActivitiesCashFlow?: Maybe<Scalars['BigInt']['output']>;
-  startingCash?: Maybe<Scalars['BigInt']['output']>;
 };
 
 export enum CashFlowSign {
   Negative = 'NEGATIVE',
   Positive = 'POSITIVE'
 }
-
-export type CompanyFinancialStatement = {
-  __typename?: 'CompanyFinancialStatement';
-  balanceSheet?: Maybe<BalanceSheet>;
-  cashFlow?: Maybe<CashFlow>;
-  companyJapaneseName?: Maybe<Scalars['String']['output']>;
-  consolidatedInductoryCode?: Maybe<Scalars['String']['output']>;
-  filingDate?: Maybe<Scalars['String']['output']>;
-  fiscalYearEndDate?: Maybe<Scalars['String']['output']>;
-  fiscalYearStartDate?: Maybe<Scalars['String']['output']>;
-  hasConsolidatedFinancialStatement?: Maybe<Scalars['Boolean']['output']>;
-  id: Scalars['ID']['output'];
-  nonConsolidatedInductoryCode?: Maybe<Scalars['String']['output']>;
-  profitLoss?: Maybe<ProfitLoss>;
-  stockCode?: Maybe<Scalars['String']['output']>;
-};
 
 export type FinancialReport = {
   __typename?: 'FinancialReport';
@@ -97,49 +42,10 @@ export type FinancialReport = {
   stockCode?: Maybe<Scalars['String']['output']>;
 };
 
-export enum NumberSign {
-  Negative = 'NEGATIVE',
-  Positive = 'POSITIVE'
-}
-
-export type ProfitLoss = {
-  __typename?: 'ProfitLoss';
-  amount?: Maybe<ProfitLossAmount>;
-  ratio?: Maybe<ProfitLossRatio>;
-};
-
-export type ProfitLossAmount = {
-  __typename?: 'ProfitLossAmount';
-  netSales?: Maybe<Scalars['BigInt']['output']>;
-  operatingIncome?: Maybe<Scalars['BigInt']['output']>;
-  originalCost?: Maybe<Scalars['BigInt']['output']>;
-  sellingGeneralExpense?: Maybe<Scalars['BigInt']['output']>;
-};
-
-export type ProfitLossRatio = {
-  __typename?: 'ProfitLossRatio';
-  netSales?: Maybe<Scalars['Float']['output']>;
-  operatingIncome?: Maybe<Scalars['Float']['output']>;
-  originalCost?: Maybe<Scalars['Float']['output']>;
-  sellingGeneralExpense?: Maybe<Scalars['Float']['output']>;
-};
-
 export type Query = {
   __typename?: 'Query';
-  /** Find Company Financial Statement by limit */
-  companyFinancialStatements?: Maybe<Array<CompanyFinancialStatement>>;
   /** 有報の財務3表チャート一覧（提出日降順） */
   financialReports: Array<FinancialReport>;
-};
-
-
-export type QueryCompanyFinancialStatementsArgs = {
-  financingActivitiesCashFlowSign?: InputMaybe<NumberSign>;
-  investingActivitiesCashFlowSign?: InputMaybe<NumberSign>;
-  limit: Scalars['Int']['input'];
-  offset: Scalars['Int']['input'];
-  operatingActivitiesCashFlowSign?: InputMaybe<NumberSign>;
-  stockCodes?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 
