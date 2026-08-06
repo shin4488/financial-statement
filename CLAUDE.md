@@ -38,7 +38,6 @@ docker-compose.yml     # 全体起動（web:10000, api:20000）
 - CRA(craco) + TypeScript + Apollo Client + Redux Toolkit + MUI + recharts
 - GraphQLの型生成: `npm run compile`（graphql-codegen。バックエンド起動が必要）
 - 主要ページ: `src/features/financialReports/`、汎用チャート: `src/shared/financialCharts/`
-  （旧 `src/pages/financialStatementList/` と `src/components/*BarChart/` は停止・残置）
 
 ## ドメイン知識（重要）
 
@@ -51,8 +50,8 @@ docker-compose.yml     # 全体起動（web:10000, api:20000）
   銀行は対応済み、保険・米国基準は `unsupported`（グラフの代わりに説明文を出す正常系）
 - **実装済みアーキテクチャの正は `docs/architecture/`**（縦持ち実装:
   Disclosureモデル・Ingestion・Charts・financialReportsクエリ・一覧画面の解説と設計意図）。
-  旧系統（SecurityReport系）はコードのみ残置・停止中で、削除手順は
-  `docs/architecture/07_legacy_cleanup.md` にある
+  旧系統（SecurityReport系）のコードは削除済みで、`security_reports`テーブルのみ
+  凍結保管（`docs/architecture/07_legacy_cleanup.md`）
 - **XBRLタグを扱う作業の前に必ず
   `docs/architecture/06_xbrl_research.md`（6社実測データ）を読むこと**
 

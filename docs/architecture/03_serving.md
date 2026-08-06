@@ -142,10 +142,9 @@ query {
 ```
 
 - 金額は独自スカラ `Money` でJSON数値のまま返す。円の最大値4e14はJSの安全整数域9e15に収まる。
-  gemの `GraphQL::Types::BigInt` を使わないのは、文字列でシリアライズされてWeb・Chrome拡張の両方に変換処理が必要になるため（スキーマ名 `BigInt` が旧クエリの型と衝突する事情もある）
+  gemの `GraphQL::Types::BigInt` を使わないのは、文字列でシリアライズされてWeb・Chrome拡張の両方に変換処理が必要になるため
 - 検索は `Disclosure::SearchQuery`: `is_primary` の財務諸表にJOINし、CF符号は
   `EXISTS (SELECT 1 FROM financial_statement_items WHERE item_code=? AND amount > 0)`（`(item_code, amount)` 複合インデックスで評価）
-- 既存クエリ `companyFinancialStatements` とは独立に同居
 - 未認証で誰でも叩けるエンドポイントのため入力量に上限がある。`limit` は1〜100、
   `stockCodes` は最大100件、スキーマ全体で `max_complexity 400` / `max_depth 20`（`financial_statement_schema.rb`）
 - `financialReports` の複雑度は `child_complexity + limit / 2` で計算する。

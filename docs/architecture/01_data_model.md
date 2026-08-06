@@ -119,18 +119,17 @@ erDiagram
 
 ```mermaid
 flowchart LR
-    subgraph 旧系統["旧系統（停止・凍結）"]
-        SR[security_reports<br>横持ち] --- OldQ[companyFinancialStatements]
-    end
+    SR[security_reports<br>横持ち・凍結保管<br>参照コードなし]
     subgraph 現行
         R[reports] --> FS[financial_statements] --> FSI[financial_statement_items]
         FS --- NewQ[financialReports]
     end
-    C[(companies<br>共用)] --- SR
+    C[(companies)] --- SR
     C --- R
 ```
 
-- `companies` だけ共用（企業マスタを二重に持たない）。新モデル `Disclosure::Company` が
+- `security_reports` は旧系統の凍結テーブル（2026-08-02時点の内容。閲覧・検証用でコードからの参照はない）
+- `companies` は旧系統時代からの共用テーブル。`Disclosure::Company` が
   カラム名差異（`company_japanese_name` ↔ `name_ja`）をaliasで吸収
 - 検索用インデックス: `(item_code, amount)` 複合（CF符号フィルタ用）+
   `(financial_statement_id, item_code)` ユニーク

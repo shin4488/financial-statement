@@ -145,6 +145,7 @@ Sidekiqはappserverコンテナの起動スクリプト内で一緒に立ち上�
 - **米国基準・日本基準の保険業などは未対応**: 上記 `unsupported` として扱われ、
   グラフの代わりにその旨が表示される。追加はExtractor・Builderのファイル追加のみで済む
   （マイグレーション不要。手順は [docs/architecture/02_ingestion.md](docs/architecture/02_ingestion.md)）
-- **旧系統（SecurityReport系）がコードとして残置・停止中**: 削除手順は
+- **旧系統（SecurityReport系）は`security_reports`テーブルのみ凍結保管**: コードは
+  すべて削除済み。凍結データの扱いは
   [docs/architecture/07_legacy_cleanup.md](docs/architecture/07_legacy_cleanup.md)
 - その他は [docs/improvements.md](docs/improvements.md) を参照

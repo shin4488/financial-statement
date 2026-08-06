@@ -35,16 +35,7 @@ flowchart TB
 | 型は構造的型（`types.ts`）で受ける | codegen生成型と構造が一致するため**変換なしで代入できる** |
 | スタイルはコンポーネント内で完結 | 外部CSSを要求しない |
 
-→ Chrome拡張側は**このディレクトリをコピーして同じクエリ結果を渡すだけ**。科目別チャート部品（balanceSheetBarChart / profitLossBarChart / cashFlowBarChart…）を両リポジトリで二重保守する状態が解消される。
-
-### 拡張側実装時のTODO（コードレビュー指摘・忘れ防止）
-
-- [ ] `manifest.ts` の `host_permissions` を `'https://investee.info/*'` に修正
-      （現状の `'https://investee.info/'` はパス `/` のみにマッチし `/api/graphql` を許可しない）
-- [ ] 拡張の `codegen.ts` に `scalars: { Money: 'number' }` を追加
-      （無いとMoneyが `any` になる）。schemaが本番introspectionのため、
-      `financialReports` の本番デプロイ前はローカルdockerのschemaを指す等の対応が必要
-- [ ] クエリは拡張の流儀（`documents: '**/*.graphql'`）に合わせて `.graphql` ファイルで置く
+→ Chrome拡張側は**このディレクトリをコピーして同じクエリ結果を渡すだけ**でよく、チャート部品を両リポジトリで二重保守しない。
 
 ## フロントが科目を知らない、の実装
 

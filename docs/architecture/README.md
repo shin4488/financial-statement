@@ -36,13 +36,6 @@
 
 ## 旧系統（SecurityReport系）との関係
 
-2026-08-02に現行系統へ切り替え済み。旧系統はコードとして残したまま停止している。
-
-| | 旧系統（停止・凍結） | 現行 |
-|---|---|---|
-| テーブル | `security_reports`（凍結・削除しない） | `companies`（共用）+ `reports` / `financial_statements` / `financial_statement_items` |
-| GraphQL | `companyFinancialStatements` | `financialReports` |
-| 画面 | ルーティングなし | `/` |
-| 日次バッチ | cron解除済み | `DailyIngestionJob`（毎日2:00） |
-
-Chrome拡張は `financialReports` へ移行済みのため、旧クエリを使うのはストア公開版の古い拡張だけになっている。削除の手順と順序は [07_legacy_cleanup.md](07_legacy_cleanup.md)。
+2026-08-02に現行系統へ切り替え済み。旧系統のコードはすべて削除され、残っているのは
+`security_reports`テーブルだけ（2026-08-02時点の内容で凍結保管。閲覧・検証用でコードからの参照はない）。
+凍結データの扱いは [07_legacy_cleanup.md](07_legacy_cleanup.md) の④を参照。
