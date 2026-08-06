@@ -1,7 +1,6 @@
 module Resolvers
   # QueryTypeに直接実装せずresolverクラスに切り出す理由:
-  # companyFinancialStatements（別系統のクエリ）と同居するQueryTypeの肥大化を避け、
-  # financialReports系の入出力整形をこの1ファイルに閉じ込めるため
+  # QueryTypeの肥大化を避け、financialReports系の入出力整形をこの1ファイルに閉じ込めるため
   class FinancialReports < GraphQL::Schema::Resolver
     type [Types::FinancialReportType], null: false
     description "有報の財務3表チャート一覧（提出日降順）"
