@@ -40,7 +40,6 @@ gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 
-gem 'rexml', '~> 3.4'
 gem 'rubyzip', require: 'zip'
 gem "figaro"
 
