@@ -38,7 +38,6 @@ docker-compose.yml     # 全体起動（web:10000, api:20000）
 - CRA(craco) + TypeScript + Apollo Client + Redux Toolkit + MUI + recharts
 - GraphQLの型生成: `npm run compile`（graphql-codegen。バックエンド起動が必要）
 - 主要ページ: `src/features/financialReports/`、汎用チャート: `src/shared/financialCharts/`
-  （旧 `src/pages/financialStatementList/` と `src/components/*BarChart/` は削除済み）
 
 ## ドメイン知識（重要）
 

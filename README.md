@@ -145,7 +145,7 @@ Sidekiqはappserverコンテナの起動スクリプト内で一緒に立ち上�
 - **米国基準・日本基準の保険業などは未対応**: 上記 `unsupported` として扱われ、
   グラフの代わりにその旨が表示される。追加はExtractor・Builderのファイル追加のみで済む
   （マイグレーション不要。手順は [docs/architecture/02_ingestion.md](docs/architecture/02_ingestion.md)）
-- **旧系統（SecurityReport系）は旧クエリ系のみ残置**: 旧取込・旧画面は削除済み。
-  `companyFinancialStatements` はChrome拡張が使用中のため残る。経緯は
+- **旧クエリ系（SecurityReport系）が残置**: `companyFinancialStatements` は
+  ストア公開版のChrome拡張が使用中のため残している。残りの削除手順は
   [docs/architecture/07_legacy_cleanup.md](docs/architecture/07_legacy_cleanup.md)
 - その他は [docs/improvements.md](docs/improvements.md) を参照
