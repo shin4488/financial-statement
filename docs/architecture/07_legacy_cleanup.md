@@ -7,8 +7,6 @@
 - **データは削除しない**。`security_reports`テーブルはそのまま残す
   （旧cron停止に伴い2026-08-02時点の内容で凍結。閲覧・検証用）
 - `companies`テーブルは**新系統（`Disclosure::Company`）が使用中**のため削除・変更禁止
-- **Chrome拡張が`companyFinancialStatements`クエリを使用中**。拡張が`financialReports`へ
-  移行し、ストア審査を通過してユーザーに行き渡るまで、バックエンドの旧クエリ系統は削除禁止（拡張のデータソース`security_reports`は凍結済みのため、移行が遅れるほど拡張の表示は古くなる）
 
 ## 削除の順序
 
@@ -24,18 +22,18 @@ flowchart LR
 削除するファイル:
 
 - [x] `app/services/security_report/subscriber_service.rb`
-- [ ] `app/services/security_report/fetcher_service.rb`（旧クエリのresolverが使用中 — ①完了が前提）
+- [x] `app/services/security_report/fetcher_service.rb`
 - [x] `app/repositories/security_report/reader_repository.rb` / `document_repository.rb`
 - [x] `app/jobs/security_report_subscriber_job.rb`
-- [ ] `app/models/security_report.rb`
-- [ ] `app/models/company.rb`（トップレベルの旧モデル。`Disclosure::Company`と同じテーブルを指す別クラス）
-- [ ] `app/graphql/types/financial_statement/` 配下すべて（旧クエリの型ツリー）
+- [x] `app/models/security_report.rb`
+- [x] `app/models/company.rb`（トップレベルの旧モデル。`Disclosure::Company`と同じテーブルを指す別クラス）
+- [x] `app/graphql/types/financial_statement/` 配下すべて（旧クエリの型ツリー）
 - [x] `lib/app_file/xml_parser.rb`（REXML依存。`Xbrl::Document`に置換済み）
 
 変更するファイル:
 
-- [ ] `app/graphql/types/query_type.rb`: `companyFinancialStatements` フィールドと
-      そのresolverメソッドを削除（**スキーマ破壊変更 — ①完了が前提**）
+- [x] `app/graphql/types/query_type.rb`: `companyFinancialStatements` フィールドと
+      そのresolverメソッドを削除（スキーマ破壊変更 — ストア公開版拡張1.1.0の`financialReports`移行後に実施）
 - [x] `Gemfile`: `gem 'rexml'` を削除（xml_parser.rbと同時。`bundle install`でlock更新。
       lock上は他gemの推移的依存として残る）
 
@@ -82,4 +80,4 @@ flowchart LR
 - [x] `bundle exec rspec` 全合格 / `rails zeitwerk:check`
 - [x] `npx tsc --noEmit` / webpackビルド成功
 - [x] `/` の表示・検索・無限スクロール、`/api/graphql` の `financialReports`
-- [ ] Chrome拡張の表示（②の後）
+- [x] Chrome拡張の表示（②の後。開発ビルドを削除後スキーマのローカルAPIに向けてE2Eで確認）

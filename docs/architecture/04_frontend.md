@@ -37,15 +37,6 @@ flowchart TB
 
 → Chrome拡張側は**このディレクトリをコピーして同じクエリ結果を渡すだけ**でよく、チャート部品を両リポジトリで二重保守しない。
 
-### 拡張側実装時のTODO（コードレビュー指摘・忘れ防止）
-
-- [ ] `manifest.ts` の `host_permissions` を `'https://investee.info/*'` に修正
-      （現状の `'https://investee.info/'` はパス `/` のみにマッチし `/api/graphql` を許可しない）
-- [ ] 拡張の `codegen.ts` に `scalars: { Money: 'number' }` を追加
-      （無いとMoneyが `any` になる）。schemaが本番introspectionのため、
-      `financialReports` の本番デプロイ前はローカルdockerのschemaを指す等の対応が必要
-- [ ] クエリは拡張の流儀（`documents: '**/*.graphql'`）に合わせて `.graphql` ファイルで置く
-
 ## フロントが科目を知らない、の実装
 
 recharts は「行の配列 × 固定dataKey」を要求するが、こちらはバーごとにセグメント列が違う。`toStackRows` が「行 = バー、列 = 全セグメントkeyの和集合」に変換する:
