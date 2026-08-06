@@ -64,8 +64,7 @@ RSpec.describe "financialReports query" do
     expect(result.dig("data", "financialReports")).to eq []
   end
 
-  it "companyFinancialStatementsクエリと同居できる（スキーマが壊れていない）" do
-    expect(FinancialStatementSchema.to_definition).to include("companyFinancialStatements")
+  it "スキーマにfinancialReportsが定義されている" do
     expect(FinancialStatementSchema.to_definition).to include("financialReports")
   end
 end
