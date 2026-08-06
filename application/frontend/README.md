@@ -70,4 +70,4 @@ src/
 `docs/architecture/04_frontend.md` を参照。
 
 旧一覧ページ（`src/pages/financialStatementList/` と `src/components/*BarChart/`）は
-停止・残置中。削除手順は `docs/architecture/07_legacy_cleanup.md`。
+2026-08-06に削除済み。経緯は親リポジトリの `docs/architecture/07_legacy_cleanup.md`。
