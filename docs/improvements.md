@@ -11,14 +11,6 @@ CIワークフローも各submoduleリポジトリ側に置く（詳細は [CLAU
 
 ## 1. 開発者体験（DX）
 
-### 1-1. セットアップ手順のREADME追記
-
-- **現状**: `config/application.yml.sample` は整備済み。READMEにコピー手順の記載がない
-- **手順**: backendのREADMEセットアップ手順に「sampleを `config/application.yml` に
-  コピーして各自の値を設定する」を追記する。あわせて運用ルールとして、
-  **git管理されるファイルには設定の「項目名と入手方法」までを書き、
-  実値や実環境の識別子は書かない**ことを徹底する
-
 ### 1-2. CI（GitHub Actions）
 
 - **現状**: backend/frontendリポジトリにワークフローなし。lint・型チェック・ビルドが手元任せ
@@ -105,22 +97,6 @@ mainへのpush時に「submoduleの参照コミットがmainに含まれるか�
    （submodule構成なら相対パス `../backend/schema.graphql` が使える）
 3. frontend CI に `npm run compile && git diff --exit-code src/__generated__` を追加
    （スキーマ変更を取り込まず生成物が古いままのPRを検知）
-
-### 1-6. セットアップの一本化
-
-- **現状**: READMEがRails雛形のまま。起動手順が散在（docker_setup.sh / docker-compose / 手動rbenv）
-- **意図**: 新環境（新PC・他の開発者・AIエージェント）が10分で画面に財務データを出せる状態
-
-**手順**（親リポジトリ・1日）:
-
-1. ルート `README.md` を書き換え。必須セクション:
-   - アプリ概要とアーキテクチャ図（CLAUDE.mdの構成図を流用）
-   - 初回セットアップ: `git clone --recursive` → application.yml作成（1-1のsample参照）→ `docker compose up`
-   - データ投入: 下記シードスクリプトの実行方法
-   - 各URL（web:10000 / api:20000）と動作確認方法
-2. データ投入は既存のrakeタスクをそのまま使う（新設不要）:
-   `docker compose exec appserver bundle exec rake 'ingestion:documents[S100YB5L S100YB25 S100YCP3 S100XTNW S100YLS8 S100YJQO]'`
-   （検証済み6社。EDINET APIキー必須）をREADMEに記載
 
 ### 1-7. submodule運用の見直し（検討）
 
@@ -376,7 +352,7 @@ CI常設のAPIコスト・Secrets管理に見合わない）
        "command": "npx", "args": ["-y", "@modelcontextprotocol/server-postgres",
          "postgresql://claude_readonly:...@localhost:5432/financial_statement"] } } }
    ```
-   接続文字列はコミットせず環境変数参照にする（1-1と同じ扱い）
+   接続文字列はコミットせず環境変数参照にする（git管理ファイルに実値を書かない運用ルールに従う）
 3. 動作確認: Claude Codeセッションで「reportsの会計基準別件数を出して」と依頼し
    SELECTが飛ぶこと・INSERTが権限エラーになることを確認
 

@@ -167,4 +167,4 @@ Builderは純関数（`{科目コード=>金額}` → Struct）なのでDBなし
 | 武田型（赤字・残差が費用側）/ 商社型（残差が収益側）/ 楽天型（営業費用一括） | `pl_ifrs_spec.rb` |
 | 債務超過（3本目バー+spacer）/ 貸借乖離>10%（unrenderable） | `bs_builders_spec.rb` |
 | CF5点そろい / 1点欠け（unrenderable） | `cash_flow_spec.rb` |
-| GraphQL end-to-end（金額が数値で返る・新旧クエリ同居） | `spec/graphql/resolvers/financial_reports_spec.rb` |
+| GraphQL end-to-end（金額が数値で返る・証券コード5桁→4桁変換・提出時点の社名） | `spec/graphql/resolvers/financial_reports_spec.rb` |
