@@ -51,9 +51,9 @@ docker-compose.yml     # 全体起動（web:10000, api:20000）
 - **実装済みアーキテクチャの正は `docs/guide/` の深掘り章（08〜11）**
   （設計思想・データモデル・取込・表示の詳細と設計意図）。
   旧系統（SecurityReport系）のコードは削除済みで、`security_reports`テーブルのみ
-  凍結保管（`docs/guide/14_legacy_cleanup.md`）
+  凍結保管（`docs/guide/13_legacy_cleanup.md`）
 - **XBRLタグを扱う作業の前に必ず
-  `docs/guide/13_xbrl_research.md`（6社実測データ）を読むこと**
+  `docs/guide/12_taxonomy_mapping.md`（6社実測データ）を読むこと**
 
 ## 改善バックログ
 
@@ -63,4 +63,4 @@ DX/SEO/AI活用の改善候補は `docs/improvements.md` に整理されてい�
 
 ドキュメントの本体は `docs/guide/`（README.mdが目次）。学ぶ章（01〜07: ドメイン知識→仕様→
 技術前提→全体像→実装→開発と運用）+ 深掘り章（08〜11: 設計判断の記録）+
-資料（12〜14: タグ対応表・実測データ・削除記録）の3部構成。
+資料（12〜13: タグ対応表と実測データ・削除記録）の3部構成。

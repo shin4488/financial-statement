@@ -32,6 +32,9 @@ ER図と縦持ちの基本は[04章](04_system_overview.md)にある。この文
 
 ## 実データ例: 武田薬品の連結（ifrs_classified）
 
+同じ企業のデータを[10章](10_ingestion.md)（抽出直後の姿）・[11章](11_serving.md)の実例1
+（チャートになった姿）でも使っている。3つを続けて見ると、データが層を流れる様子がつかめる。
+
 `financial_statements` の1行はこうなる。
 
 | カラム | 値 |
@@ -96,7 +99,7 @@ flowchart LR
     C --- R
 ```
 
-- `security_reports` は旧系統の凍結テーブル（経緯と扱いの判断基準は[14章](14_legacy_cleanup.md)）
+- `security_reports` は旧系統の凍結テーブル（経緯と扱いの判断基準は[13章](13_legacy_cleanup.md)）
 - `companies` は旧系統時代からの共用テーブル。`Disclosure::Company` が
   カラム名差異（`company_japanese_name` ↔ `name_ja`）をaliasで吸収
 - 検索用インデックス: `(item_code, amount)` 複合（CF符号フィルタ用）+

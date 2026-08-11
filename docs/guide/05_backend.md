@@ -112,8 +112,8 @@ Extractorは実質「マッピング定数」で、ロジックをほぼ持た�
 | `IfrsLiquidity` | `jpigp_cor` | BSは合計系のみ。PL/CFは`IfrsClassified`と定数を共有（継承はしない方針） |
 
 - CFの期首残高だけは前期末時点（`Prior1YearInstant`）のコンテキストで取る
-- タグと科目コードの完全な対応表は[12章](12_taxonomy_mapping.md)、
-  6社の実測データは[13章](13_xbrl_research.md)（**XBRLタグを触る作業の前に必読**）
+- タグと科目コードの完全な対応表と6社の実測データは[12章](12_taxonomy_mapping.md)
+  （**XBRLタグを触る作業の前に必読**）
 
 ## チャート生成（`Charts::`）
 

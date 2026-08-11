@@ -161,7 +161,7 @@ query {
 
 ## テスト
 
-Builderは純関数（`{科目コード=>金額}` → Struct）なのでDBなしで網羅。期待値は実測表（[13_xbrl_research.md](13_xbrl_research.md)）から転記:
+Builderは純関数（`{科目コード=>金額}` → Struct）なのでDBなしで網羅。期待値は実測表（[12_taxonomy_mapping.md](12_taxonomy_mapping.md)）から転記:
 
 | ケース | スペック |
 |---|---|
