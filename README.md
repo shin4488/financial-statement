@@ -126,6 +126,7 @@ Sidekiqはappserverコンテナの起動スクリプト内で一緒に立ち上�
 
 | パス | 内容 |
 |---|---|
+| [docs/guide/](docs/guide/README.md) | **リポジトリ理解ガイド**（財務・技術の前提知識ゼロから読める入門。仕様・全体像・実装・運用） |
 | [docs/architecture/](docs/architecture/README.md) | **実装済みアーキテクチャの正**（縦持ちデータモデル・取込・チャート・一覧画面の解説と設計意図） |
 | [docs/improvements.md](docs/improvements.md) | DX / SEO / AI活用の改善バックログ（作業手順つき） |
 | [CLAUDE.md](CLAUDE.md) | AIエージェント向けコンテキスト（ドメイン知識・既知課題の要約） |
