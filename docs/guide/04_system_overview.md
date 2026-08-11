@@ -103,15 +103,14 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    Start["DEIタグ AccountingStandardsDEI"] --> JG{Japan GAAP?}
-    JG -->|Yes| Ind{業種コード}
+    Start{"会計基準はどれか<br>（DEIタグ AccountingStandardsDEI）"} -->|Japan GAAP| Ind{"業種コードはどれか"}
+    Start -->|IFRS| Tag{"流動資産タグ<br>CurrentAssetsIFRS があるか"}
+    Start -->|US GAAP| Unsup2["unsupported"]
     Ind -->|"なし / cte（一般）"| General["jgaap_general"]
-    Ind -->|bnk（銀行）| Bank["jgaap_bank"]
+    Ind -->|"bnk（銀行）"| Bank["jgaap_bank"]
     Ind -->|"その他（INS=保険 等）"| Unsup1["unsupported"]
-    JG -->|IFRS| Tag{"流動資産タグ<br>CurrentAssetsIFRS がある?"}
-    Tag -->|Yes| Cls["ifrs_classified"]
-    Tag -->|No| Liq["ifrs_liquidity"]
-    JG -->|US GAAP| Unsup2["unsupported"]
+    Tag -->|ある| Cls["ifrs_classified"]
+    Tag -->|ない| Liq["ifrs_liquidity"]
 ```
 
 - IFRSの2様式はDEIでは区別できないため、タグの実在で判定する

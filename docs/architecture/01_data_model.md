@@ -47,7 +47,7 @@ erDiagram
 
 | 置き場所 | 内容 | 更新ルール | 用途 |
 |---|---|---|---|
-| `companies.company_japanese_name` | 最新の企業名 | その企業の**最新会計期**の有報を取り込んだときだけ更新（過去年度のバックフィルでは巻き戻さない） | マスタ・SecurityReport系機能の表示 |
+| `companies.company_japanese_name` | 最新の企業名 | その企業の**最新会計期**の有報を取り込んだときだけ更新（過去年度のバックフィルでは巻き戻さない） | 企業マスタ。`financialReports` の表示名フォールバック（有報側が空のとき） |
 | `reports.company_name_ja` | 提出時点の企業名 | その有報を取り込むたび（訂正有報も上書き） | `financialReports` APIの表示名 |
 
 実例（NTT。2025年に日本電信電話から社名変更）。`reports` は年度ごとに当時の名前を持つ。

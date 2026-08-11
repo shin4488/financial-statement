@@ -2,7 +2,8 @@
 
 `application/frontend`（React SPA）の実装ガイド。画面は[02章](02_product.md)の
 一覧ページ1つだけで、ソースは `src/` 配下の約25ファイルと小さい。
-設計意図の正は [docs/architecture/04_frontend.md](../architecture/04_frontend.md)。
+チャートキットの規約の原本はキット内の `src/shared/financialCharts/README.md`
+（コピー先のChrome拡張にも同じものが付いていく）。
 
 ## ディレクトリマップと分割基準
 
@@ -42,6 +43,8 @@ flowchart LR
   時点で終端と判断する
 - APIエンドポイントは相対パス `/api/graphql` 固定。nginxがバックエンドへ中継するため、
   開発と本番でコードが変わらない（環境変数・`.env` は使っていない）
+- Apollo Clientはこのページ専用のインスタンスで、`ApolloProvider` もページ配下だけに
+  提供する（キャッシュ設定を他機能と独立に保つ）
 
 ## カードとカルーセル
 
@@ -58,17 +61,27 @@ flowchart LR
 ## チャート描画キット（`shared/financialCharts/`）
 
 Chrome拡張（別リポジトリ `financial-statement-chrome-extension`）へディレクトリごと
-コピーして共有するため、次の規約を守る。
+コピーして共有するため、次の規約を守る。チャート部品を両リポジトリで二重保守しないための決まりごとになる。
 
-1. importしてよいのは `react` と `recharts` だけ（キット内は相対importのみ）
-2. GraphQLクライアント・codegen生成型・ルーティング・Redux・`@/`エイリアスに依存しない
-3. 受け取る型は `types.ts` の構造的型（codegen生成型と構造が一致するため変換不要）
-4. スタイルはコンポーネント内で完結させる
+| 規約 | 理由 |
+|---|---|
+| importしてよいのは `react` と `recharts` だけ（キット内は相対importのみ） | 両リポジトリ共通の依存だけに絞る |
+| GraphQLクライアント・codegen生成型・ルーティング・Redux・`@/`エイリアスに依存しない | アプリごとの設定・生成物に依存させない |
+| 受け取る型は `types.ts` の構造的型で定義する | codegen生成型と構造が一致するため、変換なしで代入できる |
+| スタイルはコンポーネント内で完結させる | コピー先に外部CSSを要求しない |
 
 ### 積み上げ棒（`StackedBarChart`）
 
 - APIの `bars × segments` を、rechartsが要求する「行 × 列」の表に変換する
   （`toStackRows`）。行=バー、列=全バーに登場するセグメントkeyの和集合
+
+  ```
+  API（bars × segments）              recharts（rows × columns）
+  借方: [原価, 販管費]        →       { name: "借方", costOfSales: 1.57兆, sga: 1.08兆 }
+  貸方: [収益, 税引前損失]             { name: "貸方", revenue: 4.5兆, lossBeforeTax: 0.14兆 }
+                                     ※ あるバーに無い列はundefinedになり、その行には描かれない
+  ```
+
 - **積み上げ順・色・ラベルはすべてバックエンドの決定に従う**。フロントは並び替えも
   分岐もしない（[04章](04_system_overview.md)の「フロントは形式を知らない」の実装）
 - Y軸を反転して上から積み上げ、`spacer`（債務超過の高さ合わせ）はツールチップにも出さない
@@ -85,7 +98,8 @@ Chrome拡張（別リポジトリ `financial-statement-chrome-extension`）へ�
 
 バックエンドは色そのものではなく `colorRole`（`asset1`・`liability1`・`profit` など
 15種の役割名）を返し、フロントのこのファイルが実際の色に変換する。
-**役割名の追加はバックエンドとChrome拡張を含めた同時変更が必要な契約点**。
+新形式が増えてもフロントの変更はゼロで、**唯一の例外がこの役割名の追加
+（バックエンドとChrome拡張を含めた同時変更が必要な契約点）**。
 未知の役割名はグレーで描画しつつ `console.warn` で気づけるようにしている。
 
 ### 表示不可（`ChartUnavailable`）

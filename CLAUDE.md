@@ -49,7 +49,8 @@ docker-compose.yml     # 全体起動（web:10000, api:20000）
 - 銀行・保険など特定業種は日本基準でも別フォーマット（業種DEIコード bnk/INS等）。
   銀行は対応済み、保険・米国基準は `unsupported`（グラフの代わりに説明文を出す正常系）
 - **実装済みアーキテクチャの正は `docs/architecture/`**（縦持ち実装:
-  Disclosureモデル・Ingestion・Charts・financialReportsクエリ・一覧画面の解説と設計意図）。
+  Disclosureモデル・Ingestion・Charts・financialReportsクエリの解説と設計意図。
+  フロントエンド実装の解説は `docs/guide/06_frontend.md` に統合済み）。
   旧系統（SecurityReport系）のコードは削除済みで、`security_reports`テーブルのみ
   凍結保管（`docs/architecture/07_legacy_cleanup.md`）
 - **XBRLタグを扱う作業の前に必ず

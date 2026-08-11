@@ -23,17 +23,11 @@ flowchart TB
 - 失敗の隔離境界は「1書類」と「1日」。1社の失敗が他社に波及しない（Sentryに通知）
 - 全処理が冪等（再実行・訂正有報は同じ期のデータを上書き）
 
-## 失敗時のリカバリ（運用手順）
+## 失敗時のリカバリ
 
-自動リトライは持たない。冪等な再実行が唯一のリカバリ手段:
-
-| Sentry通知 | 意味 | リカバリ |
-|---|---|---|
-| `list failed <日付>` / `EDINET documents.json failed` | その日の一覧取得ごと失敗（**その日の全有報が未取込**） | `rake 'ingestion:backfill[<日付>,<日付>]'` を再実行 |
-| `ingest failed <docID>`（document_idタグ付き） | その書類だけ失敗 | `rake 'ingestion:documents[<docID>]'` を再実行 |
-| `primary statement missing bs.assets` | 取込は成功したが形式判定ミスの疑い | 該当XBRLを実測し、FormatDetector/Extractorを修正して再取込 |
-
-放置するとその日の有報が欠落したままになるため、`list failed` は必ず再実行すること。
+自動リトライは持たない。冪等な再実行が唯一のリカバリ手段で、
+**Sentry通知メッセージ別のリカバリ手順表は [../guide/08_operations.md](../guide/08_operations.md) にある**
+（`list failed` はその日の全有報が欠落したままになるため必ず再実行する）。
 
 既知のエッジ（fail-safe方向・対応不要）: 「連結廃止をDEIで伝え、かつ財務factを含まない訂正有報」が来ると、連結行の削除と単体行の更新スキップが同時に起こり、`is_primary` の行が一時的に無くなってその有報が一覧から消える（Sentry警告あり。次の正常な取込で復元される）。
 

@@ -10,9 +10,11 @@
 |---|---|---|
 | 00 | [設計思想](00_layering.md) | **最初に読む。** 会計基準ごとの差異をどこに閉じ込めているか。層の分け方と、どこに何を書くべきかの判断基準 |
 | 01 | [データモデル](01_data_model.md) | テーブル構成・縦持ちの実データ例・「行がない = 開示なし」の規約 |
-| 02 | [取込層](02_ingestion.md) | EDINETからXBRLを取り込む流れ・形式判定・Extractor・失敗時のリカバリ |
+| 02 | [取込層](02_ingestion.md) | EDINETからXBRLを取り込む流れ・形式判定・Extractor |
 | 03 | [表示層](03_serving.md) | ChartBuilder・チャート契約・GraphQL API |
-| 04 | [フロントエンド](04_frontend.md) | 汎用チャートキット・Chrome拡張との共有方針・一覧ページ |
+
+フロントエンド実装の解説は [../guide/06_frontend.md](../guide/06_frontend.md) に統合した
+（チャートキットの規約の原本はキット内 `src/shared/financialCharts/README.md`）。
 
 必要になったときに引く資料。
 
@@ -20,7 +22,7 @@
 |---|---|---|
 | 05 | [タグ対応表](05_taxonomy_mapping.md) | XBRLタグを扱う作業のとき。タグ ↔ 科目コード ↔ Builder の一覧 |
 | 06 | [XBRL実地調査](06_xbrl_research.md) | 新しい形式に対応するとき。6社・4形式の実測データ |
-| 07 | [旧系統の削除手順](07_legacy_cleanup.md) | SecurityReport系を消すとき |
+| 07 | [旧系統の削除記録](07_legacy_cleanup.md) | 凍結データ（`security_reports`）の扱いを判断するとき・削除の経緯を確認するとき |
 
 ## 対応している形式
 

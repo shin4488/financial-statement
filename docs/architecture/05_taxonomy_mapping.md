@@ -223,6 +223,10 @@ end
 
 ## 新しいタグを追加するとき
 
-1. 対象企業の有報XBRLを取得して実際のタグを確認する（[06](06_xbrl_research.md) の手順）2. 科目コードが未定義なら `item_codes.rb` に追加する3. 該当形式のExtractorのマッピング定数に1行足す4. 表示に使うなら該当BuilderのSPECに追加する5. この文書の表を更新する
+1. 対象企業の有報XBRLを取得して実際のタグを確認する（[06](06_xbrl_research.md) の手順）
+2. 科目コードが未定義なら `item_codes.rb` に追加する
+3. 該当形式のExtractorのマッピング定数に1行足す
+4. 表示に使うなら該当BuilderのSPECに追加する
+5. この文書の表を更新する
 
 3で `item_codes.rb` に無いコードを書くと、`mapping_consistency_spec.rb` が落ちて気づけるようになっている。

@@ -35,9 +35,16 @@ EDINET API v2 で実際に有報XBRLを取得し、全factをダンプして分�
 ### 形式2: jgaap_bank（日本基準・銀行）— 三菱UFJ FGで実測
 
 - BS: **流動/固定の区分が存在しない**。資産・負債は業種固有の内訳科目
-  （`〜AssetsBNK` / `〜LiabilitiesBNK` サフィックス）。ただし**合計は汎用タグで取れる**: `jppfs_cor:Assets`（431.7兆）/ `jppfs_cor:Liabilities`（408.0兆）/ `jppfs_cor:NetAssets`（23.7兆）。主要内訳（実測、いずれも `CurrentYearInstant`）:- `jppfs_cor:LoansAndBillsDiscountedAssetsBNK` 貸出金 133.8兆- `jppfs_cor:SecuritiesAssetsBNK` 有価証券 85.7兆- `jppfs_cor:CashAndDueFromBanksAssetsBNK` 現金預け金 90.0兆- `jppfs_cor:DepositsLiabilitiesBNK` 預金 239.4兆
+  （`〜AssetsBNK` / `〜LiabilitiesBNK` サフィックス）。ただし**合計は汎用タグで取れる**: `jppfs_cor:Assets`（431.7兆）/ `jppfs_cor:Liabilities`（408.0兆）/ `jppfs_cor:NetAssets`（23.7兆）。主要内訳（実測、いずれも `CurrentYearInstant`）:
+  - `jppfs_cor:LoansAndBillsDiscountedAssetsBNK` 貸出金 133.8兆
+  - `jppfs_cor:SecuritiesAssetsBNK` 有価証券 85.7兆
+  - `jppfs_cor:CashAndDueFromBanksAssetsBNK` 現金預け金 90.0兆
+  - `jppfs_cor:DepositsLiabilitiesBNK` 預金 239.4兆
 - PL: 売上高・営業利益は存在せず**経常収益/経常費用**型:
-  - `jppfs_cor:OrdinaryIncomeBNK` 経常収益 14.62兆（※BNKサフィックス付き）- `jppfs_cor:OrdinaryExpensesBNK` 経常費用 11.21兆- `jppfs_cor:OrdinaryIncome` 経常利益 3.41兆（※**汎用タグと同名**。BNKなしが経常利益）- 特別損益・`IncomeBeforeIncomeTaxes`・`ProfitLoss`・`ProfitLossAttributableToOwnersOfParent` は一般形式と同じ汎用タグ
+  - `jppfs_cor:OrdinaryIncomeBNK` 経常収益 14.62兆（※BNKサフィックス付き）
+  - `jppfs_cor:OrdinaryExpensesBNK` 経常費用 11.21兆
+  - `jppfs_cor:OrdinaryIncome` 経常利益 3.41兆（※**汎用タグと同名**。BNKなしが経常利益）
+  - 特別損益・`IncomeBeforeIncomeTaxes`・`ProfitLoss`・`ProfitLossAttributableToOwnersOfParent` は一般形式と同じ汎用タグ
 - CF: **汎用タグがそのまま使われる**: `NetCashProvidedByUsedInOperatingActivities`（-23.1兆。銀行は営業CFが巨額になる）
   / `...InvestmentActivities` / `...InFinancingActivities` / `CashAndCashEquivalents`（期首=Prior1YearInstant）。
 
@@ -50,7 +57,8 @@ EDINET API v2 で実際に有報XBRLを取得し、全factをダンプして分�
 - PL: 骨格（税引前利益から下）は共通、中間は企業差が大きい:
   - 武田: `RevenueIFRS` → `CostOfSalesIFRS`/`SellingGeneralAndAdministrativeExpensesIFRS` →
     `OperatingProfitLossIFRS` あり。**売上総利益タグなし**
-  - 三菱商事: `Revenue2IFRS`（収益）→ `GrossProfitIFRS` あり。**営業利益タグなし**- NTT: 収益が**企業拡張タグ** `jpcrp030000-asr_E04430-000:OperatingRevenuesIFRS`（営業収益14.41兆）。
+  - 三菱商事: `Revenue2IFRS`（収益）→ `GrossProfitIFRS` あり。**営業利益タグなし**
+  - NTT: 収益が**企業拡張タグ** `jpcrp030000-asr_E04430-000:OperatingRevenuesIFRS`（営業収益14.41兆）。
     標準の `jpigp_cor` に収益factなし。費用は `OperatingExpensesIFRS`（営業費用一括12.70兆）、
     `OperatingProfitLossIFRS` あり
   - 全社共通: `ProfitLossBeforeTaxIFRS` / `IncomeTaxExpenseIFRS` / `ProfitLossIFRS` /
