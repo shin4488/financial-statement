@@ -1,4 +1,4 @@
-# 09. 設計思想 — 形式ごとの差異をどこに閉じ込めるか
+# 08. 設計思想 — 形式ごとの差異をどこに閉じ込めるか
 
 深掘り章の最初に読む文書。[04章](04_system_overview.md)の全体像に出てきた4層構造について、
 「そう作った理由」と判断基準を残す。個々のクラスの使い方ではなく、
@@ -136,20 +136,9 @@ validates :presentation_format, inclusion: { in: Ingestion::FormatRegistry::ALL 
 
 ### 契約2: チャート構造（③→④）
 
-積み上げバーの中身までバックエンドが組み立てて返す。
+積み上げバーの中身までバックエンドが組み立てて返す（構造の仕様と実例は[11章](11_serving.md)が正）。
 
-```
-StackChart                      WaterfallChart
-├ renderable: 描けるか           ├ renderable
-├ note: 描けない理由の説明文      ├ note
-└ bars: [                       └ steps: [{ key, label, amount, kind }]
-    { label: "借方",
-      segments: [{ key, label, amount, signedAmount, ratio, colorRole }] } ]
-```
-
-`segments` が固定キーを持たない配列であることが効いていて、「流動資産」「貸出金」といった科目名がスキーマに出てこない。そのため銀行BSの4段もIFRS流動性配列の2段も同じ型で表せる。
-
-これがあるので、④は形式が増えても変更が要らない。
+`segments` が固定キーを持たない配列であることが効いていて、「流動資産」「貸出金」といった科目名がスキーマに出てこない。そのため銀行BSの4段もIFRS流動性配列の2段も同じ型で表せる。これがあるので、④は形式が増えても変更が要らない。
 
 ---
 
@@ -225,7 +214,7 @@ application/backend/app/
 
 | 目的 | 文書 |
 |---|---|
-| データの持ち方を知る | [10_data_model.md](10_data_model.md) |
-| XBRLからどう取り込むか | [11_ingestion.md](11_ingestion.md) |
-| どうグラフにして返すか | [12_serving.md](12_serving.md) |
-| タグと科目コードの対応を引く | [13_taxonomy_mapping.md](13_taxonomy_mapping.md) |
+| データの持ち方を知る | [09_data_model.md](09_data_model.md) |
+| XBRLからどう取り込むか | [10_ingestion.md](10_ingestion.md) |
+| どうグラフにして返すか | [11_serving.md](11_serving.md) |
+| タグと科目コードの対応を引く | [12_taxonomy_mapping.md](12_taxonomy_mapping.md) |

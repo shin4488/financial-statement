@@ -1,11 +1,68 @@
-# 08. 本番運用
+# 07. 開発と運用
 
-本番環境（https://investee.info ）の構成、デプロイ、日次バッチの監視とリカバリ、
-リリースタグの運用。定型作業の詳細手順は `.claude/skills/` の各手順書が正で、
-ここでは全体像と考え方をまとめる。
+このリポジトリで手を動かすときの決まりごとと、本番環境（https://investee.info ）の運用。
+個々の手順の正は各READMEと `.claude/skills/` にあり（下表）、この章では
+**このリポジトリ特有でほかに人間向けの記載がないもの**だけを扱う。
+実ホスト名・鍵などはgit管理外のファイル（`deploy.sh` など）だけが持ち、ドキュメントには書かない。
 
-なお、実際の接続先ホスト名・ユーザー名・鍵などは
-git管理外のファイル（`deploy.sh` など）だけが持ち、ドキュメントには書かない。
+## 手順の在り処
+
+| やりたいこと | 正となる場所 |
+|---|---|
+| 初回セットアップ・起動・データ投入 | [ルートREADME](../../README.md) |
+| バックエンド単体の起動・環境変数・テスト実行 | `application/backend/README.md` |
+| フロントエンドの検証コマンド・ビルド | `application/frontend/README.md` |
+| デプロイ・日次確認・PR運用・リリースの詳細手順 | `.claude/skills/` 配下の各SKILL.md |
+
+## 開発
+
+### GraphQLスキーマを変えたときの連鎖手順
+
+スキーマの変更は3リポジトリに波及するため、次の順で追随させる。
+
+```mermaid
+flowchart LR
+    A["バックエンドで<br>スキーマ変更"] --> B["rake graphql:dump_schema<br>→ schema.graphql をコミット"]
+    B --> C["フロントで npm run compile<br>→ __generated__/ をコミット"]
+    C --> D["クエリ上限に収まるか確認<br>（max_complexity / max_depth）"]
+```
+
+- `npm run compile` はバックエンドの起動が必要（[06章](06_frontend.md)）
+- クエリ上限の値と意図は[05章](05_backend.md)を参照
+
+### ブランチ・PR運用（submodule構成の要）
+
+**大原則: submodule側をマージしてから、親のポインタを更新する。**
+親PRをsubmodule PRと同時に作らない。
+
+```mermaid
+sequenceDiagram
+    participant B as backend/frontendリポジトリ
+    participant P as 親リポジトリ
+
+    Note over B: ① ブランチ作成 → コミット → push → PR
+    Note over B: ② レビュー後マージ
+    Note over P: ③ submoduleのmainをpull →<br>ポインタ更新をコミット → 親PR
+    Note over P: ④ レビュー後マージ
+```
+
+- 親のポインタがマージ前のfeatureブランチ先端を指すと、squashマージ時に
+  「mainに存在しないコミットを参照する」壊れた状態になるため、この順序を守る
+- backendとfrontend両方に変更があるときはPRを2本作って相互参照し、
+  **backend → frontend の順でマージする**（フロントが新しいAPIに依存し得るため。
+  後述のデプロイ順も同じ理屈）
+- 親リポジトリには `submodule-check` というCIがあり、mainへのpush時に
+  「submoduleの参照コミットが各リポジトリのmainに含まれるか」を検証する
+- `git status` の `M application/backend` の読み方と後始末は
+  [03章](03_tech_prerequisites.md)のsubmodule節を参照
+
+コミット・PRの規約:
+
+| 項目 | 規約 |
+|---|---|
+| コミットメッセージ | prefix `add:` / `update:` / `change:` / `fix:` を付ける |
+| 親のポインタ更新コミット | 例: `update: backend/frontend submodules（変更概要）` |
+| 親のdocs変更 | ポインタ更新と同じPRに同梱してよい |
 
 ## 本番環境の構成
 
@@ -36,7 +93,6 @@ flowchart TB
 ## デプロイ
 
 CI/CDはなく、**ローカルの作業ツリーをrsyncでVPSへ転送して再起動する**方式。
-詳細手順とハマりどころは `.claude/skills/deploy/SKILL.md` が正。
 
 ```mermaid
 flowchart LR
@@ -45,17 +101,14 @@ flowchart LR
     FE --> Verify["反映確認<br>API応答・トップページ200・<br>バンドルハッシュ一致"]
 ```
 
-運用上の要点:
-
 - **rsyncは未コミットの変更もそのまま本番に載せてしまう**。作業ツリーがクリーンで
   あることの確認が最初の防波堤
-- 順序は必ず**バックエンド → フロントエンド**（フロントが新APIに依存し得るため。
-  [07章](07_development.md)のマージ順と同じ理屈）
+- 順序は必ず**バックエンド → フロントエンド**（PRのマージ順と同じ理屈）
 - Sidekiq再起動が必要な変更（ジョブやgemの追加）はsudoを要するため非対話SSHでは
   完結できず、対話端末での操作が必要になる
 - 過去に「非対話SSHで再起動スクリプトを実行してAPIが数分停止する」事故があり、
   対話モード強制（`bash -ic`）や `RAILS_ENV=production` の明示など、
-  再発防止の決まりが手順書に記録されている
+  再発防止の決まりが手順書（`.claude/skills/deploy/`）に記録されている
 
 ## 日次バッチの監視とリカバリ
 
@@ -90,13 +143,21 @@ flowchart LR
 ## リリースタグ
 
 デプロイと連動した自動化はないが、リリースの区切りをGitHub Releaseで記録する。
-手順は `.claude/skills/release/SKILL.md` が正。
 
 - タグ名は `release-X.Y.Z`。機能追加ありはYを+1、修正のみはZを+1
 - 対象は**親リポジトリは毎回**、backend/frontendは前回タグ以降にコミットがあるものだけ
 - 作成順はsubmodule → 親（PRのマージ順と同じ向き）
 - リリースノートは公開情報のため、ホスト名・キーなどの実値を書かない
 
+## ドキュメントの運用ルール
+
+| ドキュメント | ルール |
+|---|---|
+| 学ぶ章（docs/guide/ 01〜07） | 全体像・入門・運用の説明を担当。実装が変わったら該当章を追随させる |
+| 深掘り章・資料（docs/guide/ 08〜14） | 設計判断の記録と引く資料。設計変更とセットで更新する |
+| docs/improvements.md | 未着手の改善だけを書く。**対応が完了した項目は記述ごと削除する**（完了の記録はgit履歴が持つ） |
+| 秘密情報 | 実ホスト名・キー・接続情報はどのドキュメントにも書かない。git管理されるファイルには「項目名と入手方法」まで |
+
 ---
 
-ガイドはこの章まで。定型作業の具体的な手順は `.claude/skills/` の各手順書を参照。
+学ぶ章はこの章まで。設計の「なぜ」に踏み込むときは[08章 設計思想](08_layering.md)へ。

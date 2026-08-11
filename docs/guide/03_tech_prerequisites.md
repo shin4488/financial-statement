@@ -3,29 +3,10 @@
 実装を読むために必要な技術要素の基礎知識。このシステムで「どの技術が」「何の役割で」
 使われているかに絞って説明する。すでに知っている項目は読み飛ばして良い。
 
-## システムの基本形
+## 最初に押さえる3つの言葉
 
 このシステムは「画面を担当するフロントエンド」と「データを担当するバックエンド」が
-分かれた、Web開発で一般的な構成をとる。
-
-```mermaid
-flowchart LR
-    subgraph ブラウザ
-        SPA["React SPA<br>（フロントエンド）"]
-    end
-    subgraph サーバ側
-        API["Rails APIサーバ<br>（バックエンド）"]
-        DB[("PostgreSQL<br>データベース")]
-        Worker["Sidekiq<br>（バッチ処理）"]
-        Redis[("Redis<br>ジョブキュー")]
-    end
-    EDINET["EDINET API<br>（金融庁）"]
-    SPA -->|GraphQLで問い合わせ| API
-    API --> DB
-    Worker --> DB
-    Worker -->|毎日2:00に取得| EDINET
-    Worker -.ジョブ管理.- Redis
-```
+分かれた、Web開発で一般的な構成をとる（実際の構成図とデータの流れは[04章](04_system_overview.md)）。
 
 - **SPA**（Single Page Application）: 最初にHTMLとJavaScriptを読み込んだ後は、
   ページ遷移せずJavaScriptが画面を書き換える方式。investeeの画面はReactで作られたSPA
@@ -126,7 +107,7 @@ flowchart TB
 - 親リポジトリの `git status` に出る `M application/backend` は「ファイルが変わった」
   ではなく「ポインタと実体がずれている」の意味
 
-この2段階を安全に回すためのPR運用ルールが決まっている（[07章](07_development.md)）。
+この2段階を安全に回すためのPR運用ルールが決まっている（[07章](07_development_operations.md)）。
 
 ---
 

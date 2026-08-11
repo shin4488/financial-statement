@@ -1,6 +1,8 @@
-# 12. 表示層の詳細（Charts / GraphQL）
+# 11. 表示層の詳細（Charts / GraphQL）
 
 [05章](05_backend.md)の実装ガイドの先にある、チャート契約の仕様と実データでの実例を記録する。
+土台にあるのは「借方合計 = 貸方合計」という会計の恒等式（[01章](01_financial_knowledge.md)）で、
+この層はそれを**検証**（乖離チェック）と**描画**（高さの揃った2本のバー）の両方に使っている。
 
 ## 役割: 「科目コード → チャートの構造そのもの」
 
@@ -123,7 +125,7 @@ StackChart（BS/PL用）                     WaterfallChart（CF用）
 
 債務超過・貸借検証・比率計算などの形式共通処理は `Charts::Builders::StackBase` に集約し、
 形式別Builderには書かせない（内容の一覧は[05章](05_backend.md)の共通処理表）。
-この切り分けの理由は[09章](09_layering.md)の「形式クラス同士は継承させない」を参照。
+この切り分けの理由は[08章](08_layering.md)の「形式クラス同士は継承させない」を参照。
 
 ## GraphQL
 
@@ -159,7 +161,7 @@ query {
 
 ## テスト
 
-Builderは純関数（`{科目コード=>金額}` → Struct）なのでDBなしで網羅。期待値は実測表（[14_xbrl_research.md](14_xbrl_research.md)）から転記:
+Builderは純関数（`{科目コード=>金額}` → Struct）なのでDBなしで網羅。期待値は実測表（[13_xbrl_research.md](13_xbrl_research.md)）から転記:
 
 | ケース | スペック |
 |---|---|

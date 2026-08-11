@@ -1,8 +1,8 @@
 # 05. バックエンド実装
 
 `application/backend`（Rails）の実装ガイド。[04章](04_system_overview.md)の地図を
-実際のクラスとファイルに対応づける。設計の「なぜ」は[09章](09_layering.md)、
-取込・表示それぞれの詳細と実データでの実例は[11章](11_ingestion.md)・[12章](12_serving.md)にあり、
+実際のクラスとファイルに対応づける。設計の「なぜ」は[08章](08_layering.md)、
+取込・表示それぞれの詳細と実データでの実例は[10章](10_ingestion.md)・[11章](11_serving.md)にあり、
 ここでは重複させない。
 
 ## ディレクトリマップ
@@ -53,7 +53,7 @@
 
 - 翌日、通知に気づいたら `rake 'ingestion:documents[Cの書類ID]'` で再取込する。
   全処理が冪等（何度実行しても同じ結果）なので、A・Bごと再実行しても壊れない
-- 自動リトライは持たない。冪等な再実行が唯一のリカバリ手段（手順は[08章](08_operations.md)）
+- 自動リトライは持たない。冪等な再実行が唯一のリカバリ手段（手順は[07章](07_development_operations.md)）
 - 書類間の1秒待ちと逐次実行はEDINET APIの403対策。**並列化してはいけない**
 
 ### 保存時の防御（`ReportIngester#persist`）
@@ -112,8 +112,8 @@ Extractorは実質「マッピング定数」で、ロジックをほぼ持た�
 | `IfrsLiquidity` | `jpigp_cor` | BSは合計系のみ。PL/CFは`IfrsClassified`と定数を共有（継承はしない方針） |
 
 - CFの期首残高だけは前期末時点（`Prior1YearInstant`）のコンテキストで取る
-- タグと科目コードの完全な対応表は[13章](13_taxonomy_mapping.md)、
-  6社の実測データは[14章](14_xbrl_research.md)（**XBRLタグを触る作業の前に必読**）
+- タグと科目コードの完全な対応表は[12章](12_taxonomy_mapping.md)、
+  6社の実測データは[13章](13_xbrl_research.md)（**XBRLタグを触る作業の前に必読**）
 
 ## チャート生成（`Charts::`）
 
@@ -138,7 +138,7 @@ Extractorは実質「マッピング定数」で、ロジックをほぼ持た�
 - 借方合計(100) = 貸方合計(100) になる。**2本のバーの高さが揃うことが正しさの検証**
   でもあり、乖離が1割を超えるデータは `renderable: false` にして描かない
 - ラベル・積み上げ順・色の役割（`colorRole`）まで全部ここで決める。フロントは並べるだけ
-- 実データの例（赤字企業の残差導出・銀行の残差導出・表示不可）は[12章](12_serving.md)にある
+- 実データの例（赤字企業の残差導出・銀行の残差導出・表示不可）は[11章](11_serving.md)にある
 
 ### Builderの分担（`BuilderRegistry`）
 
@@ -170,7 +170,7 @@ Extractorは実質「マッピング定数」で、ロジックをほぼ持た�
 
 エンドポイントは `POST /graphql` の1本、クエリも `financialReports` の1フィールドだけ
 （開発環境のみ `/graphiql` にGraphiQLが立つ）。クエリ例とレスポンス構造（チャート契約）は
-[12章](12_serving.md)が正。
+[11章](11_serving.md)が正。
 
 未認証・公開エンドポイントである前提の防御:
 
@@ -181,7 +181,7 @@ Extractorは実質「マッピング定数」で、ロジックをほぼ持た�
 | クエリの複雑さ上限 | `max_complexity 400` / `max_depth 20` |
 | limit連動のコスト計算 | `limit` の値が複雑度に加算される（`limit:1` と `limit:100` を同コスト扱いにしない） |
 
-- 金額は独自スカラ `Money` で数値のまま返す（設計理由は[12章](12_serving.md)）
+- 金額は独自スカラ `Money` で数値のまま返す（設計理由は[11章](11_serving.md)）
 - `SearchQuery` は提出日降順。証券コードは4桁+`0`の5桁に変換して照合し、
   CFパターンは科目行の符号をEXISTSサブクエリで判定する
 - スキーマは `rake graphql:dump_schema` で `schema.graphql` に書き出してコミットする運用
@@ -193,6 +193,7 @@ Extractorは実質「マッピング定数」で、ロジックをほぼ持た�
 | チャートBuilder | DB不要の純関数テスト。債務超過・貸借乖離・CF欠けなどを網羅 |
 | Extractor | 実企業のXBRLをfixtureにした実データテスト。期待値は実測表から転記 |
 | `mapping_consistency_spec` | 「全Extractorのマッピングキー ⊆ 科目コード定義」を機械検証 |
+| 形式判定 | `format_detector_spec` で判定表・業種コードの大文字小文字ゆれ・unsupported落ちを検証 |
 | fixture | 実XBRL8社分は1件数MBのためgit管理外。手元にないテストはskipされる（取得手順は `spec/fixtures/xbrl/README.md`） |
 
 ## 環境変数

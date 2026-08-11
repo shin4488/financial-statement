@@ -1,7 +1,9 @@
-# 11. 取込層の詳細（Ingestion）
+# 10. 取込層の詳細（Ingestion）
 
 [04章](04_system_overview.md)の流れと[05章](05_backend.md)の実装ガイドの先にある、
-取込の設計理由と実測にもとづく詳細を記録する。
+取込の設計理由と実測にもとづく詳細を記録する。この層を難しくしているのは
+EDINETという外部システムの現実で、**レート制限（403）・提出者が自分で書くメタデータ・
+訂正有報・業種ごとの様式差**への対処がここに集まっている。
 
 ## パイプライン全体
 
@@ -30,7 +32,7 @@ flowchart TB
 ## 失敗時のリカバリ
 
 自動リトライは持たない。冪等な再実行が唯一のリカバリ手段で、
-**Sentry通知メッセージ別のリカバリ手順表は [08章](08_operations.md) にある**
+**Sentry通知メッセージ別のリカバリ手順表は [07章](07_development_operations.md) にある**
 （`list failed` はその日の全有報が欠落したままになるため必ず再実行する）。
 
 既知のエッジ（fail-safe方向・対応不要）: 「連結廃止をDEIで伝え、かつ財務factを含まない訂正有報」が来ると、連結行の削除と単体行の更新スキップが同時に起こり、`is_primary` の行が一時的に無くなってその有報が一覧から消える（Sentry警告あり。次の正常な取込で復元される）。
@@ -50,9 +52,9 @@ flowchart TB
 形式1つ = クラス1つ。中身はほぼ宣言的なマッピング定数で、コードを読む場所はここだけになる。
 フォールバックの仕組みと実例は[05章](05_backend.md)、マッピングで表せない2ケース
 （CF期首残高・のれん合算）を書く `extract_extras` フックの詳細は
-[13章](13_taxonomy_mapping.md)にある。
+[12章](12_taxonomy_mapping.md)にある。
 
-**全形式・全科目のタグ対応は [13_taxonomy_mapping.md](13_taxonomy_mapping.md) に一覧がある。**
+**全形式・全科目のタグ対応は [12_taxonomy_mapping.md](12_taxonomy_mapping.md) に一覧がある。**
 
 ## 出力例（同じ入口から形式ごとに違う科目が出る）
 
@@ -77,15 +79,9 @@ Extractorの戻り値は `{科目コード => 金額}` のハッシュで、形�
 2. `app/services/ingestion/extractors/jgaap_insurance.rb` を追加（マッピング定数が本体）
 3. `FormatRegistry` に定数 + `EXTRACTORS` 1行、`FormatDetector::JGAAP_INDUSTRY_FORMATS` に `"ins" => ...` 1行
 4. 必要なら `ItemCodes` に科目を追加（例: `pl.insurance_revenue`）
-5. 表示層のBuilderを追加（[12_serving.md](12_serving.md)）
+5. 表示層のBuilderを追加（[11_serving.md](11_serving.md)）
 6. 実測値でスペックを書く（`spec/services/ingestion/extractors/` の既存4形式と同型）
 
 **DBマイグレーション・GraphQL・フロントの変更はなし。**
 
-## テスト
-
-| スペック | 内容 | fixture |
-|---|---|---|
-| `extractors/*_spec.rb` | 実XBRLからの抽出値 = 実測表の値 | 実XBRL（`spec/fixtures/xbrl/`・git管理外。取得方法は同README） |
-| `extractors/mapping_consistency_spec.rb` | 全マッピングキー ⊆ ItemCodesレジストリ | 不要 |
-| `format_detector_spec.rb` | 判定表・大文字小文字ゆれ・unsupported | 不要 |
+テストの一覧は[05章](05_backend.md)のテスト表を参照。
