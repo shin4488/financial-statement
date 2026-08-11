@@ -1,44 +1,32 @@
 # 07. 開発の進め方
 
-環境構築から、日常の開発ループ、submodule構成ならではのブランチ・PR運用まで。
+このリポジトリで手を動かすときの決まりごと。セットアップ手順や個々の検証コマンドは
+各リポジトリのREADMEが正なので、ここでは「どこを見るか」の案内と、
+**このリポジトリ特有でほかに人間向けの記載がない運用**
+（スキーマ変更の連鎖手順・submodule構成のPR運用・ドキュメント運用）だけを扱う。
 
-## 初回セットアップ
+## 手順の在り処
 
-具体的なコマンドは[ルートREADME](../../README.md)が正。ここでは各ステップの意味だけ補足する。
-
-| ステップ | 意味 |
+| やりたいこと | 正となる場所 |
 |---|---|
-| `git clone --recursive` | submodule（backend/frontend）の中身も一緒に取得する（[03章](03_tech_prerequisites.md)） |
-| `config/application.yml` を作成 | figaro形式の環境変数ファイル（[05章](05_backend.md)）。EDINET APIキーは無料発行できる。**gitignore済みで、内容をコミット・ドキュメント転記してはならない** |
-| `docker compose up` | 5サービス起動（[04章](04_system_overview.md)）。初回はイメージビルドと依存インストールで時間がかかる |
-| `rake ingestion:backfill[...]` などで取込 | 起動直後のDBは空。EDINETから実データを取り込んで初めて画面に表示される |
+| 初回セットアップ・起動・データ投入 | [ルートREADME](../../README.md) |
+| バックエンド単体の起動・環境変数・テスト実行 | `application/backend/README.md` |
+| フロントエンドの検証コマンド・ビルド | `application/frontend/README.md` |
+| 定型作業の手順書（デプロイ・日次確認・PR運用・リリース） | `.claude/skills/` 配下の各SKILL.md |
 
-データ投入は6月の日付を指定すると1日数百件になる点、検証用6社のdocID指定という
-近道がある点もREADMEに記載がある。
+## GraphQLスキーマを変えたときの連鎖手順
 
-## 日常の開発ループ
+スキーマの変更は3リポジトリに波及するため、次の順で追随させる。
 
-1. 対象リポジトリ（backend / frontend / 親）で作業ブランチを切る
-2. 実装する
-3. 検証する
-   - フロント: `npx tsc --noEmit`・eslint・prettier・`CI=false yarn build`（[06章](06_frontend.md)）
-   - バック: `bundle exec rspec`（[05章](05_backend.md)。実XBRL fixtureがないテストはskipされる）
-4. `docker compose up` の実環境で動作確認する
-5. PRを作る（次節の運用に従う）
+```mermaid
+flowchart LR
+    A["バックエンドで<br>スキーマ変更"] --> B["rake graphql:dump_schema<br>→ schema.graphql をコミット"]
+    B --> C["フロントで npm run compile<br>→ __generated__/ をコミット"]
+    C --> D["クエリ上限に収まるか確認<br>（max_complexity / max_depth）"]
+```
 
-### GraphQLスキーマを変えたときだけ増える手順
-
-1. バックエンドで `rake graphql:dump_schema` を実行し `schema.graphql` を更新・コミット
-2. フロントエンドで `npm run compile` を実行し `src/__generated__/` を再生成・コミット
-   （バックエンド起動が必要）
-3. フィールドを増やす場合、公開APIのクエリ上限（`max_complexity` / `max_depth`）に
-   収まるか確認する
-
-### XBRLタグを触るときの決まり
-
-Extractorやタグ対応を変更する作業の前に、必ず
-[docs/architecture/06_xbrl_research.md](../architecture/06_xbrl_research.md)（6社の実測データ）を読む。
-タグの有無や値は思い込みと違うことが多く、実測が唯一の裏取り手段になっている。
+- `npm run compile` はバックエンドの起動が必要（[06章](06_frontend.md)）
+- クエリ上限の値と意図は[05章](05_backend.md)を参照
 
 ## ブランチ・PR運用（submodule構成の要）
 
@@ -75,8 +63,7 @@ sequenceDiagram
 | 親のポインタ更新コミット | 例: `update: backend/frontend submodules（変更概要）` |
 | 親のdocs変更 | ポインタ更新と同じPRに同梱してよい |
 
-この運用の詳しい手順書は `.claude/skills/submodule-pr/SKILL.md` にある
-（`.claude/skills/` には他にデプロイ・日次確認・リリースの手順書もあり、[08章](08_operations.md)で触れる）。
+この運用の詳しい手順書は `.claude/skills/submodule-pr/SKILL.md` にある。
 
 ## ドキュメントの運用ルール
 

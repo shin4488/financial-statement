@@ -26,37 +26,56 @@
 
 ```mermaid
 flowchart LR
-    URL["URLクエリ<br>stock-codes / cash-flow-type"] --> Vars["GraphQL変数へ変換<br>limit 30・最大100社"]
+    URL["URLクエリ<br>stock-codes / cash-flow-type"] --> Vars["GraphQL変数へ変換"]
     Vars --> Apollo["Apollo Clientで<br>financialReportsを取得"]
     Apollo --> Grid["カードのグリッド描画"]
     Grid --> Scroll["末尾に近づいたら<br>offsetをずらして追加取得"]
     Scroll --> Apollo
 ```
 
-実装上の要点:
+### 具体例: URLがそのままクエリになる
 
-- **検索状態の正はURLクエリだけ**。検索UIの操作は `navigate()` でURLを書き換えるだけで、
-  URLの変化がクエリ変数の再計算と再取得を引き起こす。リロードや共有で状態が再現できる
-- Apolloのキャッシュ設定（`typePolicies`）で、追加取得分は `offset` の位置に書き込んで
-  1つのリストに併合する。`offset` 以外の検索条件が変わると別リストとして扱われる
-- 無限スクロールは「取得済み件数が30の倍数」を継続条件にし、30件未満しか返らなかった
-  時点で終端と判断する
-- APIエンドポイントは相対パス `/api/graphql` 固定。nginxがバックエンドへ中継するため、
-  開発と本番でコードが変わらない（環境変数・`.env` は使っていない）
-- Apollo Clientはこのページ専用のインスタンスで、`ApolloProvider` もページ配下だけに
-  提供する（キャッシュ設定を他機能と独立に保つ）
+[02章](02_product.md)の「健全型」（営業↑ 投資↓ 財務↓）で2社を検索したときの変換。
 
-## カードとカルーセル
+```
+URL:         /?stock-codes=7203,4502&cash-flow-type=healthy
+              ↓ useQueryVariables() が変換
+GraphQL変数:  { limit: 30, offset: 0,
+               stockCodes: ["7203", "4502"],
+               operatingCfSign: POSITIVE,
+               investingCfSign: NEGATIVE,
+               financingCfSign: NEGATIVE }
+```
 
-- カードの見出し・バッジ・株探リンクの仕様は[02章](02_product.md)のとおり。
-  外部リンクには `rel="noopener noreferrer"` を明示している（MUIのLinkは自動付与
-  しないため。referrer遮断は検索条件つきURLの外部漏洩防止も兼ねる）
-- カルーセルはBS→PL→CFを6秒間隔で自動切替。ヘッダのチェックボックスと連動する
-  自動切替フラグが**Reduxで管理している唯一の状態**
-- フラグ変更はlocalStorageに保存されるが、**起動時に読み戻す処理は未実装**
-  （既知の実装漏れ。初期値は常にON）
-- 企業名クリックなどはFirebase Analyticsへイベント送信される。Firebaseの設定値は
-  ソースにハードコードされている（クライアント公開前提の識別子であり秘密情報ではない）
+| 実装上の決まり | 内容 |
+|---|---|
+| 検索状態の正はURLクエリだけ | 検索UIは `navigate()` でURLを書き換えるだけ。リロード・共有で状態が再現できる |
+| 追加取得の併合 | Apolloのキャッシュ設定（`typePolicies`）で `offset` の位置に書き込んで1リストに併合。`offset` 以外の条件が変わると別リスト扱い |
+| 無限スクロールの終端判定 | 「取得済み件数が30の倍数」の間は続行し、30件未満しか返らなかったら終端 |
+| APIの向き先 | 相対パス `/api/graphql` 固定。nginxが中継するため開発と本番でコードが同じ（環境変数・`.env` なし） |
+| Apolloインスタンス | このページ専用に生成し、`ApolloProvider` もページ配下だけに提供（キャッシュ設定を他機能と独立に保つ） |
+
+## 画面の状態はどこに置くか
+
+| 状態 | 置き場 | 補足 |
+|---|---|---|
+| 検索条件 | URLクエリ | 上記のとおり。Reduxには置かない |
+| カルーセル自動切替のON/OFF | Redux（唯一のスライス）+ localStorageへ保存 | **起動時に読み戻す処理は未実装**（既知の実装漏れ。初期値は常にON） |
+| それ以外 | なし | 取得データはApolloキャッシュが持つ |
+
+## カード表示の細部
+
+カードの見出しは次の形式で組み立てる。
+
+```
+武田薬品工業株式会社                      ← 企業名。株探の銘柄ページへのリンク
+4502 : 2025-04-01 - 2026-03-31（連結・IFRS）  ← 証券コード : 会計期間（連結/単体・基準バッジ）
+```
+
+- 基準バッジ（`・IFRS` / `・米国基準`）は**日本基準以外のときだけ**付く（大半が日本基準のため例外だけ目立たせる）
+- 外部リンクには `rel="noopener noreferrer"` を明示（MUIのLinkは自動付与しない。referrer遮断は検索条件つきURLの外部漏洩防止も兼ねる）
+- チャートはBS→PL→CFを6秒間隔で自動切替。クリックなどはFirebase Analyticsへ送信される
+  （Firebase設定値はソースにハードコード。クライアント公開前提の識別子で秘密情報ではない）
 
 ## チャート描画キット（`shared/financialCharts/`）
 
@@ -72,15 +91,15 @@ Chrome拡張（別リポジトリ `financial-statement-chrome-extension`）へ�
 
 ### 積み上げ棒（`StackedBarChart`）
 
-- APIの `bars × segments` を、rechartsが要求する「行 × 列」の表に変換する
-  （`toStackRows`）。行=バー、列=全バーに登場するセグメントkeyの和集合
+APIの `bars × segments` を、rechartsが要求する「行 × 列」の表に変換する（`toStackRows`）。
+行=バー、列=全バーに登場するセグメントkeyの和集合。
 
-  ```
-  API（bars × segments）              recharts（rows × columns）
-  借方: [原価, 販管費]        →       { name: "借方", costOfSales: 1.57兆, sga: 1.08兆 }
-  貸方: [収益, 税引前損失]             { name: "貸方", revenue: 4.5兆, lossBeforeTax: 0.14兆 }
-                                     ※ あるバーに無い列はundefinedになり、その行には描かれない
-  ```
+```
+API（bars × segments）              recharts（rows × columns）
+借方: [原価, 販管費]        →       { name: "借方", costOfSales: 60, sga: 30 }
+貸方: [収益]                        { name: "貸方", revenue: 100 }
+                                   ※ あるバーに無い列はundefinedになり、その行には描かれない
+```
 
 - **積み上げ順・色・ラベルはすべてバックエンドの決定に従う**。フロントは並び替えも
   分岐もしない（[04章](04_system_overview.md)の「フロントは形式を知らない」の実装）
@@ -89,10 +108,13 @@ Chrome拡張（別リポジトリ `financial-statement-chrome-extension`）へ�
 
 ### ウォーターフォール（`WaterfallChart`）
 
-- 各ステップを「透明の下駄バー + 実バー」の2段積みで表現する定石の実装
-- 残高（`kind: "balance"`）のステップで累積をリセットして0起点で描く
-  （期首+増減と期末が一致しない場合があるため。理由は[02章](02_product.md)）
-- 増加は青系・減少は赤系で塗り分け
+各ステップを「透明の下駄バー + 実バー」の2段積みで表現する定石の実装。
+
+| 仕掛け | 内容 |
+|---|---|
+| `kind: "balance"`（期首残・期末残） | 累積をリセットして0起点で描く（期首+増減と期末が一致しない場合があるため。[02章](02_product.md)） |
+| `kind: "flow"`（営業・投資・財務） | 直前の累積から浮かせて増減分だけ描く |
+| 色 | 増加は青系・減少は赤系 |
 
 ### 色の契約（`colorRoles.ts`）
 
@@ -117,29 +139,30 @@ flowchart LR
     Gen --> Type["クエリ結果の<br>TypeScript型"]
 ```
 
-- スキーマの取得先が起動中のAPIなので、**実行にはバックエンドの起動が必要**
-  （`docker compose exec appfront npm run compile`）
-- 生成物はコミットする運用。そのためデプロイやビルドだけなら再生成は不要で、
-  バックエンドのスキーマを変えたときだけ再生成してコミットする
-- 独自スカラ `Money` はTypeScript上 `number` に対応づけている
-- 開発中はcodegenのwatchモードが起動スクリプトで常駐し、クエリ変更に自動追従する
+| 決まり | 内容 |
+|---|---|
+| 実行にはバックエンドの起動が必要 | スキーマの取得先が起動中のAPIのため（`docker compose exec appfront npm run compile`） |
+| 生成物はコミットする | デプロイやビルドだけなら再生成不要。スキーマを変えたときだけ再生成してコミット（[07章](07_development.md)） |
+| `Money` は `number` に対応づけ | 金額はJSON数値のまま届く |
+| 開発中はwatchモードが常駐 | 起動スクリプトが自動起動し、クエリ変更に追従する |
 
 ## SEOと計測
 
-- `public/index.html` に title・description・canonical・OGP・Twitterカード・
-  JSON-LD（WebSite）を静的に記述。ルートが1つなのでページ別のmetaはない
-- `robots.txt` は全許可、`sitemap.xml` はトップ1URLのみ
-- Google AdSenseのスクリプトを読み込んでいる
-- 企業別URL・動的sitemapなどのSEO改善案は [docs/improvements.md](../improvements.md) に
-  バックログとして整理されている
+| 項目 | 現状 |
+|---|---|
+| title・description・OGP・JSON-LD | `public/index.html` に静的記述（ルートが1つなのでページ別metaはない） |
+| robots.txt / sitemap.xml | 全許可 / トップ1URLのみ |
+| 広告 | Google AdSenseのスクリプトを読み込み |
+| 改善案 | 企業別URL・動的sitemapなどは [docs/improvements.md](../improvements.md) にバックログあり |
 
 ## 品質まわりの現状
 
-- 型・Lint・整形の検証コマンド: `npx tsc --noEmit` / `npx eslint 'src/**/*.{ts,tsx}'` /
-  `npx prettier --check 'src/**/*.{ts,tsx}'`、ビルド確認は `CI=false yarn build`
-- **テストコードは現状0件**（テスト基盤はCRA雛形のまま残置）。CIも未整備で、
-  どちらも [docs/improvements.md](../improvements.md) に既知課題として記載がある
-- GraphQLエラー時の画面表示も未実装（0件表示になるだけ）。同じく既知課題
+| 項目 | 状態 |
+|---|---|
+| 検証コマンド | `npx tsc --noEmit` / eslint / prettier / `CI=false yarn build`（`application/frontend/README.md` が正） |
+| テストコード | **0件**（CRA雛形のテスト基盤のみ残置。既知課題として [docs/improvements.md](../improvements.md) に記載） |
+| CI | 未整備（同上） |
+| GraphQLエラー時の画面表示 | 未実装（0件表示になるだけ。同上） |
 
 ---
 
