@@ -1,4 +1,6 @@
-# 表示層（Charts / GraphQL）
+# 12. 表示層の詳細（Charts / GraphQL）
+
+[05章](05_backend.md)の実装ガイドの先にある、チャート契約の仕様と実データでの実例を記録する。
 
 ## 役割: 「科目コード → チャートの構造そのもの」
 
@@ -119,11 +121,9 @@ StackChart（BS/PL用）                     WaterfallChart（CF用）
 
 ## 汎用処理は基底クラスに1回だけ書く
 
-`Charts::Builders::StackBase#two_sided_chart` に集約（形式別Builderには書かせない）:
-
-- 債務超過（equity < 0）→ spacer入り3本目バーの生成
-- 貸借合計の検証（乖離1割超なら `renderable: false`。誤ったグラフより出さない方を選ぶ）
-- 比率計算（BigDecimalで%まで計算してからfloat化。`19.900000000000002%` を防ぐ / 切り捨てで合計100%超を防ぐ）
+債務超過・貸借検証・比率計算などの形式共通処理は `Charts::Builders::StackBase` に集約し、
+形式別Builderには書かせない（内容の一覧は[05章](05_backend.md)の共通処理表）。
+この切り分けの理由は[09章](09_layering.md)の「形式クラス同士は継承させない」を参照。
 
 ## GraphQL
 
@@ -143,12 +143,11 @@ query {
 
 - 金額は独自スカラ `Money` でJSON数値のまま返す。円の最大値4e14はJSの安全整数域9e15に収まる。
   gemの `GraphQL::Types::BigInt` を使わないのは、文字列でシリアライズされてWeb・Chrome拡張の両方に変換処理が必要になるため
-- 検索は `Disclosure::SearchQuery`: `is_primary` の財務諸表にJOINし、CF符号は
-  `EXISTS (SELECT 1 FROM financial_statement_items WHERE item_code=? AND amount > 0)`（`(item_code, amount)` 複合インデックスで評価）
-- 未認証で誰でも叩けるエンドポイントのため入力量に上限がある。`limit` は1〜100、
-  `stockCodes` は最大100件、スキーマ全体で `max_complexity 400` / `max_depth 20`（`financial_statement_schema.rb`）
-- `financialReports` の複雑度は `child_complexity + limit / 2` で計算する。
-  graphql-rubyの既定は引数を見ないため `limit:1` と `limit:100` が同コスト扱いになり、エイリアスを並べるだけで上限内に高負荷リクエストを作れてしまうため
+- 検索の全体像は[05章](05_backend.md)。実装面では `is_primary` の財務諸表にJOINし、
+  CF符号のEXISTSサブクエリは `(item_code, amount)` 複合インデックスで評価される
+- 入力量の上限（`limit`・`stockCodes`・`max_complexity` / `max_depth`）の一覧と意図も[05章](05_backend.md)。
+  `financialReports` の複雑度を `child_complexity + limit / 2` で計算するのは、
+  graphql-rubyの既定が引数を見ず `limit:1` と `limit:100` が同コスト扱いになるため
 
 複雑度と深さの実測値は次のとおり。フィールドを増やすときはこの余裕を確認する。
 
@@ -160,7 +159,7 @@ query {
 
 ## テスト
 
-Builderは純関数（`{科目コード=>金額}` → Struct）なのでDBなしで網羅。期待値は実測表（`docs/architecture/06_xbrl_research.md`）から転記:
+Builderは純関数（`{科目コード=>金額}` → Struct）なのでDBなしで網羅。期待値は実測表（[14_xbrl_research.md](14_xbrl_research.md)）から転記:
 
 | ケース | スペック |
 |---|---|

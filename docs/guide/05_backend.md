@@ -1,8 +1,9 @@
 # 05. バックエンド実装
 
 `application/backend`（Rails）の実装ガイド。[04章](04_system_overview.md)の地図を
-実際のクラスとファイルに対応づける。設計の「なぜ」は
-[docs/architecture/](../architecture/README.md)（00〜03）が正で、ここでは重複させない。
+実際のクラスとファイルに対応づける。設計の「なぜ」は[09章](09_layering.md)、
+取込・表示それぞれの詳細と実データでの実例は[11章](11_ingestion.md)・[12章](12_serving.md)にあり、
+ここでは重複させない。
 
 ## ディレクトリマップ
 
@@ -111,9 +112,8 @@ Extractorは実質「マッピング定数」で、ロジックをほぼ持た�
 | `IfrsLiquidity` | `jpigp_cor` | BSは合計系のみ。PL/CFは`IfrsClassified`と定数を共有（継承はしない方針） |
 
 - CFの期首残高だけは前期末時点（`Prior1YearInstant`）のコンテキストで取る
-- タグと科目コードの完全な対応表は [docs/architecture/05_taxonomy_mapping.md](../architecture/05_taxonomy_mapping.md)、
-  6社の実測データは [docs/architecture/06_xbrl_research.md](../architecture/06_xbrl_research.md)
-  （**XBRLタグを触る作業の前に必読**）
+- タグと科目コードの完全な対応表は[13章](13_taxonomy_mapping.md)、
+  6社の実測データは[14章](14_xbrl_research.md)（**XBRLタグを触る作業の前に必読**）
 
 ## チャート生成（`Charts::`）
 
@@ -138,8 +138,7 @@ Extractorは実質「マッピング定数」で、ロジックをほぼ持た�
 - 借方合計(100) = 貸方合計(100) になる。**2本のバーの高さが揃うことが正しさの検証**
   でもあり、乖離が1割を超えるデータは `renderable: false` にして描かない
 - ラベル・積み上げ順・色の役割（`colorRole`）まで全部ここで決める。フロントは並べるだけ
-- 実データの例（赤字企業の残差導出・銀行の残差導出・表示不可）は
-  [docs/architecture/03_serving.md](../architecture/03_serving.md) にある
+- 実データの例（赤字企業の残差導出・銀行の残差導出・表示不可）は[12章](12_serving.md)にある
 
 ### Builderの分担（`BuilderRegistry`）
 
@@ -171,7 +170,7 @@ Extractorは実質「マッピング定数」で、ロジックをほぼ持た�
 
 エンドポイントは `POST /graphql` の1本、クエリも `financialReports` の1フィールドだけ
 （開発環境のみ `/graphiql` にGraphiQLが立つ）。クエリ例とレスポンス構造（チャート契約）は
-[docs/architecture/03_serving.md](../architecture/03_serving.md) が正。
+[12章](12_serving.md)が正。
 
 未認証・公開エンドポイントである前提の防御:
 
@@ -182,8 +181,7 @@ Extractorは実質「マッピング定数」で、ロジックをほぼ持た�
 | クエリの複雑さ上限 | `max_complexity 400` / `max_depth 20` |
 | limit連動のコスト計算 | `limit` の値が複雑度に加算される（`limit:1` と `limit:100` を同コスト扱いにしない） |
 
-- 金額は独自スカラ `Money` で数値のまま返す（標準のBigIntは文字列になる。
-  日本企業の最大級の総資産400兆円=4×10^14はJavaScriptの安全整数9×10^15に収まる）
+- 金額は独自スカラ `Money` で数値のまま返す（設計理由は[12章](12_serving.md)）
 - `SearchQuery` は提出日降順。証券コードは4桁+`0`の5桁に変換して照合し、
   CFパターンは科目行の符号をEXISTSサブクエリで判定する
 - スキーマは `rake graphql:dump_schema` で `schema.graphql` に書き出してコミットする運用

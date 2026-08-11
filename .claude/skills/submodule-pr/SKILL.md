@@ -50,7 +50,7 @@ git push -u origin <ブランチ名>
 gh pr create  # ポインタ更新+関連するdocs変更をまとめる
 ```
 
-- 親リポジトリのdocs変更(docs/architecture等)があればこのPRに同梱する
+- 親リポジトリのdocs変更(docs/guide等)があればこのPRに同梱する
 - この方式ならポインタは常にmainに実在するコミットを指すため、
   submodule側のマージ方式(merge commit / squash)はどちらでも壊れない
 

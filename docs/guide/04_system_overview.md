@@ -132,14 +132,16 @@ erDiagram
         string company_japanese_name "最新の社名"
     }
     reports {
+        string edinet_document_id "書類ID（訂正有報で上書きされる）"
         date fiscal_year_start_date "会計期間（自然キーの一部）"
         date fiscal_year_end_date "会計期間（自然キーの一部）"
         date filing_date "提出日"
-        int accounting_standard "会計基準"
+        int accounting_standard "有報全体の会計基準"
         string company_name_ja "提出時点の社名"
     }
     financial_statements {
         int consolidation_type "連結/単体"
+        int accounting_standard "財務諸表ごとの会計基準（有報と異なり得る）"
         string presentation_format "形式（jgaap_general等）"
         bool is_primary "表示に使う方（連結優先）"
     }
@@ -149,7 +151,7 @@ erDiagram
     }
 ```
 
-理解の要点は3つ。詳細と実データ例は [docs/architecture/01_data_model.md](../architecture/01_data_model.md) が正。
+理解の要点は3つ。実データ例と細かい規約は[10章](10_data_model.md)にある。
 
 1. **科目は縦持ち**。「1科目=1行」の `(item_code, amount)` で保存する。
    科目コードは全40種（BS 18・PL 17・CF 5）で、コードの一覧はRubyの定数
@@ -160,7 +162,7 @@ erDiagram
    キーに上書きするため、訂正有報や再実行で二重登録にならない（冪等性の土台）
 
 このほか旧実装の `security_reports` テーブルが凍結保管されている（コードからの参照はゼロ。
-経緯は [docs/architecture/07_legacy_cleanup.md](../architecture/07_legacy_cleanup.md)）。
+経緯は[15章](15_legacy_cleanup.md)）。
 
 ## 参照系の流れと4層の設計
 
@@ -185,16 +187,10 @@ flowchart LR
     Chart --> F["フロントエンド<br>（形式を知らない）"]
 ```
 
-| 層 | 知っていること | 知らないこと |
-|---|---|---|
-| Extractor（取込側の端） | 形式ごとのXBRLタグ | チャートの見た目 |
-| 科目コード（中央） | 全形式共通の語彙 | タグも見た目も知らない |
-| ChartBuilder（表示側の端） | 形式ごとのチャート構成 | XBRLタグ |
-| フロントエンド | 受け取った構造を描くことだけ | 形式の存在自体 |
-
-新しい形式への対応はExtractorとBuilderのファイル追加だけで済み、DBマイグレーションも
-フロントエンドの変更も不要になる。この判断の背景は
-[docs/architecture/00_layering.md](../architecture/00_layering.md) が正。
+入口（Extractor）と出口（ChartBuilder）だけが形式を知り、中央の科目コードとフロントエンドは
+形式を知らない。新しい形式への対応はExtractorとBuilderのファイル追加だけで済み、
+DBマイグレーションもフロントエンドの変更も不要になる。
+この判断の背景と、層ごとに「知ってよいこと・いけないこと」の基準は[09章](09_layering.md)にある。
 
 ---
 

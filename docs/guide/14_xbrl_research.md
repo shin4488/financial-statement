@@ -1,4 +1,4 @@
-# XBRL形式 実地調査結果（6社・4形式）
+# 14. XBRL実地調査結果（6社・4形式）
 
 EDINET API v2 で実際に有報XBRLを取得し、全factをダンプして分析した結果。調査当時の旧系統実装（`SecurityReport::ReaderRepository`）の実行結果とも突き合わせている。
 

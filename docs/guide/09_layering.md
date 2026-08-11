@@ -1,6 +1,8 @@
-# 設計思想 — 形式ごとの差異をどこに閉じ込めるか
+# 09. 設計思想 — 形式ごとの差異をどこに閉じ込めるか
 
-このディレクトリで最初に読む文書。会計基準や業種ごとに構造の違う財務諸表を、どうやって1つの仕組みで扱えるようにしているかを説明する。個々のクラスの使い方ではなく、どこに何を書くべきかの判断基準をまとめている。
+深掘り章の最初に読む文書。[04章](04_system_overview.md)の全体像に出てきた4層構造について、
+「そう作った理由」と判断基準を残す。個々のクラスの使い方ではなく、
+実装で迷ったときに「どこに何を書くべきか」を判断するための基準をまとめている。
 
 ---
 
@@ -128,7 +130,7 @@ validates :presentation_format, inclusion: { in: Ingestion::FormatRegistry::ALL 
 
 - 定義は [`app/lib/financial_statements/item_codes.rb`](../../application/backend/app/lib/financial_statements/item_codes.rb) だけに置く
 - DBにマスタテーブルは作らない。コードと利用箇所は必ず同時に変わるので、grepとコードレビューが効くRubyの定数の方が安全
-- 「Extractorが使うコード ⊆ レジストリ」はspecで機械的に検証している
+- 「Extractorが使うコード ⊆ レジストリ」はspecで機械的に検証している（`mapping_consistency_spec.rb`）
 
 これがあるので、②はXBRLを知らずに保存でき、③はXBRLを知らずに描ける。
 
@@ -223,7 +225,7 @@ application/backend/app/
 
 | 目的 | 文書 |
 |---|---|
-| データの持ち方を知る | [01_data_model.md](01_data_model.md) |
-| XBRLからどう取り込むか | [02_ingestion.md](02_ingestion.md) |
-| どうグラフにして返すか | [03_serving.md](03_serving.md) |
-| タグと科目コードの対応を引く | [05_taxonomy_mapping.md](05_taxonomy_mapping.md) |
+| データの持ち方を知る | [10_data_model.md](10_data_model.md) |
+| XBRLからどう取り込むか | [11_ingestion.md](11_ingestion.md) |
+| どうグラフにして返すか | [12_serving.md](12_serving.md) |
+| タグと科目コードの対応を引く | [13_taxonomy_mapping.md](13_taxonomy_mapping.md) |

@@ -1,45 +1,13 @@
-# データモデル
+# 10. データモデル詳細
 
-## ER図
+ER図と縦持ちの基本は[04章](04_system_overview.md)にある。この文書はその先の
+「なぜこの持ち方なのか」と、実データ例・細かい規約を記録する。
 
-```mermaid
-erDiagram
-    companies ||--o{ reports : "1社 : n有報"
-    reports ||--o{ financial_statements : "1有報 : 連結/単体"
-    financial_statements ||--o{ financial_statement_items : "1財務諸表 : n科目"
-
-    companies {
-        string edinet_code UK "EDINETコード（不変の自然キー）"
-        string stock_code "証券コード5桁"
-        string company_japanese_name "最新の企業名（マスタ）"
-    }
-    reports {
-        string edinet_document_id "訂正有報で上書きされる"
-        date fiscal_year_start_date UK "自然キー=企業+会計期間"
-        date fiscal_year_end_date UK
-        string company_name_ja "提出時点の企業名"
-        int accounting_standard "有報全体の基準"
-        string consolidated_industry_code "業種DEI（bnk等）"
-    }
-    financial_statements {
-        int consolidation_type "連結 or 単体"
-        int accounting_standard "財務諸表ごとに持つ（有報の属性にしない）"
-        string presentation_format "jgaap_bank / ifrs_classified 等"
-        bool is_primary "一覧・検索の対象（連結優先）"
-    }
-    financial_statement_items {
-        string item_code "正規化科目コード"
-        bigint amount "円。NOT NULL"
-    }
-```
-
-ポイント3つ:
+ポイント2つ:
 
 1. **会計基準・表示形式は「有報」でなく「財務諸表」の属性**。
    IFRS企業でも単体財務諸表は日本基準でタグ付けされる（実測6社すべて）ため、有報1通の中に `ifrs_classified`（連結）と `jgaap_general`（単体）が同居する。
-2. **科目は縦持ち**。形式ごとに保存する科目が違っても行の内容が変わるだけで、
-   スキーマは変わらない。
-3. **企業名は2箇所に持つ**（下記）。
+2. **企業名は2箇所に持つ**（下記）。
 
 ## 企業名の持ち方: マスタ（最新名）+ 有報（提出時点の名前）
 
@@ -93,15 +61,11 @@ erDiagram
 
 これで「0円」と「開示なし」の区別がつく。横持ちだった旧テーブルではIFRS企業の全カラムが0で埋まり、0なのか未開示なのか判別できなかった。
 
-## 科目コードレジストリ
-
-科目コードの唯一の定義は [`app/lib/financial_statements/item_codes.rb`](../../application/backend/app/lib/financial_statements/item_codes.rb)。DBにマスタテーブルは作らない（コードと利用ロジックは必ず同時に変わるため、Rubyの定数でgrep・コードレビューが効く方を優先）。
-
-命名規則は `"<財務諸表>.<科目のスネークケース英名>"`（bs. / pl. / cf.）。保存時の正当性はモデルのバリデーション + 「Extractorのマッピング ⊆ レジストリ」をspecで担保（`spec/services/ingestion/extractors/mapping_consistency_spec.rb`）。
-
 ## 科目コード辞書
 
-どのXBRLタグがどの科目コードになり、どのBuilderが描画に使うかは[05_taxonomy_mapping.md](05_taxonomy_mapping.md) に一覧がある。以下は分類の概要のみ。
+科目コードの定義・命名規則・「DBマスタを作らない」理由は[09章](09_layering.md)の契約1にある。
+どのXBRLタグがどの科目コードになり、どのBuilderが描画に使うかは
+[13_taxonomy_mapping.md](13_taxonomy_mapping.md) に一覧がある。以下は分類の概要のみ。
 
 ### 科目の3グループ
 

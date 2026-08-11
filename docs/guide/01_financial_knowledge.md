@@ -112,7 +112,7 @@ XBRLの中身は「fact（事実）」の集まりで、1つのfactは次の組�
 | `jpigp_cor` | **IFRS**の財務諸表本表のタグ |
 
 このほか企業が独自に定義する「企業拡張タグ」も存在するが、企業ごとに意味の保証がない
-ため、このシステムは意図的に読まない（詳細は [docs/architecture/05_taxonomy_mapping.md](../architecture/05_taxonomy_mapping.md)）。
+ため、このシステムは意図的に読まない（詳細は[13章](13_taxonomy_mapping.md)）。
 
 ### コンテキスト
 
