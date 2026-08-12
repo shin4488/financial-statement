@@ -109,7 +109,8 @@ bundle exec rails s   # DBはdocker側のdatabaseコンテナを起動してお�
 
 ### GraphQLの型生成（フロントエンド）
 
-バックエンドのスキーマ変更後、フロントの型を再生成する（バックエンド起動が必要）:
+バックエンドのスキーマ変更後、`rake graphql:dump_schema` で `schema.graphql` を更新してから
+フロントの型を再生成する（コミット済みSDLを参照するため、バックエンドの起動は不要）:
 
 ```bash
 cd application/frontend

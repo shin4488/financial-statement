@@ -27,8 +27,11 @@ flowchart LR
     C --> D["クエリ上限に収まるか確認<br>（max_complexity / max_depth）"]
 ```
 
-- `npm run compile` はバックエンドの起動が必要（[06章](06_frontend.md)）
+- `npm run compile` はコミット済みの `schema.graphql` を参照するため、バックエンドの起動は不要（[06章](06_frontend.md)）
 - クエリ上限の値と意図は[05章](05_backend.md)を参照
+- スキーマの書き出し忘れ・型生成の取り込み忘れは、各リポジトリのCIが差分検知する
+- Claude Codeでの編集時は、フック（`.claude/hooks/format-lint.sh`）がフォーマッタ・リンタ
+  （backend: rubocop -A / frontend: eslint --fix → prettier）を自動実行する
 
 ### ブランチ・PR運用（submodule構成の要）
 
