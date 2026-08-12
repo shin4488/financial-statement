@@ -107,7 +107,7 @@ flowchart TB
 - 親リポジトリの `git status` に出る `M application/backend` は「ファイルが変わった」
   ではなく「ポインタと実体がずれている」の意味
 
-この2段階を安全に回すためのPR運用ルールが決まっている（[07章](07_development_operations.md)）。
+この2段階を安全に行うためのPR運用ルールが決まっている（[07章](07_development_operations.md)）。
 
 ---
 
