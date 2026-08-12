@@ -290,7 +290,7 @@ CI常設のAPIコスト・Secrets管理に見合わない）
 1. 取込時に `unsupported` 判定されたら、factダンプ（要素名×コンテキスト×値のTSV）を
    S3等に保存し、`unsupported_format_samples` テーブルに (業種コード, docID, パス) を記録
 2. 週次ジョブ: 業種コードごとにサンプル1件のfactダンプをClaude APIに投げる。プロンプト骨子:
-   「以下は日本基準・業種コードXXXの有報XBRLのfact一覧。`docs/guide/09_data_model.md` の
+   「以下は日本基準・業種コードXXXの有報XBRLのfact一覧。`docs/guide/04_system_overview.md` の
    科目コード一覧に対応するタグを、根拠となる値の整合性（合計=内訳の和）と共に提案せよ」
 3. 提案をGitHub Issueとして自動起票（gh CLI or API）。**自動でコードに反映しない**——
    マッピングの正しさは人間が実測値と突き合わせて確認し、Extractorクラスとして実装する

@@ -88,7 +88,7 @@ docker compose exec appserver bundle exec rake 'ingestion:backfill[2026-06-20,20
 
 ```bash
 # 方法2: EDINETの書類管理番号（docID）を指定して取込
-# 例は各会計基準・業種の検証用6社（詳細: docs/guide/12_taxonomy_mapping.md）
+# 例は各会計基準・業種の検証用6社（詳細: docs/guide/08_taxonomy_mapping.md）
 docker compose exec appserver bundle exec rake 'ingestion:documents[S100YB5L S100YB25 S100YCP3 S100XTNW S100YLS8 S100YJQO]'
 ```
 
@@ -126,7 +126,7 @@ Sidekiqはappserverコンテナの起動スクリプト内で一緒に立ち上�
 
 | パス | 内容 |
 |---|---|
-| [docs/guide/](docs/guide/README.md) | **ドキュメントの本体**。前提知識ゼロから読める入門〜運用（01〜07）+ 設計判断の深掘り（08〜11）+ タグ対応表・実測データなどの資料（12〜13） |
+| [docs/guide/](docs/guide/README.md) | **ドキュメントの本体**。前提知識ゼロから読める入門〜設計〜運用（01〜07）+ タグ対応表・実測データなどの資料（08〜09） |
 | [docs/improvements.md](docs/improvements.md) | DX / SEO / AI活用の改善バックログ（作業手順つき） |
 | [CLAUDE.md](CLAUDE.md) | AIエージェント向けコンテキスト（ドメイン知識・既知課題の要約） |
 
@@ -144,8 +144,8 @@ Sidekiqはappserverコンテナの起動スクリプト内で一緒に立ち上�
 
 - **米国基準・日本基準の保険業などは未対応**: 上記 `unsupported` として扱われ、
   グラフの代わりにその旨が表示される。追加はExtractor・Builderのファイル追加のみで済む
-  （マイグレーション不要。手順は [docs/guide/10_ingestion.md](docs/guide/10_ingestion.md)）
+  （マイグレーション不要。手順は [docs/guide/05_backend.md](docs/guide/05_backend.md)）
 - **旧系統（SecurityReport系）は`security_reports`テーブルのみ凍結保管**: コードは
   すべて削除済み。凍結データの扱いは
-  [docs/guide/13_legacy_cleanup.md](docs/guide/13_legacy_cleanup.md)
+  [docs/guide/09_legacy_cleanup.md](docs/guide/09_legacy_cleanup.md)
 - その他は [docs/improvements.md](docs/improvements.md) を参照
