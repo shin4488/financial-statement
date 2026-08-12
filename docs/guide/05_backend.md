@@ -242,6 +242,7 @@ query {
 | マッピング整合 | 「全Extractorのマッピングキー ⊆ 科目コード定義」を機械検証 |
 | 形式判定 | 判定表・業種コードの大文字小文字ゆれ・unsupported落ちを検証 |
 | fixture | 実XBRL8社分は1件数MBのためgit管理外。手元にないテストはskipされる（取得手順は `spec/fixtures/xbrl/README.md`） |
+| CI | push/PRごとにrubocop・スキーマ差分検知・rspecを実行（`.github/workflows/ci.yml`） |
 
 ---
 

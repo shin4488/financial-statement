@@ -131,15 +131,15 @@ rechartsにウォーターフォール専用の部品はないため、積み上
 
 ```mermaid
 flowchart LR
-    Schema["起動中のバックエンド<br>のスキーマ"] -->|npm run compile| Gen["src/__generated__/"]
+    Schema["backendのschema.graphql<br>（コミット済みSDL）"] -->|npm run compile| Gen["src/__generated__/"]
     Query["src内のクエリ定義"] --> Gen
     Gen --> Type["クエリ結果の<br>TypeScript型"]
 ```
 
 | 決まり | 内容 |
 |---|---|
-| 実行にはバックエンドの起動が必要 | スキーマの取得先が起動中のAPIのため（`docker compose exec appfront npm run compile`） |
-| 生成物はコミットする | デプロイやビルドだけなら再生成不要。スキーマを変えたときだけ再生成してコミット（[07章](07_development_operations.md)） |
+| バックエンドの起動は不要 | スキーマの参照先が `../backend/schema.graphql`（コミット済みSDL）のため。スキーマを変えたときはbackend側で `rake graphql:dump_schema` を先に実行する |
+| 生成物はコミットする | デプロイやビルドだけなら再生成不要。スキーマを変えたときだけ再生成してコミット（[07章](07_development_operations.md)）。取り込み忘れはCIが差分検知する |
 | `Money` は `number` に対応づけ | 金額はJSON数値のまま届く |
 | 開発中はwatchモードが常駐 | 起動スクリプトが自動起動し、クエリ変更に追従する |
 
@@ -157,9 +157,9 @@ flowchart LR
 | 項目 | 状態 |
 |---|---|
 | 検証コマンド | `npx tsc --noEmit` / eslint / prettier / `CI=false yarn build`（`application/frontend/README.md` が正） |
-| テストコード | **0件**（CRA雛形のテスト基盤のみ残置。既知課題として [docs/improvements.md](../improvements.md) に記載） |
-| CI | 未整備（同上） |
-| GraphQLエラー時の画面表示 | 未実装（0件表示になるだけ。同上） |
+| CI | 導入済み（`.github/workflows/ci.yml`。検証コマンド一式 + 型生成の差分検知 + build） |
+| テストコード | **0件**（CRA雛形のテスト基盤のみ残置） |
+| GraphQLエラー時の画面表示 | 未実装（0件表示になるだけ） |
 
 ---
 

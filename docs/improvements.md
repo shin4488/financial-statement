@@ -11,93 +11,6 @@ CIワークフローも各submoduleリポジトリ側に置く（詳細は [CLAU
 
 ## 1. 開発者体験（DX）
 
-### 1-2. CI（GitHub Actions）
-
-- **現状**: backend/frontendリポジトリにワークフローなし。lint・型チェック・ビルドが手元任せ
-- **意図**: 「フロントだけ直してビルドが壊れる」「submodule参照の更新漏れ」の自動検知
-
-**手順**:
-
-1. **frontendリポジトリ** に `.github/workflows/ci.yml` を作成:
-   ```yaml
-   name: CI
-   on: [push, pull_request]
-   jobs:
-     check:
-       runs-on: ubuntu-latest
-       steps:
-         - uses: actions/checkout@v4
-         - uses: actions/setup-node@v4
-           with: { node-version-file: ".nvmrc", cache: "npm" }  # .nvmrcがなければ現行のnodeバージョンで作る
-         - run: npm ci
-         - run: npx tsc --noEmit
-         - run: npx eslint 'src/**/*.{ts,tsx}'
-         - run: npx prettier --check 'src/**/*.{ts,tsx}'
-         - run: npm run build
-           env: { CI: "false" }  # CRAはCI=trueだとwarningをerror扱いする。まずは通す設定で始め、後で外す
-   ```
-2. **backendリポジトリ** に同様のワークフロー（rubocopステップは1-4完了後に有効化）:
-   ```yaml
-   name: CI
-   on: [push, pull_request]
-   jobs:
-     check:
-       runs-on: ubuntu-latest
-       services:
-         postgres:
-           image: postgres:15
-           env: { POSTGRES_USER: ci, POSTGRES_PASSWORD: ci, POSTGRES_DB: app_test }
-           ports: ["5432:5432"]
-           options: --health-cmd pg_isready --health-interval 5s
-       steps:
-         - uses: actions/checkout@v4
-         - uses: ruby/setup-ruby@v1
-           with: { bundler-cache: true }  # .ruby-version(3.2.2)を自動参照
-         - run: bundle exec rubocop
-         - run: bundle exec rspec
-           env:
-             POSTGRES_HOST_NAME: localhost
-             POSTGRES_PORT: "5432"
-             POSTGRES_USER_NAME: ci
-             POSTGRES_PASSWORD: ci
-             POSTGRES_DATABASE_NAME: app_test
-             EDINET_API_KEY: dummy  # テストは実APIを叩かない（webmockで遮断済み）
-   ```
-（親リポジトリのsubmodule整合性チェック `.github/workflows/submodule-check.yml` は追加済み。
-mainへのpush時に「submoduleの参照コミットがmainに含まれるか」を検証する）
-
-### 1-4. Lint/Format（バックエンド）
-
-**手順**（backendリポジトリ・半日）:
-
-1. Gemfile: `gem "rubocop-rails-omakase", require: false, group: [:development, :test]`
-2. `.rubocop.yml` を作成:
-   ```yaml
-   inherit_gem: { rubocop-rails-omakase: rubocop.yml }
-   ```
-3. `bundle exec rubocop -A` で自動修正 → 差分をレビューして1コミットに分離
-   （ロジック変更が混ざらないよう、このコミットには自動修正以外を入れない）
-4. 自動修正できない違反が多い場合は `bundle exec rubocop --auto-gen-config` で
-   `.rubocop_todo.yml` を生成し「現状は許容・新規コードから適用」で開始
-5. CI（1-2）のrubocopステップを有効化
-
-### 1-5. codegenのファイル参照化とCI検証
-
-- **現状**: `rake graphql:dump_schema` と `schema.graphql` のコミットは対応済み。
-  フロントの `npm run compile`（graphql-codegen）は依然バックエンド起動を要求する
-- **意図**: スキーマとフロント型のズレ検知 + バックエンド起動なしのフロント開発
-
-**手順**:
-
-1. backend CI に「ダンプして未コミット差分があれば失敗」を追加:
-   ```yaml
-   - run: bundle exec rake graphql:dump_schema && git diff --exit-code schema.graphql
-   ```
-2. frontend: `codegen.ts` の `schema:` をURLからファイルパスに変更
-   （submodule構成なら相対パス `../backend/schema.graphql` が使える）
-3. frontend CI に `npm run compile && git diff --exit-code src/__generated__` を追加
-   （スキーマ変更を取り込まず生成物が古いままのPRを検知）
-
 ### 1-7. submodule運用の見直し（検討）
 
 - **現状**: 変更のたびに「submoduleでコミット→親でハッシュ更新コミット」の二度手間。
@@ -360,7 +273,6 @@ CI常設のAPIコスト・Secrets管理に見合わない）
 
 ## 推奨着手順
 
-1. **1-2 CI**（以後の全変更の安全網。1-4と1-5もこの中で同時に済ませる）
-2. **2-1 企業別URL + 2-3 動的sitemap**（SEOの土台）
-3. **2-2 SSR / 3-3 コメント生成**（サイト価値の本丸）
-4. 3-4〜3-7 は順次
+1. **2-1 企業別URL + 2-3 動的sitemap**（SEOの土台）
+2. **2-2 SSR / 3-3 コメント生成**（サイト価値の本丸）
+3. 3-4〜3-7 は順次
