@@ -48,13 +48,19 @@ docker-compose.yml     # 全体起動（web:10000, api:20000）
 - IFRS企業でも**単体財務諸表は日本基準**でタグ付けされる
 - 銀行・保険など特定業種は日本基準でも別フォーマット（業種DEIコード bnk/INS等）。
   銀行は対応済み、保険・米国基準は `unsupported`（グラフの代わりに説明文を出す正常系）
-- **実装済みアーキテクチャの正は `docs/architecture/`**（縦持ち実装:
-  Disclosureモデル・Ingestion・Charts・financialReportsクエリ・一覧画面の解説と設計意図）。
+- **実装済みアーキテクチャの正は `docs/guide/` の04章（全体像・4層設計・データモデル）と
+  05章（取込・チャート生成・API）**。
   旧系統（SecurityReport系）のコードは削除済みで、`security_reports`テーブルのみ
-  凍結保管（`docs/architecture/07_legacy_cleanup.md`）
+  凍結保管（`docs/guide/09_legacy_cleanup.md`）
 - **XBRLタグを扱う作業の前に必ず
-  `docs/architecture/06_xbrl_research.md`（6社実測データ）を読むこと**
+  `docs/guide/08_taxonomy_mapping.md`（6社実測データ）を読むこと**
 
 ## 改善バックログ
 
 DX/SEO/AI活用の改善候補は `docs/improvements.md` に整理されている。
+
+## リポジトリ理解ガイド
+
+ドキュメントの本体は `docs/guide/`（README.mdが目次）。学ぶ章（01〜07: ドメイン知識→仕様→
+技術前提→全体像と設計→バックエンド→フロントエンド→開発と運用。設計判断の「なぜ」は
+04・05章に統合されている）+ 資料（08〜09: タグ対応表と実測データ・削除記録）の構成。
