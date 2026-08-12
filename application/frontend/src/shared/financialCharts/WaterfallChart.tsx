@@ -10,7 +10,10 @@ import {
   YAxis,
 } from 'recharts';
 import { ChartUnavailable } from './ChartUnavailable';
-import type { WaterfallChart as WaterfallChartData, WaterfallStep } from './types';
+import type {
+  WaterfallChart as WaterfallChartData,
+  WaterfallStep,
+} from './types';
 
 const POSITIVE_COLOR = '#A1C2F1';
 const NEGATIVE_COLOR = '#FF9EAA';
@@ -73,7 +76,11 @@ export function WaterfallChart({
   const rows = toWaterfallRows(chart.steps);
 
   return (
-    <ResponsiveContainer className="bar-container" width={width} height={height}>
+    <ResponsiveContainer
+      className="bar-container"
+      width={width}
+      height={height}
+    >
       <BarChart data={rows}>
         <XAxis dataKey="name" />
         {/* domain自動: 累積が負になるケースで0より下も描画させる */}
@@ -104,7 +111,12 @@ export function WaterfallChart({
             );
           }}
         />
-        <Bar dataKey="base" stackId="w" fill="transparent" isAnimationActive={false} />
+        <Bar
+          dataKey="base"
+          stackId="w"
+          fill="transparent"
+          isAnimationActive={false}
+        />
         <Bar dataKey="span" stackId="w" isAnimationActive={false}>
           <LabelList
             dataKey="value"
