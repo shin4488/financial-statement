@@ -36,7 +36,7 @@ financial-statement/            # このリポジトリ（親）
 | 層 | 技術 |
 |---|---|
 | フロントエンド | React (CRA + craco) / TypeScript / Apollo Client / Redux Toolkit / MUI / recharts |
-| バックエンド | Ruby 3.2.2 / Rails 7 / GraphQL (graphql-ruby) / Sidekiq + sidekiq-cron |
+| バックエンド | Ruby 3.3.12 / Rails 7 / GraphQL (graphql-ruby) / Sidekiq + sidekiq-cron |
 | データストア | PostgreSQL 12 / Redis |
 | インフラ（開発） | Docker Compose + nginx |
 | 外部API | EDINET API v2（有報一覧・XBRL取得） |
@@ -99,7 +99,7 @@ docker compose exec appserver bundle exec rake 'ingestion:documents[S100YB5L S10
 
 ### バックエンド単体で動かす（docker外）
 
-rbenv等でRuby 3.2.2を入れて:
+rbenv等でRuby 3.3.12を入れて:
 
 ```bash
 cd application/backend

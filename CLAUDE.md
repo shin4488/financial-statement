@@ -17,7 +17,7 @@ docker-compose.yml     # 全体起動（web:10000, api:20000）
 - **submodule内の変更はそれぞれのリポジトリで別コミットになる。** 親リポジトリでは
   submoduleのハッシュ更新コミットが別途必要
 - ローカル実行: `docker compose up`（DB初期化は `database/init/`）。
-  バックエンド単体はrbenvのruby 3.2.2 + `bundle exec`で動く（DBはdocker側が必要）
+  バックエンド単体はrbenvのruby 3.3.12 + `bundle exec`で動く（DBはdocker側が必要）
 
 ## バックエンド（application/backend）
 
