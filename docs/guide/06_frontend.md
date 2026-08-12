@@ -3,7 +3,7 @@
 `application/frontend`（React SPA）の実装ガイド。画面は[02章](02_product.md)の
 一覧ページ1つだけで、ソースは `src/` 配下の約25ファイルと小さい。
 チャートキットの規約の原本はキット内の `src/shared/financialCharts/README.md`
-（コピー先のChrome拡張にも同じものが付いていく）。
+（コピー先のChrome拡張にも同じREADMEが入る）。
 
 ## ディレクトリマップと分割基準
 
