@@ -1,0 +1,38 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+# 既定はリポジトリ設定依存のため、必要な読み取りのみを明示する（最小権限）
+permissions:
+  contents: read
+defaults:
+  run:
+    working-directory: frontend
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          path: frontend
+      # codegenが ../backend/schema.graphql を参照するため、backendリポジトリのmainも取得する
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          repository: shin4488/financial-statement-backend
+          path: backend
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: yarn
+          cache-dependency-path: frontend/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - run: npx tsc --noEmit
+      - run: npx eslint 'src/**/*.{ts,tsx}'
+      - run: npx prettier --check 'src/**/*.{ts,tsx}'
+      # 型生成の取り込み忘れ検知（src/__generated__はコミットする運用）
+      - run: yarn compile && git diff --exit-code src/__generated__
+      - run: yarn build
+        env:
+          # CRAはCI=trueだとwarningをerror扱いする。まずは通す設定で始め、後で外す
+          CI: "false"
