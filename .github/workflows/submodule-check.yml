@@ -1,9 +1,11 @@
 name: submodule-check
-# mainへのpush時のみ検証する。PR段階では、submoduleの参照先が未マージの
-# featureブランチを指すのが正常な運用（backend/frontend→親の順でマージする）のため
+# mainへのpushとPRの両方で検証する。現在の運用（submoduleをマージしてから親のポインタを更新する）では
+# 親PRの時点でもポインタは各mainに実在するコミットを指すため、PRでの検証は運用違反の早期検出になる。
+# また、このチェックを必須status checkにすることで「mainに追従していないPRはマージ不可」(strict)を効かせる
 on:
   push:
     branches: [main]
+  pull_request:
 # 既定はリポジトリ設定依存のため、必要な読み取りのみを明示する（最小権限）
 permissions:
   contents: read
