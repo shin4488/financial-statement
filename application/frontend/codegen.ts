@@ -1,8 +1,9 @@
 import { CodegenConfig } from '@graphql-codegen/cli';
 
 const config: CodegenConfig = {
-  // コンテナ内でリクエストを送るため、コンテナ名・内部的なポート指定とする。webコンテナは内部的に80ポートでリクエストを受け付ける
-  schema: 'http://web/api/graphql',
+  // バックエンドがコミットしているSDLファイルを参照する（バックエンド起動なしで型生成できる）。
+  // スキーマ変更時はバックエンド側で rake graphql:dump_schema を実行してから型生成する
+  schema: '../backend/schema.graphql',
   documents: ['src/**/*.tsx'],
   generates: {
     './src/__generated__/': {
