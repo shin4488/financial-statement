@@ -38,7 +38,7 @@ module Edinet
       results.filter_map do |r|
         # secCodeなし = 非上場（投資信託・組合等の提出物）。本アプリの対象外
         next if r["secCode"].nil?
-        next unless [ANNUAL_REPORT, AMENDED_ANNUAL_REPORT].include?(r["docTypeCode"])
+        next unless [ ANNUAL_REPORT, AMENDED_ANNUAL_REPORT ].include?(r["docTypeCode"])
         DocumentMeta.new(doc_id: r["docID"], sec_code: r["secCode"],
                          filer_name: r["filerName"], doc_type_code: r["docTypeCode"])
       end

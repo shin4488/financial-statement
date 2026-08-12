@@ -6,11 +6,11 @@ class Charts::Builders::BsIfrsLiquidity < Charts::Builders::StackBase
     other_assets = assets && cash ? assets - cash : nil
     two_sided_chart(
       debit_specs: [
-        ["cash",        "現金及び現金同等物", cash,         "asset1"],
-        ["otherAssets", "その他資産",         other_assets, "asset2"],
+        [ "cash",        "現金及び現金同等物", cash,         "asset1" ],
+        [ "otherAssets", "その他資産",         other_assets, "asset2" ]
       ],
       credit_specs: [
-        ["liabilities", "負債", "bs.liabilities", "liability1"],
+        [ "liabilities", "負債", "bs.liabilities", "liability1" ]
       ],
       equity: val("bs.equity"), equity_label: "資本", base: assets,
       unrenderable_note: "財政状態計算書: データがない、または表示対応していないデータです。")

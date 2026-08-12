@@ -22,15 +22,15 @@ class Charts::Builders::PlJgaapGeneral < Charts::Builders::StackBase
 
     debit = [
       seg("costOfSales", "売上原価",       cost_of_sales, "expense1", base: revenue),
-      seg("sga",         "販売一般管理費", sga,           "expense2", base: revenue),
+      seg("sga",         "販売一般管理費", sga,           "expense2", base: revenue)
     ]
-    credit = [seg("revenue", "売上", revenue, "revenue", base: revenue)]
+    credit = [ seg("revenue", "売上", revenue, "revenue", base: revenue) ]
     if op.negative?
       credit << seg("operatingLoss", "営業損失", -op, "loss", base: revenue, signed: op)
     else
       debit << seg("operatingProfit", "営業利益", op, "profit", base: revenue)
     end
     Charts::StackChart.new(renderable: true, note: nil,
-                   bars: [Charts::Bar.new(label: "借方", segments: debit), Charts::Bar.new(label: "貸方", segments: credit)])
+                   bars: [ Charts::Bar.new(label: "借方", segments: debit), Charts::Bar.new(label: "貸方", segments: credit) ])
   end
 end

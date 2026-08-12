@@ -1,7 +1,7 @@
 
 Sentry.init do |config|
-  config.dsn = ENV['SENTRY_DSN']
-  config.breadcrumbs_logger = [:active_support_logger, :http_logger]
+  config.dsn = ENV["SENTRY_DSN"]
+  config.breadcrumbs_logger = [ :active_support_logger, :http_logger ]
 
   # send_default_piiは有効にしない: sentry-rubyのNet::HTTPパッチが外部APIリクエストの
   # クエリ文字列（EDINETのSubscription-Key）とボディまでSentryへ送出してしまうため

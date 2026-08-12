@@ -30,7 +30,7 @@ RSpec.describe "financialReports query" do
              "pl.sga" => 1_084_215_000_000, "pl.profit_before_tax" => -142_355_000_000,
              "cf.cash_begin" => 385_113_000_000, "cf.operating" => 1_041_431_000_000,
              "cf.investing" => -369_141_000_000, "cf.financing" => -496_820_000_000,
-             "cf.cash_end" => 595_054_000_000,
+             "cf.cash_end" => 595_054_000_000
            })
   end
 

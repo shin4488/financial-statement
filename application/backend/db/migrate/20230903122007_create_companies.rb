@@ -7,6 +7,6 @@ class CreateCompanies < ActiveRecord::Migration[7.0]
       t.string :company_english_name, comment: "企業名（英語）"
       t.timestamps
     end
-    add_index :companies, [:edinet_code], unique: true
+    add_index :companies, [ :edinet_code ], unique: true
   end
 end

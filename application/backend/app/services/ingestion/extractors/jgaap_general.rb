@@ -15,7 +15,7 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
     # 消費される（消費先が違う）。縦持ちでは行が1つ増えるだけなので冗長保存を許容し、
     # Builder側が「どのコードを見ればよいか」で迷わないようにする
     "bs.cash_and_equivalents"         => "jppfs_cor:CashAndCashEquivalents",
-    "cf.cash_end"                     => "jppfs_cor:CashAndCashEquivalents",
+    "cf.cash_end"                     => "jppfs_cor:CashAndCashEquivalents"
   }.freeze
 
   DURATION_MAPPING = {
@@ -58,7 +58,7 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
     "pl.profit_attributable_to_owners" => "jppfs_cor:ProfitLossAttributableToOwnersOfParent",
     "cf.operating" => "jppfs_cor:NetCashProvidedByUsedInOperatingActivities",
     "cf.investing" => "jppfs_cor:NetCashProvidedByUsedInInvestmentActivities", # JGAAPはInvestment（IFRSはInvesting。取り違え注意）
-    "cf.financing" => "jppfs_cor:NetCashProvidedByUsedInFinancingActivities",
+    "cf.financing" => "jppfs_cor:NetCashProvidedByUsedInFinancingActivities"
   }.freeze
 
   private

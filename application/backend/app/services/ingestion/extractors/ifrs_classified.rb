@@ -14,7 +14,7 @@ class Ingestion::Extractors::IfrsClassified < Ingestion::Extractors::Base
     "bs.non_controlling_interests"     => "jpigp_cor:NonControllingInterestsIFRS",
     "bs.property_plant_and_equipment"  => "jpigp_cor:PropertyPlantAndEquipmentIFRS",
     "bs.cash_and_equivalents"    => "jpigp_cor:CashAndCashEquivalentsIFRS",
-    "cf.cash_end"                => "jpigp_cor:CashAndCashEquivalentsIFRS",
+    "cf.cash_end"                => "jpigp_cor:CashAndCashEquivalentsIFRS"
   }.freeze
 
   DURATION_MAPPING = {
@@ -40,7 +40,7 @@ class Ingestion::Extractors::IfrsClassified < Ingestion::Extractors::Base
     "pl.profit_attributable_to_owners" => "jpigp_cor:ProfitLossAttributableToOwnersOfParentIFRS",
     "cf.operating" => "jpigp_cor:NetCashProvidedByUsedInOperatingActivitiesIFRS",
     "cf.investing" => "jpigp_cor:NetCashProvidedByUsedInInvestingActivitiesIFRS", # IFRSはInvesting（JGAAPはInvestment）
-    "cf.financing" => "jpigp_cor:NetCashProvidedByUsedInFinancingActivitiesIFRS",
+    "cf.financing" => "jpigp_cor:NetCashProvidedByUsedInFinancingActivitiesIFRS"
   }.freeze
 
   private
@@ -53,7 +53,7 @@ class Ingestion::Extractors::IfrsClassified < Ingestion::Extractors::Base
       if combined.nil?
         goodwill   = @xbrl.money("jpigp_cor:GoodwillIFRS", "CurrentYearInstant#{@c}")
         intangible = @xbrl.money("jpigp_cor:IntangibleAssetsIFRS", "CurrentYearInstant#{@c}")
-        combined = [goodwill, intangible].compact.sum if goodwill || intangible
+        combined = [ goodwill, intangible ].compact.sum if goodwill || intangible
       end
       put(result, "bs.goodwill_and_intangibles", combined)
     end

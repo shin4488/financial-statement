@@ -3,11 +3,11 @@ class Charts::Builders::CashFlow < Charts::Builders::StackBase
   # ラベルを短縮形にしている理由: X軸の目盛りにそのまま表示されるため、
   # 正式名称（営業活動によるキャッシュ・フロー等）では潰れて読めない
   STEPS = [
-    ["cashBegin", "期首残", "cf.cash_begin", "balance"],
-    ["operating", "営業CF", "cf.operating",  "flow"],
-    ["investing", "投資CF", "cf.investing",  "flow"],
-    ["financing", "財務CF", "cf.financing",  "flow"],
-    ["cashEnd",   "期末残", "cf.cash_end",   "balance"],
+    [ "cashBegin", "期首残", "cf.cash_begin", "balance" ],
+    [ "operating", "営業CF", "cf.operating",  "flow" ],
+    [ "investing", "投資CF", "cf.investing",  "flow" ],
+    [ "financing", "財務CF", "cf.financing",  "flow" ],
+    [ "cashEnd",   "期末残", "cf.cash_end",   "balance" ]
   ].freeze
 
   def build

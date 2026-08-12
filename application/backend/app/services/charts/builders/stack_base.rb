@@ -49,7 +49,7 @@ module Charts
           credit_total = credit.sum(&:signed_amount) + equity
           return StackChart.unrenderable(unrenderable_note) unless balanced?(debit_total, credit_total)
 
-          bars = [Bar.new(label: "借方", segments: debit)]
+          bars = [ Bar.new(label: "借方", segments: debit) ]
           if equity.negative?
             # 債務超過: 貸方は負債のみ（負債合計 > 資産合計の状態）。3本目のバーで
             # 「資産と負債の差 = マイナスの純資産」を可視化する。
@@ -60,11 +60,11 @@ module Charts
             bars << Bar.new(label: "債務超過", segments: [
               seg("spacer", "", spacer_amount, "spacer", base: nil), # base:nil → ratio非表示
               # 債務超過でも色はequityのまま（負であることはラベル・ツールチップの負値で伝える）
-              seg("equity", equity_label, -equity, "equity", base: base, signed: equity),
+              seg("equity", equity_label, -equity, "equity", base: base, signed: equity)
             ])
           else
             bars << Bar.new(label: "貸方",
-                            segments: credit + [seg("equity", equity_label, equity, "equity", base: base)])
+                            segments: credit + [ seg("equity", equity_label, equity, "equity", base: base) ])
           end
           StackChart.new(renderable: true, note: nil, bars: bars)
         end

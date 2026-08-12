@@ -12,7 +12,7 @@ class Ingestion::Extractors::JgaapBank < Ingestion::Extractors::Base
     # （日銀預け金等の扱いが異なる。値が一致する銀行もあるが混同しないこと）
     "bs.cash_and_equivalents" => "jppfs_cor:CashAndDueFromBanksAssetsBNK",
     "bs.deposits"             => "jppfs_cor:DepositsLiabilitiesBNK",
-    "cf.cash_end"             => "jppfs_cor:CashAndCashEquivalents",
+    "cf.cash_end"             => "jppfs_cor:CashAndCashEquivalents"
   }.freeze
 
   DURATION_MAPPING = {
@@ -30,7 +30,7 @@ class Ingestion::Extractors::JgaapBank < Ingestion::Extractors::Base
     "pl.profit_attributable_to_owners" => "jppfs_cor:ProfitLossAttributableToOwnersOfParent",
     "cf.operating" => "jppfs_cor:NetCashProvidedByUsedInOperatingActivities",
     "cf.investing" => "jppfs_cor:NetCashProvidedByUsedInInvestmentActivities",
-    "cf.financing" => "jppfs_cor:NetCashProvidedByUsedInFinancingActivities",
+    "cf.financing" => "jppfs_cor:NetCashProvidedByUsedInFinancingActivities"
   }.freeze
 
   private

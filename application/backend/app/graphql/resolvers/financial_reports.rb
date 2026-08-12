@@ -2,7 +2,7 @@ module Resolvers
   # QueryTypeに直接実装せずresolverクラスに切り出す理由:
   # QueryTypeの肥大化を避け、financialReports系の入出力整形をこの1ファイルに閉じ込めるため
   class FinancialReports < GraphQL::Schema::Resolver
-    type [Types::FinancialReportType], null: false
+    type [ Types::FinancialReportType ], null: false
     description "有報の財務3表チャート一覧（提出日降順）"
 
     # 既定の複雑度は引数を見ないため limit:1 と limit:100 が同コスト扱いになり、
@@ -16,7 +16,7 @@ module Resolvers
     argument :offset, Integer, required: true,
              validates: { numericality: { greater_than_or_equal_to: 0 } }
     # 件数上限はlimitと同水準: 無制限だと巨大なIN句を未認証で生成できてしまうため
-    argument :stock_codes, [String], required: false,
+    argument :stock_codes, [ String ], required: false,
              validates: { length: { maximum: 100 } }
     argument :operating_cf_sign, Types::CashFlowSignType, required: false
     argument :investing_cf_sign, Types::CashFlowSignType, required: false
@@ -51,7 +51,7 @@ module Resolvers
           accounting_standard: fs.accounting_standard,
           consolidation_type: fs.consolidation_type,
           presentation_format: fs.presentation_format,
-          **charts, # balance_sheet: / profit_loss: / cash_flow: が展開される
+          **charts # balance_sheet: / profit_loss: / cash_flow: が展開される
         }
       end
   end

@@ -38,7 +38,7 @@ RSpec.describe Charts::Builders::PlJgaapGeneral do
       expect(chart.renderable).to be true
       debit, = chart.bars
       expect(debit.segments.map(&:key)).to eq %w[costOfSales sga operatingProfit]
-      expect(debit.segments.map(&:amount)).to eq [0, 0, 1_000]
+      expect(debit.segments.map(&:amount)).to eq [ 0, 0, 1_000 ]
     end
   end
 

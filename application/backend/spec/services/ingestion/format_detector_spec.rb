@@ -15,7 +15,7 @@ RSpec.describe Ingestion::FormatDetector do
   describe "日本基準" do
     it "業種DEIなし・cteは一般、bnkは銀行になる" do
       aggregate_failures do
-        [nil, "", "cte", "CTE"].each do |industry|
+        [ nil, "", "cte", "CTE" ].each do |industry|
           expect(detector.detect(nil, accounting_standard: "japan_gaap",
                                  industry_code: industry, consolidation: "")).to eq "jgaap_general"
         end

@@ -8,7 +8,7 @@ RSpec.describe "ExtractorマッピングとItemCodesレジストリの整合" do
     Ingestion::Extractors::JgaapGeneral   => %w[cf.cash_begin],
     Ingestion::Extractors::JgaapBank      => %w[cf.cash_begin],
     Ingestion::Extractors::IfrsClassified => %w[cf.cash_begin bs.goodwill_and_intangibles],
-    Ingestion::Extractors::IfrsLiquidity  => %w[cf.cash_begin],
+    Ingestion::Extractors::IfrsLiquidity  => %w[cf.cash_begin]
   }.freeze
 
   Ingestion::FormatRegistry::EXTRACTORS.each_value do |extractor_class|

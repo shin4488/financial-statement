@@ -40,13 +40,13 @@ gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 
-gem 'rubyzip', require: 'zip'
+gem "rubyzip", require: "zip"
 gem "figaro"
 
 # XBRLパース用。REXMLは有報の巨大TextBlock（HTML断片）でentity expansionエラーになるためNokogiriを使う
 gem "nokogiri", "~> 1.18.9"
 
-gem 'lograge'
+gem "lograge"
 gem "sentry-ruby"
 gem "sentry-rails"
 
@@ -70,7 +70,6 @@ end
 group :development do
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
-  gem 'graphiql-rails'
-  gem 'sass-rails'
+  gem "graphiql-rails"
+  gem "sass-rails"
 end
-

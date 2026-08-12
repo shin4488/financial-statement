@@ -2,7 +2,7 @@ module Disclosure
   # 有報一覧の検索（証券コード・CF符号フィルタ）
   class SearchQuery
     CF_CODES = {
-      operating: "cf.operating", investing: "cf.investing", financing: "cf.financing",
+      operating: "cf.operating", investing: "cf.investing", financing: "cf.financing"
     }.freeze
 
     # cf_signs: { operating: :positive|:negative|nil, ... }
