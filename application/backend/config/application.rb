@@ -37,11 +37,11 @@ module FinancialStatement
     config.api_only = true
 
     # ActiveRecordやTime.zoneで扱うタイムゾーン
-    config.time_zone = 'Tokyo'
+    config.time_zone = "Tokyo"
     # DBに書かれている時刻をどのタイムゾーンとして解釈するか、時刻をDBに書き込むときどのタイムゾーンで書き込むか（DBのタイムゾーン）
     config.active_record.default_timezone = :utc
 
-    config.paths.add 'lib', eager_load: true
+    config.paths.add "lib", eager_load: true
     # https://weseek.co.jp/tech/680/
     # DNSリバインディング攻撃制御に対応するため、nginxで定義されているサーバ名からのリクエストは受け付ける
     config.hosts << ENV["SERVER_HOST_NAME"] if ENV["SERVER_HOST_NAME"].present?
@@ -52,7 +52,7 @@ module FinancialStatement
     config.logger = Logger.new("log/#{Rails.env}.log", 10, 100 * 1024 * 1024)
     config.logger.formatter = proc do |severity, datetime, progname, message|
       severity_with_bracket = "[#{severity}]"
-      "#{severity_with_bracket.rjust(7)}[#{datetime.in_time_zone.to_s}]: #{progname} : #{message}\n"
+      "#{severity_with_bracket.rjust(7)}[#{datetime.in_time_zone}]: #{progname} : #{message}\n"
     end
     sql_logger = Logger.new("log/sql_#{Rails.env}.log", 5, 100 * 1024 * 1024)
     # SQLログ（DEBUGレベル）は開発時のみ。config.log_levelはこの直接代入loggerには

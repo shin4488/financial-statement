@@ -44,6 +44,6 @@ class GraphqlController < ApplicationController
   end
 
   def handle_error_in_development(e)
-    render json: { errors: [{ message: e.message, backtrace: e.backtrace }], data: {} }, status: 500
+    render json: { errors: [ { message: e.message, backtrace: e.backtrace } ], data: {} }, status: 500
   end
 end

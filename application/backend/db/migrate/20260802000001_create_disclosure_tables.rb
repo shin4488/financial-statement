@@ -17,7 +17,7 @@ class CreateDisclosureTables < ActiveRecord::Migration[7.0]
       t.string :consolidated_industry_code, comment: "連結業種コード(DEI)"
       t.string :non_consolidated_industry_code, comment: "単体業種コード(DEI)"
       t.timestamps
-      t.index [:company_id, :fiscal_year_start_date, :fiscal_year_end_date],
+      t.index [ :company_id, :fiscal_year_start_date, :fiscal_year_end_date ],
               unique: true, name: "idx_reports_company_fiscal_year"
       t.index :filing_date
     end
@@ -29,7 +29,7 @@ class CreateDisclosureTables < ActiveRecord::Migration[7.0]
       t.string :presentation_format, null: false, comment: "表示形式 jgaap_general/jgaap_bank/ifrs_classified/ifrs_liquidity/unsupported"
       t.boolean :is_primary, null: false, default: false, comment: "表示・検索の主対象（連結があれば連結）"
       t.timestamps
-      t.index [:report_id, :consolidation_type], unique: true, name: "idx_fs_report_consolidation"
+      t.index [ :report_id, :consolidation_type ], unique: true, name: "idx_fs_report_consolidation"
       t.index :is_primary
     end
 
@@ -38,8 +38,8 @@ class CreateDisclosureTables < ActiveRecord::Migration[7.0]
       t.string :item_code, null: false, comment: "正規化科目コード（FinancialStatements::ItemCodesレジストリで管理）"
       t.bigint :amount, null: false, comment: "金額（円）。取得できなかった科目は行を作らない"
       t.timestamps
-      t.index [:financial_statement_id, :item_code], unique: true, name: "idx_items_fs_code"
-      t.index [:item_code, :amount], name: "idx_items_code_amount" # CF符号フィルタ用
+      t.index [ :financial_statement_id, :item_code ], unique: true, name: "idx_items_fs_code"
+      t.index [ :item_code, :amount ], name: "idx_items_code_amount" # CF符号フィルタ用
     end
   end
 end

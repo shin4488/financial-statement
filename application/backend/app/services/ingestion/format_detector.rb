@@ -7,7 +7,7 @@ module Ingestion
       nil => FormatRegistry::JGAAP_GENERAL,
       "" => FormatRegistry::JGAAP_GENERAL,
       "cte" => FormatRegistry::JGAAP_GENERAL,
-      "bnk" => FormatRegistry::JGAAP_BANK,
+      "bnk" => FormatRegistry::JGAAP_BANK
       # 保険・証券等は対象企業のXBRLでタグを確認した上でここに追加していく（例: "ins" => JGAAP_INSURANCE）
     }.freeze
 

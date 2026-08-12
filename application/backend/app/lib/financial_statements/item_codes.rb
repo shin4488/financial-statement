@@ -32,7 +32,7 @@ module FinancialStatements
       # ---- 銀行のみ（jgaap_bank が保存する）----
       "bs.loans",                         # 貸出金
       "bs.securities",                    # 有価証券
-      "bs.deposits",                      # 預金
+      "bs.deposits"                      # 預金
     ].freeze
 
     PL = [
@@ -58,7 +58,7 @@ module FinancialStatements
       "pl.ordinary_revenue",              # 経常収益（銀行のトップライン。pl.revenueは保存しない）
       "pl.ordinary_expenses",             # 経常費用
       # ---- IFRSの営業費用一括型のみ（ifrs_* が該当タグがあれば保存する）----
-      "pl.operating_expenses",            # 営業費用（原価/販管費に分解されない一括計上）
+      "pl.operating_expenses"            # 営業費用（原価/販管費に分解されない一括計上）
     ].freeze
 
     CF = [
@@ -67,7 +67,7 @@ module FinancialStatements
       "cf.operating",                     # 営業活動によるキャッシュ・フロー
       "cf.investing",                     # 投資活動によるキャッシュ・フロー
       "cf.financing",                     # 財務活動によるキャッシュ・フロー
-      "cf.cash_end",                      # 現金及び現金同等物の期末残高
+      "cf.cash_end"                      # 現金及び現金同等物の期末残高
     ].freeze
 
     ALL = (BS + PL + CF).freeze

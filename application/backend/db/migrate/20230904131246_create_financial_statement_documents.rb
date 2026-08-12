@@ -70,6 +70,6 @@ class CreateFinancialStatementDocuments < ActiveRecord::Migration[7.0]
       t.timestamps
     end
 
-    add_index :security_reports, [:company_id, :fiscal_year_start_date, :fiscal_year_end_date], unique: true, name: :index_on_security_reports_company_fy_start_end_date
+    add_index :security_reports, [ :company_id, :fiscal_year_start_date, :fiscal_year_end_date ], unique: true, name: :index_on_security_reports_company_fy_start_end_date
   end
 end

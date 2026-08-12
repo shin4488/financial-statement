@@ -11,7 +11,7 @@ module Xbrl
       "jpdei_cor" => %r{disclosure\.edinet-fsa\.go\.jp/taxonomy/jpdei/},
       "jppfs_cor" => %r{disclosure\.edinet-fsa\.go\.jp/taxonomy/jppfs/},
       "jpigp_cor" => %r{disclosure\.edinet-fsa\.go\.jp/taxonomy/jpigp/},
-      "jpcrp_cor" => %r{disclosure\.edinet-fsa\.go\.jp/taxonomy/jpcrp/},
+      "jpcrp_cor" => %r{disclosure\.edinet-fsa\.go\.jp/taxonomy/jpcrp/}
     }.freeze
     # タクソノミはバージョン年度がURIに含まれる（例 .../jppfs/2025-11-01/jppfs_cor）ため正規表現で吸収
 
@@ -36,7 +36,7 @@ module Xbrl
         next if prefix.nil?
         # ||= : 同じ要素*同じコンテキストのfactは本表と注記で重複出現することがある。
         # 値は同一のはずだが、万一異なっても文書の先頭側（本表側）を採用する
-        @facts[[prefix, el.name, ctx]] ||= el.text&.strip
+        @facts[[ prefix, el.name, ctx ]] ||= el.text&.strip
       end
     end
 
@@ -47,7 +47,7 @@ module Xbrl
     # "jppfs_cor:NetSales" 形式のqnameとコンテキストで整数値を引く。なければnil
     def money(qname, context)
       prefix, name = qname.split(":")
-      raw = @facts[[prefix, name, context]]
+      raw = @facts[[ prefix, name, context ]]
       return nil if raw.nil? || raw.empty?
       # exception: false → 数値でない値（空タグ・テキスト）はnil扱い。
       # to_iを使わない理由: to_iは"abc"を0にしてしまい「開示なし」と「ゼロ」の区別が壊れる
@@ -62,7 +62,7 @@ module Xbrl
 
     def text(qname, context)
       prefix, name = qname.split(":")
-      @facts[[prefix, name, context]]
+      @facts[[ prefix, name, context ]]
     end
   end
 end

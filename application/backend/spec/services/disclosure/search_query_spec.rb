@@ -27,11 +27,11 @@ RSpec.describe Disclosure::SearchQuery do
   end
 
   it "提出日降順で返る" do
-    expect(query.call(limit: 10, offset: 0).to_a).to eq [positive_cf_report, negative_cf_report]
+    expect(query.call(limit: 10, offset: 0).to_a).to eq [ positive_cf_report, negative_cf_report ]
   end
 
   it "証券コードは4桁入力を5桁に0パディングして照合する" do
-    results = query.call(limit: 10, offset: 0, stock_codes: ["7203"])
+    results = query.call(limit: 10, offset: 0, stock_codes: [ "7203" ])
     expect(results).to contain_exactly(positive_cf_report)
   end
 

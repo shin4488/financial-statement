@@ -47,13 +47,13 @@ module Ingestion
       def build_statements(xbrl, dei)
         specs = []
         if dei.has_consolidated
-          specs << [:consolidated, Extractors::Base::CONSOLIDATED,
-                    dei.accounting_standard, dei.consolidated_industry_code]
+          specs << [ :consolidated, Extractors::Base::CONSOLIDATED,
+                    dei.accounting_standard, dei.consolidated_industry_code ]
         end
         # 単体は日本基準固定: IFRS・US GAAP適用企業でも単体財務諸表は日本基準（jppfs）で
         # タグ付けされるため
-        specs << [:non_consolidated, Extractors::Base::NON_CONSOLIDATED,
-                  "japan_gaap", dei.non_consolidated_industry_code]
+        specs << [ :non_consolidated, Extractors::Base::NON_CONSOLIDATED,
+                  "japan_gaap", dei.non_consolidated_industry_code ]
 
         specs.map do |type, suffix, standard, industry|
           format = @detector.detect(xbrl, accounting_standard: standard,

@@ -10,9 +10,9 @@ class Charts::Builders::PlIfrs < Charts::Builders::StackBase
     # （両方同時に開示される企業は想定しない。両方あれば両方積まれるが
     #   その場合はother_netが差分を吸収するので貸借は崩れない）
     expense_specs = [
-      ["costOfSales",       "売上原価",             val("pl.cost_of_sales"),      "expense1"],
-      ["sga",               "販売費及び一般管理費", val("pl.sga"),                "expense2"],
-      ["operatingExpenses", "営業費用",             val("pl.operating_expenses"), "expense1"],
+      [ "costOfSales",       "売上原価",             val("pl.cost_of_sales"),      "expense1" ],
+      [ "sga",               "販売費及び一般管理費", val("pl.sga"),                "expense2" ],
+      [ "operatingExpenses", "営業費用",             val("pl.operating_expenses"), "expense1" ]
     ].reject { |_, _, v, _| v.nil? }
     known_expenses = expense_specs.sum { |_, _, v, _| v }
     # その他損益（純額）= 開示された科目だけでは説明できない差分。
@@ -21,7 +21,7 @@ class Charts::Builders::PlIfrs < Charts::Builders::StackBase
     other_net = pbt - (revenue - known_expenses)
 
     debit = expense_specs.map { |key, label, v, role| seg(key, label, v, role, base: revenue) }
-    credit = [seg("revenue", "収益", revenue, "revenue", base: revenue)]
+    credit = [ seg("revenue", "収益", revenue, "revenue", base: revenue) ]
     if other_net.negative?
       # expense3/revenue2はどちらも「導出項目」専用のロール。
       # 実在の科目（原価・販管費・収益）と同系色だと導出項目だと見分けがつかないため、
@@ -39,6 +39,6 @@ class Charts::Builders::PlIfrs < Charts::Builders::StackBase
       debit << seg("profitBeforeTax", "税引前利益", pbt, "profit", base: revenue)
     end
     Charts::StackChart.new(renderable: true, note: nil,
-                   bars: [Charts::Bar.new(label: "借方", segments: debit), Charts::Bar.new(label: "貸方", segments: credit)])
+                   bars: [ Charts::Bar.new(label: "借方", segments: debit), Charts::Bar.new(label: "貸方", segments: credit) ])
   end
 end

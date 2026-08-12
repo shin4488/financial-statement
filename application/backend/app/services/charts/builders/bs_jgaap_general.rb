@@ -8,14 +8,14 @@ class Charts::Builders::BsJgaapGeneral < Charts::Builders::StackBase
               bs.intangible_fixed_assets bs.investments_and_other_assets].sum { |c| val(c).to_i }
     two_sided_chart(
       debit_specs: [
-        ["currentAssets",  "流動資産",       "bs.current_assets",               "asset1"],
-        ["tangible",       "有形固定資産",   "bs.tangible_fixed_assets",        "asset2"],
-        ["intangible",     "無形固定資産",   "bs.intangible_fixed_assets",      "asset3"],
-        ["investments",    "投資その他資産", "bs.investments_and_other_assets", "asset4"],
+        [ "currentAssets",  "流動資産",       "bs.current_assets",               "asset1" ],
+        [ "tangible",       "有形固定資産",   "bs.tangible_fixed_assets",        "asset2" ],
+        [ "intangible",     "無形固定資産",   "bs.intangible_fixed_assets",      "asset3" ],
+        [ "investments",    "投資その他資産", "bs.investments_and_other_assets", "asset4" ]
       ],
       credit_specs: [
-        ["currentLiabilities", "流動負債", "bs.current_liabilities",     "liability1"],
-        ["fixedLiabilities",   "固定負債", "bs.non_current_liabilities", "liability2"],
+        [ "currentLiabilities", "流動負債", "bs.current_liabilities",     "liability1" ],
+        [ "fixedLiabilities",   "固定負債", "bs.non_current_liabilities", "liability2" ]
       ],
       equity: val("bs.equity"), equity_label: "純資産", base: base,
       unrenderable_note: "貸借対照表: データがない、または表示対応していないデータです。")

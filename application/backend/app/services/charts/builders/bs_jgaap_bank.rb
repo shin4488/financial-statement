@@ -17,14 +17,14 @@ class Charts::Builders::BsJgaapBank < Charts::Builders::StackBase
     other_liabilities = liabilities ? liabilities - deposits : nil
     two_sided_chart(
       debit_specs: [
-        ["cash",        "現金預け金", "bs.cash_and_equivalents", "asset1"],
-        ["loans",       "貸出金",     "bs.loans",                "asset2"],
-        ["securities",  "有価証券",   "bs.securities",           "asset3"],
-        ["otherAssets", "その他資産", other_assets,              "asset4"],
+        [ "cash",        "現金預け金", "bs.cash_and_equivalents", "asset1" ],
+        [ "loans",       "貸出金",     "bs.loans",                "asset2" ],
+        [ "securities",  "有価証券",   "bs.securities",           "asset3" ],
+        [ "otherAssets", "その他資産", other_assets,              "asset4" ]
       ],
       credit_specs: [
-        ["deposits",         "預金",       "bs.deposits",     "liability1"],
-        ["otherLiabilities", "その他負債", other_liabilities, "liability2"],
+        [ "deposits",         "預金",       "bs.deposits",     "liability1" ],
+        [ "otherLiabilities", "その他負債", other_liabilities, "liability2" ]
       ],
       equity: val("bs.equity"), equity_label: "純資産", base: assets,
       unrenderable_note: "貸借対照表: データがない、または表示対応していないデータです。")
