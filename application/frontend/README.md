@@ -30,14 +30,17 @@ yarn start
 
 ## GraphQLの型生成
 
-バックエンドのスキーマ変更後に実行する。**バックエンドの起動が必要**
-（`codegen.ts` の `schema` がAPIのエンドポイントを指しているため）:
+バックエンドのスキーマ変更後に実行する。**バックエンドの起動は不要**
+（`codegen.ts` の `schema` がbackendリポジトリのコミット済み `schema.graphql` を指しているため。
+submodule構成の親リポジトリ配下など、`../backend` にbackendがある前提）:
 
 ```bash
-docker compose exec appfront npm run compile
+npm run compile
 ```
 
 `src/__generated__/` が更新される。クエリ文字列を変更したときも実行すること。
+バックエンドのスキーマを変えた場合は、先にbackend側で `rake graphql:dump_schema` を実行して
+`schema.graphql` を更新しておく。
 
 ## 検証
 
