@@ -17,8 +17,9 @@ description: submodule構成(親+backend/frontend)でのブランチ作成・コ
 ```mermaid
 flowchart LR
     A["① backend/frontendで<br>ブランチ作成→コミット→push→PR"] --> B["② ユーザーがマージ"]
-    B --> C["③ 親: submoduleのmainをpull<br>→ポインタ更新コミット→push→親PR"]
-    C --> D["④ ユーザーが親をマージ"]
+    B --> C{"③ 親の変更は<br>ポインタのみ?"}
+    C -->|Yes| D["mainへ直接コミット→push<br>(submodule-check CIが整合を検証)"]
+    C -->|"No(docs等を同梱)"| E["ブランチ→親PR→ユーザーがマージ"]
 ```
 
 ## 手順詳細
@@ -40,18 +41,26 @@ git checkout -b <feature/fix/choreブランチ名>
 
 ### ③ 親側のポインタ更新(submoduleマージ後に行う)
 
+**ポインタ更新のみの場合は、親mainへ直接コミット・pushしてよい**(2026-08-12の運用決定):
+
 ```bash
 cd application/backend && git checkout main && git pull && cd ../..   # frontendも同様
 git checkout main && git pull
-git checkout -b <同系統のブランチ名>
 git add application/backend application/frontend
 git commit  # "update: backend/frontend submodules (変更概要)"
-git push -u origin <ブランチ名>
+git push origin main   # push時にsubmodule-check CIが参照整合を検証する
+```
+
+親のdocs変更(docs/guide等)を同梱する場合は、従来どおりブランチを切って親PRにする:
+
+```bash
+git checkout -b <同系統のブランチ名>
+git add application/backend application/frontend  # + docs等の変更
+git commit && git push -u origin <ブランチ名>
 gh pr create  # ポインタ更新+関連するdocs変更をまとめる
 ```
 
-- 親リポジトリのdocs変更(docs/guide等)があればこのPRに同梱する
-- この方式ならポインタは常にmainに実在するコミットを指すため、
+- どちらの方式でもポインタは常にmainに実在するコミットを指すため、
   submodule側のマージ方式(merge commit / squash)はどちらでも壊れない
 
 ## 「M application/backend」の差分が出たときの読み方

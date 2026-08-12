@@ -42,8 +42,8 @@ sequenceDiagram
 
     Note over B: ① ブランチ作成 → コミット → push → PR
     Note over B: ② レビュー後マージ
-    Note over P: ③ submoduleのmainをpull →<br>ポインタ更新をコミット → 親PR
-    Note over P: ④ レビュー後マージ
+    Note over P: ③ submoduleのmainをpull →<br>ポインタ更新をコミット
+    Note over P: ④ ポインタのみならmainへ直接push<br>docs等を同梱するなら親PRを作りマージ
 ```
 
 - 親のポインタがマージ前のfeatureブランチ先端を指すと、squashマージ時に
