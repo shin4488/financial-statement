@@ -12,7 +12,7 @@
 | 手動取込（日付範囲 / 書類ID指定） | `lib/tasks/ingestion.rake` |
 | 取込パイプライン | `app/services/ingestion/`（Service・形式判定・Extractor） |
 | EDINET通信・XBRLパース | `app/lib/edinet/client.rb`・`app/lib/xbrl/document.rb` |
-| 科目コードの定義（契約1） | `app/lib/financial_statements/item_codes.rb` |
+| 科目コードの定義（取り決め1） | `app/lib/financial_statements/item_codes.rb` |
 | 保存層のモデル | `app/models/disclosure/` |
 | チャート組み立て・検索 | `app/services/charts/`・`app/services/disclosure/search_query.rb` |
 | GraphQL | `app/graphql/` |
@@ -119,7 +119,7 @@ Extractorは実質「タグ → 科目コードの対応表」で、ロジック
 
 ## チャート生成
 
-### チャート契約（契約2の中身）
+### チャート構造（取り決め2の中身）
 
 バックエンドが「チャートの構造そのもの」まで組み立てて返す。フロント・Chrome拡張と共有する構造は次の2種類。
 
@@ -137,7 +137,7 @@ StackChart（BS/PL用）                     WaterfallChart（CF用）
           colorRole: "expense1" }, ... ] } ]   ... ]
 ```
 
-| 契約の仕掛け | 吸収する業務上の差異 |
+| 構造の仕掛け | 吸収する業務上の差異 |
 |---|---|
 | `segments[]` をそのまま積む（固定キーなし） | 形式ごとの段数・科目の違い（銀行BS 4段 / IFRS流動性配列 2段…） |
 | `colorRole`（意味ベースの色の役割名） | 「何色にするか」。新科目にも既存の役割を割り当てるだけ |
