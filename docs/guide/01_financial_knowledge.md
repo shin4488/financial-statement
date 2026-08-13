@@ -104,7 +104,7 @@ flowchart LR
 **[EDINET API](https://api.edinet-fsa.go.jp/)**（v2）を使うとプログラムから書類一覧の取得・
 書類のダウンロードができる。APIキーもこのページで無料で発行できる。
 
-| APIでの呼び方 | 意味 |
+| API上の用語 | 何を指すか |
 |---|---|
 | docID（書類管理番号） | 書類1件を特定するID（例: `S100YB5L`。英数8桁） |
 | docTypeCode `120` | 有価証券報告書 |
