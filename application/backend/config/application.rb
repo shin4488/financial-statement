@@ -21,7 +21,10 @@ Bundler.require(*Rails.groups)
 module FinancialStatement
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.0
+    config.load_defaults 7.2
+    # 7.2デフォルトはYJITを自動有効化するが、メモリ使用量が増えるため
+    # 本番VPSのメモリ余力を確認してから有効化を判断する
+    config.yjit = false
 
     # Configuration for the application, engines, and railties goes here.
     #
