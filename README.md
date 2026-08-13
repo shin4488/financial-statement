@@ -1,8 +1,6 @@
 # financial-statement（investee）
 
-上場企業の財務三表（貸借対照表・損益計算書・キャッシュフロー計算書）を可視化するWebアプリ。
-EDINET（金融庁の開示システム）から有価証券報告書のXBRLを日次で取得・パースしてPostgreSQLに保存し、
-Reactの画面で積み上げグラフ・ウォーターフォールグラフとして表示する。
+上場企業の財務三表（貸借対照表・損益計算書・キャッシュフロー計算書）を可視化するWebアプリ。EDINET（金融庁の開示システム）から有価証券報告書のXBRLを日次で取得・パースしてPostgreSQLに保存し、Reactの画面で積み上げグラフ・ウォーターフォールグラフとして表示する。
 
 本番環境: https://investee.info
 
@@ -28,8 +26,7 @@ financial-statement/            # このリポジトリ（親）
 └── CLAUDE.md                   # AIエージェント向けのリポジトリコンテキスト
 ```
 
-**submoduleに注意**: `application/backend` と `application/frontend` は別リポジトリ。
-中のファイルを変更したら「各リポジトリでコミット→親リポジトリでハッシュ更新コミット」の2段階が必要。
+**submoduleに注意**: `application/backend` と `application/frontend` は別リポジトリ。中のファイルを変更したら「各リポジトリでコミット→親リポジトリでハッシュ更新コミット」の2段階が必要。
 
 ## 技術スタック
 
@@ -65,9 +62,7 @@ cd financial-statement
 docker compose up
 ```
 
-DB（`financial_statement_development`）は初回起動時に `database/init/1.0.0.sql` で作成され、
-マイグレーションはappserverコンテナの起動スクリプト内で自動実行される。
-DB接続情報などの環境変数は各Dockerfileに定義済みで、手動設定は不要。
+DB（`financial_statement_development`）は初回起動時に `database/init/1.0.0.sql` で作成され、マイグレーションはappserverコンテナの起動スクリプト内で自動実行される。DB接続情報などの環境変数は各Dockerfileに定義済みで、手動設定は不要。
 
 ### 起動後のURL
 
@@ -92,8 +87,7 @@ docker compose exec appserver bundle exec rake 'ingestion:backfill[2026-06-20,20
 docker compose exec appserver bundle exec rake 'ingestion:documents[S100YB5L S100YB25 S100YCP3 S100XTNW S100YLS8 S100YJQO]'
 ```
 
-※ EDINET APIはリクエスト過多で403を返すため、取込は同期・逐次実行が前提（並列化しないこと）。
-※ 6月は有報提出のピークのため、方法1を6月の日付で実行すると1日あたり数百件の取込になる。
+※ EDINET APIはリクエスト過多で403を返すため、取込は同期・逐次実行が前提（並列化しないこと）。※ 6月は有報提出のピークのため、方法1を6月の日付で実行すると1日あたり数百件の取込になる。
 
 ## 開発
 
@@ -109,8 +103,7 @@ bundle exec rails s   # DBはdocker側のdatabaseコンテナを起動してお�
 
 ### GraphQLの型生成（フロントエンド）
 
-バックエンドのスキーマ変更後、`rake graphql:dump_schema` で `schema.graphql` を更新してから
-フロントの型を再生成する（コミット済みSDLを参照するため、バックエンドの起動は不要）:
+バックエンドのスキーマ変更後、`rake graphql:dump_schema` で `schema.graphql` を更新してからフロントの型を再生成する（コミット済みSDLを参照するため、バックエンドの起動は不要）:
 
 ```bash
 cd application/frontend
@@ -119,9 +112,7 @@ npm run compile        # graphql-codegen。src/__generated__/ が更新される
 
 ### 日次バッチ
 
-`sidekiq-cron` により毎日2:00に前日提出分の有報を自動取込する
-（`application/backend/config/sidekiq-cron.yml` / `DailyIngestionJob`）。
-Sidekiqはappserverコンテナの起動スクリプト内で一緒に立ち上がる。
+`sidekiq-cron` により毎日2:00に前日提出分の有報を自動取込する（`application/backend/config/sidekiq-cron.yml` / `DailyIngestionJob`）。Sidekiqはappserverコンテナの起動スクリプト内で一緒に立ち上がる。
 
 ## ドキュメント
 
@@ -133,8 +124,7 @@ Sidekiqはappserverコンテナの起動スクリプト内で一緒に立ち上�
 
 ## 対応状況と既知の課題
 
-表示できる形式は「会計基準 × 表示様式」で決まる（詳細は
-[docs/guide/02_product.md](docs/guide/02_product.md)）。
+表示できる形式は「会計基準 × 表示様式」で決まる（詳細は[docs/guide/02_product.md](docs/guide/02_product.md)）。
 
 | 形式 | 対象 | 状態 |
 |---|---|---|
@@ -143,10 +133,6 @@ Sidekiqはappserverコンテナの起動スクリプト内で一緒に立ち上�
 | `ifrs_classified` / `ifrs_liquidity` | IFRS（連結） | 対応済み |
 | `unsupported` | 米国基準・日本基準の保険等 | チャートの代わりに説明文を表示（正常系） |
 
-- **米国基準・日本基準の保険業などは未対応**: 上記 `unsupported` として扱われ、
-  グラフの代わりにその旨が表示される。追加はExtractor・Builderのファイル追加のみで済む
-  （マイグレーション不要。手順は [docs/guide/05_backend.md](docs/guide/05_backend.md)）
-- **旧系統（SecurityReport系）は`security_reports`テーブルのみ凍結保管**: コードは
-  すべて削除済み。凍結データの扱いは
-  [docs/guide/09_legacy_cleanup.md](docs/guide/09_legacy_cleanup.md)
+- **米国基準・日本基準の保険業などは未対応**: 上記 `unsupported` として扱われ、グラフの代わりにその旨が表示される。追加はExtractor・Builderのファイル追加のみで済む（マイグレーション不要。手順は [docs/guide/05_backend.md](docs/guide/05_backend.md)）
+- **旧系統（SecurityReport系）は`security_reports`テーブルのみ凍結保管**: コードはすべて削除済み。凍結データの扱いは[docs/guide/09_legacy_cleanup.md](docs/guide/09_legacy_cleanup.md)
 - その他は [docs/improvements.md](docs/improvements.md) を参照

@@ -1,9 +1,6 @@
 # 06. フロントエンド実装
 
-`application/frontend`（React SPA）の実装ガイド。画面は[02章](02_product.md)の
-一覧ページ1つだけで、ソースは `src/` 配下の約25ファイルと小さい。
-チャートキットの規約の原本はキット内の `src/shared/financialCharts/README.md`
-（コピー先のChrome拡張にも同じREADMEが入る）。
+`application/frontend`（React SPA）の実装ガイド。画面は[02章](02_product.md)の一覧ページ1つだけで、ソースは `src/` 配下の約25ファイルと小さい。チャートキットの規約の原本はキット内の `src/shared/financialCharts/README.md`（コピー先のChrome拡張にも同じREADMEが入る）。
 
 ## ディレクトリマップと分割基準
 
@@ -18,9 +15,7 @@
 | `plugins/firebase/` | Firebase Analytics初期化とイベント送信 |
 | `__generated__/` | graphql-codegenの生成物（コミット済み） |
 
-ディレクトリ分割の基準は機能ではなく「**Chrome拡張と共有できるか否か**」。
-共有キット（`shared/financialCharts/`）には厳しい依存制限があり（後述）、
-それ以外は `features/` に置く。
+ディレクトリ分割の基準は機能ではなく「**Chrome拡張と共有できるか否か**」。共有キット（`shared/financialCharts/`）には厳しい依存制限があり（後述）、それ以外は `features/` に置く。
 
 ## 一覧ページのデータフロー
 
@@ -65,18 +60,14 @@ GraphQL変数:  { limit: 30, offset: 0,
 
 ## カード表示の実装ノート
 
-見出しの形式・基準バッジ・カルーセル・株探リンクといった見た目の仕様は[02章](02_product.md)が正。
-ここでは実装面の注意だけ挙げる。
+見出しの形式・基準バッジ・カルーセル・株探リンクといった見た目の仕様は[02章](02_product.md)が正。ここでは実装面の注意だけ挙げる。
 
-- 外部リンクには `rel="noopener noreferrer"` を明示する（MUIのLinkは自動付与しない。
-  referrer遮断は検索条件つきURLの外部漏洩防止も兼ねる）
-- 企業名クリックなどはFirebase Analyticsへイベント送信される（Firebase設定値はソースに
-  ハードコード。クライアント公開前提の識別子で秘密情報ではない）
+- 外部リンクには `rel="noopener noreferrer"` を明示する（MUIのLinkは自動付与しない。referrer遮断は検索条件つきURLの外部漏洩防止も兼ねる）
+- 企業名クリックなどはFirebase Analyticsへイベント送信される（Firebase設定値はソースにハードコード。クライアント公開前提の識別子で秘密情報ではない）
 
 ## チャート描画キット（`shared/financialCharts/`）
 
-Chrome拡張（別リポジトリ `financial-statement-chrome-extension`）へディレクトリごと
-コピーして共有するため、次の規約を守る。チャート部品を両リポジトリで二重保守しないための決まりごとになる。
+Chrome拡張（別リポジトリ `financial-statement-chrome-extension`）へディレクトリごとコピーして共有するため、次の規約を守る。チャート部品を両リポジトリで二重保守しないための決まりごとになる。
 
 | 規約 | 理由 |
 |---|---|
@@ -87,8 +78,7 @@ Chrome拡張（別リポジトリ `financial-statement-chrome-extension`）へ�
 
 ### 積み上げ棒（`StackedBarChart`）
 
-APIの `bars × segments` を、rechartsが要求する「行 × 列」の表に変換する（`toStackRows`）。
-行=バー、列=全バーに登場するセグメントkeyの和集合。
+APIの `bars × segments` を、rechartsが要求する「行 × 列」の表に変換する（`toStackRows`）。行=バー、列=全バーに登場するセグメントkeyの和集合。
 
 ```
 API（bars × segments）              recharts（rows × columns）
@@ -97,15 +87,13 @@ API（bars × segments）              recharts（rows × columns）
                                    ※ あるバーに無い列はundefinedになり、その行には描かれない
 ```
 
-- **積み上げ順・色・ラベルはすべてバックエンドの決定に従う**。フロントは並び替えも
-  分岐もしない（[04章](04_system_overview.md)の「フロントは形式を知らない」の実装）
+- **積み上げ順・色・ラベルはすべてバックエンドの決定に従う**。フロントは並び替えも分岐もしない（[04章](04_system_overview.md)の「フロントは形式を知らない」の実装）
 - Y軸を反転して上から積み上げ、`spacer`（債務超過の高さ合わせ）はツールチップにも出さない
 - ツールチップの金額は符号つきの `signedAmount` を使う（描画高さの `amount` は絶対値）
 
 ### ウォーターフォール（`WaterfallChart`）
 
-rechartsにウォーターフォール専用の部品はないため、積み上げ棒を流用し、
-各ステップを「透明の下駄バー + 実バー」の2段積みで表現している。
+rechartsにウォーターフォール専用の部品はないため、積み上げ棒を流用し、各ステップを「透明の下駄バー + 実バー」の2段積みで表現している。
 
 | 仕掛け | 内容 |
 |---|---|
@@ -115,17 +103,11 @@ rechartsにウォーターフォール専用の部品はないため、積み上
 
 ### 色の対応（`colorRoles.ts`）
 
-バックエンドは色そのものではなく `colorRole`（`asset1`・`liability1`・`profit` など
-15種の役割名）を返し、フロントのこのファイルが実際の色に変換する。
-新形式が増えてもフロントの変更はゼロで、**唯一の例外がこの役割名の追加
-（バックエンドとChrome拡張もあわせて、3リポジトリ同時に変更する取り決めになっている）**。
-未知の役割名はグレーで描画しつつ `console.warn` で気づけるようにしている。
+バックエンドは色そのものではなく `colorRole`（`asset1`・`liability1`・`profit` など15種の役割名）を返し、フロントのこのファイルが実際の色に変換する。新形式が増えてもフロントの変更はゼロで、**唯一の例外がこの役割名の追加（バックエンドとChrome拡張もあわせて、3リポジトリ同時に変更する取り決めになっている）**。未知の役割名はグレーで描画しつつ `console.warn` で気づけるようにしている。
 
 ### 表示不可（`ChartUnavailable`）
 
-`renderable: false` のとき、チャートと同じ寸法の枠に説明文（`note`、なければ既定文言）を
-表示する。寸法を揃えるのはカルーセルの高さが跳ねないようにするため。
-エラー画面ではなくデータとして描く（正常系）。
+`renderable: false` のとき、チャートと同じ寸法の枠に説明文（`note`、なければ既定文言）を表示する。寸法を揃えるのはカルーセルの高さが跳ねないようにするため。エラー画面ではなくデータとして描く（正常系）。
 
 ## GraphQL型生成（graphql-codegen）
 

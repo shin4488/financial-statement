@@ -1,9 +1,6 @@
 # 07. 開発と運用
 
-このリポジトリで手を動かすときの決まりごとと、本番環境（https://investee.info ）の運用。
-個々の手順の正は各READMEと `.claude/skills/` にあり（下表）、この章では
-**このリポジトリに特有の運用**（ほかのドキュメントに記載がないもの）だけを扱う。
-実ホスト名・鍵などはgit管理外のファイル（`deploy.sh` など）だけが持ち、ドキュメントには書かない。
+このリポジトリで手を動かすときの決まりごとと、本番環境（https://investee.info ）の運用。個々の手順の正は各READMEと `.claude/skills/` にあり（下表）、この章では**このリポジトリに特有の運用**（ほかのドキュメントに記載がないもの）だけを扱う。実ホスト名・鍵などはgit管理外のファイル（`deploy.sh` など）だけが持ち、ドキュメントには書かない。
 
 ## 手順の在り処
 
@@ -30,13 +27,11 @@ flowchart LR
 - `npm run compile` はコミット済みの `schema.graphql` を参照するため、バックエンドの起動は不要（[06章](06_frontend.md)）
 - クエリ上限の値と意図は[05章](05_backend.md)を参照
 - スキーマの書き出し忘れ・型生成の取り込み忘れは、各リポジトリのCIが差分検知する
-- Claude Codeでの編集時は、フック（`.claude/hooks/format-lint.sh`）がフォーマッタ・リンタ
-  （backend: rubocop -A / frontend: eslint --fix → prettier）を自動実行する
+- Claude Codeでの編集時は、フック（`.claude/hooks/format-lint.sh`）がフォーマッタ・リンタ（backend: rubocop -A / frontend: eslint --fix → prettier）を自動実行する
 
 ### ブランチ・PR運用（submodule構成の要）
 
-**大原則: submodule側をマージしてから、親のポインタを更新する。**
-親PRをsubmodule PRと同時に作らない。
+**大原則: submodule側をマージしてから、親のポインタを更新する。**親PRをsubmodule PRと同時に作らない。
 
 ```mermaid
 sequenceDiagram
@@ -49,15 +44,10 @@ sequenceDiagram
     Note over P: ④ ポインタのみならmainへ直接push<br>docs等を同梱するなら親PRを作りマージ
 ```
 
-- 親のポインタがマージ前のfeatureブランチ先端を指すと、squashマージ時に
-  「mainに存在しないコミットを参照する」壊れた状態になるため、この順序を守る
-- backendとfrontend両方に変更があるときはPRを2本作って相互参照し、
-  **backend → frontend の順でマージする**（フロントが新しいAPIに依存し得るため。
-  後述のデプロイ順も同じ理屈）
-- 親リポジトリには `submodule-check` というCIがあり、mainへのpush時に
-  「submoduleの参照コミットが各リポジトリのmainに含まれるか」を検証する
-- `git status` の `M application/backend` の読み方と後始末は
-  [03章](03_tech_prerequisites.md)のsubmodule節を参照
+- 親のポインタがマージ前のfeatureブランチ先端を指すと、squashマージ時に「mainに存在しないコミットを参照する」壊れた状態になるため、この順序を守る
+- backendとfrontend両方に変更があるときはPRを2本作って相互参照し、**backend → frontend の順でマージする**（フロントが新しいAPIに依存し得るため。後述のデプロイ順も同じ理屈）
+- 親リポジトリには `submodule-check` というCIがあり、mainへのpush時に「submoduleの参照コミットが各リポジトリのmainに含まれるか」を検証する
+- `git status` の `M application/backend` の読み方と後始末は[03章](03_tech_prerequisites.md)のsubmodule節を参照
 
 コミット・PRの規約:
 
@@ -69,8 +59,7 @@ sequenceDiagram
 
 ## 本番環境の構成
 
-さくらVPS1台に全コンポーネントが同居する。開発環境（Docker）と違いコンテナは使わず、
-OS上に直接構築されている。
+さくらVPS1台に全コンポーネントが同居する。開発環境（Docker）と違いコンテナは使わず、OS上に直接構築されている。
 
 ```mermaid
 flowchart TB
@@ -104,19 +93,14 @@ flowchart LR
     FE --> Verify["反映確認<br>API応答・トップページ200・<br>バンドルハッシュ一致"]
 ```
 
-- **rsyncは未コミットの変更もそのまま本番に載せてしまう**。だから最初に
-  作業ツリーがクリーンであることを確認する
+- **rsyncは未コミットの変更もそのまま本番に載せてしまう**。だから最初に作業ツリーがクリーンであることを確認する
 - 順序は必ず**バックエンド → フロントエンド**（PRのマージ順と同じ理屈）
-- Sidekiq再起動が必要な変更（ジョブやgemの追加）はsudoを要するため非対話SSHでは
-  完結できず、対話端末での操作が必要になる
-- 過去に「非対話SSHで再起動スクリプトを実行してAPIが数分停止する」事故があり、
-  対話モード強制（`bash -ic`）や `RAILS_ENV=production` の明示など、
-  再発防止の決まりが手順書（`.claude/skills/deploy/`）に記録されている
+- Sidekiq再起動が必要な変更（ジョブやgemの追加）はsudoを要するため非対話SSHでは完結できず、対話端末での操作が必要になる
+- 過去に「非対話SSHで再起動スクリプトを実行してAPIが数分停止する」事故があり、対話モード強制（`bash -ic`）や `RAILS_ENV=production` の明示など、再発防止の決まりが手順書（`.claude/skills/deploy/`）に記録されている
 
 ## 日次バッチの監視とリカバリ
 
-[05章](05_backend.md)のとおり自動リトライはなく、**冪等な再実行が唯一のリカバリ手段**。
-異常はSentry通知で気づき、対応する再実行コマンドを打つ、が基本形になる。
+[05章](05_backend.md)のとおり自動リトライはなく、**冪等な再実行が唯一のリカバリ手段**。異常はSentry通知で気づき、対応する再実行コマンドを打つ、が基本形になる。
 
 | Sentry通知（ログメッセージ） | 意味 | リカバリ |
 |---|---|---|
@@ -125,16 +109,13 @@ flowchart LR
 | `accounting standard unknown` | 未知の会計基準（取込対象外としてスキップ済み） | 対応不要。頻発するなら形式対応を検討 |
 | `primary statement missing bs.assets` | 取り込めたが主要科目が欠けている | Extractor・形式判定を修正して再取込 |
 
-日々の健全性確認は `.claude/skills/investee-daily-check/` のスクリプト1本に
-まとまっており、次を一度に確認できる。
+日々の健全性確認は `.claude/skills/investee-daily-check/` のスクリプト1本にまとまっており、次を一度に確認できる。
 
 - 前夜の日次ジョブがログに痕跡を残しているか、エラー行数はいくつか
 - 前日提出分の取込件数と、EDINET側の提出一覧（突き合わせ用）
 - 本番サイトの死活（トップページが200を返すか）
 
-読み方の注意として、DBの提出日はEDINETの提出日ではなくXBRL表紙の日付に由来するため、
-**訂正有報は元の有報の日付で記録される**。「EDINET一覧に提出があるのに前日日付の
-取込件数が0」は、訂正有報のみだった日の正常な結果として読み分ける。
+読み方の注意として、DBの提出日はEDINETの提出日ではなくXBRL表紙の日付に由来するため、**訂正有報は元の有報の日付で記録される**。「EDINET一覧に提出があるのに前日日付の取込件数が0」は、訂正有報のみだった日の正常な結果として読み分ける。
 
 ## 監視・ログ
 
@@ -163,5 +144,4 @@ flowchart LR
 
 ---
 
-学ぶ章はこの章まで。作業時に引く資料: [08章 XBRLタグ対応表と実地調査](08_taxonomy_mapping.md) /
-[09章 旧系統の削除記録](09_legacy_cleanup.md)
+学ぶ章はこの章まで。作業時に引く資料: [08章 XBRLタグ対応表と実地調査](08_taxonomy_mapping.md) / [09章 旧系統の削除記録](09_legacy_cleanup.md)
