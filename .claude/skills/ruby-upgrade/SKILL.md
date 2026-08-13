@@ -54,6 +54,14 @@ flowchart LR
 docker compose build appserver && docker compose up -d
 ```
 
+### ⚠️ イメージ再ビルド後は `restart` ではなく `up -d --force-recreate`
+
+`docker compose restart` は**既存コンテナ（旧イメージ + 旧 /usr/local/bundle）をそのまま再起動する**ため、
+新Rubyが使われず「Your Ruby version is X, but your Gemfile specified Y」で起動失敗する。
+再ビルド後の起動確認は `docker compose up -d --force-recreate appserver` で行い、
+`docker compose exec appserver ruby -v` で新版が動いていることを先に確認する
+（`docker compose run --rm` は毎回新イメージから作られるため、この問題の影響を受けない）。
+
 Gemfile.lockの更新はコンテナ内で行う。**gemの解決が一切変わらないこと**（差分がRUBY VERSIONとBUNDLED WITHの2箇所だけであること）をgit diffで確認する:
 
 ```bash
@@ -67,8 +75,10 @@ docker compose run --rm appserver bash -c "BUNDLE_PATH=vendor/bundle bundle upda
 gemを発見できず起動失敗する。**deploy.sh/start.sh/docker_setup.shはすべてこの構造**のため、
 本番デプロイが確実に壊れる（過去のRuby更新時にdocker検証で実際に発生し、本番到達前に捕捉した）。
 
-対処: BUNDLED WITHは新Rubyが同梱するbundler版を手で記載する。同梱版はrbenvインストール後に
-`~/.rbenv/versions/<新版>/bin/bundle -v` で確認できる（docker公式イメージの `bundle -v` も通常一致する）。
+対処: 新イメージ内で `bundle update --ruby` を実行すると、実行中のbundler（=イメージ同梱版）が
+BUNDLED WITHに書かれるため通常は手編集不要。git diffで**bundler 4系が書かれていないこと**を必ず確認し、
+ズレていた場合のみ同梱版へ手で修正する。同梱版はdocker公式イメージの `bundle -v` で確認でき、
+rbenv側は `~/.rbenv/versions/<新版>/bin/bundle -v`（通常は一致する）。
 
 ### ⚠️ docker公式rubyイメージのbundler設定はコンテナ内に消える
 
