@@ -219,37 +219,13 @@ XBRLの中身は、「資産合計は431.7兆円」のような**数値1件ず�
 <jppfs_cor:Assets contextRef="CurrentYearInstant" unitRef="JPY">431731548000000</jppfs_cor:Assets>
 ```
 
-### タクソノミと名前空間
+同じタグでも、コンテキスト（当期末か前期末か、連結か単体か）が違えば別のfactとして複数入っている。
 
-使ってよいタグの辞書を**タクソノミ**と呼び、金融庁が定義している。タグは名前空間で分類されており、このシステムが読むのは以下の4つ。**どの名前空間のタグが使われるかは会計基準によって変わる**。この事実が[04章](04_system_overview.md)の設計の出発点になる。
+使ってよいタグの辞書は**タクソノミ**と呼ばれ、金融庁が定義している。タグは名前空間で分類され、**どの名前空間のタグが使われるかは会計基準によって変わる**（日本基準の本表は `jppfs_cor`、IFRSの本表は `jpigp_cor`）。この事実が[04章](04_system_overview.md)の設計の出発点になる。
 
-| 名前空間 | 内容 | タグの例 |
-|---|---|---|
-| `jpdei_cor` | DEI（書類情報）。会計基準・業種コード・EDINETコード・連結の有無・会計期間など書類のメタ情報 | `AccountingStandardsDEI`（会計基準） |
-| `jpcrp_cor` | 有報共通の記載項目（表紙の企業名・提出日など） | `CompanyNameCoverPage`（表紙の企業名） |
-| `jppfs_cor` | **日本基準**の財務諸表本表のタグ（IFRS採用企業の単体もこちら） | `Assets`（資産合計）・`NetSales`（売上高） |
-| `jpigp_cor` | **IFRS**の財務諸表本表のタグ | `AssetsIFRS`（資産合計）・`RevenueIFRS`（売上収益） |
+会計基準・業種コード・連結の有無といった書類のメタ情報は、**DEI**と呼ばれる専用のタグ群に入っている。前半の各節で「提出データに記録されている」と書いたものの実体がこれ。
 
-このほか企業が独自に定義する「企業拡張タグ」も存在する（例: `jpcrp030000-asr_E04430-000:OperatingRevenuesIFRS`。NTTが独自定義した営業収益）。企業ごとに意味の保証がないため、このシステムは意図的に読まない（詳細は[08章](08_taxonomy_mapping.md)）。
-
-### コンテキスト
-
-同じタグでも「当期末なのか前期末なのか」「連結なのか単体なのか」で別のfactになる。たとえば同じ `jppfs_cor:Assets` タグのfactが、1つのXBRLファイルの中に次のように複数入っている。
-
-| fact（タグ × コンテキスト） | 意味 |
-|---|---|
-| `Assets` × `CurrentYearInstant` | 当期末・連結の資産合計 |
-| `Assets` × `Prior1YearInstant` | 前期末・連結の資産合計 |
-| `Assets` × `CurrentYearInstant_NonConsolidatedMember` | 当期末・単体の資産合計 |
-
-コンテキストIDの読み方:
-
-| コンテキストID | 意味 |
-|---|---|
-| `CurrentYearInstant` | 当期末時点（BS項目に使う） |
-| `CurrentYearDuration` | 当期の期間（PL・CF項目に使う） |
-| `Prior1YearInstant` | 前期末時点（CFの期首残高に使う） |
-| 上記 + `_NonConsolidatedMember` | 単体（サフィックスなしは連結） |
+名前空間の一覧、コンテキストIDの読み方、企業が独自定義する「企業拡張タグ」の扱いは、[08章](08_taxonomy_mapping.md)の「読み方」にまとめてある。
 
 ---
 

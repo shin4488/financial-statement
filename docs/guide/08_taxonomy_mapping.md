@@ -2,8 +2,7 @@
 
 前半は「このタグはどの科目コードになり、どのグラフで使われるか」を引く対応表、後半はその根拠になった6社の実測記録。XBRLタグを扱う作業のときに開く。同じ意味の科目でも企業・業種でタグ名がゆれる（売上高・営業収益・完成工事高など）という開示実務の実態を、この表とフォールバックの順序で吸収している。
 
-- タグの実測値・企業ごとの差異は [08_taxonomy_mapping.md](08_taxonomy_mapping.md)
-- なぜこの3段構えなのかは [04章](04_system_overview.md)
+なぜ「タグ → 科目コード → Builder」の3段構えなのかは[04章](04_system_overview.md)。
 
 ---
 
@@ -27,17 +26,39 @@ jppfs_cor:Assets      bs.assets          BsJgaapBank        借方バー
 | 分類 | `ifrs_classified` | IFRS・流動/非流動分類BS（様式511000） |
 | 配列 | `ifrs_liquidity` | IFRS・流動性配列BS（様式512000） |
 
-名前空間: `jppfs_cor` = 日本基準、`jpigp_cor` = IFRS、`jpcrp_cor` = 有報の共通部分（表紙・経営指標）。
+### タクソノミと名前空間
 
-コンテキスト（どの時点・期間の値か）は科目の性質で決まる。
+使ってよいタグの辞書を**タクソノミ**と呼び、金融庁が定義している（[01章](01_financial_knowledge.md)）。この表で扱う名前空間は次の4つ。
 
-| 種別 | コンテキストID | 対象 |
+| 名前空間 | 内容 | タグの例 |
 |---|---|---|
-| 時点 | `CurrentYearInstant` | BSの残高 |
-| 期間 | `CurrentYearDuration` | PL・CFの増減 |
-| 前期末時点 | `Prior1YearInstant` | CFの期首残高のみ |
+| `jpdei_cor` | DEI（書類情報）。会計基準・業種コード・EDINETコード・連結の有無・会計期間など書類のメタ情報 | `AccountingStandardsDEI`（会計基準） |
+| `jpcrp_cor` | 有報共通の記載項目（表紙の企業名・提出日・経営指標サマリなど） | `CompanyNameCoverPage`（表紙の企業名） |
+| `jppfs_cor` | **日本基準**の財務諸表本表のタグ | `Assets`（資産合計）・`NetSales`（売上高） |
+| `jpigp_cor` | **IFRS**の財務諸表本表のタグ | `AssetsIFRS`（資産合計）・`RevenueIFRS`（売上収益） |
 
-単体財務諸表は上記に `_NonConsolidatedMember` が付く。IFRS適用企業でも単体は日本基準（`jppfs_cor`）でタグ付けされるため、単体は常に「一般」または「銀行」の形式で処理される。
+このほか企業が独自に定義する「企業拡張タグ」も存在する（例: `jpcrp030000-asr_E04430-000:OperatingRevenuesIFRS`。NTTが独自定義した営業収益）。企業ごとに意味の保証がないため意図的に読まない（後述「標準タグで取れない場合の扱い」）。
+
+### コンテキスト
+
+同じタグでも「当期末なのか前期末なのか」「連結なのか単体なのか」で別のfactになる。たとえば同じ `jppfs_cor:Assets` タグのfactが、1つのXBRLファイルの中に次のように複数入っている。
+
+| fact（タグ × コンテキスト） | 意味 |
+|---|---|
+| `Assets` × `CurrentYearInstant` | 当期末・連結の資産合計 |
+| `Assets` × `Prior1YearInstant` | 前期末・連結の資産合計 |
+| `Assets` × `CurrentYearInstant_NonConsolidatedMember` | 当期末・単体の資産合計 |
+
+コンテキストIDの読み方:
+
+| コンテキストID | 意味 |
+|---|---|
+| `CurrentYearInstant` | 当期末時点（BSの残高に使う） |
+| `CurrentYearDuration` | 当期の期間（PL・CFの増減に使う） |
+| `Prior1YearInstant` | 前期末時点（CFの期首残高のみ） |
+| 上記 + `_NonConsolidatedMember` | 単体（サフィックスなしは連結） |
+
+単体財務諸表はIFRS適用企業でも日本基準（`jppfs_cor`）でタグ付けされるため、単体は常に「一般」または「銀行」の形式で処理される。
 
 ---
 
