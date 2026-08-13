@@ -43,7 +43,7 @@ financial-statement/            # このリポジトリ（親）
 ### 前提
 
 - Docker / Docker Compose
-- EDINET APIキー（[EDINET API](https://api.edinet-fsa.go.jp/)のページで無料発行できる）
+- EDINET APIキー（[アカウント登録ページ](https://api.edinet-fsa.go.jp/api/auth/index.aspx?mode=1)で無料発行できる）
 
 ### 手順
 
