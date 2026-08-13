@@ -9,7 +9,7 @@ git submodule**（`application/backend`）。設計ドキュメントとdocker-c
 
 | 項目 | 内容 |
 |---|---|
-| 言語・FW | Ruby 3.3.12 / Rails 7.2（`config.api_only = true`） |
+| 言語・FW | Ruby 3.4.10 / Rails 7.2（`config.api_only = true`） |
 | API | GraphQL（graphql-ruby）。エンドポイントは `POST /graphql` の1本のみ |
 | 非同期処理 | Sidekiq + sidekiq-cron（毎日2:00に前日提出分を取込） |
 | データストア | PostgreSQL / Redis |
