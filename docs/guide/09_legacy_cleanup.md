@@ -1,12 +1,10 @@
 # 09. 旧系統（SecurityReport系）の削除記録
 
-2026-08-02に新系統へ切り替えたのち、下記①〜③の削除を実施済みで、**旧系統のコードは残っていない**。
-この文書は「何を消し、何を意図的に残したか」の記録と、唯一未了の④（凍結データ `security_reports` の扱い）の判断基準を残す。
+2026-08-02に新系統へ切り替えたのち、下記①〜③の削除を実施済みで、**旧系統のコードは残っていない**。この文書は「何を消し、何を意図的に残したか」の記録と、唯一未了の④（凍結データ `security_reports` の扱い）の判断基準を残す。
 
 ## 大前提
 
-- **データは削除しない**。`security_reports`テーブルはそのまま残す
-  （旧cron停止に伴い2026-08-02時点の内容で凍結。閲覧・検証用）
+- **データは削除しない**。`security_reports`テーブルはそのまま残す（旧cron停止に伴い2026-08-02時点の内容で凍結。閲覧・検証用）
 - `companies`テーブルは**新系統（`Disclosure::Company`）が使用中**のため削除・変更禁止
 
 ## 削除の順序（①〜③実施済み・④のみ未了）
@@ -33,10 +31,8 @@ flowchart LR
 
 変更するファイル:
 
-- [x] `app/graphql/types/query_type.rb`: `companyFinancialStatements` フィールドと
-      そのresolverメソッドを削除（スキーマ破壊変更 — ストア公開版拡張1.1.0の`financialReports`移行後に実施）
-- [x] `Gemfile`: `gem 'rexml'` を削除（xml_parser.rbと同時。`bundle install`でlock更新。
-      lock上は他gemの推移的依存として残る）
+- [x] `app/graphql/types/query_type.rb`: `companyFinancialStatements` フィールドとそのresolverメソッドを削除（スキーマ破壊変更 — ストア公開版拡張1.1.0の`financialReports`移行後に実施）
+- [x] `Gemfile`: `gem 'rexml'` を削除（xml_parser.rbと同時。`bundle install`でlock更新。lock上は他gemの推移的依存として残る）
 
 削除しないもの（新系統が使用中）:
 
@@ -48,18 +44,14 @@ flowchart LR
 
 - [x] `src/pages/financialStatementList/` 一式（旧一覧ページ）
 - [x] `src/layouts/default/` 一式（旧AppBar。`ReportListLayout`に置換済み）
-- [x] `src/components/balanceSheetBarChart/` / `profitLossBarChart/` / `cashFlowBarChart/` /
-      `waterFlowBarChart/` / `financialStatementBarChart/` / `chartAlternative/`
-      （科目別チャート部品。`shared/financialCharts`に置換済み）
+- [x] `src/components/balanceSheetBarChart/` / `profitLossBarChart/` / `cashFlowBarChart/` / `waterFlowBarChart/` / `financialStatementBarChart/` / `chartAlternative/`（科目別チャート部品。`shared/financialCharts`に置換済み）
 - [x] `src/plugins/apollo/service.ts`（旧クエリ用クライアント。新系統は`features/financialReports/apolloClient.ts`）
-- [x] `src/store/slices/financialStatementFilterSlice.ts`（検索条件はURLクエリに移行済み。
-      旧slice専用の`ChangeCashFlowFilterAction` / `ChangeStockCodeFilterAction`も削除）
+- [x] `src/store/slices/financialStatementFilterSlice.ts`（検索条件はURLクエリに移行済み。旧slice専用の`ChangeCashFlowFilterAction` / `ChangeStockCodeFilterAction`も削除）
 
 変更するファイル:
 
 - [x] `src/store/store.ts`: `financialStatementFilter` slice の登録を削除（`autoPlayStatus`は残す）
-- [x] `src/constants/values.ts`: 旧チャート専用の定数を削除
-      （`barChartWidth` / `barChartHeight` / `tooltipStyle` / `stackLabelListFillColor`）
+- [x] `src/constants/values.ts`: 旧チャート専用の定数を削除（`barChartWidth` / `barChartHeight` / `tooltipStyle` / `stackLabelListFillColor`）
 
 削除しないもの（新系統が使用中）:
 
