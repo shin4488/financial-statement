@@ -4,7 +4,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 ruby "3.3.12"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 7.0.8", ">= 7.0.8.7"
+gem "rails", "~> 7.2.0"
 
 # rackはRailsの間接依存だが、未認証リクエストが必ず通る層のため
 # 既知脆弱性（パラメータ数/メモリ量無制限のDoS群）修正版を明示する
