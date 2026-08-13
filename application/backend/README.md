@@ -27,7 +27,7 @@ cp config/application.yml.sample config/application.yml
 
 | キー | 入手方法 |
 |---|---|
-| `EDINET_API_KEY` | [EDINET API](https://api.edinet-fsa.go.jp/) のページで無料発行 |
+| `EDINET_API_KEY` | [アカウント登録ページ](https://api.edinet-fsa.go.jp/api/auth/index.aspx?mode=1)で無料発行 |
 | `SENTRY_DSN` | 任意（エラー監視を使う場合のみ。未設定なら通知は無効） |
 | `POSTGRES_*` / `REDIS_*` | docker利用時はsampleのデフォルト値のままでよい |
 
