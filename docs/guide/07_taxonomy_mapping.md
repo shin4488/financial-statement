@@ -8,14 +8,28 @@
 
 ## 読み方
 
-データは3回変換される。この表は左から右へ辿れるように並べてある。
+武田薬品の「流動資産」の実データで、タグが画面に届くまでの各段階の名前・値・付随情報を追うと次のとおり。**金額は最初から最後まで一度も加工されず、変わるのは名前（タグ → 科目コード → key/label）と付随情報だけ**。この章の表は、この流れの「タグ → 科目コード → Builder」の対応を左から右へ辿れるように並べてある。
 
+```mermaid
+flowchart TB
+    subgraph Ingest["① 取込層 → ② 保存層（毎日2:00のバッチ）"]
+        F["EDINETから取得したXBRL内の1つのfact（タクソノミのタグ。単位: 円）<br>jpigp_cor:CurrentAssetsIFRS contextRef=CurrentYearInstant<br>値: 3090503000000"]
+        D["パース後の辞書（タグ + コンテキスト → 値）<br>[jpigp_cor, CurrentAssetsIFRS, CurrentYearInstant] => 3090503000000"]
+        R["financial_statement_items テーブルの1行<br>item_code: bs.current_assets / amount: 3,090,503,000,000"]
+        F -->|"パース: XMLを辞書化（Xbrl::Document）"| D
+        D -->|"Extractorの対応表で科目コードへ<br>bs.current_assets => jpigp_cor:CurrentAssetsIFRS"| R
+    end
+    subgraph Refer["③ 表示層 → ④ フロントエンド（画面アクセスのたび）"]
+        S["GraphQL応答の1セグメント（借方バー内）<br>key: currentAssets / label: 流動資産 / amount: 3090503000000<br>ratio: 19.9 / colorRole: asset1"]
+        C["rechartsの1行（行 = バー、列 = セグメントkey）<br>name: 借方 / currentAssets: 3090503000000"]
+        V["画面: 借方バーの最上段<br>「流動資産」を総資産比19.9%の高さ・asset1の色で描画"]
+        S -->|"toStackRows: バー×セグメントを行×列へ変換"| C
+        C -->|"colorRoles.ts: 色の役割名 → 実際の色"| V
+    end
+    R -->|"Builderの対応表でラベルと色の役割を付与し、総資産比を計算<br>[currentAssets, 流動資産, bs.current_assets, asset1]<br>ratio = 3,090,503 ÷ 15,511,506 = 19.9%"| S
 ```
-XBRLタグ          →   科目コード      →   Builder        →  グラフの段
-jpigp_cor:AssetsIFRS  bs.assets          BsIfrsClassified   借方バー
-jppfs_cor:Assets      bs.assets          BsJgaapBank        借方バー
-（形式ごとに別）        （全形式で共通）      （形式ごとに別）
-```
+
+パース・抽出・Builderの詳細は[04章](04_backend.md)、rechartsへの変換と描画は[05章](05_frontend.md)。
 
 表中の略記:
 
