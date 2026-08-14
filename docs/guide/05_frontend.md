@@ -152,7 +152,7 @@ flowchart LR
 |---|---|
 | 検証コマンド | `npx tsc --noEmit` / eslint / prettier / `CI=false yarn build`（`application/frontend/README.md` が正） |
 | CI | 導入済み（`.github/workflows/ci.yml`。検証コマンド一式 + 型生成の差分検知 + build） |
-| テストコード | **0件**（CRA雛形のテスト基盤のみ残置） |
+| テストコード | **0件**（CRA雛形のテスト基盤のみ残している。[08章](08_unused_but_kept.md)） |
 | GraphQLエラー時の画面表示 | 未実装（0件表示になるだけ） |
 
 ---
