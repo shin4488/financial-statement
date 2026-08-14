@@ -125,6 +125,15 @@ ssh -o BatchMode=yes "$HOST" "cd $SERVER_DIR && bash -ic 'bundle install --path 
 ⑥ `start.sh`（sidekiq→puma再起動）はsudoが必要なため**ユーザーの対話端末で実行してもらう**。
 **必ず⑤のgem再ビルド完了後**（start.shはsidekiq再起動が先頭にあり、gemが無いと失敗する）。
 
+### ⚠️ start.shのpuma再起動は`server.pid`が無いと静かに失敗する
+
+start.shのkillは`tmp/pids/server.pid`頼みのため、pidファイルが消えていると（rsync等で起こり得る）
+旧pumaが残り、新pumaが「Address already in use」で起動に失敗して**旧Rubyのまま気づかず運用してしまう**。
+⑦の`readlink`確認が唯一の検出手段なので省略しないこと。復旧はsudo不要:
+`pgrep -af puma`で旧pumaのPIDを特定してkillし、`ss -tln`でポートが解放されるのを待ってから
+`bash -ic 'bundle exec ./bin/rails s -d -e production -p <ポート>'`で起動し直す
+（kill直後の即起動はポート未解放で同じ失敗を繰り返す）。
+
 ⑦ 反映確認は /deploy §4 に加えて:
 
 ```bash
