@@ -319,6 +319,31 @@ flowchart LR
 
 エンドポイントは `POST /graphql` の1本だけ。検索で有報を絞り、Builderがチャート構造を組み立てて返す。組み立ての中身と実データの例は[04章](04_backend.md)、受け取って描く側は[05章](05_frontend.md)。
 
+## データフロー: 1つの科目がグラフになるまで
+
+ここまでの流れを1つの科目でつなぐと次のようになる。武田薬品の「流動資産」の実データで、各段階での持ち物（名前・値・付随情報）の対応を示す。**金額は最初から最後まで一度も加工されず、変わるのは名前（タグ → 科目コード → key/label）と付随情報だけ**。
+
+```mermaid
+flowchart TB
+    subgraph Ingest["① 取込層 → ② 保存層（毎日2:00のバッチ）"]
+        F["EDINETから取得したXBRL内の1つのfact（タクソノミのタグ。単位: 円）<br>jpigp_cor:CurrentAssetsIFRS contextRef=CurrentYearInstant<br>値: 3090503000000"]
+        D["パース後の辞書（タグ + コンテキスト → 値）<br>[jpigp_cor, CurrentAssetsIFRS, CurrentYearInstant] => 3090503000000"]
+        R["financial_statement_items テーブルの1行<br>item_code: bs.current_assets / amount: 3,090,503,000,000"]
+        F -->|"パース: XMLを辞書化（Xbrl::Document）"| D
+        D -->|"Extractorの対応表で科目コードへ<br>bs.current_assets => jpigp_cor:CurrentAssetsIFRS"| R
+    end
+    subgraph Refer["③ 表示層 → ④ フロントエンド（画面アクセスのたび）"]
+        S["GraphQL応答の1セグメント（借方バー内）<br>key: currentAssets / label: 流動資産 / amount: 3090503000000<br>ratio: 19.9 / colorRole: asset1"]
+        C["rechartsの1行（行 = バー、列 = セグメントkey）<br>name: 借方 / currentAssets: 3090503000000"]
+        V["画面: 借方バーの最上段<br>「流動資産」を総資産比19.9%の高さ・asset1の色で描画"]
+        S -->|"toStackRows: バー×セグメントを行×列へ変換"| C
+        C -->|"colorRoles.ts: 色の役割名 → 実際の色"| V
+    end
+    R -->|"BuilderのSPEC行がラベルと色の役割を付与し、総資産比を計算<br>[currentAssets, 流動資産, bs.current_assets, asset1]<br>ratio = 3,090,503 ÷ 15,511,506 = 19.9%"| S
+```
+
+各段階の詳細は、パース・抽出・Builderが[04章](04_backend.md)、rechartsへの変換と描画が[05章](05_frontend.md)、タグ ↔ 科目コード対応表の全量が[07章](07_taxonomy_mapping.md)。
+
 ---
 
 次章: [04. バックエンド](04_backend.md) / [05. フロントエンド実装](05_frontend.md)
