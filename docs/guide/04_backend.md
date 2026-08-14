@@ -117,17 +117,37 @@ fact → 辞書 → 科目コードと変換される全体像は、[07章](07_t
 バックエンドが「チャートの構造そのもの」まで組み立てて返す。フロント・Chrome拡張と共有する構造は次の2種類。
 
 ```
-StackChart（BS/PL用）                     WaterfallChart（CF用）
-├ renderable: 描けるか                    ├ renderable
-├ note: 描けない理由の説明文               ├ note
-└ bars: [                                └ steps: [
-    { label: "借方",                         { key, label: "期首残",
-      segments: [                              amount: 符号付き円,
-        { key, label,                          kind: "balance" },   # 0起点で描く
-          amount: 描画高さ(常に≥0),           { key, label: "営業CF",
-          signedAmount: 実値(負もある),         amount: -23兆もあり得る,
-          ratio: 34.8,                         kind: "flow" },      # 累積から浮かせる
-          colorRole: "expense1" }, ... ] } ]   ... ]
+StackChart（BS/PL用。例は日本基準・一般のPL・黒字）
+├ renderable: 描けるか
+├ note: renderable=false のとき表示する説明文
+└ bars: [                            # 借方・貸方の2本（債務超過時のみ3本目「債務超過」が加わる）
+    { label: "借方",
+      segments: [                    # 段の構成（key・数・順序）は形式ごとのBuilderが決める
+        { key: "costOfSales",        # セグメントの識別子
+          label: "売上原価",          # 表示ラベル
+          amount: 描画高さの円（常に0以上）,
+          signedAmount: 実値の円（ツールチップ用。損失は負）,
+          ratio: 構成比%（spacer等の非表示セグメントはnull）,
+          colorRole: "expense1" },   # 色の役割名。実際の色はフロントが解決する
+        { key: "sga",             label: "販売一般管理費", amount, signedAmount, ratio, colorRole: "expense2" },
+        { key: "operatingProfit", label: "営業利益",       amount, signedAmount, ratio, colorRole: "profit" } ] },
+    { label: "貸方",
+      segments: [
+        { key: "revenue", label: "売上", amount, signedAmount, ratio, colorRole: "revenue" } ] } ]
+```
+
+```
+WaterfallChart（CF用。5段の構成は全形式共通）
+├ renderable: 描けるか
+├ note: renderable=false のとき表示する説明文
+└ steps: [
+    { key: "cashBegin", label: "期首残",
+      amount: 符号付きの円（-23兆もあり得る）,
+      kind: "balance" },                                       # 残高: 0起点で描く
+    { key: "operating", label: "営業CF", amount, kind: "flow" }, # 増減: 累積から浮かせる
+    { key: "investing", label: "投資CF", amount, kind: "flow" },
+    { key: "financing", label: "財務CF", amount, kind: "flow" },
+    { key: "cashEnd",   label: "期末残", amount, kind: "balance" } ]
 ```
 
 | 構造の仕掛け | 吸収する業務上の差異 |
