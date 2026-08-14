@@ -1,4 +1,4 @@
-# 04. システム全体像と設計
+# 03. システム全体像と設計
 
 この章は次の6つの問いに、この順番で答える。前の答えが次の前提になる。
 
@@ -13,7 +13,34 @@
 
 ## 構成: 何でできているか
 
-[03章](03_tech_prerequisites.md)で見たとおり3リポジトリ構成で、親リポジトリのディレクトリは次の役割を持つ。
+画面・データ・取込で役割を分けた、Web開発で一般的な構成になっている。
+
+| 部品 | 役割 |
+|---|---|
+| SPA（Single Page Application） | 画面担当。最初にHTMLとJavaScriptを読み込んだ後は、ページ遷移せずJavaScriptが画面を書き換える方式。investeeの画面はReactで作られたSPA |
+| APIサーバ | データ担当。画面を持たず、データだけを返すサーバ（Rails）。フロントエンドからネットワーク越しに呼び出される |
+| バッチ処理 | 取込担当。ユーザーの操作とは無関係に、決まった時刻に走る処理。EDINETからのデータ取込がこれにあたる |
+
+### リポジトリ構成（git submodule）
+
+コードは3つのgitリポジトリに分かれ、親リポジトリが残り2つを**submodule**（別のgitリポジトリを部品として組み込む仕組み）として持つ。
+
+```mermaid
+flowchart TB
+    parent["financial-statement（親リポジトリ）<br>docker設定・nginx設定・ドキュメント"]
+    backend["financial-statement-backend<br>Rails APIサーバ"]
+    frontend["financial-statement-frontend<br>React SPA"]
+    parent -->|"application/backend として組込"| backend
+    parent -->|"application/frontend として組込"| frontend
+```
+
+重要なのは、親リポジトリが持っているのはsubmoduleの**中身ではなく「どのコミットを使うか」というポインタ（コミットハッシュ）だけ**という点。ここから運用上の性質が生まれる。
+
+- `git clone` しただけでは中身が空。`--recursive` 付きでcloneするか、`git submodule update --init` で中身を取得する
+- submodule内のファイルを変更したら、**①submodule側のリポジトリでコミット・マージ、②親リポジトリでポインタを新しいコミットに更新してコミット**、の2段階が必要になる。この2段階を安全に行うためのPR運用ルールが決まっている（[06章](06_development_operations.md)）
+- 親リポジトリの `git status` に出る `M application/backend` は「ファイルが変わった」ではなく「ポインタと実体がずれている」の意味
+
+親リポジトリのディレクトリは次の役割を持つ。
 
 | パス | 内容 |
 |---|---|
@@ -26,7 +53,9 @@
 | `.github/workflows/` | CI（submodule参照の整合性チェック） |
 | `.claude/skills/` | 定型作業の手順書（デプロイ・日次確認・PR運用・リリース） |
 
-開発環境は `docker compose up` で5サービスが起動する（手順は[ルートREADME](../../README.md)が正）。
+### 開発環境（Docker Compose）
+
+開発環境は「コンテナ」という独立した実行環境の組で立ち上げる。`docker compose up` の1コマンドで下図の5サービスがまとめて起動し、ローカルにRubyやNode.jsを直接インストールしなくても開発を始められる（手順は[ルートREADME](../../README.md)が正）。
 
 ```mermaid
 flowchart LR
@@ -39,6 +68,10 @@ flowchart LR
     end
     Browser2["動作確認用<br>localhost:20000"] --> Server
 ```
+
+- **nginx**（web）はリクエストの振り分け役（リバースプロキシ）。「`/api` で始まるURLはバックエンドへ、それ以外はフロントエンドへ」と振り分ける。本番でも同じ役割を担う
+- **PostgreSQL**（database）が主データベースで、取り込んだ財務データをすべてここに保存する
+- **Redis**（cache）はSidekiq（[04章](04_backend.md)で見る非同期ジョブ実行基盤）のジョブキューとスケジュール保持のみに使い、キャッシュ用途では使っていない
 
 ## 全体の動き: データはいつ・どう流れるか
 
@@ -139,7 +172,7 @@ flowchart TB
 | 取り決め | つなぐ層 | 内容 | 守られる仕組み |
 |---|---|---|---|
 | 取り決め1: 科目コード | ① → ② → ③ | `bs.assets` など40種の共通語彙。命名は `<財務諸表>.<英名スネークケース>` | 定義をRubyの定数1ファイルに限定。「Extractorが使うコード ⊆ 定義」をspecで機械検証 |
-| 取り決め2: チャート構造 | ③ → ④ | バーとセグメントの構造をそのまま返す。セグメントは固定キーなしの配列 | 型をGraphQLスキーマで固定。形式が増えても構造は変わらない（中身は[05章](05_backend.md)） |
+| 取り決め2: チャート構造 | ③ → ④ | バーとセグメントの構造をそのまま返す。セグメントは固定キーなしの配列 | 型をGraphQLスキーマで固定。形式が増えても構造は変わらない（中身は[04章](04_backend.md)） |
 
 科目コードのDBマスタテーブルは作らない。コードと利用箇所は必ず同時に変わるため、grepとレビューが効くRubyの定数の方が安全と判断している。
 
@@ -233,9 +266,9 @@ erDiagram
 | bs.goodwill_and_intangibles | 9,228,358,000,000 | のれん+無形の2タグをExtractorが合算 |
 | pl.profit_before_tax | -142,355,000,000 | 赤字は負の値のまま保存 |
 
-`pl.gross_profit` の行は存在しない（武田は売上総利益を開示していないため）。このデータが[05章](05_backend.md)で、抽出からチャートになるまで登場する。
+`pl.gross_profit` の行は存在しない（武田は売上総利益を開示していないため）。このデータが[04章](04_backend.md)で、抽出からチャートになるまで登場する。
 
-このほか旧実装の `security_reports` テーブルが凍結保管されている（コードからの参照はゼロ。経緯は[09章](09_legacy_cleanup.md)）。
+このほか旧実装の `security_reports` テーブルが凍結保管されている（コードからの参照はゼロ。扱いは[08章](08_unused_but_kept.md)）。
 
 ## 取込の流れ（① 取込層）
 
@@ -273,7 +306,7 @@ flowchart TB
     Tag -->|ない| Liq["ifrs_liquidity"]
 ```
 
-- IFRSの2様式はDEI（書類メタ情報。[01章](01_financial_knowledge.md)）では区別できず、タグの実在で判定する（根拠の実測は[08章](08_taxonomy_mapping.md)）
+- IFRSの2様式はDEI（書類メタ情報。[01章](01_financial_knowledge.md)）では区別できず、タグの実在で判定する（根拠の実測は[07章](07_taxonomy_mapping.md)）
 - 未知の業種コードは安全側に倒して `unsupported` にする（誤ったグラフを出さない）
 - **単体財務諸表は常に日本基準として扱う**（[01章](01_financial_knowledge.md)の「IFRS企業でも単体は日本基準タグ」の実装反映）
 
@@ -284,8 +317,33 @@ flowchart LR
     Q["financialReports<br>クエリ"] --> S["検索<br>絞り込み・提出日順"] --> B["チャート組み立て<br>取り決め2の構造"] --> J["JSONで応答"]
 ```
 
-エンドポイントは `POST /graphql` の1本だけ。検索で有報を絞り、Builderがチャート構造を組み立てて返す。組み立ての中身と実データの例は[05章](05_backend.md)、受け取って描く側は[06章](06_frontend.md)。
+エンドポイントは `POST /graphql` の1本だけ。検索で有報を絞り、Builderがチャート構造を組み立てて返す。組み立ての中身と実データの例は[04章](04_backend.md)、受け取って描く側は[05章](05_frontend.md)。
+
+## データフロー: 1つの科目がグラフになるまで
+
+ここまでの流れを1つの科目でつなぐと次のようになる。武田薬品の「流動資産」の実データで、各段階でデータが持つ名前・値・付随情報の対応を示す。**金額は最初から最後まで一度も加工されず、変わるのは名前（タグ → 科目コード → key/label）と付随情報だけ**。
+
+```mermaid
+flowchart TB
+    subgraph Ingest["① 取込層 → ② 保存層（毎日2:00のバッチ）"]
+        F["EDINETから取得したXBRL内の1つのfact（タクソノミのタグ。単位: 円）<br>jpigp_cor:CurrentAssetsIFRS contextRef=CurrentYearInstant<br>値: 3090503000000"]
+        D["パース後の辞書（タグ + コンテキスト → 値）<br>[jpigp_cor, CurrentAssetsIFRS, CurrentYearInstant] => 3090503000000"]
+        R["financial_statement_items テーブルの1行<br>item_code: bs.current_assets / amount: 3,090,503,000,000"]
+        F -->|"パース: XMLを辞書化（Xbrl::Document）"| D
+        D -->|"Extractorの対応表で科目コードへ<br>bs.current_assets => jpigp_cor:CurrentAssetsIFRS"| R
+    end
+    subgraph Refer["③ 表示層 → ④ フロントエンド（画面アクセスのたび）"]
+        S["GraphQL応答の1セグメント（借方バー内）<br>key: currentAssets / label: 流動資産 / amount: 3090503000000<br>ratio: 19.9 / colorRole: asset1"]
+        C["rechartsの1行（行 = バー、列 = セグメントkey）<br>name: 借方 / currentAssets: 3090503000000"]
+        V["画面: 借方バーの最上段<br>「流動資産」を総資産比19.9%の高さ・asset1の色で描画"]
+        S -->|"toStackRows: バー×セグメントを行×列へ変換"| C
+        C -->|"colorRoles.ts: 色の役割名 → 実際の色"| V
+    end
+    R -->|"Builderの対応表でラベルと色の役割を付与し、総資産比を計算<br>[currentAssets, 流動資産, bs.current_assets, asset1]<br>ratio = 3,090,503 ÷ 15,511,506 = 19.9%"| S
+```
+
+各段階の詳細は、パース・抽出・Builderが[04章](04_backend.md)、rechartsへの変換と描画が[05章](05_frontend.md)、タグ ↔ 科目コード対応表の全量が[07章](07_taxonomy_mapping.md)。
 
 ---
 
-次章: [05. バックエンド](05_backend.md) / [06. フロントエンド実装](06_frontend.md)
+次章: [04. バックエンド](04_backend.md) / [05. フロントエンド実装](05_frontend.md)

@@ -1,6 +1,18 @@
-# 06. フロントエンド実装
+# 05. フロントエンド実装
 
 `application/frontend`（React SPA）の実装ガイド。画面は[02章](02_product.md)の一覧ページ1つだけで、ソースは `src/` 配下の約25ファイルと小さい。チャートキットの規約の原本はキット内の `src/shared/financialCharts/README.md`（コピー先のChrome拡張にも同じREADMEが入る）。
+
+## 使っている技術
+
+| 技術 | 役割 |
+|---|---|
+| React | UIライブラリ。画面を「コンポーネント」という部品の組み合わせで記述する |
+| TypeScript | JavaScriptに型を加えた言語。GraphQLの型生成と組み合わせてデータの形の間違いをコンパイル時に検出する |
+| CRA + craco | React公式の雛形ツール（Create React App）と、その設定を上書きするためのツール |
+| Apollo Client | GraphQLクライアント。問い合わせの発行と結果のキャッシュを担当する |
+| Redux Toolkit | 画面をまたいで共有する状態の置き場。ただしこのアプリでの用途はごく小さい（後述） |
+| MUI | Reactコンポーネント集（ボタン・カードなど）。Material Designベース |
+| recharts | チャート描画ライブラリ。積み上げ棒・ウォーターフォールの描画に使う |
 
 ## ディレクトリマップと分割基準
 
@@ -87,7 +99,7 @@ API（bars × segments）              recharts（rows × columns）
                                    ※ あるバーに無い列はundefinedになり、その行には描かれない
 ```
 
-- **積み上げ順・色・ラベルはすべてバックエンドの決定に従う**。フロントは並び替えも分岐もしない（[04章](04_system_overview.md)の「フロントは形式を知らない」の実装）
+- **積み上げ順・色・ラベルはすべてバックエンドの決定に従う**。フロントは並び替えも分岐もしない（[03章](03_system_overview.md)の「フロントは形式を知らない」の実装）
 - Y軸を反転して上から積み上げ、`spacer`（債務超過の高さ合わせ）はツールチップにも出さない
 - ツールチップの金額は符号つきの `signedAmount` を使う（描画高さの `amount` は絶対値）
 
@@ -121,7 +133,7 @@ flowchart LR
 | 決まり | 内容 |
 |---|---|
 | バックエンドの起動は不要 | スキーマの参照先が `../backend/schema.graphql`（コミット済みSDL）のため。スキーマを変えたときはbackend側で `rake graphql:dump_schema` を先に実行する |
-| 生成物はコミットする | デプロイやビルドだけなら再生成不要。スキーマを変えたときだけ再生成してコミット（[07章](07_development_operations.md)）。取り込み忘れはCIが差分検知する |
+| 生成物はコミットする | デプロイやビルドだけなら再生成不要。スキーマを変えたときだけ再生成してコミット（[06章](06_development_operations.md)）。取り込み忘れはCIが差分検知する |
 | `Money` は `number` に対応づけ | 金額はJSON数値のまま届く |
 | 開発中はwatchモードが常駐 | 起動スクリプトが自動起動し、クエリ変更に追従する |
 
@@ -140,9 +152,9 @@ flowchart LR
 |---|---|
 | 検証コマンド | `npx tsc --noEmit` / eslint / prettier / `CI=false yarn build`（`application/frontend/README.md` が正） |
 | CI | 導入済み（`.github/workflows/ci.yml`。検証コマンド一式 + 型生成の差分検知 + build） |
-| テストコード | **0件**（CRA雛形のテスト基盤のみ残置） |
+| テストコード | **0件**（CRA雛形のテスト基盤のみ残している。[08章](08_unused_but_kept.md)） |
 | GraphQLエラー時の画面表示 | 未実装（0件表示になるだけ） |
 
 ---
 
-次章: [07. 開発と運用](07_development_operations.md)
+次章: [06. 開発と運用](06_development_operations.md)

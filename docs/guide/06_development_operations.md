@@ -1,4 +1,4 @@
-# 07. 開発と運用
+# 06. 開発と運用
 
 このリポジトリで手を動かすときの決まりごとと、本番環境（https://investee.info ）の運用。個々の手順の正は各READMEと `.claude/skills/` にあり（下表）、この章では**このリポジトリに特有の運用**（ほかのドキュメントに記載がないもの）だけを扱う。実ホスト名・鍵などはgit管理外のファイル（`deploy.sh` など）だけが持ち、ドキュメントには書かない。
 
@@ -24,8 +24,8 @@ flowchart LR
     C --> D["クエリ上限に収まるか確認<br>（max_complexity / max_depth）"]
 ```
 
-- `npm run compile` はコミット済みの `schema.graphql` を参照するため、バックエンドの起動は不要（[06章](06_frontend.md)）
-- クエリ上限の値と意図は[05章](05_backend.md)を参照
+- `npm run compile` はコミット済みの `schema.graphql` を参照するため、バックエンドの起動は不要（[05章](05_frontend.md)）
+- クエリ上限の値と意図は[04章](04_backend.md)を参照
 - スキーマの書き出し忘れ・型生成の取り込み忘れは、各リポジトリのCIが差分検知する
 - Claude Codeでの編集時は、フック（`.claude/hooks/format-lint.sh`）がフォーマッタ・リンタ（backend: rubocop -A / frontend: eslint --fix → prettier）を自動実行する
 
@@ -47,7 +47,7 @@ sequenceDiagram
 - 親のポインタがマージ前のfeatureブランチ先端を指すと、squashマージ時に「mainに存在しないコミットを参照する」壊れた状態になるため、この順序を守る
 - backendとfrontend両方に変更があるときはPRを2本作って相互参照し、**backend → frontend の順でマージする**（フロントが新しいAPIに依存し得るため。後述のデプロイ順も同じ理屈）
 - 親リポジトリには `submodule-check` というCIがあり、mainへのpush時に「submoduleの参照コミットが各リポジトリのmainに含まれるか」を検証する
-- `git status` の `M application/backend` の読み方と後始末は[03章](03_tech_prerequisites.md)のsubmodule節を参照
+- `git status` の `M application/backend` の読み方と後始末は[03章](03_system_overview.md)の「リポジトリ構成」を参照
 
 コミット・PRの規約:
 
@@ -100,7 +100,7 @@ flowchart LR
 
 ## 日次バッチの監視とリカバリ
 
-[05章](05_backend.md)のとおり自動リトライはなく、**冪等な再実行が唯一のリカバリ手段**。異常はSentry通知で気づき、対応する再実行コマンドを打つ、が基本形になる。
+[04章](04_backend.md)のとおり自動リトライはなく、**冪等な再実行が唯一のリカバリ手段**。異常はSentry通知で気づき、対応する再実行コマンドを打つ、が基本形になる。
 
 | Sentry通知（ログメッセージ） | 意味 | リカバリ |
 |---|---|---|
@@ -137,11 +137,11 @@ flowchart LR
 
 | ドキュメント | ルール |
 |---|---|
-| 学ぶ章（docs/guide/ 01〜07） | 入門・全体像と設計・運用の説明を担当。実装や設計が変わったら該当章を追随させる |
-| 資料（docs/guide/ 08〜09） | タグ対応表・実測データ・削除記録。タグや凍結データを触る変更とセットで更新する |
+| 学ぶ章（docs/guide/ 01〜06） | 入門・全体像と設計・運用の説明を担当。実装や設計が変わったら該当章を追随させる |
+| 資料（docs/guide/ 07〜08） | タグ対応表・実測データ・残しているものの記録。タグや凍結データを触る変更とセットで更新する |
 | docs/improvements.md | 未着手の改善だけを書く。**対応が完了した項目は記述ごと削除する**（完了の記録はgit履歴が持つ） |
 | 秘密情報 | 実ホスト名・キー・接続情報はどのドキュメントにも書かない。git管理されるファイルには「項目名と入手方法」まで |
 
 ---
 
-学ぶ章はこの章まで。作業時に引く資料: [08章 XBRLタグ対応表と実地調査](08_taxonomy_mapping.md) / [09章 旧系統の削除記録](09_legacy_cleanup.md)
+学ぶ章はこの章まで。作業時に引く資料: [07章 XBRLタグ対応表と実地調査](07_taxonomy_mapping.md) / [08章 使っていないが残しているもの](08_unused_but_kept.md)
