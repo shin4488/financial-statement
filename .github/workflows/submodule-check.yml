@@ -20,7 +20,10 @@ jobs:
         # squashマージするとsubmoduleの参照コミットがmainから消えて迷子になる事故の検知
         run: |
           git submodule foreach '
-            git fetch origin main --quiet
+            # checkoutが作るshallow cloneのままでは中間履歴がなく、ポインタがmainより古いだけの
+            # 正常な状態でも祖先判定に失敗するため、履歴を完全化してから検証する
+            # (--unshallowは非shallowリポジトリではエラーになるためフォールバック付き)
+            git fetch origin main --unshallow --quiet 2>/dev/null || git fetch origin main --quiet
             git merge-base --is-ancestor HEAD origin/main \
               || { echo "::error::$name がmainに存在しないコミットを参照しています(squashマージの疑い)"; exit 1; }
           '
