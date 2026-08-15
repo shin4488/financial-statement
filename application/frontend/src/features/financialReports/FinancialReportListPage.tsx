@@ -30,10 +30,13 @@ function useQueryVariables() {
   return useMemo(() => {
     // 件数上限はサーバ側バリデーション（stockCodes最大100件）と対:
     // 細工URLで巨大な配列を送ってエラー画面になるのを防ぐ
+    // 証券コードは大文字で保存されている（英数字コード対応後の391A等）。
+    // 小文字・空白混じりの入力や共有URLでも検索できるよう正規化する
     const codes =
       searchParams
         .get('stock-codes')
         ?.split(',')
+        .map((code) => code.trim().toUpperCase())
         .filter(Boolean)
         .slice(0, 100) ?? null;
     const cfType = (searchParams.get('cash-flow-type') ??
