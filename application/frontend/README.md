@@ -58,13 +58,12 @@ CI=false yarn build
 src/
   features/financialReports/     # 一覧ページ（Webアプリ固有）
     FinancialReportListPage.tsx  #   URLクエリ → GraphQL変数・無限スクロール
-    components/                  #   カード・レイアウト（AppBar/検索/フッター）
+    components/                  #   カード・レイアウト（AppBar/検索/フッター）・BS→PL→CFの自動切替カルーセル
     api/                         #   クエリ定義と型
   shared/financialCharts/        # 汎用チャートキット（Chrome拡張と共有可能）
     StackedBarChart.tsx          #   BS・PL（積み上げ棒）
     WaterfallChart.tsx           #   CF（ウォーターフォール）
     colorRoles.ts                #   役割→色の対応（バックエンドのenumと同時に変更する契約）
-  components/appCarousel/        # BS→PL→CFの自動切替カルーセル
   plugins/firebase/              # アナリティクス
 ```
 
