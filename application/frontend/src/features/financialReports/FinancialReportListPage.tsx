@@ -38,8 +38,14 @@ function useQueryVariables() {
         .slice(0, 100) ?? null;
     const cfType = (searchParams.get('cash-flow-type') ??
       'none') as CashFlowTypeValue;
-    const cfRequest =
-      cashFlowTypeRequestMap[cfType] ?? cashFlowTypeRequestMap.none;
+    // hasOwnPropertyで引く: 素の[]アクセスだとcash-flow-typeが"constructor"等のとき
+    // Object.prototypeのメンバーが返り、?? noneのフォールバックが効かないため
+    const cfRequest = Object.prototype.hasOwnProperty.call(
+      cashFlowTypeRequestMap,
+      cfType,
+    )
+      ? cashFlowTypeRequestMap[cfType]
+      : cashFlowTypeRequestMap.none;
     return {
       limit: financialStatementOffsetUnit,
       offset: 0,
