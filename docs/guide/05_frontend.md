@@ -19,9 +19,8 @@
 | パス（src/ 以下） | 内容 |
 |---|---|
 | `index.tsx` / `App.tsx` | エントリポイント。MUIテーマ定義とルーティング（全URL→一覧ページの1ルートのみ） |
-| `features/financialReports/` | 一覧ページ本体（**Webアプリ固有**のコード） |
+| `features/financialReports/` | 一覧ページ本体（**Webアプリ固有**のコード）。カード・レイアウト・BS→PL→CFの自動切替カルーセルを含む |
 | `shared/financialCharts/` | チャート描画キット（**Chrome拡張と共有**するコード） |
-| `components/appCarousel/` | カルーセル部品 |
 | `constants/` | 30件単位・CFパターン定義などの定数 |
 | `store/` | Redux（カルーセル自動切替フラグのみ） |
 | `plugins/firebase/` | Firebase Analytics初期化とイベント送信 |
