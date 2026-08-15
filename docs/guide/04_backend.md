@@ -242,17 +242,6 @@ query {
 
 フィールドを増やすときは複雑度の実測値（一覧54 / Chrome拡張89 / 型生成のイントロスペクション187。上限400）に収まるか確認する。スキーマは `rake graphql:dump_schema` で`schema.graphql` に書き出してコミットする運用（手順は[06章](06_development_operations.md)）。
 
-## テスト
-
-| 種類 | 内容 |
-|---|---|
-| チャートBuilder | DB不要の純関数テスト。債務超過・貸借乖離・CF欠けなどを網羅 |
-| Extractor | 実企業のXBRLをfixtureにした実データテスト。期待値は[07章](07_taxonomy_mapping.md)の実測表から転記 |
-| マッピング整合 | 「全Extractorのマッピングキー ⊆ 科目コード定義」を機械検証 |
-| 形式判定 | 判定表・業種コードの大文字小文字ゆれ・unsupported落ちを検証 |
-| fixture | 実XBRL8社分は1件数MBのためgit管理外。手元にないテストはskipされる（取得手順は `spec/fixtures/xbrl/README.md`） |
-| CI | push/PRごとにrubocop・スキーマ差分検知・rspecを実行（`.github/workflows/ci.yml`） |
-
 ---
 
 次章: [05. フロントエンド実装](05_frontend.md)
