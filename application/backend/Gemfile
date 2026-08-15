@@ -44,7 +44,7 @@ gem "rubyzip", require: "zip"
 gem "figaro"
 
 # XBRLパース用。REXMLは有報の巨大TextBlock（HTML断片）でentity expansionエラーになるためNokogiriを使う
-gem "nokogiri", "~> 1.18.9"
+gem "nokogiri", ">= 1.19.4"
 
 gem "lograge"
 gem "sentry-ruby"
