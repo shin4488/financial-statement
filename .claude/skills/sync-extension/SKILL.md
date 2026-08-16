@@ -42,8 +42,24 @@ diff -r application/frontend/src/shared/financialCharts "$EXT/src/shared/financi
    ```
 3. 拡張側READMEに「## コピー元」節（コピー運用の説明）を復元する（コピーで消えるため。内容は拡張側のgit履歴を参照）
 4. 拡張側のprettierで整形する: `(cd "$EXT" && npx prettier --write "src/shared/financialCharts/**")`
-5. 拡張リポジトリで `yarn lint` / `yarn lint:type` / `yarn test` を通す
+5. 下の「ローカルでの動作確認」を全て通す
 6. push → PR作成（マージはユーザーが行う）
+
+## ローカルでの動作確認（批判的・網羅的に）
+
+「コピーできた」「ビルドが通った」で済ませず、拡張の実挙動まで確認してから完了とする。
+
+1. **差分の全数確認**: `git diff` を1hunkずつ読み、意図した変更だけかを確認する。
+   意図しないtsx差分が残っていたらコピー漏れかprettier整形漏れ
+2. **静的検証**: 拡張リポジトリで `yarn lint` / `yarn lint:type` / `yarn test` が全件通ること
+3. **ビルド**: `npx vite build --mode development`（ローカルAPI接続の開発ビルド）が通ること
+4. **実挙動**: このリポジトリで `docker compose up`（API: `localhost:20000`）を起動し、
+   開発ビルドの成果物をブラウザに読み込んでポップアップの表示を確認する
+   （ポップアップは `chrome-extension://<拡張ID>/popup/popup.html` をタブとして開いても検証できる。
+   ブランド版Chromeは `--load-extension` を無視するためChrome for Testingを使う。詳細は拡張リポジトリのCLAUDE.md）
+5. **描画の突き合わせ**: チャートに関わる変更では「表示された」で終わらせず、
+   同一銘柄を本番（investee.info）と見比べてラベル・色・値・並び順を突き合わせる。
+   退行が疑われたら件数・座標などの数値で判定する
 
 ## 契約変更のとき（コード同期だけでは済まないケース）
 
