@@ -1,6 +1,6 @@
 require "rails_helper"
 
-# BS4形式のBuilderは共通基盤（two_sided_chart）の上の宣言なので、
+# BS5形式のBuilderは共通基盤（two_sided_chart）の上の宣言なので、
 # 「正常系 / 債務超過 / 貸借乖離」の3観点を形式ごとに検証する
 RSpec.describe "Charts::Builders BS各種" do
   describe Charts::Builders::BsJgaapGeneral do
@@ -34,6 +34,56 @@ RSpec.describe "Charts::Builders BS各種" do
 
     it "貸借が1割超乖離したらunrenderable" do
       chart = described_class.new(items.merge("bs.current_assets" => 4_000)).build
+      expect(chart.renderable).to be false
+    end
+
+    describe "固定資産の3分類を持たない業種（電気・鉄道・電気通信の単体など）" do
+      # 東京電力HD連結（単位: 百万円）: 有形/無形の標準タグがなく、投資その他の資産だけが取れる
+      let(:utility_items) do
+        { "bs.current_assets" => 2_349_796, "bs.investments_and_other_assets" => 4_110_656,
+          "bs.non_current_assets" => 13_225_805,
+          "bs.current_liabilities" => 4_684_165, "bs.non_current_liabilities" => 7_473_085,
+          "bs.equity" => 3_418_351 }
+      end
+
+      it "内訳の合計が固定資産に合わないときは固定資産合計の1段で描く" do
+        chart = described_class.new(utility_items).build
+        expect(chart.renderable).to be true
+        debit, = chart.bars
+        expect(debit.segments.map(&:key)).to eq %w[currentAssets fixedAssets]
+        expect(debit.segments.last.amount).to eq 13_225_805
+      end
+
+      it "内訳の合計が固定資産に合う一般事業会社は内訳のまま（無形固定資産を開示しない企業も残り2つで合えば内訳）" do
+        # 無形100を除き、固定資産合計=有形300+投資その他200、負債側も100減らして貸借を合わせる
+        chart = described_class.new(items.except("bs.intangible_fixed_assets")
+                                         .merge("bs.non_current_assets" => 500, "bs.current_liabilities" => 250)).build
+        expect(chart.bars.first.segments.map(&:key)).to eq %w[currentAssets tangible investments]
+      end
+    end
+  end
+
+  describe Charts::Builders::BsJgaapInsurance do
+    # かんぽ生命連結（単位: 百万円）
+    let(:items) do
+      { "bs.assets" => 58_442_160, "bs.cash_and_equivalents" => 1_752_984,
+        "bs.securities" => 44_931_286, "bs.loans" => 2_134_764,
+        "bs.policy_reserves" => 48_102_350, "bs.liabilities" => 54_288_531,
+        "bs.equity" => 4_153_628 }
+    end
+
+    it "借方[現金及び預貯金, 有価証券, 貸付金, その他資産] / 貸方[保険契約準備金, その他負債, 純資産] で残差が導出される" do
+      chart = described_class.new(items).build
+      debit, credit = chart.bars
+      expect(debit.segments.map(&:key)).to eq %w[cash securities loans otherAssets]
+      expect(credit.segments.map(&:key)).to eq %w[policyReserves otherLiabilities equity]
+      expect(debit.segments.last.amount).to eq 58_442_160 - 1_752_984 - 44_931_286 - 2_134_764
+      expect(credit.segments[1].amount).to eq 54_288_531 - 48_102_350
+      expect(credit.segments.sum(&:amount)).to be_within(1).of(debit.segments.sum(&:amount)) # 開示値の百万円丸め
+    end
+
+    it "保険契約準備金が欠けるとunrenderable（負債全額をその他負債として描くと誤ったグラフになるため）" do
+      chart = described_class.new(items.except("bs.policy_reserves")).build
       expect(chart.renderable).to be false
     end
   end
