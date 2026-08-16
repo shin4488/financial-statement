@@ -1,6 +1,6 @@
 module Ingestion
   # 表示形式（presentation_format）の一覧と、形式→Extractorの対応。
-  # 新形式の追加はここに定数1つ + EXTRACTORSに1行 + Extractorクラス1つ（+ Builder）で完結する
+  # 新形式の追加はここに定数1つ（ALLへの追加含む） + EXTRACTORSに1行 + Extractorクラス1つ（+ Builder）で完結する
   module FormatRegistry
     JGAAP_GENERAL   = "jgaap_general"
     JGAAP_BANK      = "jgaap_bank"
