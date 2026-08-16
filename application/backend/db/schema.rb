@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_02_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_16_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -63,6 +63,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_02_000001) do
     t.datetime "updated_at", null: false
     t.index ["company_id", "fiscal_year_start_date", "fiscal_year_end_date"], name: "idx_reports_company_fiscal_year", unique: true
     t.index ["company_id"], name: "index_reports_on_company_id"
+    t.index ["filing_date", "fiscal_year_end_date", "updated_at"], name: "idx_reports_filing_order", order: { filing_date: "DESC NULLS LAST", fiscal_year_end_date: :desc, updated_at: :desc }
     t.index ["filing_date"], name: "index_reports_on_filing_date"
   end
 

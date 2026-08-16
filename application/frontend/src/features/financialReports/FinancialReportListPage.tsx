@@ -112,6 +112,12 @@ function FinancialReportList() {
           ))}
         </Grid>
       </InfiniteScroll>
+      {/* reports.length === 0 の条件を付ける理由: fetchMore中（追加読込）は
+          InfiniteScrollのloaderが表示されるため、全面スピナーは
+          初回読込と検索条件切替（結果が空になる間）だけに限定する */}
+      {loading && reports.length === 0 && (
+        <CircularProgress style={{ marginTop: 20 }} />
+      )}
       {!loading && reports.length === 0 && (
         <p>条件に一致する企業がありません。</p>
       )}
