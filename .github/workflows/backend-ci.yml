@@ -1,13 +1,22 @@
-name: CI
+name: backend CI
 on:
   push:
     branches: [main]
+    paths:
+      - "application/backend/**"
+      - ".github/workflows/backend-ci.yml"
   pull_request:
+    paths:
+      - "application/backend/**"
+      - ".github/workflows/backend-ci.yml"
 # 既定はリポジトリ設定依存のため、必要な読み取りのみを明示する（最小権限）
 permissions:
   contents: read
+defaults:
+  run:
+    working-directory: application/backend
 jobs:
-  check:
+  backend:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -36,7 +45,8 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.99.0
         with:
-          # .ruby-versionを自動参照する
+          # application/backend/.ruby-versionを自動参照する
+          working-directory: application/backend
           bundler-cache: true
       - run: bundle exec rubocop
       # スキーマの書き出し忘れ検知（schema.graphqlはコミットする運用）
