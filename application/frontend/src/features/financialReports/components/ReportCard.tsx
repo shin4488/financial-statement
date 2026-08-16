@@ -17,9 +17,11 @@ const nonJgaapBadge: Record<string, string> = {
   us_gaap: '米国基準',
 };
 
-// メモ化する理由: 無限スクロールの追加読込のたびに一覧全体が再レンダリングされるが、
-// 表示済みカードのreportはApolloキャッシュが同一参照を返すため、
-// チャート3枚分の再レンダリングを表示済みカードでスキップできる
+// React.memoで包む理由: 無限スクロールで次の30件を読み込むと一覧全体が再レンダリングされ、
+// 画面に表示済みの（何も変わっていない）カードまでチャート3枚ごと描き直されて重い。
+// React.memoは「propsが前回と同じなら再レンダリングをスキップする」仕組みで、
+// ここではApolloキャッシュが変更のないreportを前回と同一のオブジェクト参照で返すため、
+// 表示済みカードは「propsが同じ」と判定されて描き直しがスキップされる
 export const ReportCard = React.memo(function ReportCard({
   report,
 }: {
