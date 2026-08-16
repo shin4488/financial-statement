@@ -1,25 +1,38 @@
 name: frontend CI
+# 対象パスの変更有無はchangesジョブで判定する。onレベルのpaths:フィルタだと対象外のPRで
+# ワークフロー自体が起動せず、必須チェックが「Expected」のまま残ってマージがブロックされる。
+# ジョブのif:でskipされた必須チェックは成功扱いになるため、この方式ならブロックされない
 on:
   push:
     branches: [main]
-    paths:
-      - "application/frontend/**"
-      # codegenが参照するSDL。backend側だけ変わったときも型生成のズレを検知する
-      - "application/backend/schema.graphql"
-      - ".github/workflows/frontend-ci.yml"
   pull_request:
-    paths:
-      - "application/frontend/**"
-      - "application/backend/schema.graphql"
-      - ".github/workflows/frontend-ci.yml"
 # 既定はリポジトリ設定依存のため、必要な読み取りのみを明示する（最小権限）
+# pull-requests: read はpaths-filterがPRの変更ファイル一覧をAPIで取得するのに必要
 permissions:
   contents: read
+  pull-requests: read
 defaults:
   run:
     working-directory: application/frontend
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - "application/frontend/**"
+              # codegenが参照するSDL。backend側だけ変わったときも型生成のズレを検知する
+              - "application/backend/schema.graphql"
+              - ".github/workflows/frontend-ci.yml"
   frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0

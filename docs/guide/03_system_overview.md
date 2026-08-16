@@ -23,7 +23,7 @@
 
 ### リポジトリ構成（monorepo）
 
-コードは単一のgitリポジトリ（monorepo）で管理する。2026-08まではbackend/frontendが別リポジトリのgit submoduleだったが、「submodule側でコミット→親でポインタ更新コミット」の二度手間を解消するため、両リポジトリの全履歴をパス書き換えの上で統合した（旧リポジトリはアーカイブ済み。移行前より古い変更履歴も `git log` / `git blame` でそのまま追える）。
+コードは単一のgitリポジトリ（monorepo）で管理する。かつてbackend/frontendは別リポジトリのgit submoduleだったが、「submodule側でコミット→親でポインタ更新コミット」の二度手間を解消するため全履歴ごと統合した（履歴中に多数ある `update: backend/frontend submodule` 系コミットはその時代のポインタ更新。ファイル単位の履歴は移行前まで連続して追える）。
 
 ディレクトリは次の役割を持つ。
 
@@ -35,7 +35,7 @@
 | `database/` / `cache/` | PostgreSQL / RedisのDocker設定 |
 | `docs/` | ドキュメント（このガイド・改善バックログ） |
 | `docker-compose.yml` | 開発環境の全体起動 |
-| `.github/workflows/` | CI（backend-ci / frontend-ci。`paths:` フィルタで変更のあった側だけ実行） |
+| `.github/workflows/` | CI（backend-ci / frontend-ci。変更のあった側だけ本体ジョブを実行） |
 | `.claude/skills/` | 定型作業の手順書（デプロイ・日次確認・PR運用・リリース） |
 
 ### 開発環境（Docker Compose）

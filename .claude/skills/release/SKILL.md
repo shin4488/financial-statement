@@ -19,8 +19,7 @@ featureブランチや過去のコミットへのタグ付けはしない。リ�
 
 ## 対象リポジトリ
 
-- **shin4488/financial-statement のみ**（monorepo）。2026-08のmonorepo統合までは
-  backend/frontendの旧リポジトリにも同名タグを作っていたが、両リポジトリはアーカイブ済みで対象外
+- **shin4488/financial-statement のみ**（monorepo）
 
 ## 手順
 

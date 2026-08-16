@@ -23,7 +23,7 @@ Webフロントとブラウザ拡張（financial-statement-chrome-extension）�
    （未知roleは `colorForRole` がグレー表示 + console.warnで検知できる）
 3. コピー先が2箇所を超える・更新頻度が上がってきたら、パッケージ化（npm公開 or
    GitHubリポジトリ直接参照）での共有へ移行する
-   （git submodule方式は本体リポジトリで運用した結果、二度手間の摩擦が大きく2026-08に廃止した経緯があるため採らない）
+   （git submodule方式は運用の二度手間が大きく本体リポジトリでも廃止した経緯があるため採らない）
 
 ## 契約のポイント
 

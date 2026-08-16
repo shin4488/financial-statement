@@ -4,7 +4,7 @@
 対応が完了した項目は記述ごと削除する（完了の記録はgit履歴とdocs/guide/が持つ）。
 
 前提知識: このリポジトリは単一リポジトリ（monorepo）。CIは `.github/workflows/` の
-backend-ci / frontend-ci が `paths:` フィルタで変更のあった側だけ実行される（詳細は [CLAUDE.md](../CLAUDE.md)）。
+backend-ci / frontend-ci が変更のあった側だけ本体ジョブを実行する（詳細は [CLAUDE.md](../CLAUDE.md)）。
 
 ---
 
