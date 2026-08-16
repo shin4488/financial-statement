@@ -1,0 +1,45 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+# 既定はリポジトリ設定依存のため、必要な読み取りのみを明示する（最小権限）
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        # 本番・開発と同じPostgreSQL 12に合わせる
+        image: postgres:12
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: financial_statement_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      RAILS_ENV: test
+      POSTGRES_HOST_NAME: localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER_NAME: ci
+      POSTGRES_PASSWORD: ci
+      POSTGRES_DATABASE_NAME: financial_statement_test
+      # テストは実APIを叩かない（webmockで遮断済み）。Edinet::ClientのENV.fetch用のダミー
+      EDINET_API_KEY: dummy
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.99.0
+        with:
+          # .ruby-versionを自動参照する
+          bundler-cache: true
+      - run: bundle exec rubocop
+      # スキーマの書き出し忘れ検知（schema.graphqlはコミットする運用）
+      - run: bundle exec rake graphql:dump_schema && git diff --exit-code schema.graphql
+      - run: bundle exec rails db:prepare
+      - run: bundle exec rspec

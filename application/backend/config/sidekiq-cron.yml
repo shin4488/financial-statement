@@ -1,0 +1,5 @@
+daily_ingestion_job:
+  # 毎日2:00AM（EDINETの書類一覧は前日分を取得するため深夜でよい）
+  cron: "0 0 2 * * *"
+  class: DailyIngestionJob
+  queue: default
