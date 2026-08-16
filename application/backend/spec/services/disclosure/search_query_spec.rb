@@ -49,4 +49,18 @@ RSpec.describe Disclosure::SearchQuery do
     results = query.call(limit: 10, offset: 0, cf_signs: { operating: :positive })
     expect(results).to contain_exactly(positive_cf_report)
   end
+
+  it "一部の符号だけ一致する有報は全符号指定のフィルタにかからない" do
+    create(:disclosure_financial_statement,
+           items_hash: { "cf.operating" => 100, "cf.investing" => -50, "cf.financing" => 30 })
+    results = query.call(limit: 10, offset: 0,
+                         cf_signs: { operating: :positive, investing: :negative, financing: :negative })
+    expect(results).to contain_exactly(positive_cf_report)
+  end
+
+  it "証券コードとCF符号の両方を指定するとAND条件で絞り込まれる" do
+    results = query.call(limit: 10, offset: 0, stock_codes: [ "7203" ],
+                         cf_signs: { operating: :negative })
+    expect(results).to be_empty
+  end
 end

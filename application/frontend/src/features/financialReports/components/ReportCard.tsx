@@ -17,7 +17,16 @@ const nonJgaapBadge: Record<string, string> = {
   us_gaap: '米国基準',
 };
 
-export function ReportCard({ report }: { report: FinancialReport }) {
+// React.memoで包む理由: 無限スクロールで次の30件を読み込むと一覧全体が再レンダリングされ、
+// 画面に表示済みの（何も変わっていない）カードまでチャート3枚ごと描き直されて重い。
+// React.memoは「propsが前回と同じなら再レンダリングをスキップする」仕組みで、
+// ここではApolloキャッシュが変更のないreportを前回と同一のオブジェクト参照で返すため、
+// 表示済みカードは「propsが同じ」と判定されて描き直しがスキップされる
+export const ReportCard = React.memo(function ReportCard({
+  report,
+}: {
+  report: FinancialReport;
+}) {
   const consolidationTypeLabel =
     report.consolidationType === 'consolidated' ? '連結' : '単体';
   // hasOwnPropertyで引く: 素の[]アクセスだとaccountingStandardが"constructor"等のとき
@@ -81,4 +90,4 @@ export function ReportCard({ report }: { report: FinancialReport }) {
       </CardContent>
     </Card>
   );
-}
+});
