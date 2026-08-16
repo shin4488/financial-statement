@@ -13,7 +13,7 @@ docs/                  # 設計ドキュメント
 docker-compose.yml     # 全体起動（web:10000, api:20000）
 ```
 
-- CIは `.github/workflows/` の backend-ci / frontend-ci（`paths:` フィルタで変更のあった側だけ実行）
+- CIは `.github/workflows/` の backend-ci / frontend-ci（変更のあった側だけ本体ジョブを実行。変更なし側はskip=必須チェック成功扱い）
 - ローカル実行: `docker compose up`（DB初期化は `database/init/`）。バックエンド単体はrbenvのruby 3.4.10 + `bundle exec`で動く（DBはdocker側が必要）
 
 ## バックエンド（application/backend）

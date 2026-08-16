@@ -35,7 +35,7 @@
 | `database/` / `cache/` | PostgreSQL / RedisのDocker設定 |
 | `docs/` | ドキュメント（このガイド・改善バックログ） |
 | `docker-compose.yml` | 開発環境の全体起動 |
-| `.github/workflows/` | CI（backend-ci / frontend-ci。`paths:` フィルタで変更のあった側だけ実行） |
+| `.github/workflows/` | CI（backend-ci / frontend-ci。変更のあった側だけ本体ジョブを実行） |
 | `.claude/skills/` | 定型作業の手順書（デプロイ・日次確認・PR運用・リリース） |
 
 ### 開発環境（Docker Compose）

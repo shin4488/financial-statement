@@ -34,7 +34,7 @@ flowchart LR
 単一リポジトリのため、ブランチを切って変更をまとめ、1本のPRでマージする（詳細手順はskill `pr` 参照）。
 
 - backendとfrontend両方に変更があるときも1本のPRでよい。ただし**デプロイはbackend → frontendの順**（フロントが新しいAPIに依存し得るため）
-- CIは `paths:` フィルタにより変更のあった側（backend-ci / frontend-ci）だけが実行される。docsのみの変更ではどちらも実行されない
+- CIは変更のあった側（backend-ci / frontend-ci）だけが本体ジョブを実行する。変更がない側はskipされ、必須チェックとしては成功扱いになる（docsのみのPRでもマージはブロックされない）
 
 コミット・PRの規約:
 

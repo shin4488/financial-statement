@@ -24,12 +24,11 @@ git checkout -b <feature/fix/choreブランチ名>
 
 ## CI
 
-- `.github/workflows/` の backend-ci / frontend-ci が `paths:` フィルタで
-  変更のあった側だけ実行される（backendは `application/backend/**`、
-  frontendは `application/frontend/**` + `application/backend/schema.graphql`）
-- mainの必須status checkは `backend` / `frontend`。docs等のみのPRではどちらも
-  実行されず「Expected」のまま残るが、管理者はそのままマージできる
-  （ブランチ保護のenforce_adminsが無効のため）
+- `.github/workflows/` の backend-ci / frontend-ci が、変更のあった側だけ本体ジョブを
+  実行する（backendは `application/backend/**`、frontendは `application/frontend/**` +
+  `application/backend/schema.graphql`。判定はワークフロー内のchangesジョブが行う）
+- mainの必須status checkは `backend` / `frontend`。変更がない側のジョブはskipされ
+  **成功扱い**になるため、docs等のみのPRでもマージはブロックされない
 
 ## マージ後の後始末
 
