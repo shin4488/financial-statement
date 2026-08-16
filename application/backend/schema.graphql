@@ -1,0 +1,97 @@
+enum CashFlowSign {
+  NEGATIVE
+  POSITIVE
+}
+
+type FinancialReport {
+  """
+  表示中の財務諸表の基準（バッジ表示用。描画分岐に使わないこと）
+  """
+  accountingStandard: String!
+  balanceSheet: StackChart!
+  cashFlow: WaterfallChart!
+  companyName: String
+
+  """
+  "consolidated" | "non_consolidated"
+  """
+  consolidationType: String!
+  filingDate: String
+  fiscalYearEndDate: String!
+  fiscalYearStartDate: String!
+  id: ID!
+  presentationFormat: String!
+  profitLoss: StackChart!
+
+  """
+  4桁（EDINETの5桁から末尾0を落として返す）
+  """
+  stockCode: String
+}
+
+"""
+円単位の金額。Int32の範囲を超え得るがJSON上は数値のまま返す
+"""
+scalar Money
+
+type Query {
+  """
+  有報の財務3表チャート一覧（提出日降順）
+  """
+  financialReports(financingCfSign: CashFlowSign, investingCfSign: CashFlowSign, limit: Int!, offset: Int!, operatingCfSign: CashFlowSign, stockCodes: [String!]): [FinancialReport!]!
+}
+
+type Segment {
+  """
+  描画高さ（常に0以上）
+  """
+  amount: Money!
+  colorRole: String!
+  key: String!
+  label: String!
+
+  """
+  %（spacer等の非表示セグメントはnull）
+  """
+  ratio: Float
+
+  """
+  実値（ツールチップ用。損失は負）
+  """
+  signedAmount: Money!
+}
+
+type StackBar {
+  label: String!
+  segments: [Segment!]!
+}
+
+type StackChart {
+  bars: [StackBar!]!
+
+  """
+  renderable=false のとき表示する説明文
+  """
+  note: String
+  renderable: Boolean!
+}
+
+type WaterfallChart {
+  note: String
+  renderable: Boolean!
+  steps: [WaterfallStep!]!
+}
+
+type WaterfallStep {
+  """
+  符号付き（増減の向きが情報のため）
+  """
+  amount: Money!
+  key: String!
+
+  """
+  "balance"（残高・0起点） | "flow"（増減・累積位置から描く）
+  """
+  kind: String!
+  label: String!
+}

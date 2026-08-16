@@ -1,0 +1,40 @@
+name: frontend CI
+on:
+  push:
+    branches: [main]
+    paths:
+      - "application/frontend/**"
+      # codegenが参照するSDL。backend側だけ変わったときも型生成のズレを検知する
+      - "application/backend/schema.graphql"
+      - ".github/workflows/frontend-ci.yml"
+  pull_request:
+    paths:
+      - "application/frontend/**"
+      - "application/backend/schema.graphql"
+      - ".github/workflows/frontend-ci.yml"
+# 既定はリポジトリ設定依存のため、必要な読み取りのみを明示する（最小権限）
+permissions:
+  contents: read
+defaults:
+  run:
+    working-directory: application/frontend
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: application/frontend/.nvmrc
+          cache: yarn
+          cache-dependency-path: application/frontend/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - run: npx tsc --noEmit
+      - run: npx eslint 'src/**/*.{ts,tsx}'
+      - run: npx prettier --check 'src/**/*.{ts,tsx}'
+      # 型生成の取り込み忘れ検知（src/__generated__はコミットする運用）
+      - run: yarn compile && git diff --exit-code src/__generated__
+      - run: yarn build
+        env:
+          # CRAはCI=trueだとwarningをerror扱いする。まずは通す設定で始め、後で外す
+          CI: "false"

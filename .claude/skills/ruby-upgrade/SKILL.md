@@ -12,7 +12,7 @@ flowchart LR
     A["① バージョン選定"] -->|"Railsが目標Rubyに未対応"| R["Rails更新を先に実施<br>（別PR・別デプロイ）"]
     R --> A
     A --> B["② docker検証"]
-    B --> C["③ PR（/submodule-pr）"]
+    B --> C["③ PR（/pr）"]
     C --> D["④ 本番: rbenv install"]
     D --> E["⑤ rsync+gem再ビルド"]
     E --> F["⑥ start.sh(ユーザー端末)"]
@@ -45,10 +45,10 @@ flowchart LR
 
 変更箇所チェックリスト（旧バージョン文字列をgrepして漏れがないか確認する）:
 
-| リポジトリ | ファイル |
+| 場所 | ファイル |
 |---|---|
-| backend | `.ruby-version` / `Gemfile`の`ruby "…"` / `Dockerfile`のFROM / `README.md` / `Gemfile.lock`（後述） |
-| 親 | `README.md` / `CLAUDE.md`（`tmp/backend.md`は過去の作業ログなので対象外） |
+| application/backend | `.ruby-version` / `Gemfile`の`ruby "…"` / `Dockerfile`のFROM / `README.md` / `Gemfile.lock`（後述） |
+| リポジトリルート | `README.md` / `CLAUDE.md`（`tmp/backend.md`は過去の作業ログなので対象外） |
 
 ```bash
 docker compose build appserver && docker compose up -d
@@ -93,7 +93,7 @@ nginx経由(:10000)で画面200・sidekiq起動とsidekiq-cronの`daily_ingestio
 
 ## ③ PR
 
-/submodule-pr の運用どおり（backendマージ→親でポインタ+README/CLAUDE.md更新）。
+/pr の運用どおり。backend側の変更とREADME/CLAUDE.md更新を1本のPRにまとめる。
 PR本文にはバージョン選定理由・検証チェックリスト・BUNDLED WITH固定の理由を書く。
 
 ## ④〜⑦ 本番反映（順序が生命線）

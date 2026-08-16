@@ -14,10 +14,10 @@
 ## リポジトリ構成
 
 ```
-financial-statement/            # このリポジトリ（親）
+financial-statement/            # このリポジトリ（monorepo）
 ├── application/
-│   ├── backend/                # Rails APIサーバ（★別リポジトリのgit submodule）
-│   └── frontend/               # React SPA（★別リポジトリのgit submodule）
+│   ├── backend/                # Rails APIサーバ
+│   └── frontend/               # React SPA
 ├── web/                        # nginx（リバースプロキシ）の設定
 ├── database/                   # PostgreSQLのDockerfile・初期化SQL
 ├── cache/                      # RedisのDockerfile（Sidekiqのジョブキュー用）
@@ -26,7 +26,7 @@ financial-statement/            # このリポジトリ（親）
 └── CLAUDE.md                   # AIエージェント向けのリポジトリコンテキスト
 ```
 
-**submoduleに注意**: `application/backend` と `application/frontend` は別リポジトリ。中のファイルを変更したら「各リポジトリでコミット→親リポジトリでハッシュ更新コミット」の2段階が必要。
+単一リポジトリ（monorepo）。2026-08まではbackend/frontendが別リポジトリのgit submoduleだったが、履歴ごと本リポジトリへ統合済み（旧 [financial-statement-backend](https://github.com/shin4488/financial-statement-backend) / [financial-statement-frontend](https://github.com/shin4488/financial-statement-frontend) はアーカイブ）。
 
 ## 技術スタック
 
@@ -48,8 +48,8 @@ financial-statement/            # このリポジトリ（親）
 ### 手順
 
 ```bash
-# 1. submoduleごとclone
-git clone --recursive https://github.com/shin4488/financial-statement.git
+# 1. clone
+git clone https://github.com/shin4488/financial-statement.git
 cd financial-statement
 
 # 2. バックエンドの環境変数ファイルを作成（figaro形式・gitignore済み）

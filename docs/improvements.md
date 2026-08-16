@@ -3,34 +3,8 @@
 未着手の改善候補を「現状・意図 → 作業手順」の形で、着手時にそのまま手を動かせる粒度で書く。
 対応が完了した項目は記述ごと削除する（完了の記録はgit履歴とdocs/guide/が持つ）。
 
-前提知識: このリポジトリは親リポジトリ + submodule 2つ（application/backend, application/frontend）で
-構成される。**backend/frontend内のファイル変更はそれぞれのリポジトリでのコミットが必要**で、
-CIワークフローも各submoduleリポジトリ側に置く（詳細は [CLAUDE.md](../CLAUDE.md)）。
-
----
-
-## 1. 開発者体験（DX）
-
-### 1-7. submodule運用の見直し（検討）
-
-- **現状**: 変更のたびに「submoduleでコミット→親でハッシュ更新コミット」の二度手間。
-  履歴も "update submodule" が多くを占める
-- **意図**: 個人開発でsubmoduleの分離メリット（別権限・別チーム）が活きていないならmonorepo化で摩擦が減る
-
-**手順**（判断→実施で半日〜1日）:
-
-1. まず判断: 以下のいずれかに該当するならsubmodule維持、どれもなければmonorepo化
-   - backend/frontendを別の公開範囲・別のCI/CD権限で運用したい
-   - 他プロジェクトからこれらを部品として参照している
-2. monorepo化する場合（親リポジトリで実施）:
-   ```bash
-   # 履歴ごと取り込む。prefixは現行と同じパスにするとデプロイ設定の変更が最小
-   git rm application/backend application/frontend && git commit -m "remove submodules"
-   git subtree add --prefix=application/backend  <backendリポジトリURL>  main
-   git subtree add --prefix=application/frontend <frontendリポジトリURL> main
-   ```
-3. `.gitmodules` 削除、CI（1-2）を親リポジトリの `paths:` フィルタ付きワークフローに統合
-4. 旧リポジトリはREADMEに「monorepoへ移行済み」と書いてアーカイブ
+前提知識: このリポジトリは単一リポジトリ（monorepo）。CIは `.github/workflows/` の
+backend-ci / frontend-ci が `paths:` フィルタで変更のあった側だけ実行される（詳細は [CLAUDE.md](../CLAUDE.md)）。
 
 ---
 
@@ -42,7 +16,7 @@ CIワークフローも各submoduleリポジトリ側に置く（詳細は [CLAU
   「〇〇(企業名) 財務諸表」等の個別クエリの受け皿がない
 - **意図**: 上場企業約4,000社 × 会計年度分のロングテール検索流入の土台
 
-**手順**（frontendリポジトリ中心・2〜3日）:
+**手順**（frontend中心・2〜3日）:
 
 1. ルート定義（`App.tsx`）:
    ```tsx
@@ -73,7 +47,7 @@ CIワークフローも各submoduleリポジトリ側に置く（詳細は [CLAU
 
 **手順**（Next.js移行案・1〜2週間）:
 
-1. `npx create-next-app`（App Router・TypeScript）で新規プロジェクトを frontend リポジトリの
+1. `npx create-next-app`（App Router・TypeScript）で新規プロジェクトを application/frontend の
    `next/` に作成（並行稼働のため既存 `src/` は残す）
 2. 移植マッピング:
    | 現行 | Next.js |
@@ -125,7 +99,7 @@ CIワークフローも各submoduleリポジトリ側に置く（詳細は [CLAU
 
 ### 2-4. パフォーマンス / Core Web Vitals
 
-**手順**（frontendリポジトリ・1日）:
+**手順**（frontend・1日）:
 
 1. 現状把握: `npx source-map-explorer build/static/js/*.js` でバンドル内訳を確認
    （recharts・MUI・firebaseが主要因のはず）
@@ -157,7 +131,7 @@ CI常設のAPIコスト・Secrets管理に見合わない）
 
 - **意図**: 可視化に「読み」を添えて価値を上げ、2-5のテキスト不足も解消
 
-**手順**（backendリポジトリ・2〜3日）:
+**手順**（backend・2〜3日）:
 
 1. テーブル追加:
    ```ruby
@@ -236,7 +210,7 @@ CI常設のAPIコスト・Secrets管理に見合わない）
 - **意図**: 「貸借が合わない」「前期比で桁が飛んだ」等の取込異常の早期検知
   （現在は取込時の例外と「is_primaryなのにbs.assetsがない」のSentry警告のみ）
 
-**手順**（backendリポジトリ・1日。まずルールベースで開始、LLMは要約のみ）:
+**手順**（backend・1日。まずルールベースで開始、LLMは要約のみ）:
 
 1. 検知ルールをSQL/Rubyで実装（週次rakeタスク）:
    - 貸借乖離: `|資産 - (負債+純資産)| > 資産×10%` の財務諸表
@@ -259,7 +233,7 @@ CI常設のAPIコスト・Secrets管理に見合わない）
    GRANT SELECT ON ALL TABLES IN SCHEMA public TO claude_readonly;
    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO claude_readonly;
    ```
-2. 親リポジトリの `.claude/settings.json`（または `.mcp.json`）にPostgreSQL MCPサーバを追加:
+2. リポジトリの `.claude/settings.json`（または `.mcp.json`）にPostgreSQL MCPサーバを追加:
    ```json
    { "mcpServers": { "financial-db": {
        "command": "npx", "args": ["-y", "@modelcontextprotocol/server-postgres",
