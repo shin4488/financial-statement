@@ -25,11 +25,9 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
 
   DURATION_MAPPING = {
     # トップライン。業種による科目ゆれ（営業収益・完成工事高など）をフォールバックで吸収する（順序が優先度）。
-    # 営業収益系を売上高（NetSales）より先に置く理由: 営業収益型（売上高+営業収入を営業収益として
-    # 開示する小売等）や商品先物取引業（商品売上高が営業収益の内訳）は両方のタグを持ち、
-    # 営業利益と貸借が合うトップラインは営業収益の方であるため
+    # 業種固有の営業収益（合計タグ）を先に置く理由: 商品先物取引業のように商品売上高（NetSales）が
+    # 営業収益の内訳になる業種があるため（業種固有タグはその業種の有報にしか現れない）
     "pl.revenue" => [
-      "jppfs_cor:OperatingRevenue1",                                    # 営業収益
       "jppfs_cor:OperatingRevenueRWY",                                  # 営業収益（鉄道）
       "jppfs_cor:OperatingRevenueTotalRWY",                             # 全事業営業収益（鉄道）
       "jppfs_cor:OperatingRevenueELE",                                  # 営業収益（電気）
@@ -39,7 +37,13 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
       "jppfs_cor:OperatingRevenueIVT",                                  # 営業収益（投資運用）
       "jppfs_cor:OperatingRevenueINV",                                  # 営業収益（投資業）
       "jppfs_cor:ShippingBusinessRevenueAndOtherOperatingRevenueWAT",   # 海運業収益及びその他の営業収益（海運）
-      "jppfs_cor:NetSales",                                             # 売上高
+      # 一般事業会社の総額。営業収益（OperatingRevenue1）と 売上高+営業収入（NetSales+OperatingRevenue2）は
+      # 制度上は 営業収益 = 売上高 + 営業収入 だが、どれをどう付けるかは企業で揺れる:
+      #   営業収益を総額に付ける小売（3タグとも） / 総額タグを付けず売上高と営業収入だけ付ける小売 /
+      #   売上高を総額とし営業収益を一部の事業にだけ付ける会社 / 営業収入だけを開示する持株会社の単体
+      # 内訳は総額を超えないので、最も包括的な値（最大）を採ればどのパターンでも総額になる
+      max("jppfs_cor:OperatingRevenue1",                                # 営業収益
+          sum("jppfs_cor:NetSales", "jppfs_cor:OperatingRevenue2")),    # 売上高 + 営業収入
       "jppfs_cor:SalesFromGasBusinessGAS",                              # ガス事業売上高（ガス。単体は売上高でなくこれで開示する）
       "jppfs_cor:GasSalesGAS",                                          # ガス売上（ガス。ガス事業売上高の内訳だが、これしか開示しない単体がある）
       "jppfs_cor:ContractsCompletedRevOA",                              # 完成工事高
@@ -57,9 +61,7 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
       sum("jppfs_cor:OperatingRevenueOILTelecommunications",            # 電気通信: 電気通信事業営業収益
           "jppfs_cor:OperatingRevenueIncidentalELC"),                   #   + 附帯事業営業収益
       sum("jppfs_cor:ShippingBusinessRevenueWAT",                       # 海運（単体）: 海運業収益
-          "jppfs_cor:OtherBusinessRevenueWAT"),                         #   + その他事業収益
-      # 営業収入は本来「売上高+営業収入=営業収益」の内訳だが、営業収入だけを開示する持株会社の単体があるため最後に置く
-      "jppfs_cor:OperatingRevenue2"                                     # 営業収入
+          "jppfs_cor:OtherBusinessRevenueWAT")                          #   + その他事業収益
     ],
     # 売上原価。OperatingCost（営業原価）を先頭に置く理由: OperatingRevenue1とペアの原価であり、
     # 営業収益型ではCostOfSales（売上原価）も併記されるが、そちらは売上高側の原価のため。

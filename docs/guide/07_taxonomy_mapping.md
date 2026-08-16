@@ -148,24 +148,31 @@ Builderが「—」の科目も保存している。再取込のコストが高�
 
 | 順 | XBRLタグ | 日本語 |
 |---|---|---|
-| 1 | `jppfs_cor:OperatingRevenue1` | 営業収益 |
-| 2 | `jppfs_cor:OperatingRevenueRWY` / `OperatingRevenueTotalRWY` | 営業収益 / 全事業営業収益（鉄道） |
-| 3 | `jppfs_cor:OperatingRevenueELE` | 営業収益（電気） |
-| 4 | `jppfs_cor:OperatingRevenueSEC` | 営業収益（証券） |
-| 5 | `jppfs_cor:OperatingRevenueSPF` | 営業収益（特定金融） |
-| 6 | `jppfs_cor:OperatingRevenueCMD` | 営業収益（商品先物） |
-| 7 | `jppfs_cor:OperatingRevenueIVT` / `OperatingRevenueINV` | 営業収益（投資運用 / 投資業） |
-| 8 | `jppfs_cor:ShippingBusinessRevenueAndOtherOperatingRevenueWAT` | 海運業収益及びその他の営業収益（海運） |
-| 9 | `jppfs_cor:NetSales` | 売上高 |
-| 10 | `jppfs_cor:SalesFromGasBusinessGAS` → `GasSalesGAS` | ガス事業売上高 → ガス売上（ガス。単体は売上高でなくこれらで開示する） |
-| 11 | `jppfs_cor:ContractsCompletedRevOA` | 完成工事高 |
-| 12 | `jppfs_cor:NetSalesOfCompletedConstructionContractsCNS` | 完成工事高（建設業） |
-| 13 | 合算 `OperatingRevenue{Railway,Railroad,Related,Incidental,SideLine,RealEstate,Development,Automobile,Other}RWY` | 鉄道（単体）: 事業区分別の営業収益の合計 |
-| 14 | 合算 `OperatingRevenueOILTelecommunications` + `OperatingRevenueIncidentalELC` | 電気通信: 電気通信事業営業収益 + 附帯事業営業収益 |
-| 15 | 合算 `ShippingBusinessRevenueWAT` + `OtherBusinessRevenueWAT` | 海運（単体）: 海運業収益 + その他事業収益 |
-| 16 | `jppfs_cor:OperatingRevenue2` | 営業収入（本来「売上高+営業収入=営業収益」の内訳。営業収入だけを開示する持株会社の単体のための最終手段） |
+| 1 | `jppfs_cor:OperatingRevenueRWY` / `OperatingRevenueTotalRWY` | 営業収益 / 全事業営業収益（鉄道） |
+| 2 | `jppfs_cor:OperatingRevenueELE` | 営業収益（電気） |
+| 3 | `jppfs_cor:OperatingRevenueSEC` | 営業収益（証券） |
+| 4 | `jppfs_cor:OperatingRevenueSPF` | 営業収益（特定金融） |
+| 5 | `jppfs_cor:OperatingRevenueCMD` | 営業収益（商品先物） |
+| 6 | `jppfs_cor:OperatingRevenueIVT` / `OperatingRevenueINV` | 営業収益（投資運用 / 投資業） |
+| 7 | `jppfs_cor:ShippingBusinessRevenueAndOtherOperatingRevenueWAT` | 海運業収益及びその他の営業収益（海運） |
+| 8 | 最大値 `max(OperatingRevenue1, NetSales + OperatingRevenue2)` | 一般事業会社の総額: 営業収益 と 売上高+営業収入 の大きい方（下記） |
+| 9 | `jppfs_cor:SalesFromGasBusinessGAS` → `GasSalesGAS` | ガス事業売上高 → ガス売上（ガス。単体は売上高でなくこれらで開示する） |
+| 10 | `jppfs_cor:ContractsCompletedRevOA` | 完成工事高 |
+| 11 | `jppfs_cor:NetSalesOfCompletedConstructionContractsCNS` | 完成工事高（建設業） |
+| 12 | 合算 `OperatingRevenue{Railway,Railroad,Related,Incidental,SideLine,RealEstate,Development,Automobile,Other}RWY` | 鉄道（単体）: 事業区分別の営業収益の合計 |
+| 13 | 合算 `OperatingRevenueOILTelecommunications` + `OperatingRevenueIncidentalELC` | 電気通信: 電気通信事業営業収益 + 附帯事業営業収益 |
+| 14 | 合算 `ShippingBusinessRevenueWAT` + `OtherBusinessRevenueWAT` | 海運（単体）: 海運業収益 + その他事業収益 |
 
-営業収益系（1〜8）を売上高（9）より先に置いている。営業収益型（売上高と営業収入をまとめて開示する小売業など）や商品先物取引業（商品売上高が営業収益の内訳）は両方のタグを持つが、営業利益と貸借が合うのは営業収益の側になるため。業種の接尾辞が付くタグはその業種の有報にしか現れないので、業種をまたぐ順序に意味はなく、同一業種内の「合計タグ → 区分の合算」の順序だけが効く。
+業種固有の営業収益（1〜7）を一般の総額（8）より先に置くのは、商品先物取引業のように商品売上高（`NetSales`）が営業収益の内訳になる業種があるため（業種の接尾辞が付くタグはその業種の有報にしか現れないので、業種をまたぐ順序に意味はなく、同一業種内の「合計タグ → 区分の合算」の順序だけが効く）。
+
+一般の総額を「営業収益 と 売上高+営業収入 の大きい方」にしているのは、制度上は 営業収益 = 売上高 + 営業収入 でも、企業のタグ付けが4通りに揺れるため（内訳は総額を超えないので、大きい方がどのパターンでも総額）:
+
+| パターン | 実例 | 総額 |
+|---|---|---|
+| 営業収益を総額として3タグとも付ける小売 | イオン: 営業収益 10,715,342 / 売上高 9,355,439 / 営業収入 1,359,903 | 営業収益 |
+| 総額タグを付けず売上高と営業収入だけを付ける小売 | バローHD連結: 売上高 896,199 + 営業収入 27,914（サマリの売上高 924,114 と一致） | 売上高+営業収入 |
+| 売上高を総額とし営業収益を一部の事業にだけ付ける会社 | メルディアDC連結: 売上高 35,745,038 / 営業収益 2,389,993 | 売上高 |
+| 営業収入だけを開示する持株会社の単体 | gooddaysHD単体: 営業収入 585,960 | 営業収入 |
 
 **分類・配列** — `pl.revenue`
 
@@ -315,7 +322,7 @@ IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは
 
 ## 実地調査の記録
 
-ここまでの表の根拠になった実測。EDINET API v2で実際に有報XBRLを取得し、全factをダンプして確認した。タクソノミの公式資料だけでは分からない実態が実装判断を左右するため、実物での確認記録を残している。前半は基本8社・4形式（2026-08初旬の初期実装時）、後半は業種別対応（2026-08-16）で追加した実測。
+ここまでの表の根拠になった実測。EDINET API v2で実際に有報XBRLを取得し、全factをダンプして確認した。タクソノミの公式資料だけでは分からない実態が実装判断を左右するため、実物での確認記録を残している。前半は初期実装時の基本8社・4形式、後半は業種別対応で追加した実測。
 
 ### 調査対象（基本8社・4形式）
 
@@ -371,7 +378,7 @@ jgaap_generalの2社は売上原価フォールバックの検証用（単位は
 | pl.revenue | 10,715,342（`OperatingRevenue1`。`NetSales` 9,355,439ではない） | 2,478,950 |
 | pl.cost_of_sales | 6,804,966（`OperatingCost`） | 1,621,713（`CostOfProductsManufactured`） |
 
-### 業種別対応の実測（2026-08-16。本番の直近1年で `unsupported` だった業種）
+### 業種別対応の実測（本番の直近1年で `unsupported` だった業種）
 
 本番DBで直近1年（2025-08〜2026-08提出）に `unsupported` 判定だった438財務諸表の業種内訳は、建設 279 / 証券 26 / 海運 20 / 鉄道 18 / 電気 18 / 電気通信 18 / ガス 17 / 特定金融 9 / 保険 9 / 商品先物 5 / 複数コード 8 / 投資業・投資運用 2 / 米国基準 7 だった。業種ごとに代表企業の有報XBRLを取得（計77件）して上の対応表を作り、最後に対象261有報すべてを新実装に通して確認した（結果: 主対象235件のうち225件がBS/PL/CFすべて描画可。残りは米国基準6件、収益・費用が企業拡張タグにしか無い証券2社と投資運用1社のPL、貯金が拡張タグの日本郵政のBS）。実測に使った主な有報:
 
@@ -390,6 +397,18 @@ jgaap_generalの2社は売上原価フォールバックの検証用（単位は
 | 保険 ins | かんぽ生命 S100YD29、第一ライフG S100YC7A、T&D S100Y9UP、ソニーFG S100YCL0、SBIインシュアランス S100YDWS、アニコム S100YFY1、ライフネット S100YC7R（単体） | 保険 | 保険 or 一般 | 経常収益 `OperatingIncomeINS` − 経常費用 `OperatingExpensesINS` = 経常利益。BSは有価証券・貸付金・現金及び預貯金 + 保険契約準備金。ソニーFG単体は業種コードinsだが流動/固定のある一般様式 → 流動資産タグの実在で一般に戻す |
 | 複数コード | 日本郵政 S100YE7T（bnk,ins）、日本インシュレーション S100YG71・広島電鉄 S100YI48（cte,cns）、飯野海運 S100YGFN（cte,wat）、オウケイウェイヴ S100WS3E（cte,sec,cmd） | — | — | 先頭のコードを主たる業種として判定。日本郵政は銀行様式のPL（`OrdinaryIncomeBNK`）だが貯金が企業拡張タグのためBSは描けない。広島電鉄の単体は鉄道様式（`OperatingRevenueTotalRWY`） |
 | 米国基準 | キヤノン S100XTLJ、小松製作所、オリックス S100YG5L、オムロン、野村HD、富士フイルムHD | unsupported | 一般 | 本表の標準タグがなく企業拡張タグのみ（対象外のまま。単体は日本基準の標準タグで描ける） |
+
+### 3年分の全数検証（本番の直近3年）
+
+本番の直近3年（2023-08〜2026-08提出、有報11,662件）のうち、`unsupported` を含む有報811件（財務諸表1,499件）**すべて**と、対応済み有報から形式別に無作為抽出した200件（財務諸表427件）の計1,926財務諸表を、新実装の 形式判定→Extractor→Builder に通して確認した。
+
+| 観点 | 方法 | 結果 |
+|---|---|---|
+| 回帰 | 本番に保存済みの全科目（569財務諸表）と新実装の値を比較 | 値の差分は意図した変更のみ（小林洋行単体の営業収益、バローHDの売上高+営業収入）。新たに取れる科目が76件増（鉄道連結の売上原価・持株会社単体の売上高/販管費）、値が変わったものは他になし |
+| 会計恒等式 | 資産=負債+純資産 / 流動+固定=資産 / 流動+固定=負債 / 営業利益+営業外=経常利益 / 経常+特別=税引前 / 税引前−税=当期純利益 / 経常収益−費用=経常利益 / CF期首+3区分=期末 | 資産・負債・経常利益系はすべて一致（1,908/1,908 等）。税引前・当期純利益の不一致27+5件は保険の契約者配当準備金繰入・電気の渇水準備金・商品先物の責任準備金・IFRSの非継続事業など**科目構造上の差**、CFの37件は為替換算差額・連結範囲変動で、いずれも抽出誤りではない |
+| 経営指標サマリとの突合 | 会社自身の主要指標（`jpcrp_cor:*SummaryOfBusinessResults`）と総資産・純資産・売上高・経常利益・当期純利益・CF3区分・期末現金を比較 | 総資産 1,905/1,908、経常利益 1,839/1,839、CF 990/993 など一致。売上高の不一致は 39/1,758 で、内訳はガス単体（サマリの売上高は営業雑収益・附帯事業収益込み。本表の売上高欄=ガス事業売上高に一致）18件、鉄道・海運単体で第3の事業区分が企業拡張タグ 9件、IFRSのサマリが別概念 5件、日揮HD単体の特殊様式 3件、その他4件。いずれも単体（画面に出ない）か拡張タグ起因 |
+
+この検証で見つかり修正したもの: 一般管理費（販管費の内訳）が供給販売費及び一般管理費（合計）より先に取れる順序、ガス単体の `GasSalesGAS`、持株会社単体の営業収入、そして「営業収益と売上高のどちらが総額かが企業で揺れる」問題（上記 `max` の導入。メルディアDC・バローHDで実測）。
 
 検証用データ（実測値。テストの期待値に使用。単位: 百万円）:
 
