@@ -26,6 +26,8 @@
 
 - vendor/bundle
 - security_reports
+# 実XBRLフィクスチャ（数MB/件・spec専用）は本番に置かない
+- spec/fixtures/xbrl/*.xbrl
 - .env
 - start.sh
 - db/schema.rb
