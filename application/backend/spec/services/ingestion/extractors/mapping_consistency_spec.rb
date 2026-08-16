@@ -12,10 +12,16 @@ RSpec.describe "ExtractorマッピングとItemCodesレジストリの整合" do
     Ingestion::Extractors::IfrsLiquidity  => %w[cf.cash_begin]
   }.freeze
 
-  # マッピング表の値（単一タグ / フォールバックリスト / 合算）を平坦なタグ一覧にする
+  # マッピング表の値（単一タグ / フォールバックリスト / 合算 / 最大値）を平坦なタグ一覧にする
   def qnames_of(spec)
     entries = spec.is_a?(Array) ? spec : [ spec ]
-    entries.flat_map { |e| e.is_a?(Ingestion::Extractors::Base::Sum) ? e.qnames : [ e ] }
+    entries.flat_map do |e|
+      case e
+      when Ingestion::Extractors::Base::Sum then e.qnames
+      when Ingestion::Extractors::Base::Max then e.entries.flat_map { |x| qnames_of(x) }
+      else [ e ]
+      end
+    end
   end
 
   Ingestion::FormatRegistry::EXTRACTORS.each_value do |extractor_class|
