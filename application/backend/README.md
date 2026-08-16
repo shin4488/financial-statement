@@ -35,7 +35,7 @@ cp config/application.yml.sample config/application.yml
 
 ### 2. 起動
 
-親リポジトリで `docker compose up` する（DB・Redis込みで一括起動）。
+リポジトリルートで `docker compose up` する（DB・Redis込みで一括起動）。
 docker外で単体起動する場合は、DBだけdocker側を立てた上で:
 
 ```bash
@@ -85,7 +85,7 @@ app/graphql/
   resolvers/financial_reports.rb       # 現行クエリ financialReports
 ```
 
-設計意図・XBRLの形式ごとの差異は親リポジトリの `docs/guide/`（03〜04章に設計解説）を参照。
+設計意図・XBRLの形式ごとの差異はリポジトリルートの `docs/guide/`（03〜04章に設計解説）を参照。
 **XBRLタグを扱う作業の前に必ず `docs/guide/07_taxonomy_mapping.md` を読むこと。**
 
 `/graphql` は公開・未認証エンドポイントのため、スキーマに複雑度・深さの上限がある。

@@ -7,7 +7,7 @@ description: GitHub上でtagとreleaseを作成する手順。命名(release-X.Y
 
 ## 対象ブランチ
 
-**常に各リポジトリの `main` の先端コミット**にタグを付ける（`gh release create` の `--target main` で明示）。
+**常に `main` の先端コミット**にタグを付ける（`gh release create` の `--target main` で明示）。
 featureブランチや過去のコミットへのタグ付けはしない。リリースしたい変更は先にPRでmainへマージしてから行う。
 
 ## 命名規則（既存踏襲）

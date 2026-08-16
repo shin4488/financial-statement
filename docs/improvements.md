@@ -16,7 +16,7 @@ backend-ci / frontend-ci が `paths:` フィルタで変更のあった側だけ
   「〇〇(企業名) 財務諸表」等の個別クエリの受け皿がない
 - **意図**: 上場企業約4,000社 × 会計年度分のロングテール検索流入の土台
 
-**手順**（frontendリポジトリ中心・2〜3日）:
+**手順**（frontend中心・2〜3日）:
 
 1. ルート定義（`App.tsx`）:
    ```tsx
@@ -47,7 +47,7 @@ backend-ci / frontend-ci が `paths:` フィルタで変更のあった側だけ
 
 **手順**（Next.js移行案・1〜2週間）:
 
-1. `npx create-next-app`（App Router・TypeScript）で新規プロジェクトを frontend リポジトリの
+1. `npx create-next-app`（App Router・TypeScript）で新規プロジェクトを application/frontend の
    `next/` に作成（並行稼働のため既存 `src/` は残す）
 2. 移植マッピング:
    | 現行 | Next.js |
@@ -99,7 +99,7 @@ backend-ci / frontend-ci が `paths:` フィルタで変更のあった側だけ
 
 ### 2-4. パフォーマンス / Core Web Vitals
 
-**手順**（frontendリポジトリ・1日）:
+**手順**（frontend・1日）:
 
 1. 現状把握: `npx source-map-explorer build/static/js/*.js` でバンドル内訳を確認
    （recharts・MUI・firebaseが主要因のはず）
@@ -131,7 +131,7 @@ CI常設のAPIコスト・Secrets管理に見合わない）
 
 - **意図**: 可視化に「読み」を添えて価値を上げ、2-5のテキスト不足も解消
 
-**手順**（backendリポジトリ・2〜3日）:
+**手順**（backend・2〜3日）:
 
 1. テーブル追加:
    ```ruby
@@ -210,7 +210,7 @@ CI常設のAPIコスト・Secrets管理に見合わない）
 - **意図**: 「貸借が合わない」「前期比で桁が飛んだ」等の取込異常の早期検知
   （現在は取込時の例外と「is_primaryなのにbs.assetsがない」のSentry警告のみ）
 
-**手順**（backendリポジトリ・1日。まずルールベースで開始、LLMは要約のみ）:
+**手順**（backend・1日。まずルールベースで開始、LLMは要約のみ）:
 
 1. 検知ルールをSQL/Rubyで実装（週次rakeタスク）:
    - 貸借乖離: `|資産 - (負債+純資産)| > 資産×10%` の財務諸表
@@ -233,7 +233,7 @@ CI常設のAPIコスト・Secrets管理に見合わない）
    GRANT SELECT ON ALL TABLES IN SCHEMA public TO claude_readonly;
    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO claude_readonly;
    ```
-2. 親リポジトリの `.claude/settings.json`（または `.mcp.json`）にPostgreSQL MCPサーバを追加:
+2. リポジトリの `.claude/settings.json`（または `.mcp.json`）にPostgreSQL MCPサーバを追加:
    ```json
    { "mcpServers": { "financial-db": {
        "command": "npx", "args": ["-y", "@modelcontextprotocol/server-postgres",
