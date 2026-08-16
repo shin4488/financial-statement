@@ -39,11 +39,11 @@ docker-compose.yml     # 全体起動（web:10000, api:20000）
 - IFRS企業でも**単体財務諸表は日本基準**でタグ付けされる
 - 銀行・保険など特定業種は日本基準でも別フォーマット（業種DEIコード bnk/INS等）。銀行は対応済み、保険・米国基準は `unsupported`（グラフの代わりに説明文を出す正常系）
 - **実装済みアーキテクチャの正は `docs/guide/` の03章（全体像・4層設計・データモデル）と04章（取込・チャート生成・API）**。旧系統（SecurityReport系）のコードは削除済みで、`security_reports`テーブルのみ凍結保管（`docs/guide/08_unused_but_kept.md`）
-- **XBRLタグを扱う作業の前に必ず`docs/guide/07_taxonomy_mapping.md`（6社実測データ）を読むこと**
+- **XBRLタグを扱う作業の前に必ず`docs/guide/07_taxonomy_mapping.md`（8社実測データ）を読むこと**
 
 ## 改善バックログ
 
-DX/SEO/AI活用の改善候補は `docs/improvements.md` に整理されている。
+SEO・Web/AI活用の改善候補は `docs/improvements.md` に整理されている。
 
 ## リポジトリ理解ガイド
 

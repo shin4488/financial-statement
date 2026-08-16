@@ -85,7 +85,7 @@ fact → 辞書 → 科目コードと変換される全体像は、[07章](07_t
 | `JgaapGeneral` | 売上4段・売上原価8段のフォールバック |
 | `JgaapBank` | 貸出金・預金など銀行専用タグ。**経常収益（`OrdinaryIncomeBNK`）と経常利益（`OrdinaryIncome`）は似た名前で桁が兆単位で違う** |
 | `IfrsClassified` | 非流動負債はタクソノミ公式のタイポ（`NonCurrentLabilitiesIFRS`）を先に引く |
-| `IfrsLiquidity` | BSは合計系のみ。PL/CFは`IfrsClassified`と定数を共有（継承はしない。[03章](03_system_overview.md)） |
+| `IfrsLiquidity` | BSは合計系+現金。PL/CFは`IfrsClassified`と定数を共有（継承はしない。[03章](03_system_overview.md)） |
 
 同じ入口から、形式によって違う科目が出てくる（キーが無い = 開示なし）。
 
@@ -97,13 +97,13 @@ fact → 辞書 → 科目コードと変換される全体像は、[07章](07_t
 | pl.revenue | 4.5兆 | キーなし（銀行に売上高がない） |
 | pl.ordinary_revenue | キーなし | 14.6兆 |
 
-全科目のタグ対応と6社の実測データは[07章](07_taxonomy_mapping.md)（**XBRLタグを触る作業の前に必読**）。
+全科目のタグ対応と8社の実測データは[07章](07_taxonomy_mapping.md)（**XBRLタグを触る作業の前に必読**）。
 
 ### 新形式の追加手順（例: 日本基準・保険業）
 
 1. 対象企業の有報XBRLを1件取得してタグを実測する
 2. Extractorクラスを追加（マッピング定数が本体）
-3. 判定表・登録表に1行ずつ追加
+3. 判定表に1行 + 形式レジストリに定数とExtractor対応を追加
 4. 必要なら科目コードを追加
 5. 表示側のBuilderを追加（次節）
 6. 実測値でスペックを書き、[07章](07_taxonomy_mapping.md)の表を更新する
@@ -202,7 +202,7 @@ WaterfallChart（CF用。5段の構成は全形式共通）
 | `jgaap_bank` | 主要科目+残差 | 経常収益/費用/利益 | 同上 |
 | `ifrs_classified` | 流動/非流動 | 費用+税引前利益（残差つき） | 同上 |
 | `ifrs_liquidity` | 現金+残差 | ifrs_classifiedと共通 | 同上 |
-| `unsupported` | 「表示に対応していません」（renderable: false） | 同左 | 同上 |
+| `unsupported` | 「表示に対応していません」（renderable: false） | 同左 | Builderは共通だが科目が無いため常にrenderable: false |
 
 形式によらない共通ルールは基底クラスに1回だけ書く（形式別Builderには書かせない）。
 
@@ -236,7 +236,7 @@ query {
 | 設計 | 内容・理由 |
 |---|---|
 | 入力量の上限 | `limit` 1〜100、`stockCodes` 最大100件、クエリ複雑度400・深さ20まで |
-| `limit` 連動のコスト計算 | ライブラリ既定は引数を見ず `limit:1` と `limit:100` が同コストになるため、`limit` を複雑度に加算する |
+| `limit` 連動のコスト計算 | ライブラリ既定は引数を見ず `limit:1` と `limit:100` が同コストになるため、`limit` に比例した値（`limit / 2`）を複雑度に加算する |
 | 金額は独自スカラ `Money`（JSON数値のまま返す） | 標準のBigInt型は文字列になり、Web・Chrome拡張の両方に変換処理が必要になる。日本企業の最大級の総資産400兆円=4×10^14はJavaScriptの安全整数9×10^15に収まる |
 | 検索は提出日降順・CFパターンは科目行の符号で判定 | 絞り込み対象は `is_primary`（連結優先）の財務諸表だけ |
 
