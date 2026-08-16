@@ -3,6 +3,11 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './types/mui/styles.d';
 import './App.css';
 import FinancialReportListPage from '@/features/financialReports/FinancialReportListPage';
+import AboutPage from '@/features/staticPages/AboutPage';
+import ContactPage from '@/features/staticPages/ContactPage';
+import GuidePage from '@/features/staticPages/GuidePage';
+import PrivacyPolicyPage from '@/features/staticPages/PrivacyPolicyPage';
+import { siteRoutes } from '@/features/siteLayout/siteRoutes';
 import FirebaseAnalytics from './plugins/firebase/analytics';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 
@@ -34,6 +39,11 @@ export default class App extends React.Component {
         <CssBaseline />
         <BrowserRouter>
           <Routes>
+            {/* 静的ページ（サイト説明・規約系）。一覧ページは従来どおり残りの全URLを受ける */}
+            <Route path={siteRoutes.about} element={<AboutPage />} />
+            <Route path={siteRoutes.guide} element={<GuidePage />} />
+            <Route path={siteRoutes.privacy} element={<PrivacyPolicyPage />} />
+            <Route path={siteRoutes.contact} element={<ContactPage />} />
             <Route path="*" element={<FinancialReportListPage />} />
           </Routes>
         </BrowserRouter>

@@ -1,6 +1,6 @@
 # 05. フロントエンド実装
 
-`application/frontend`（React SPA）の実装ガイド。画面は[02章](02_product.md)の一覧ページ1つだけで、ソースは `src/` 配下の約25ファイルと小さい。チャートキットの規約の原本はキット内の `src/shared/financialCharts/README.md`（コピー先のChrome拡張にも同じREADMEが入る）。
+`application/frontend`（React SPA）の実装ガイド。画面は[02章](02_product.md)の一覧ページ1つと文章中心の静的ページ4つで、ソースは `src/` 配下の約35ファイルと小さい。チャートキットの規約の原本はキット内の `src/shared/financialCharts/README.md`（コピー先のChrome拡張にも同じREADMEが入る）。
 
 ## 使っている技術
 
@@ -18,8 +18,10 @@
 
 | パス（src/ 以下） | 内容 |
 |---|---|
-| `index.tsx` / `App.tsx` | エントリポイント。MUIテーマ定義とルーティング（全URL→一覧ページの1ルートのみ） |
+| `index.tsx` / `App.tsx` | エントリポイント。MUIテーマ定義とルーティング（静的ページ4ルート + 残り全URL→一覧ページ） |
 | `features/financialReports/` | 一覧ページ本体（**Webアプリ固有**のコード）。カード・レイアウト・BS→PL→CFの自動切替カルーセルを含む |
+| `features/siteLayout/` | 全ページ共通の骨組み: URL定義（`siteRoutes`）・フッター（`SiteFooter`）・静的ページ用シェル（`StaticPageLayout`）・ページ別meta切替（`usePageMeta`） |
+| `features/staticPages/` | 静的ページ4つの本文と、文章用の小部品（見出し・箇条書き・表）。読み方ページの説明用チャートデータもここ |
 | `shared/financialCharts/` | チャート描画キット（**Chrome拡張と共有**するコード） |
 | `constants/` | 30件単位・CFパターン定義などの定数 |
 | `store/` | Redux（カルーセル自動切替フラグのみ） |
@@ -140,8 +142,8 @@ flowchart LR
 
 | 項目 | 現状 |
 |---|---|
-| title・description・OGP・JSON-LD | `public/index.html` に静的記述（ルートが1つなのでページ別metaはない） |
-| robots.txt / sitemap.xml | 全許可 / トップ1URLのみ |
+| title・description・OGP・JSON-LD | `public/index.html` に静的記述（一覧ページの値）。静的ページは表示中だけ `usePageMeta` が title / description / canonical を差し替え、離れたら `index.html` の値に戻す（一覧ページ側にmeta設定コードを持たせないため。OGPはCSRのため差し替えても効果がなく対象外） |
+| robots.txt / sitemap.xml / ads.txt | 全許可 / トップ + 静的ページ4URL / AdSenseの販売者情報 |
 | 広告 | Google AdSenseのスクリプトを読み込み |
 | 改善案 | 企業別URL・動的sitemapなどは [docs/improvements.md](../improvements.md) にバックログあり |
 

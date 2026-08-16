@@ -13,7 +13,6 @@ import {
   IconButton,
   InputAdornment,
   InputLabel,
-  Link,
   List,
   ListItem,
   ListItemText,
@@ -33,6 +32,7 @@ import {
   CashFlowTypeValue,
   cashFlowTypes,
 } from '@/constants/values';
+import { SiteFooter } from '@/features/siteLayout/SiteFooter';
 
 // 一覧ページのシェル（AppBar・フッター）。検索条件はURLクエリを正とするためReduxには置かず、
 // 自動切替だけはautoPlayStatusSliceを共有する
@@ -205,26 +205,7 @@ export function ReportListLayout({ children }: { children: React.ReactNode }) {
 
       <Box component="main">{children}</Box>
 
-      <Box
-        component="footer"
-        position="fixed"
-        bgcolor="white"
-        zIndex="10"
-        style={{ opacity: 0.7, bottom: 0 }}
-      >
-        出典:
-        <Link
-          target="_blank"
-          // MUIのLinkはrelを自動付与しないため明示する。
-          // noreferrer: 検索条件を含むURLが遷移先に渡るのを防ぐ
-          rel="noopener noreferrer"
-          href="https://disclosure2.edinet-fsa.go.jp/WEEK0010.aspx"
-          underline="none"
-        >
-          EDINET閲覧（提出）サイト
-        </Link>
-        より抜粋して作成
-      </Box>
+      <SiteFooter />
     </>
   );
 }
