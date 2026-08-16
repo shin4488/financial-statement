@@ -157,12 +157,13 @@ Builderが「—」の科目も保存している。再取込のコストが高�
 | 7 | `jppfs_cor:OperatingRevenueIVT` / `OperatingRevenueINV` | 営業収益（投資運用 / 投資業） |
 | 8 | `jppfs_cor:ShippingBusinessRevenueAndOtherOperatingRevenueWAT` | 海運業収益及びその他の営業収益（海運） |
 | 9 | `jppfs_cor:NetSales` | 売上高 |
-| 10 | `jppfs_cor:SalesFromGasBusinessGAS` | ガス事業売上高（ガス。単体は売上高でなくこれで開示する） |
+| 10 | `jppfs_cor:SalesFromGasBusinessGAS` → `GasSalesGAS` | ガス事業売上高 → ガス売上（ガス。単体は売上高でなくこれらで開示する） |
 | 11 | `jppfs_cor:ContractsCompletedRevOA` | 完成工事高 |
 | 12 | `jppfs_cor:NetSalesOfCompletedConstructionContractsCNS` | 完成工事高（建設業） |
 | 13 | 合算 `OperatingRevenue{Railway,Railroad,Related,Incidental,SideLine,RealEstate,Development,Automobile,Other}RWY` | 鉄道（単体）: 事業区分別の営業収益の合計 |
 | 14 | 合算 `OperatingRevenueOILTelecommunications` + `OperatingRevenueIncidentalELC` | 電気通信: 電気通信事業営業収益 + 附帯事業営業収益 |
 | 15 | 合算 `ShippingBusinessRevenueWAT` + `OtherBusinessRevenueWAT` | 海運（単体）: 海運業収益 + その他事業収益 |
+| 16 | `jppfs_cor:OperatingRevenue2` | 営業収入（本来「売上高+営業収入=営業収益」の内訳。営業収入だけを開示する持株会社の単体のための最終手段） |
 
 営業収益系（1〜8）を売上高（9）より先に置いている。営業収益型（売上高と営業収入をまとめて開示する小売業など）や商品先物取引業（商品売上高が営業収益の内訳）は両方のタグを持つが、営業利益と貸借が合うのは営業収益の側になるため。業種の接尾辞が付くタグはその業種の有報にしか現れないので、業種をまたぐ順序に意味はなく、同一業種内の「合計タグ → 区分の合算」の順序だけが効く。
 
@@ -226,10 +227,10 @@ Builderが「—」の科目も保存している。再取込のコストが高�
 | 順 | XBRLタグ | 日本語 |
 |---|---|---|
 | 1 | `jppfs_cor:SellingGeneralAndAdministrativeExpenses` | 販売費及び一般管理費 |
-| 2 | `jppfs_cor:GeneralAndAdministrativeExpensesSGA` | 一般管理費（販売費を持たず一般管理費だけを開示する持株会社等） |
-| 3 | `jppfs_cor:SellingGeneralAndAdministrativeExpensesGAS` | 供給販売費及び一般管理費（ガス） |
-| 4 | `jppfs_cor:GeneralAndAdministrativeExpensesWAT` | 一般管理費（海運） |
-| 5 | `jppfs_cor:OperatingExpensesCMD` | 営業費用（商品先物）。売上原価控除後の費用（営業収益−売上原価=営業総利益、−営業費用=営業利益）で販管費に相当するため、一括型の営業費用でなくこちらに置く |
+| 2 | `jppfs_cor:SellingGeneralAndAdministrativeExpensesGAS` | 供給販売費及び一般管理費（ガス） |
+| 3 | `jppfs_cor:GeneralAndAdministrativeExpensesWAT` | 一般管理費（海運） |
+| 4 | `jppfs_cor:OperatingExpensesCMD` | 営業費用（商品先物）。売上原価控除後の費用（営業収益−売上原価=営業総利益、−営業費用=営業利益）で販管費に相当するため、一括型の営業費用でなくこちらに置く |
+| 5 | `jppfs_cor:GeneralAndAdministrativeExpensesSGA` | 一般管理費。本来は販管費の内訳（ガスの供給販売費及び一般管理費の内訳にも現れる）なので合計系より後ろに置き、販売費を持たず一般管理費だけを開示する持株会社等の最終手段にする |
 
 一般の `pl.operating_expenses`（原価と販管費に分けず一括開示する業種）のフォールバック:
 
@@ -372,7 +373,7 @@ jgaap_generalの2社は売上原価フォールバックの検証用（単位は
 
 ### 業種別対応の実測（2026-08-16。本番の直近1年で `unsupported` だった業種）
 
-本番DBで直近1年（2025-08〜2026-08提出）に `unsupported` 判定だった438財務諸表の業種内訳は、建設 279 / 証券 26 / 海運 20 / 鉄道 18 / 電気 18 / 電気通信 18 / ガス 17 / 特定金融 9 / 保険 9 / 商品先物 5 / 複数コード 8 / 投資業・投資運用 2 / 米国基準 7 だった。業種ごとに代表企業の有報XBRLを取得（計77件）し、上の対応表を作った。実測に使った主な有報:
+本番DBで直近1年（2025-08〜2026-08提出）に `unsupported` 判定だった438財務諸表の業種内訳は、建設 279 / 証券 26 / 海運 20 / 鉄道 18 / 電気 18 / 電気通信 18 / ガス 17 / 特定金融 9 / 保険 9 / 商品先物 5 / 複数コード 8 / 投資業・投資運用 2 / 米国基準 7 だった。業種ごとに代表企業の有報XBRLを取得（計77件）して上の対応表を作り、最後に対象261有報すべてを新実装に通して確認した（結果: 主対象235件のうち225件がBS/PL/CFすべて描画可。残りは米国基準6件、収益・費用が企業拡張タグにしか無い証券2社と投資運用1社のPL、貯金が拡張タグの日本郵政のBS）。実測に使った主な有報:
 
 | 業種（DEI） | 企業 / docID | 連結 | 単体 | 実測での発見 → 実装 |
 |---|---|---|---|---|
@@ -380,7 +381,7 @@ jgaap_generalの2社は売上原価フォールバックの検証用（単位は
 | 電気 ele | 東京電力HD S100YIHR、関西電力 S100YFXZ、北海道電力 S100YDWY | 一般 | 一般 | 営業収益 `OperatingRevenueELE`（`NetSales` にも同値）− 営業費用 `OperatingExpensesELE` = 営業利益。BSは電気事業固定資産等で区分し有形/無形の標準タグがない → 営業費用一括型 + 固定資産1段 |
 | 鉄道 rwy | JR東日本 S100YC7N・JR西日本 S100YCFK・京王 S100YF0G・小田急 S100YIM7・東武 S100Y8FK・名鉄 S100YHOL・西鉄 S100YAAB・南海 S100YBA0・京阪 S100YCVR・神戸電鉄 S100YAZT・山陽 S100YD7X・京福 S100YEN3・秩父 S100YIV6（いずれも単体がrwy）、東急 S100YE63・富士急行 S100YBGE（連結もrwy） | 一般 | 一般 | 単体は鉄道事業会計規則の様式で、営業収益・営業費を事業区分別（鉄道/鉄軌道/関連/付帯/兼業/不動産/開発/自動車/その他）にしか開示せず、合計タグ（`OperatingRevenueRWY`・`OperatingRevenueTotalRWY`）を持つ企業と持たない企業がある。営業利益は `OperatingIncome` または `OperatingIncomeTotalBusiness`（全事業営業利益） → 区分の合算記法。連結（東急）は営業費 `OperatingExpensesRWY` の内訳として運輸業等営業費及び売上原価 + 販管費を併記 → 内訳優先で描く |
 | 電気通信 elc | 沖縄セルラー S100Y9T5、KDDI S100YKG2（単体）、ソフトバンク S100YE76（単体）。NSD S100YEYZ・モビルス S100X6MF等のソフト会社もelcを名乗るが標準タグ | 一般 | 一般 | 電気通信事業（`…OILTelecommunications`）+ 附帯事業（`…IncidentalELC`）の2区分で開示し合計タグがない → 合算。BSは電気通信事業固定資産で区分し有形/無形の標準タグがない → 固定資産1段 |
-| ガス gas | 東京瓦斯 S100YH8W、静岡ガス S100XTDX、日本瓦斯 S100YEGP、東邦瓦斯 S100YGFW | 一般 | 一般 | 売上高・売上原価は標準タグ。販管費は `SellingGeneralAndAdministrativeExpensesGAS`（供給販売費及び一般管理費）。単体は売上高を `SalesFromGasBusinessGAS`（ガス事業売上高）で開示 |
+| ガス gas | 東京瓦斯 S100YH8W、静岡ガス S100XTDX、日本瓦斯 S100YEGP、東邦瓦斯 S100YGFW、北海道瓦斯 S100YGOL、北陸瓦斯 S100YIW6 | 一般 | 一般 | 売上高・売上原価は標準タグ。販管費は `SellingGeneralAndAdministrativeExpensesGAS`（供給販売費及び一般管理費。その内訳の一般管理費 `GeneralAndAdministrativeExpensesSGA` も併記されるため、一般管理費は合計系より後ろに置く）。単体は売上高を `SalesFromGasBusinessGAS`（ガス事業売上高）や `GasSalesGAS`（ガス売上）で開示 |
 | 海運 wat | 日本郵船 S100YBT6、商船三井 S100YI2T、川崎汽船 S100YC6B、玉井商船 S100Y90D | 一般 | 一般 | 大手連結は標準タグ。単体・小規模は海運業収益/費用 + その他事業収益/費用の2区分（合計は `OperatingRevenue1` を持つ企業と持たない企業がある）、一般管理費は `GeneralAndAdministrativeExpensesWAT` → 合算 + フォールバック |
 | 証券 sec | 大和証券G S100YCMP、いちよし S100YANQ、松井 S100YFPS、岡三G S100YDTC | 一般 | 一般 | 営業収益 `OperatingRevenueSEC` − 金融費用 `FinancialExpensesSEC` = 純営業収益、− 販管費（標準タグ）= 営業利益 → 金融費用を新科目 `pl.financial_expenses` に。BSは流動/固定の3分類あり。大和証券Gは売上原価が企業拡張タグのためPLのみ描けない |
 | 特定金融 spf | アコム S100YBXA、アサックス S100YI2V、三菱HCキャピタル S100YF4V（単体） | 一般 | 一般 | 消費者金融は営業収益 `OperatingRevenueSPF` − 営業費用 `OperatingExpensesSPF` の一括型。アサックスは営業費用の内訳として売上原価（標準タグ）を併記 → 内訳では貸借が合わず一括で描く。リース会社の単体は売上高・売上原価・販管費の標準タグ |

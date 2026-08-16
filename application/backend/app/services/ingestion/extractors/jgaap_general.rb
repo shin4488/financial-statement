@@ -47,12 +47,15 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
       "jppfs_cor:ShippingBusinessRevenueAndOtherOperatingRevenueWAT",   # 海運業収益及びその他の営業収益（海運）
       "jppfs_cor:NetSales",                                             # 売上高
       "jppfs_cor:SalesFromGasBusinessGAS",                              # ガス事業売上高（ガス。単体は売上高でなくこれで開示する）
+      "jppfs_cor:GasSalesGAS",                                          # ガス売上（ガス。ガス事業売上高の内訳だが、これしか開示しない単体がある）
       "jppfs_cor:ContractsCompletedRevOA",                              # 完成工事高
       "jppfs_cor:NetSalesOfCompletedConstructionContractsCNS",          # 完成工事高（建設業）
       # 事業区分別にしか開示しない業種は区分の合算（合計タグがある企業は上で先に取れる）
       sum(*RAILWAY_SEGMENTS.map { |s| "jppfs_cor:OperatingRevenue#{s}RWY" }),   # 鉄道（単体）: 鉄道事業+関連事業など
       sum(*TELECOM_SEGMENTS.map { |s| "jppfs_cor:OperatingRevenue#{s}" }),      # 電気通信: 電気通信事業+附帯事業
-      sum(*SHIPPING_SEGMENTS.map { |s| "jppfs_cor:#{s}RevenueWAT" })            # 海運（単体）: 海運業収益+その他事業収益
+      sum(*SHIPPING_SEGMENTS.map { |s| "jppfs_cor:#{s}RevenueWAT" }),           # 海運（単体）: 海運業収益+その他事業収益
+      # 営業収入は本来「売上高+営業収入=営業収益」の内訳だが、営業収入だけを開示する持株会社の単体があるため最後に置く
+      "jppfs_cor:OperatingRevenue2"                                     # 営業収入
     ],
     # 売上原価。OperatingCost（営業原価）を先頭に置く理由: OperatingRevenue1とペアの原価であり、
     # 営業収益型ではCostOfSales（売上原価）も併記されるが、そちらは売上高側の原価のため。
@@ -79,12 +82,14 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
     ],
     "pl.sga" => [
       "jppfs_cor:SellingGeneralAndAdministrativeExpenses",              # 販売費及び一般管理費
-      "jppfs_cor:GeneralAndAdministrativeExpensesSGA",                  # 一般管理費（販売費を持たず一般管理費だけを開示する持株会社等）
       "jppfs_cor:SellingGeneralAndAdministrativeExpensesGAS",           # 供給販売費及び一般管理費（ガス）
       "jppfs_cor:GeneralAndAdministrativeExpensesWAT",                  # 一般管理費（海運）
       # 商品先物取引業の営業費用は売上原価控除後の費用（営業収益−売上原価=営業総利益、−営業費用=営業利益）で
       # 販管費に相当するため、一括型の営業費用（pl.operating_expenses）ではなくこちらに置く
-      "jppfs_cor:OperatingExpensesCMD"                                  # 営業費用（商品先物）
+      "jppfs_cor:OperatingExpensesCMD",                                 # 営業費用（商品先物）
+      # 一般管理費は本来販管費の内訳（ガスの供給販売費及び一般管理費の内訳にも現れる）なので合計系より後ろに置く。
+      # 販売費を持たず一般管理費だけを開示する持株会社等の最終手段
+      "jppfs_cor:GeneralAndAdministrativeExpensesSGA"                   # 一般管理費
     ],
     # 金融費用（証券・商品先物）: 営業収益−金融費用=純営業収益、−販管費=営業利益 の骨格を持つ業種の費用科目
     "pl.financial_expenses" => "jppfs_cor:FinancialExpensesSEC",
