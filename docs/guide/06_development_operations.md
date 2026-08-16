@@ -9,7 +9,7 @@
 | 初回セットアップ・起動・データ投入 | [ルートREADME](../../README.md) |
 | バックエンド単体の起動・環境変数・テスト実行 | `application/backend/README.md` |
 | フロントエンドの検証コマンド・ビルド | `application/frontend/README.md` |
-| デプロイ・日次確認・PR運用・リリースの詳細手順 | `.claude/skills/` 配下の各SKILL.md |
+| デプロイ・日次確認・PR運用・リリース・Rubyバージョンアップ・ブラウザ拡張への同期の詳細手順 | `.claude/skills/` 配下の各SKILL.md |
 
 ## 開発
 

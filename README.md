@@ -56,7 +56,7 @@ cd financial-statement
 #      SENTRY_DSN:     任意（エラー監視を使う場合のみ。空文字でよい）
 #    ※このファイルはシークレットを含むため、絶対にコミットしないこと
 
-# 3. 全サービス起動（初回はイメージビルド・bundle install・npm installが走るため時間がかかる）
+# 3. 全サービス起動（初回はイメージビルド・bundle install・yarn installが走るため時間がかかる）
 docker compose up
 ```
 
@@ -117,7 +117,7 @@ npm run compile        # graphql-codegen。src/__generated__/ が更新される
 | パス | 内容 |
 |---|---|
 | [docs/guide/](docs/guide/README.md) | **ドキュメントの本体**。前提知識ゼロから読める入門〜設計〜運用（01〜06）+ タグ対応表・実測データなどの資料（07〜08） |
-| [docs/improvements.md](docs/improvements.md) | DX / SEO / AI活用の改善バックログ（作業手順つき） |
+| [docs/improvements.md](docs/improvements.md) | SEO・Web / AI活用の改善バックログ（作業手順つき） |
 | [CLAUDE.md](CLAUDE.md) | AIエージェント向けコンテキスト（ドメイン知識・既知課題の要約） |
 
 ## 対応状況と既知の課題

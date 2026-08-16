@@ -66,7 +66,7 @@ GraphQL変数:  { limit: 30, offset: 0,
 | 状態 | 置き場 | 補足 |
 |---|---|---|
 | 検索条件 | URLクエリ | 上記のとおり。Reduxには置かない |
-| カルーセル自動切替のON/OFF | Redux（唯一のスライス）+ localStorageへ保存 | **起動時に読み戻す処理は未実装**（既知の実装漏れ。初期値は常にON） |
+| カルーセル自動切替のON/OFF | Redux（唯一のスライス）+ localStorageへ保存 | 起動時にlocalStorageから復元する（明示的にOFFにした場合のみOFF、未保存はONで開始） |
 | それ以外 | なし | 取得データはApolloキャッシュが持つ |
 
 ## カード表示の実装ノート
@@ -152,7 +152,7 @@ flowchart LR
 | 検証コマンド | `npx tsc --noEmit` / eslint / prettier / `CI=false yarn build`（`application/frontend/README.md` が正） |
 | CI | 導入済み（`.github/workflows/frontend-ci.yml`。検証コマンド一式 + 型生成の差分検知 + build） |
 | テストコード | **0件**（CRA雛形のテスト基盤のみ残している。[08章](08_unused_but_kept.md)） |
-| GraphQLエラー時の画面表示 | 未実装（0件表示になるだけ） |
+| GraphQLエラー時の画面表示 | 未実装（エラー時も0件時と同じ「条件に一致する企業がありません。」が表示される） |
 
 ---
 
