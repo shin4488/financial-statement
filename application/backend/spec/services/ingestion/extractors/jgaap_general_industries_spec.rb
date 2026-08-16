@@ -108,11 +108,11 @@ RSpec.describe Ingestion::Extractors::JgaapGeneral do
   end
 
   describe "商品先物（S100YJB4 小林洋行）" do
-    it "連結: 営業費用（OperatingExpensesCMD）は原価控除後の費用なので販管費として抽出する" do
+    it "連結: 売上原価と、その控除後の営業費用（OperatingExpensesCMD）を抽出する" do
       items = extract("S100YJB4", consolidated)
       expect(items).to include("pl.revenue" => 5_047_625_000, "pl.cost_of_sales" => 1_654_880_000,
-                               "pl.sga" => 3_210_396_000, "pl.operating_profit" => 182_347_000)
-      expect(items).not_to include("pl.operating_expenses")
+                               "pl.operating_expenses" => 3_210_396_000, "pl.operating_profit" => 182_347_000)
+      expect(items).not_to include("pl.sga")
     end
 
     it "単体: 商品売上高（NetSales）でなく営業収益（OperatingRevenueCMD）をトップラインにする" do

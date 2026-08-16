@@ -62,8 +62,8 @@ module FinancialStatements
       # ---- 銀行・保険のみ（jgaap_bank / jgaap_insurance が保存する）----
       "pl.ordinary_revenue",              # 経常収益（銀行・保険のトップライン。pl.revenueは保存しない）
       "pl.ordinary_expenses",             # 経常費用
-      # ---- 営業費用一括型（ifrs_* と、日本基準の電気・鉄道・特定金融など該当タグがあれば保存する）----
-      "pl.operating_expenses"            # 営業費用（原価/販管費に分解されない一括計上）
+      # ---- 営業費用一括型（ifrs_* と、日本基準の電気・鉄道・特定金融・商品先物など該当タグがあれば保存する）----
+      "pl.operating_expenses"            # 営業費用（原価/販管費に分解されない一括計上。売上原価を別掲する商品先物ではその控除後）
     ].freeze
 
     CF = [

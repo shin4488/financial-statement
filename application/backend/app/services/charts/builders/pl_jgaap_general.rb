@@ -12,11 +12,15 @@ class Charts::Builders::PlJgaapGeneral < Charts::Builders::StackBase
   # 最初の構成で描く（開示されている科目だけを積む）:
   #   1. 内訳型: 売上原価・金融費用（証券）・販管費 … 一般事業会社の基本形
   #   2. 一括型: 営業費用 … 原価と販管費に分けず一括開示する業種（電気・特定金融・投資業など）
+  #   3. 原価+営業費用型: 売上原価と、その控除後の営業費用 … 商品先物取引業
   # 内訳型を先に試す理由: 営業費用の合計と内訳を併記する企業（鉄道の連結など）では
-  # 内訳の方が情報量が多く、一括型を先にすると内訳が捨てられるため
+  # 内訳の方が情報量が多く、一括型を先にすると内訳が捨てられるため。
+  # 一括型を原価+営業費用型より先に試す理由: 営業費用が売上原価を含む合計の業種（特定金融）で
+  # 原価を二重に積まないため（合計なら2で先に合う）
   EXPENSE_STRUCTURES = [
     %w[pl.cost_of_sales pl.financial_expenses pl.sga],
-    %w[pl.operating_expenses]
+    %w[pl.operating_expenses],
+    %w[pl.cost_of_sales pl.operating_expenses]
   ].freeze
 
   # 借方[費用…, 営業利益] / 貸方[売上高(, 営業損失)]

@@ -82,11 +82,21 @@ fact → 辞書 → 科目コードと変換される全体像は、[07章](07_t
   "jppfs_cor:OperatingRevenueELE",   # 営業収益（電気）… 業種固有の合計タグ
   "jppfs_cor:NetSales",              # 売上高（最も一般的）
   "jppfs_cor:NetSalesOfCompletedConstructionContractsCNS",  # 完成工事高（建設業）
-  # 鉄道（単体）: 合計タグがなく事業区分（Railway/Related/Incidental/…の9区分 = RAILWAY_SEGMENTS）別にしか
-  # 開示しないため、区分タグを合算する。sum(...) は存在するタグだけを足す
-  sum(*RAILWAY_SEGMENTS.map { |s| "jppfs_cor:OperatingRevenue#{s}RWY" })
+  # 鉄道（単体）: 営業収益の合計タグがなく事業区分別にしか開示しないため、区分タグを合算する
+  # （存在するタグだけを足す。鉄道事業だけの会社も、鉄道+不動産+開発の会社も同じ1行で引ける）
+  sum("jppfs_cor:OperatingRevenueRailwayRWY",      # 鉄道事業営業収益
+      "jppfs_cor:OperatingRevenueRailroadRWY",     # 鉄軌道事業営業収益
+      "jppfs_cor:OperatingRevenueRelatedRWY",      # 関連事業営業収益
+      "jppfs_cor:OperatingRevenueIncidentalRWY",   # 付帯事業営業収益
+      "jppfs_cor:OperatingRevenueSideLineRWY",     # 兼業営業収益
+      "jppfs_cor:OperatingRevenueRealEstateRWY",   # 不動産事業営業収益
+      "jppfs_cor:OperatingRevenueDevelopmentRWY",  # 開発事業営業収益
+      "jppfs_cor:OperatingRevenueAutomobileRWY",   # 自動車事業営業収益
+      "jppfs_cor:OperatingRevenueOtherRWY")        # その他事業営業収益
 ]
 ```
+
+例えばJR東日本の単体は鉄道事業 2,020,442百万円と関連事業 205,293百万円しか開示していないので、この合算は 2,225,735百万円（=`pl.revenue`）になる。
 
 業種固有のタグ（`…ELE` `…RWY` のように業種の接尾辞が付く）はその業種の有報にしか現れないため、リストの中で業種をまたぐ優先順位を気にする必要はなく、同一業種内の「合計タグ → 区分の合算」の順序だけが意味を持つ。
 
@@ -217,8 +227,9 @@ WaterfallChart（CF用。5段の構成は全形式共通）
 |---|---|---|
 | 1 | 売上原価・金融費用・販管費（あるものだけ） | 一般事業会社（原価+販管費）、証券（金融費用+販管費）、原価と販管費の内訳を営業費用と併記する鉄道連結など |
 | 2 | 営業費用（一括） | 電気・特定金融・投資業など、原価と販管費に分けず一括開示する業種 |
+| 3 | 売上原価 + 営業費用（原価控除後） | 商品先物取引業（営業収益−売上原価=営業総利益、−営業費用=営業利益） |
 
-内訳を先に試すのは、内訳と一括を併記する企業で内訳（情報量が多い方）を捨てないため。逆に、原価が営業費用の内訳として併記される特定金融（内訳だけでは貸借が合わない）は2で描かれる。どちらでも合わなければ描かない。
+内訳を先に試すのは、内訳と一括を併記する企業で内訳（情報量が多い方）を捨てないため。逆に、原価が営業費用の内訳として併記される特定金融（内訳だけでは貸借が合わない）は2で描かれる。2を3より先に試すのは、営業費用が原価を含む合計の業種で原価を二重に積まないため。どれでも合わなければ描かない。
 
 BSも同様に、固定資産は「有形・無形・投資その他の3分類の合計が固定資産に合うときだけ内訳」で描き、合わない業種（電気・鉄道・電気通信の単体など、業種別様式で3分類を持たない）は固定資産合計の1段で描く。
 

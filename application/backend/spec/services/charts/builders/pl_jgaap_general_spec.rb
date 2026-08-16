@@ -65,6 +65,12 @@ RSpec.describe Charts::Builders::PlJgaapGeneral do
                                     "pl.operating_expenses" => 2_959, "pl.operating_profit" => 5_819 }).build
       expect(chart.bars.first.segments.map(&:key)).to eq %w[operatingExpenses operatingProfit]
     end
+
+    it "売上原価と原価控除後の営業費用を開示する商品先物取引業は [原価, 営業費用] で描く（単位: 千円）" do
+      chart = described_class.new({ "pl.revenue" => 5_047_625, "pl.cost_of_sales" => 1_654_880,
+                                    "pl.operating_expenses" => 3_210_396, "pl.operating_profit" => 182_347 }).build
+      expect(chart.bars.first.segments.map(&:key)).to eq %w[costOfSales operatingExpenses operatingProfit]
+    end
   end
 
   it "売上か営業利益が欠ければunrenderable" do
