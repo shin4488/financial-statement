@@ -1,5 +1,9 @@
 import React from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  Link as RouterLink,
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   AppBar,
@@ -13,6 +17,7 @@ import {
   IconButton,
   InputAdornment,
   InputLabel,
+  Link,
   List,
   ListItem,
   ListItemText,
@@ -33,6 +38,7 @@ import {
   cashFlowTypes,
 } from '@/constants/values';
 import { SiteFooter } from '@/features/siteLayout/SiteFooter';
+import { siteRoutes } from '@/features/siteLayout/siteRoutes';
 
 // 一覧ページのシェル（AppBar・フッター）。検索条件はURLクエリを正とするためReduxには置かず、
 // 自動切替だけはautoPlayStatusSliceを共有する
@@ -62,6 +68,8 @@ export function ReportListLayout({ children }: { children: React.ReactNode }) {
     navigate(query ? `/?${query}` : '/');
   };
 
+  // その場で分かる最小限のヒントだけを出し、詳しい読み方は静的ページ（/guide）に誘導する
+  // （説明を二重に持たない。ツールチップはタッチでも15秒開いたままなのでリンクを押せる）
   const infoTooltip = (
     <Tooltip
       placement="bottom-start"
@@ -70,26 +78,24 @@ export function ReportListLayout({ children }: { children: React.ReactNode }) {
       title={
         <List dense disablePadding>
           <ListItem disablePadding dense>
+            <ListItemText primary="カードはBS → PL → CFの順に切り替わります（BS・PLは構成比%、CFは円）。" />
+          </ListItem>
+          <ListItem disablePadding dense>
             <ListItemText
               primary={
-                <div>
-                  <div>上場企業の財務情報が以下の順で表示されます。</div>
-                  <div>1. 貸借対照表（数値は総資産比）</div>
-                  <div>2. 損益計算書（数値は売上比）</div>
-                  <div>3. キャッシュフロー計算書（数値は日本円）</div>
-                </div>
+                <>
+                  グラフの見方・対応している会計基準は
+                  <Link
+                    component={RouterLink}
+                    to={siteRoutes.guide}
+                    color="inherit"
+                    underline="always"
+                  >
+                    「財務三表の読み方」
+                  </Link>
+                  をご覧ください
+                </>
               }
-            />
-          </ListItem>
-          <ListItem disablePadding dense>
-            <ListItemText primary="「自動切替」にチェックを入れると上記3つが自動で切替わります。グラフをマウスオーバー/タップすると一時的に切替えが止まります。" />
-          </ListItem>
-          <ListItem disablePadding dense>
-            <ListItemText
-              primary="日本会計基準とIFRS（連結）に対応しています。米国会計基準など未対応のデータはグラフの代わりにその旨が表示されます。"
-              primaryTypographyProps={{
-                fontWeight: 'bold',
-              }}
             />
           </ListItem>
         </List>
