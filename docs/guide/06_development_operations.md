@@ -15,7 +15,7 @@
 
 ### GraphQLスキーマを変えたときの連鎖手順
 
-スキーマの変更は3リポジトリに波及するため、次の順で追随させる。
+スキーマの変更はバックエンド・フロントエンド双方に波及するため、次の順で追随させる。
 
 ```mermaid
 flowchart LR
@@ -26,36 +26,22 @@ flowchart LR
 
 - `npm run compile` はコミット済みの `schema.graphql` を参照するため、バックエンドの起動は不要（[05章](05_frontend.md)）
 - クエリ上限の値と意図は[04章](04_backend.md)を参照
-- スキーマの書き出し忘れ・型生成の取り込み忘れは、各リポジトリのCIが差分検知する
+- スキーマの書き出し忘れ・型生成の取り込み忘れはCIが差分検知する（`schema.graphql` が変わるとfrontend CIも起動し、型生成のズレを検知できる）
 - Claude Codeでの編集時は、フック（`.claude/hooks/format-lint.sh`）がフォーマッタ・リンタ（backend: rubocop -A / frontend: eslint --fix → prettier）を自動実行する
 
-### ブランチ・PR運用（submodule構成の要）
+### ブランチ・PR運用
 
-**大原則: submodule側をマージしてから、親のポインタを更新する。**親PRをsubmodule PRと同時に作らない。
+単一リポジトリのため、ブランチを切って変更をまとめ、1本のPRでマージする（詳細手順はskill `pr` 参照）。
 
-```mermaid
-sequenceDiagram
-    participant B as backend/frontendリポジトリ
-    participant P as 親リポジトリ
-
-    Note over B: ① ブランチ作成 → コミット → push → PR
-    Note over B: ② レビュー後マージ
-    Note over P: ③ submoduleのmainをpull →<br>ポインタ更新をコミット
-    Note over P: ④ ポインタのみならmainへ直接push<br>docs等を同梱するなら親PRを作りマージ
-```
-
-- 親のポインタがマージ前のfeatureブランチ先端を指すと、squashマージ時に「mainに存在しないコミットを参照する」壊れた状態になるため、この順序を守る
-- backendとfrontend両方に変更があるときはPRを2本作って相互参照し、**backend → frontend の順でマージする**（フロントが新しいAPIに依存し得るため。後述のデプロイ順も同じ理屈）
-- 親リポジトリには `submodule-check` というCIがあり、mainへのpush時に「submoduleの参照コミットが各リポジトリのmainに含まれるか」を検証する
-- `git status` の `M application/backend` の読み方と後始末は[03章](03_system_overview.md)の「リポジトリ構成」を参照
+- backendとfrontend両方に変更があるときも1本のPRでよい。ただし**デプロイはbackend → frontendの順**（フロントが新しいAPIに依存し得るため）
+- CIは `paths:` フィルタにより変更のあった側（backend-ci / frontend-ci）だけが実行される。docsのみの変更ではどちらも実行されない
 
 コミット・PRの規約:
 
 | 項目 | 規約 |
 |---|---|
 | コミットメッセージ | prefix `add:` / `update:` / `change:` / `fix:` を付ける |
-| 親のポインタ更新コミット | 例: `update: backend/frontend submodules（変更概要）` |
-| 親のdocs変更 | ポインタ更新と同じPRに同梱してよい |
+| docs変更 | 関連するコード変更と同じPRに同梱してよい |
 
 ## 本番環境の構成
 
@@ -129,8 +115,6 @@ flowchart LR
 デプロイと連動した自動化はないが、リリースの区切りをGitHub Releaseで記録する。
 
 - タグ名は `release-X.Y.Z`。機能追加ありはYを+1、修正のみはZを+1
-- 対象は**親リポジトリは毎回**、backend/frontendは前回タグ以降にコミットがあるものだけ
-- 作成順はsubmodule → 親（PRのマージ順と同じ向き）
 - リリースノートは公開情報のため、ホスト名・キーなどの実値を書かない
 
 ## ドキュメントの運用ルール

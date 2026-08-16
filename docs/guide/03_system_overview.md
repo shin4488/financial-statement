@@ -21,36 +21,21 @@
 | APIサーバ | データ担当。画面を持たず、データだけを返すサーバ（Rails）。フロントエンドからネットワーク越しに呼び出される |
 | バッチ処理 | 取込担当。ユーザーの操作とは無関係に、決まった時刻に走る処理。EDINETからのデータ取込がこれにあたる |
 
-### リポジトリ構成（git submodule）
+### リポジトリ構成（monorepo）
 
-コードは3つのgitリポジトリに分かれ、親リポジトリが残り2つを**submodule**（別のgitリポジトリを部品として組み込む仕組み）として持つ。
+コードは単一のgitリポジトリ（monorepo）で管理する。2026-08まではbackend/frontendが別リポジトリのgit submoduleだったが、「submodule側でコミット→親でポインタ更新コミット」の二度手間を解消するため、両リポジトリの全履歴をパス書き換えの上で統合した（旧リポジトリはアーカイブ済み。移行前より古い変更履歴も `git log` / `git blame` でそのまま追える）。
 
-```mermaid
-flowchart TB
-    parent["financial-statement（親リポジトリ）<br>docker設定・nginx設定・ドキュメント"]
-    backend["financial-statement-backend<br>Rails APIサーバ"]
-    frontend["financial-statement-frontend<br>React SPA"]
-    parent -->|"application/backend として組込"| backend
-    parent -->|"application/frontend として組込"| frontend
-```
-
-重要なのは、親リポジトリが持っているのはsubmoduleの**中身ではなく「どのコミットを使うか」というポインタ（コミットハッシュ）だけ**という点。ここから運用上の性質が生まれる。
-
-- `git clone` しただけでは中身が空。`--recursive` 付きでcloneするか、`git submodule update --init` で中身を取得する
-- submodule内のファイルを変更したら、**①submodule側のリポジトリでコミット・マージ、②親リポジトリでポインタを新しいコミットに更新してコミット**、の2段階が必要になる。この2段階を安全に行うためのPR運用ルールが決まっている（[06章](06_development_operations.md)）
-- 親リポジトリの `git status` に出る `M application/backend` は「ファイルが変わった」ではなく「ポインタと実体がずれている」の意味
-
-親リポジトリのディレクトリは次の役割を持つ。
+ディレクトリは次の役割を持つ。
 
 | パス | 内容 |
 |---|---|
-| `application/backend` | Rails APIサーバ（別リポジトリのsubmodule） |
-| `application/frontend` | React SPA（別リポジトリのsubmodule） |
+| `application/backend` | Rails APIサーバ |
+| `application/frontend` | React SPA |
 | `web/` | nginx（リバースプロキシ）の設定 |
 | `database/` / `cache/` | PostgreSQL / RedisのDocker設定 |
 | `docs/` | ドキュメント（このガイド・改善バックログ） |
 | `docker-compose.yml` | 開発環境の全体起動 |
-| `.github/workflows/` | CI（submodule参照の整合性チェック） |
+| `.github/workflows/` | CI（backend-ci / frontend-ci。`paths:` フィルタで変更のあった側だけ実行） |
 | `.claude/skills/` | 定型作業の手順書（デプロイ・日次確認・PR運用・リリース） |
 
 ### 開発環境（Docker Compose）

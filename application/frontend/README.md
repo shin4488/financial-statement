@@ -3,8 +3,8 @@
 上場企業の財務3表を積み上げグラフ・ウォーターフォールグラフで表示する画面。
 本番: https://investee.info
 
-**このリポジトリは親リポジトリ [financial-statement](https://github.com/shin4488/financial-statement) の
-git submodule**（`application/frontend`）。設計ドキュメントとdocker-compose定義は親リポジトリ側にある。
+[financial-statement](https://github.com/shin4488/financial-statement) monorepoの
+`application/frontend` ディレクトリ。設計ドキュメントとdocker-compose定義はリポジトリルート側にある。
 
 ## 技術スタック
 
@@ -31,8 +31,7 @@ yarn start
 ## GraphQLの型生成
 
 バックエンドのスキーマ変更後に実行する。**バックエンドの起動は不要**
-（`codegen.ts` の `schema` がbackendリポジトリのコミット済み `schema.graphql` を指しているため。
-submodule構成の親リポジトリ配下など、`../backend` にbackendがある前提）:
+（`codegen.ts` の `schema` がコミット済みの `../backend/schema.graphql` を指しているため）:
 
 ```bash
 npm run compile

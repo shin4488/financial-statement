@@ -2,8 +2,8 @@
 
 上場企業の有価証券報告書（EDINET）を取り込み、財務3表チャートをGraphQLで返すAPIサーバ。
 
-**このリポジトリは親リポジトリ [financial-statement](https://github.com/shin4488/financial-statement) の
-git submodule**（`application/backend`）。設計ドキュメントとdocker-compose定義は親リポジトリ側にある。
+[financial-statement](https://github.com/shin4488/financial-statement) monorepoの
+`application/backend` ディレクトリ。設計ドキュメントとdocker-compose定義はリポジトリルート側にある。
 
 ## 技術スタック
 

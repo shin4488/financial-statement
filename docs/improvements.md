@@ -3,34 +3,8 @@
 未着手の改善候補を「現状・意図 → 作業手順」の形で、着手時にそのまま手を動かせる粒度で書く。
 対応が完了した項目は記述ごと削除する（完了の記録はgit履歴とdocs/guide/が持つ）。
 
-前提知識: このリポジトリは親リポジトリ + submodule 2つ（application/backend, application/frontend）で
-構成される。**backend/frontend内のファイル変更はそれぞれのリポジトリでのコミットが必要**で、
-CIワークフローも各submoduleリポジトリ側に置く（詳細は [CLAUDE.md](../CLAUDE.md)）。
-
----
-
-## 1. 開発者体験（DX）
-
-### 1-7. submodule運用の見直し（検討）
-
-- **現状**: 変更のたびに「submoduleでコミット→親でハッシュ更新コミット」の二度手間。
-  履歴も "update submodule" が多くを占める
-- **意図**: 個人開発でsubmoduleの分離メリット（別権限・別チーム）が活きていないならmonorepo化で摩擦が減る
-
-**手順**（判断→実施で半日〜1日）:
-
-1. まず判断: 以下のいずれかに該当するならsubmodule維持、どれもなければmonorepo化
-   - backend/frontendを別の公開範囲・別のCI/CD権限で運用したい
-   - 他プロジェクトからこれらを部品として参照している
-2. monorepo化する場合（親リポジトリで実施）:
-   ```bash
-   # 履歴ごと取り込む。prefixは現行と同じパスにするとデプロイ設定の変更が最小
-   git rm application/backend application/frontend && git commit -m "remove submodules"
-   git subtree add --prefix=application/backend  <backendリポジトリURL>  main
-   git subtree add --prefix=application/frontend <frontendリポジトリURL> main
-   ```
-3. `.gitmodules` 削除、CI（1-2）を親リポジトリの `paths:` フィルタ付きワークフローに統合
-4. 旧リポジトリはREADMEに「monorepoへ移行済み」と書いてアーカイブ
+前提知識: このリポジトリは単一リポジトリ（monorepo）。CIは `.github/workflows/` の
+backend-ci / frontend-ci が `paths:` フィルタで変更のあった側だけ実行される（詳細は [CLAUDE.md](../CLAUDE.md)）。
 
 ---
 

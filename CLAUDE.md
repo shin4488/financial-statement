@@ -2,18 +2,19 @@
 
 上場企業の財務3表（BS/PL/CF）をEDINETからXBRLで取得し、PostgreSQLに保存、Reactでグラフ可視化するWebアプリ。本番: https://investee.info
 
-## リポジトリ構成（git submodule注意）
+## リポジトリ構成（monorepo）
 
 ```
-application/backend    # Rails APIサーバ（★別リポジトリのsubmodule）
-application/frontend   # React SPA（★別リポジトリのsubmodule）
+application/backend    # Rails APIサーバ
+application/frontend   # React SPA
 web/                   # nginx設定
 database/ cache/       # PostgreSQL / Redis のDocker設定
-docs/                  # 設計ドキュメント（このリポジトリ直下）
+docs/                  # 設計ドキュメント
 docker-compose.yml     # 全体起動（web:10000, api:20000）
 ```
 
-- **submodule内の変更はそれぞれのリポジトリで別コミットになる。** 親リポジトリではsubmoduleのハッシュ更新コミットが別途必要
+- 単一リポジトリ（monorepo）。2026-08にgit submodule構成から移行済みで、旧backend/frontendリポジトリはアーカイブ（履歴はこのリポジトリに統合済み）
+- CIは `.github/workflows/` の backend-ci / frontend-ci（`paths:` フィルタで変更のあった側だけ実行）
 - ローカル実行: `docker compose up`（DB初期化は `database/init/`）。バックエンド単体はrbenvのruby 3.4.10 + `bundle exec`で動く（DBはdocker側が必要）
 
 ## バックエンド（application/backend）
