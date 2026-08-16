@@ -72,7 +72,7 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
       "jppfs_cor:CostOfSalesOfCompletedConstructionContractsCNS",       # 完成工事原価（建設業）
       "jppfs_cor:OperatingExpensesAndCostOfSalesOfTransportationRWY",   # 運輸業等営業費及び売上原価（鉄道・連結）
       "jppfs_cor:ShippingBusinessExpensesAndOtherOperatingExpensesWAT", # 海運業費用及びその他の営業費用（海運）
-      sum(*SHIPPING_SEGMENTS.map { |s| "jppfs_cor:#{s}ExpensesWAT" }),          # 海運（単体）: 海運業費用+その他事業費用
+      sum(*SHIPPING_SEGMENTS.map { |s| "jppfs_cor:#{s}ExpensesWAT" }),  # 海運（単体）: 海運業費用+その他事業費用
       "jppfs_cor:CostOfProductsManufactured"                            # 当期製品製造原価
     ],
     "pl.gross_profit" => [
