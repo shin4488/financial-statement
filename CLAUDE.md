@@ -13,7 +13,6 @@ docs/                  # 設計ドキュメント
 docker-compose.yml     # 全体起動（web:10000, api:20000）
 ```
 
-- 単一リポジトリ（monorepo）。2026-08にgit submodule構成から移行済みで、旧backend/frontendリポジトリはアーカイブ（履歴はこのリポジトリに統合済み）
 - CIは `.github/workflows/` の backend-ci / frontend-ci（`paths:` フィルタで変更のあった側だけ実行）
 - ローカル実行: `docker compose up`（DB初期化は `database/init/`）。バックエンド単体はrbenvのruby 3.4.10 + `bundle exec`で動く（DBはdocker側が必要）
 

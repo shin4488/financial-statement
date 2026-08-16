@@ -23,7 +23,7 @@
 
 ### リポジトリ構成（monorepo）
 
-コードは単一のgitリポジトリ（monorepo）で管理する。2026-08まではbackend/frontendが別リポジトリのgit submoduleだったが、「submodule側でコミット→親でポインタ更新コミット」の二度手間を解消するため、両リポジトリの全履歴をパス書き換えの上で統合した（旧リポジトリはアーカイブ済み。移行前より古い変更履歴も `git log` / `git blame` でそのまま追える）。
+コードは単一のgitリポジトリ（monorepo）で管理する。かつてbackend/frontendは別リポジトリのgit submoduleだったが、「submodule側でコミット→親でポインタ更新コミット」の二度手間を解消するため全履歴ごと統合した（履歴中に多数ある `update: backend/frontend submodule` 系コミットはその時代のポインタ更新。ファイル単位の履歴は移行前まで連続して追える）。
 
 ディレクトリは次の役割を持つ。
 

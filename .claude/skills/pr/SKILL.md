@@ -6,7 +6,6 @@ description: ブランチ作成・コミット・PR作成・マージ後の反�
 # PR運用
 
 単一リポジトリ（monorepo）。backend/frontend/docsどこを変更しても、コミット・PRは1本でよい。
-（2026-08まではsubmodule構成で「submodule側PR→親のポインタ更新」の2段階だったが、統合により廃止）
 
 ## 手順
 

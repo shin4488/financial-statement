@@ -26,8 +26,6 @@ financial-statement/            # このリポジトリ（monorepo）
 └── CLAUDE.md                   # AIエージェント向けのリポジトリコンテキスト
 ```
 
-単一リポジトリ（monorepo）。2026-08まではbackend/frontendが別リポジトリのgit submoduleだったが、履歴ごと本リポジトリへ統合済み（旧 [financial-statement-backend](https://github.com/shin4488/financial-statement-backend) / [financial-statement-frontend](https://github.com/shin4488/financial-statement-frontend) はアーカイブ）。
-
 ## 技術スタック
 
 | 層 | 技術 |
