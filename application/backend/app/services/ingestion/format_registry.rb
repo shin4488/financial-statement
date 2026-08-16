@@ -4,14 +4,16 @@ module Ingestion
   module FormatRegistry
     JGAAP_GENERAL   = "jgaap_general"
     JGAAP_BANK      = "jgaap_bank"
+    JGAAP_INSURANCE = "jgaap_insurance"
     IFRS_CLASSIFIED = "ifrs_classified"
     IFRS_LIQUIDITY  = "ifrs_liquidity"
     UNSUPPORTED     = "unsupported"
-    ALL = [ JGAAP_GENERAL, JGAAP_BANK, IFRS_CLASSIFIED, IFRS_LIQUIDITY, UNSUPPORTED ].freeze
+    ALL = [ JGAAP_GENERAL, JGAAP_BANK, JGAAP_INSURANCE, IFRS_CLASSIFIED, IFRS_LIQUIDITY, UNSUPPORTED ].freeze
 
     EXTRACTORS = {
       JGAAP_GENERAL   => Extractors::JgaapGeneral,
       JGAAP_BANK      => Extractors::JgaapBank,
+      JGAAP_INSURANCE => Extractors::JgaapInsurance,
       IFRS_CLASSIFIED => Extractors::IfrsClassified,
       IFRS_LIQUIDITY  => Extractors::IfrsLiquidity
     }.freeze

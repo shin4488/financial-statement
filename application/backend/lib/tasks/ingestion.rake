@@ -19,4 +19,32 @@ namespace :ingestion do
       end
     end
   end
+
+  # 新しい形式（業種）に対応したあと、既に unsupported で保存済みの有報を取り直すためのタスク。
+  # 対象を unsupported に絞るのは、全期間のバックフィルより EDINET へのリクエストが桁違いに少なくて済むため
+  desc "unsupported判定の財務諸表を含む有報（提出日の範囲指定）を再取込する 例: rake 'ingestion:reingest_unsupported[2025-08-01,2026-08-16]'"
+  task :reingest_unsupported, [ :from, :to ] => :environment do |_, args|
+    from = Date.parse(args.fetch(:from))
+    to = Date.parse(args.fetch(:to))
+    unsupported_report_ids = Disclosure::FinancialStatement
+                               .where(presentation_format: Ingestion::FormatRegistry::UNSUPPORTED)
+                               .select(:report_id)
+    doc_ids = Disclosure::Report.where(id: unsupported_report_ids, filing_date: from..to)
+                                .order(:filing_date).pluck(:edinet_document_id)
+    puts "reingest #{doc_ids.size} documents (filing_date #{from}..#{to})"
+    ingester = Ingestion::ReportIngester.new
+    Dir.mktmpdir("edinet") do |work_dir|
+      doc_ids.each do |doc_id|
+        # 1件の失敗を他に波及させない（日次取込と同じ方針）。失敗分はログを見て個別に再実行する
+        begin
+          ingester.ingest(doc_id: doc_id, work_dir: work_dir)
+          puts "ingested #{doc_id}"
+        rescue => e
+          puts "ingest failed #{doc_id}: #{e.message}"
+          Sentry.capture_exception(e)
+        end
+        sleep(Ingestion::DailyIngestionService::THROTTLE_SECONDS) # EDINETのレート制限（403）対策
+      end
+    end
+  end
 end

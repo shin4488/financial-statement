@@ -1,5 +1,8 @@
-class Charts::Builders::PlJgaapBank < Charts::Builders::StackBase
-  # 銀行: 借方[経常費用, 経常利益] / 貸方[経常収益(, 経常損失)]
+# 金融機関（銀行・保険）: 借方[経常費用, 経常利益] / 貸方[経常収益(, 経常損失)]
+# 売上高・営業利益の概念がなく、経常収益−経常費用=経常利益 が骨格。
+# 銀行と保険でBSの内訳は違うがPLの骨格・ラベルは同じため、1つのBuilderを両形式で共有する
+# （PlIfrsを2様式で共有しているのと同じ考え方）
+class Charts::Builders::PlJgaapFinancialInstitution < Charts::Builders::StackBase
   def build
     revenue = val("pl.ordinary_revenue")
     expenses = val("pl.ordinary_expenses")

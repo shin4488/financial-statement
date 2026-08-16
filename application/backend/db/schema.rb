@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_16_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_16_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -38,7 +38,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_16_000001) do
     t.bigint "report_id", null: false, comment: "有報id"
     t.integer "consolidation_type", null: false, comment: "0:consolidated 1:non_consolidated"
     t.integer "accounting_standard", null: false, comment: "この財務諸表の会計基準（有報全体と異なり得る）"
-    t.string "presentation_format", null: false, comment: "表示形式 jgaap_general/jgaap_bank/ifrs_classified/ifrs_liquidity/unsupported"
+    t.string "presentation_format", null: false, comment: "表示形式（値の一覧はコードの Ingestion::FormatRegistry::ALL を参照）"
     t.boolean "is_primary", default: false, null: false, comment: "表示・検索の主対象（連結があれば連結）"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
