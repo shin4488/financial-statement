@@ -13,6 +13,10 @@ class Ingestion::Extractors::IfrsClassified < Ingestion::Extractors::Base
     "bs.equity_attributable_to_owners" => "jpigp_cor:EquityAttributableToOwnersOfParentIFRS",
     "bs.non_controlling_interests"     => "jpigp_cor:NonControllingInterestsIFRS",
     "bs.property_plant_and_equipment"  => "jpigp_cor:PropertyPlantAndEquipmentIFRS",
+    # のれん・無形: 合算タグを開示する企業と、のれん/無形を別掲する企業があるため、
+    # 合算タグ優先 → なければ別掲2タグの合算で1コードに正規化する
+    "bs.goodwill_and_intangibles"      => [ "jpigp_cor:GoodwillAndIntangibleAssetsIFRS",
+                                            sum("jpigp_cor:GoodwillIFRS", "jpigp_cor:IntangibleAssetsIFRS") ],
     "bs.cash_and_equivalents"    => "jpigp_cor:CashAndCashEquivalentsIFRS",
     "cf.cash_end"                => "jpigp_cor:CashAndCashEquivalentsIFRS"
   }.freeze
@@ -47,14 +51,5 @@ class Ingestion::Extractors::IfrsClassified < Ingestion::Extractors::Base
     def extract_extras(result)
       put(result, "cf.cash_begin",
           @xbrl.money("jpigp_cor:CashAndCashEquivalentsIFRS", "Prior1YearInstant#{@c}"))
-      # のれん・無形: 合算タグを開示する企業と、のれん/無形を別掲する企業があるため、
-      # 合算タグ優先 → なければ別掲2タグを加算して1コードに正規化する
-      combined = @xbrl.money("jpigp_cor:GoodwillAndIntangibleAssetsIFRS", "CurrentYearInstant#{@c}")
-      if combined.nil?
-        goodwill   = @xbrl.money("jpigp_cor:GoodwillIFRS", "CurrentYearInstant#{@c}")
-        intangible = @xbrl.money("jpigp_cor:IntangibleAssetsIFRS", "CurrentYearInstant#{@c}")
-        combined = [ goodwill, intangible ].compact.sum if goodwill || intangible
-      end
-      put(result, "bs.goodwill_and_intangibles", combined)
     end
 end

@@ -7,9 +7,16 @@ RSpec.describe "ExtractorマッピングとItemCodesレジストリの整合" do
   EXTRA_CODES = {
     Ingestion::Extractors::JgaapGeneral   => %w[cf.cash_begin],
     Ingestion::Extractors::JgaapBank      => %w[cf.cash_begin],
-    Ingestion::Extractors::IfrsClassified => %w[cf.cash_begin bs.goodwill_and_intangibles],
+    Ingestion::Extractors::JgaapInsurance => %w[cf.cash_begin],
+    Ingestion::Extractors::IfrsClassified => %w[cf.cash_begin],
     Ingestion::Extractors::IfrsLiquidity  => %w[cf.cash_begin]
   }.freeze
+
+  # マッピング表の値（単一タグ / フォールバックリスト / 合算）を平坦なタグ一覧にする
+  def qnames_of(spec)
+    entries = spec.is_a?(Array) ? spec : [ spec ]
+    entries.flat_map { |e| e.is_a?(Ingestion::Extractors::Base::Sum) ? e.qnames : [ e ] }
+  end
 
   Ingestion::FormatRegistry::EXTRACTORS.each_value do |extractor_class|
     describe extractor_class.name do
@@ -22,7 +29,7 @@ RSpec.describe "ExtractorマッピングとItemCodesレジストリの整合" do
 
       it "マッピングのタグ表記が qname（prefix:LocalName）形式である" do
         qnames = (extractor_class::INSTANT_MAPPING.values + extractor_class::DURATION_MAPPING.values)
-                 .flat_map { |v| Array(v) }
+                 .flat_map { |v| qnames_of(v) }
         expect(qnames).to all(match(/\A(jppfs_cor|jpigp_cor|jpcrp_cor|jpdei_cor):[A-Za-z0-9]+\z/))
       end
     end

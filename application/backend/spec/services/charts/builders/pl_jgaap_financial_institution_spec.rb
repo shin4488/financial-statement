@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe Charts::Builders::PlJgaapBank do
+RSpec.describe Charts::Builders::PlJgaapFinancialInstitution do
   describe "経常黒字（単位: 円）" do
     let(:items) do
       { "pl.ordinary_revenue" => 14_620_843_000_000,

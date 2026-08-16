@@ -9,11 +9,11 @@ module FinancialStatements
     # （%w[] 内にはコメントを書けないため。この可読性はレジストリの本質的な価値なので崩さないこと）
 
     BS = [
-      # ---- 全形式共通（jgaap_general / jgaap_bank / ifrs_classified / ifrs_liquidity すべてが保存する）----
+      # ---- 全形式共通（jgaap_general / jgaap_bank / jgaap_insurance / ifrs_classified / ifrs_liquidity すべてが保存する）----
       "bs.assets",                        # 資産合計
       "bs.liabilities",                   # 負債合計
       "bs.equity",                        # 資本合計（日本基準では純資産合計）
-      "bs.cash_and_equivalents",          # 現金及び現金同等物（銀行のみ「現金預け金」）
+      "bs.cash_and_equivalents",          # 現金及び現金同等物（銀行は「現金預け金」、保険は「現金及び預貯金」）
       # ---- IFRSのみ（ifrs_classified / ifrs_liquidity が保存する）----
       "bs.equity_attributable_to_owners", # 親会社の所有者に帰属する持分
       "bs.non_controlling_interests",     # 非支配持分
@@ -29,10 +29,13 @@ module FinancialStatements
       # ---- IFRS・流動/非流動分類のみ（ifrs_classified が保存する。非流動資産の代表内訳）----
       "bs.property_plant_and_equipment",  # 有形固定資産
       "bs.goodwill_and_intangibles",      # のれん及び無形資産（別掲企業はExtractorが合算）
-      # ---- 銀行のみ（jgaap_bank が保存する）----
-      "bs.loans",                         # 貸出金
+      # ---- 銀行・保険（jgaap_bank / jgaap_insurance が保存する）----
+      "bs.loans",                         # 貸出金（保険では貸付金）
       "bs.securities",                    # 有価証券
-      "bs.deposits"                      # 預金
+      # ---- 銀行のみ（jgaap_bank が保存する）----
+      "bs.deposits",                      # 預金
+      # ---- 保険のみ（jgaap_insurance が保存する）----
+      "bs.policy_reserves"               # 保険契約準備金
     ].freeze
 
     PL = [
@@ -41,24 +44,25 @@ module FinancialStatements
       "pl.income_tax",                    # 法人税等 / 法人所得税費用
       "pl.profit",                        # 当期純利益 / 当期利益
       "pl.profit_attributable_to_owners", # 親会社株主（所有者）に帰属する当期純利益
-      # ---- 銀行以外（jgaap_general / ifrs_classified / ifrs_liquidity が保存する）----
-      "pl.revenue",                       # 売上高（日本基準）/ 売上収益・収益（IFRS）
+      # ---- 銀行・保険以外（jgaap_general / ifrs_classified / ifrs_liquidity が保存する）----
+      "pl.revenue",                       # 売上高・営業収益（日本基準）/ 売上収益・収益（IFRS）
       "pl.cost_of_sales",                 # 売上原価（IFRSでは開示任意 → 無い企業がある）
       "pl.sga",                           # 販売費及び一般管理費（IFRSでは開示任意）
       # ---- 日本基準・一般のみ（jgaap_general が保存する）----
-      "pl.gross_profit",                  # 売上総利益
+      "pl.financial_expenses",            # 金融費用（証券・商品先物。営業収益−金融費用=純営業収益）
+      "pl.gross_profit",                  # 売上総利益（営業総利益を含む）
       "pl.operating_profit",              # 営業利益（IFRSでも任意開示があれば ifrs_* も保存する）
       "pl.non_operating_income",          # 営業外収益
       "pl.non_operating_expenses",        # 営業外費用
-      # ---- 日本基準のみ・特別損益（jgaap_general / jgaap_bank が保存する）----
+      # ---- 日本基準のみ・特別損益（jgaap_general / jgaap_bank / jgaap_insurance が保存する）----
       "pl.extraordinary_income",          # 特別利益
       "pl.extraordinary_loss",            # 特別損失
-      # ---- 日本基準のみ・経常利益（jgaap_general / jgaap_bank が保存する。IFRSに概念が存在しない）----
+      # ---- 日本基準のみ・経常利益（jgaap_general / jgaap_bank / jgaap_insurance が保存する。IFRSに概念が存在しない）----
       "pl.ordinary_profit",               # 経常利益
-      # ---- 銀行のみ（jgaap_bank が保存する）----
-      "pl.ordinary_revenue",              # 経常収益（銀行のトップライン。pl.revenueは保存しない）
+      # ---- 銀行・保険のみ（jgaap_bank / jgaap_insurance が保存する）----
+      "pl.ordinary_revenue",              # 経常収益（銀行・保険のトップライン。pl.revenueは保存しない）
       "pl.ordinary_expenses",             # 経常費用
-      # ---- IFRSの営業費用一括型のみ（ifrs_* が該当タグがあれば保存する）----
+      # ---- 営業費用一括型（ifrs_* と、日本基準の電気・鉄道・特定金融など該当タグがあれば保存する）----
       "pl.operating_expenses"            # 営業費用（原価/販管費に分解されない一括計上）
     ].freeze
 
