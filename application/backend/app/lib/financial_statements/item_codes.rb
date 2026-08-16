@@ -50,6 +50,7 @@ module FinancialStatements
       "pl.operating_profit",              # 営業利益（IFRSでも任意開示があれば ifrs_* も保存する）
       "pl.non_operating_income",          # 営業外収益
       "pl.non_operating_expenses",        # 営業外費用
+      # ---- 日本基準のみ・特別損益（jgaap_general / jgaap_bank が保存する）----
       "pl.extraordinary_income",          # 特別利益
       "pl.extraordinary_loss",            # 特別損失
       # ---- 日本基準のみ・経常利益（jgaap_general / jgaap_bank が保存する。IFRSに概念が存在しない）----

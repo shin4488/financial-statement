@@ -34,8 +34,7 @@ import {
   cashFlowTypes,
 } from '@/constants/values';
 
-// 一覧ページのシェル（AppBar・フッター）。DefaultLayoutを再利用しない理由:
-// あちらは検索条件をReduxに書く作りで、URLクエリを正とするこの画面と両立しない。
+// 一覧ページのシェル（AppBar・フッター）。検索条件はURLクエリを正とするためReduxには置かず、
 // 自動切替だけはautoPlayStatusSliceを共有する
 // （AppCarouselがそこを参照しており、二重管理を避けるため）
 export function ReportListLayout({ children }: { children: React.ReactNode }) {
