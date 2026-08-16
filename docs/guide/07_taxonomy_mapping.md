@@ -194,8 +194,8 @@ Builderが「—」の科目も保存している。再取込のコストが高�
 |---|---|---|---|---|
 | `pl.cost_of_sales` | 売上原価 | フォールバック11件（下記） | `jpigp_cor:CostOfSalesIFRS` | 一般・IFRS |
 | `pl.financial_expenses` | 金融費用 | `jppfs_cor:FinancialExpensesSEC`（証券。営業収益−金融費用=純営業収益） | 存在しない | 一般 |
-| `pl.sga` | 販売費及び一般管理費 | フォールバック5件（下記） | `jpigp_cor:SellingGeneralAndAdministrativeExpensesIFRS` | 一般・IFRS |
-| `pl.operating_expenses` | 営業費用（一括計上） | フォールバック9件（下記） | `jpigp_cor:OperatingExpensesIFRS` | 一般・IFRS |
+| `pl.sga` | 販売費及び一般管理費 | フォールバック4件（下記） | `jpigp_cor:SellingGeneralAndAdministrativeExpensesIFRS` | 一般・IFRS |
+| `pl.operating_expenses` | 営業費用（一括計上） | フォールバック10件（下記） | `jpigp_cor:OperatingExpensesIFRS` | 一般・IFRS |
 | `pl.gross_profit` | 売上総利益 | `jppfs_cor:GrossProfit` → `OperatingGrossProfit`（営業総利益）→ `OperatingGrossProfitWAT` | `jpigp_cor:GrossProfitIFRS` | — |
 | `pl.operating_profit` | 営業利益 | `jppfs_cor:OperatingIncome` → `OperatingIncomeTotalBusiness`（全事業営業利益。鉄道単体） | `jpigp_cor:OperatingProfitLossIFRS` | 一般 |
 | `pl.ordinary_profit` | 経常利益 | `jppfs_cor:OrdinaryIncome` | 存在しない | 銀行 |
@@ -229,8 +229,7 @@ Builderが「—」の科目も保存している。再取込のコストが高�
 | 1 | `jppfs_cor:SellingGeneralAndAdministrativeExpenses` | 販売費及び一般管理費 |
 | 2 | `jppfs_cor:SellingGeneralAndAdministrativeExpensesGAS` | 供給販売費及び一般管理費（ガス） |
 | 3 | `jppfs_cor:GeneralAndAdministrativeExpensesWAT` | 一般管理費（海運） |
-| 4 | `jppfs_cor:OperatingExpensesCMD` | 営業費用（商品先物）。売上原価控除後の費用（営業収益−売上原価=営業総利益、−営業費用=営業利益）で販管費に相当するため、一括型の営業費用でなくこちらに置く |
-| 5 | `jppfs_cor:GeneralAndAdministrativeExpensesSGA` | 一般管理費。本来は販管費の内訳（ガスの供給販売費及び一般管理費の内訳にも現れる）なので合計系より後ろに置き、販売費を持たず一般管理費だけを開示する持株会社等の最終手段にする |
+| 4 | `jppfs_cor:GeneralAndAdministrativeExpensesSGA` | 一般管理費。本来は販管費の内訳（ガスの供給販売費及び一般管理費の内訳にも現れる）なので合計系より後ろに置き、販売費を持たず一般管理費だけを開示する持株会社等の最終手段にする |
 
 一般の `pl.operating_expenses`（原価と販管費に分けず一括開示する業種）のフォールバック:
 
@@ -239,12 +238,13 @@ Builderが「—」の科目も保存している。再取込のコストが高�
 | 1 | `jppfs_cor:OperatingExpenses` | 営業費用（営業収益−営業費用型の一般事業会社） |
 | 2 | `jppfs_cor:OperatingExpensesELE` | 営業費用（電気） |
 | 3 | `jppfs_cor:OperatingExpensesSPF` | 営業費用（特定金融。金融費用・その他営業費用・売上原価を含む合計） |
-| 4 | `jppfs_cor:OperatingExpensesIVT` / `OperatingExpensesINV` | 営業費用（投資運用 / 投資業） |
-| 5 | `jppfs_cor:OperatingExpensesRWY` / `OperatingExpensesTotalRWY` | 営業費 / 全事業営業費（鉄道） |
-| 6 | 合算 `OperatingExpenses{Railway,…,Other}RWY`（収益と同じ9区分） | 鉄道（単体）: 事業区分別の営業費の合計 |
-| 7 | 合算 `OperatingExpensesOILTelecommunications` + `OperatingExpensesIncidentalELC` | 電気通信: 電気通信事業営業費用 + 附帯事業営業費用 |
+| 4 | `jppfs_cor:OperatingExpensesCMD` | 営業費用（商品先物。売上原価控除後: 営業収益−売上原価=営業総利益、−営業費用=営業利益） |
+| 5 | `jppfs_cor:OperatingExpensesIVT` / `OperatingExpensesINV` | 営業費用（投資運用 / 投資業） |
+| 6 | `jppfs_cor:OperatingExpensesRWY` / `OperatingExpensesTotalRWY` | 営業費 / 全事業営業費（鉄道） |
+| 7 | 合算 `OperatingExpenses{Railway,Railroad,Related,Incidental,SideLine,RealEstate,Development,Automobile,Other}RWY`（収益と同じ9区分） | 鉄道（単体）: 事業区分別の営業費の合計 |
+| 8 | 合算 `OperatingExpensesOILTelecommunications` + `OperatingExpensesIncidentalELC` | 電気通信: 電気通信事業営業費用 + 附帯事業営業費用 |
 
-「営業費用」の意味は業種で違う（鉄道連結の営業費は販管費を含む合計、商品先物の営業費用は原価控除後）。Builderは内訳（原価・金融費用・販管費）で貸借が合えば内訳を、合わなければ一括の営業費用を使うため、両方保存しても重複計上にならない（[04章](04_backend.md)実例3）。
+「営業費用」の意味は業種で違う（電気・特定金融は原価・販管費を含む合計、鉄道連結の営業費は内訳と併記される合計、商品先物は原価控除後）。Builderは「内訳（原価・金融費用・販管費）→ 一括の営業費用 → 原価+営業費用」の順に貸借の合う構成を選ぶため、Extractorは業種を問わず営業費用のタグをそのまま保存すればよく、両方保存しても重複計上にならない（[04章](04_backend.md)実例3）。
 
 IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは使っていない。IFRSでは開示が任意で、開示する企業としない企業が混在して企業間の比較にならないため。
 
@@ -268,7 +268,7 @@ IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは
 
 ## 複数タグの合算とマッピング表で表せないもの
 
-合計タグを持たず内訳だけを開示する科目は、マッピング表の合算記法 `sum(...)` で「存在するタグだけを足した値」を1つの科目コードにする（部分集合でも合算する。1つも無ければ「開示なし」）。フォールバックリストの要素にも置けるので、「合計タグがあればそれ、無ければ内訳の合算」を1行で書ける。
+合計タグを持たず内訳だけを開示する科目は、マッピング表の合算記法 `sum(...)` で「存在するタグだけを足した値」を1つの科目コードにする（部分集合でも合算する。1つも無ければ「開示なし」）。フォールバックリストの要素にも置けるので、「合計タグがあればそれ、無ければ内訳の合算」を1行で書ける。なぜ合算が要り、逆算はしないのかは[04章](04_backend.md)の「なぜ合算記法があるのか」を参照。
 
 | 科目 | 形式 | 合算の内容 |
 |---|---|---|
@@ -385,7 +385,7 @@ jgaap_generalの2社は売上原価フォールバックの検証用（単位は
 | 海運 wat | 日本郵船 S100YBT6、商船三井 S100YI2T、川崎汽船 S100YC6B、玉井商船 S100Y90D | 一般 | 一般 | 大手連結は標準タグ。単体・小規模は海運業収益/費用 + その他事業収益/費用の2区分（合計は `OperatingRevenue1` を持つ企業と持たない企業がある）、一般管理費は `GeneralAndAdministrativeExpensesWAT` → 合算 + フォールバック |
 | 証券 sec | 大和証券G S100YCMP、いちよし S100YANQ、松井 S100YFPS、岡三G S100YDTC | 一般 | 一般 | 営業収益 `OperatingRevenueSEC` − 金融費用 `FinancialExpensesSEC` = 純営業収益、− 販管費（標準タグ）= 営業利益 → 金融費用を新科目 `pl.financial_expenses` に。BSは流動/固定の3分類あり。大和証券Gは売上原価が企業拡張タグのためPLのみ描けない |
 | 特定金融 spf | アコム S100YBXA、アサックス S100YI2V、三菱HCキャピタル S100YF4V（単体） | 一般 | 一般 | 消費者金融は営業収益 `OperatingRevenueSPF` − 営業費用 `OperatingExpensesSPF` の一括型。アサックスは営業費用の内訳として売上原価（標準タグ）を併記 → 内訳では貸借が合わず一括で描く。リース会社の単体は売上高・売上原価・販管費の標準タグ |
-| 商品先物 cmd | 小林洋行 S100YJB4、豊トラスティ証券 S100YJ8P、unbanked S100YNMZ | 一般 | 一般 | 小林洋行のみ商品先物の様式（営業収益 `OperatingRevenueCMD`（`OperatingRevenue1` にも同値）− 売上原価 = 営業総利益 − 営業費用 `OperatingExpensesCMD` = 営業利益）。単体は `NetSales`（商品売上高）が営業収益の内訳 → 営業収益系を売上高より先に引く。他2社は証券様式・標準タグ |
+| 商品先物 cmd | 小林洋行 S100YJB4、豊トラスティ証券 S100YJ8P、unbanked S100YNMZ | 一般 | 一般 | 小林洋行のみ商品先物の様式（営業収益 `OperatingRevenueCMD`（`OperatingRevenue1` にも同値）− 売上原価 = 営業総利益 − 営業費用 `OperatingExpensesCMD` = 営業利益）→ PLの費用構成「原価+営業費用」。単体は `NetSales`（商品売上高）が営業収益の内訳 → 営業収益系を売上高より先に引く。他2社は証券様式・標準タグ |
 | 投資運用 ivt / 投資業 inv | スパークス S100Y7MV、Mマート S100Y0DB | 一般 | 一般 | スパークスは営業費用が企業拡張タグのみでPLは描けない（BS/CFは描ける）。Mマートは `OperatingRevenue1` − 汎用の `OperatingExpenses` |
 | 保険 ins | かんぽ生命 S100YD29、第一ライフG S100YC7A、T&D S100Y9UP、ソニーFG S100YCL0、SBIインシュアランス S100YDWS、アニコム S100YFY1、ライフネット S100YC7R（単体） | 保険 | 保険 or 一般 | 経常収益 `OperatingIncomeINS` − 経常費用 `OperatingExpensesINS` = 経常利益。BSは有価証券・貸付金・現金及び預貯金 + 保険契約準備金。ソニーFG単体は業種コードinsだが流動/固定のある一般様式 → 流動資産タグの実在で一般に戻す |
 | 複数コード | 日本郵政 S100YE7T（bnk,ins）、日本インシュレーション S100YG71・広島電鉄 S100YI48（cte,cns）、飯野海運 S100YGFN（cte,wat）、オウケイウェイヴ S100WS3E（cte,sec,cmd） | — | — | 先頭のコードを主たる業種として判定。日本郵政は銀行様式のPL（`OrdinaryIncomeBNK`）だが貯金が企業拡張タグのためBSは描けない。広島電鉄の単体は鉄道様式（`OperatingRevenueTotalRWY`） |

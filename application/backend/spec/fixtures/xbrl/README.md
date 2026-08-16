@@ -35,7 +35,7 @@ bundle exec rails runner '
 | S100XTDX | 静岡ガス | ガス（gas）: 供給販売費及び一般管理費（…GAS）/ 単体はガス事業売上高（SalesFromGasBusinessGAS） |
 | S100YANQ | いちよし証券 | 証券（sec）: 金融費用（pl.financial_expenses） |
 | S100YI2V | アサックス | 特定金融（spf）: 営業費用一括に売上原価を併記 → 内訳では合わず一括で描く |
-| S100YJB4 | 小林洋行 | 商品先物（cmd）: 営業費用（OperatingExpensesCMD）を販管費として扱う / 単体は商品売上高より営業収益を優先 |
+| S100YJB4 | 小林洋行 | 商品先物（cmd）: 売上原価 + 原価控除後の営業費用（OperatingExpensesCMD） / 単体は商品売上高より営業収益を優先 |
 | S100Y0DB | Mマート | 投資業コード（inv）・単体のみ: 営業収益−汎用の営業費用（OperatingExpenses） |
 | S100YD29 | かんぽ生命 | jgaap_insurance判定（連結・単体とも）/ 経常収益=OperatingIncomeINS / 保険契約準備金 |
 | S100YCL0 | ソニーフィナンシャルG | 連結はjgaap_insurance / 単体は業種コードinsでも流動資産があるためjgaap_general |

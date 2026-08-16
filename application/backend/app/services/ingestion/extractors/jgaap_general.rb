@@ -23,12 +23,6 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
     "cf.cash_end"                     => "jppfs_cor:CashAndCashEquivalents"
   }.freeze
 
-  # 事業区分ごとに営業収益・営業費を分けて開示し、合計タグを持たない業種の区分一覧
-  # （合算はExtractors::Baseの sum を使う。区分の有無は企業ごとに違うため存在するものだけ足す）
-  RAILWAY_SEGMENTS = %w[Railway Railroad Related Incidental SideLine RealEstate Development Automobile Other].freeze # 鉄道事業会計規則
-  TELECOM_SEGMENTS = %w[OILTelecommunications IncidentalELC].freeze # 電気通信事業（電気通信事業 + 附帯事業）
-  SHIPPING_SEGMENTS = %w[ShippingBusiness OtherBusiness].freeze     # 海運事業（海運業 + その他事業）
-
   DURATION_MAPPING = {
     # トップライン。業種による科目ゆれ（営業収益・完成工事高など）をフォールバックで吸収する（順序が優先度）。
     # 営業収益系を売上高（NetSales）より先に置く理由: 営業収益型（売上高+営業収入を営業収益として
@@ -50,10 +44,20 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
       "jppfs_cor:GasSalesGAS",                                          # ガス売上（ガス。ガス事業売上高の内訳だが、これしか開示しない単体がある）
       "jppfs_cor:ContractsCompletedRevOA",                              # 完成工事高
       "jppfs_cor:NetSalesOfCompletedConstructionContractsCNS",          # 完成工事高（建設業）
-      # 事業区分別にしか開示しない業種は区分の合算（合計タグがある企業は上で先に取れる）
-      sum(*RAILWAY_SEGMENTS.map { |s| "jppfs_cor:OperatingRevenue#{s}RWY" }),   # 鉄道（単体）: 鉄道事業+関連事業など
-      sum(*TELECOM_SEGMENTS.map { |s| "jppfs_cor:OperatingRevenue#{s}" }),      # 電気通信: 電気通信事業+附帯事業
-      sum(*SHIPPING_SEGMENTS.map { |s| "jppfs_cor:#{s}RevenueWAT" }),           # 海運（単体）: 海運業収益+その他事業収益
+      # 事業区分別にしか開示しない業種は区分の合算（存在する区分だけ足す。合計タグがある企業は上で先に取れる）
+      sum("jppfs_cor:OperatingRevenueRailwayRWY",                       # 鉄道（単体）: 鉄道事業営業収益
+          "jppfs_cor:OperatingRevenueRailroadRWY",                      #   + 鉄軌道事業営業収益
+          "jppfs_cor:OperatingRevenueRelatedRWY",                       #   + 関連事業営業収益
+          "jppfs_cor:OperatingRevenueIncidentalRWY",                    #   + 付帯事業営業収益
+          "jppfs_cor:OperatingRevenueSideLineRWY",                      #   + 兼業営業収益
+          "jppfs_cor:OperatingRevenueRealEstateRWY",                    #   + 不動産事業営業収益
+          "jppfs_cor:OperatingRevenueDevelopmentRWY",                   #   + 開発事業営業収益
+          "jppfs_cor:OperatingRevenueAutomobileRWY",                    #   + 自動車事業営業収益
+          "jppfs_cor:OperatingRevenueOtherRWY"),                        #   + その他事業営業収益
+      sum("jppfs_cor:OperatingRevenueOILTelecommunications",            # 電気通信: 電気通信事業営業収益
+          "jppfs_cor:OperatingRevenueIncidentalELC"),                   #   + 附帯事業営業収益
+      sum("jppfs_cor:ShippingBusinessRevenueWAT",                       # 海運（単体）: 海運業収益
+          "jppfs_cor:OtherBusinessRevenueWAT"),                         #   + その他事業収益
       # 営業収入は本来「売上高+営業収入=営業収益」の内訳だが、営業収入だけを開示する持株会社の単体があるため最後に置く
       "jppfs_cor:OperatingRevenue2"                                     # 営業収入
     ],
@@ -72,7 +76,8 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
       "jppfs_cor:CostOfSalesOfCompletedConstructionContractsCNS",       # 完成工事原価（建設業）
       "jppfs_cor:OperatingExpensesAndCostOfSalesOfTransportationRWY",   # 運輸業等営業費及び売上原価（鉄道・連結）
       "jppfs_cor:ShippingBusinessExpensesAndOtherOperatingExpensesWAT", # 海運業費用及びその他の営業費用（海運）
-      sum(*SHIPPING_SEGMENTS.map { |s| "jppfs_cor:#{s}ExpensesWAT" }),  # 海運（単体）: 海運業費用+その他事業費用
+      sum("jppfs_cor:ShippingBusinessExpensesWAT",                      # 海運（単体）: 海運業費用
+          "jppfs_cor:OtherBusinessExpensesWAT"),                        #   + その他事業費用
       "jppfs_cor:CostOfProductsManufactured"                            # 当期製品製造原価
     ],
     "pl.gross_profit" => [
@@ -84,27 +89,36 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
       "jppfs_cor:SellingGeneralAndAdministrativeExpenses",              # 販売費及び一般管理費
       "jppfs_cor:SellingGeneralAndAdministrativeExpensesGAS",           # 供給販売費及び一般管理費（ガス）
       "jppfs_cor:GeneralAndAdministrativeExpensesWAT",                  # 一般管理費（海運）
-      # 商品先物取引業の営業費用は売上原価控除後の費用（営業収益−売上原価=営業総利益、−営業費用=営業利益）で
-      # 販管費に相当するため、一括型の営業費用（pl.operating_expenses）ではなくこちらに置く
-      "jppfs_cor:OperatingExpensesCMD",                                 # 営業費用（商品先物）
       # 一般管理費は本来販管費の内訳（ガスの供給販売費及び一般管理費の内訳にも現れる）なので合計系より後ろに置く。
       # 販売費を持たず一般管理費だけを開示する持株会社等の最終手段
       "jppfs_cor:GeneralAndAdministrativeExpensesSGA"                   # 一般管理費
     ],
     # 金融費用（証券・商品先物）: 営業収益−金融費用=純営業収益、−販管費=営業利益 の骨格を持つ業種の費用科目
     "pl.financial_expenses" => "jppfs_cor:FinancialExpensesSEC",
-    # 営業費用（一括型）: 原価と販管費に分けず営業費用を一括開示する業種。
-    # 内訳と併記する企業（鉄道連結の営業費など）ではBuilderが内訳を優先する（PlJgaapGeneral）
+    # 営業費用: 原価と販管費に分けず一括開示する業種の営業費用。
+    # 「営業費用」が原価・販管費を含む合計か（電気・特定金融）、内訳と併記されるか（鉄道連結）、
+    # 売上原価控除後の費用か（商品先物）は業種で異なる。Builderが内訳・一括・原価+営業費用の順に
+    # 貸借の合う構成を選ぶため、ここでは業種を問わず営業費用のタグをそのまま保存すればよい（PlJgaapGeneral）
     "pl.operating_expenses" => [
       "jppfs_cor:OperatingExpenses",                                    # 営業費用（営業収益−営業費用型の一般事業会社）
       "jppfs_cor:OperatingExpensesELE",                                 # 営業費用（電気）
       "jppfs_cor:OperatingExpensesSPF",                                 # 営業費用（特定金融）
+      "jppfs_cor:OperatingExpensesCMD",                                 # 営業費用（商品先物。売上原価控除後）
       "jppfs_cor:OperatingExpensesIVT",                                 # 営業費用（投資運用）
       "jppfs_cor:OperatingExpensesINV",                                 # 営業費用（投資業）
       "jppfs_cor:OperatingExpensesRWY",                                 # 営業費（鉄道・連結）
       "jppfs_cor:OperatingExpensesTotalRWY",                            # 全事業営業費（鉄道）
-      sum(*RAILWAY_SEGMENTS.map { |s| "jppfs_cor:OperatingExpenses#{s}RWY" }),  # 鉄道（単体）: 鉄道事業営業費+関連事業営業費など
-      sum(*TELECOM_SEGMENTS.map { |s| "jppfs_cor:OperatingExpenses#{s}" })      # 電気通信: 電気通信事業営業費用+附帯事業営業費用
+      sum("jppfs_cor:OperatingExpensesRailwayRWY",                      # 鉄道（単体）: 鉄道事業営業費
+          "jppfs_cor:OperatingExpensesRailroadRWY",                     #   + 鉄軌道事業営業費
+          "jppfs_cor:OperatingExpensesRelatedRWY",                      #   + 関連事業営業費
+          "jppfs_cor:OperatingExpensesIncidentalRWY",                   #   + 付帯事業営業費
+          "jppfs_cor:OperatingExpensesSideLineRWY",                     #   + 兼業営業費
+          "jppfs_cor:OperatingExpensesRealEstateRWY",                   #   + 不動産事業営業費
+          "jppfs_cor:OperatingExpensesDevelopmentRWY",                  #   + 開発事業営業費
+          "jppfs_cor:OperatingExpensesAutomobileRWY",                   #   + 自動車事業営業費
+          "jppfs_cor:OperatingExpensesOtherRWY"),                       #   + その他事業営業費
+      sum("jppfs_cor:OperatingExpensesOILTelecommunications",           # 電気通信: 電気通信事業営業費用
+          "jppfs_cor:OperatingExpensesIncidentalELC")                   #   + 附帯事業営業費用
     ],
     "pl.operating_profit" => [
       "jppfs_cor:OperatingIncome",                                      # 営業利益
