@@ -76,13 +76,15 @@ fact → 辞書 → 科目コードと変換される全体像は、[07章](07_t
 | `sum("…:A", "…:B")` | 合算（存在するタグだけを足す。1つも無ければ「開示なし」） | 合計タグを持たず事業区分別に開示する鉄道単体・電気通信・海運の営業収益 |
 
 ```ruby
-# 売上のフォールバック（jgaap_general。順序が優先度。抜粋）
+# 売上のフォールバック（jgaap_general。順序が優先度。JgaapGeneral::DURATION_MAPPING から抜粋）
 "pl.revenue" => [
   "jppfs_cor:OperatingRevenue1",     # 営業収益
   "jppfs_cor:OperatingRevenueELE",   # 営業収益（電気）… 業種固有の合計タグ
   "jppfs_cor:NetSales",              # 売上高（最も一般的）
   "jppfs_cor:NetSalesOfCompletedConstructionContractsCNS",  # 完成工事高（建設業）
-  sum("jppfs_cor:OperatingRevenueRailwayRWY", "jppfs_cor:OperatingRevenueRelatedRWY", …) # 鉄道（単体）: 事業区分の合算
+  # 鉄道（単体）: 合計タグがなく事業区分（Railway/Related/Incidental/…の9区分 = RAILWAY_SEGMENTS）別にしか
+  # 開示しないため、区分タグを合算する。sum(...) は存在するタグだけを足す
+  sum(*RAILWAY_SEGMENTS.map { |s| "jppfs_cor:OperatingRevenue#{s}RWY" })
 ]
 ```
 
@@ -196,6 +198,17 @@ WaterfallChart（CF用。5段の構成は全形式共通）
 
 残差項目のおかげで借方合計と貸方合計は常に一致し、赤字（税引前損失）は貸方に積んで高さを揃える。銀行・保険のBSも同じ考え方で、内訳科目が多すぎて全部は描けないため、主要科目（銀行: 現金預け金・貸出金・有価証券・預金 / 保険: 現金及び預貯金・有価証券・貸付金・保険契約準備金）だけタグで取り、「その他資産」「その他負債」を合計との残差で導出する。
 
+### 実例2: 表示不可も正常系（東京海上のPL）
+
+保険IFRSは収益が企業拡張タグのみで標準タグから取れない（実測は[07章](07_taxonomy_mapping.md)）。その場合も**カード全体を落とさず、取れなかったチャートだけ**説明文にする。
+
+```json
+{ "profitLoss":   { "renderable": false,
+                    "note": "損益計算書: この企業のIFRS損益計算書は表示に対応していません。" },
+  "balanceSheet": { "renderable": true, "bars": [...] },
+  "cashFlow":     { "renderable": true, "steps": [...] } }
+```
+
 ### 実例3: 業種で費用の構成が違うPL（日本基準・一般）
 
 `jgaap_general` のPLは業種によって費用科目の組合せが違う。Builderは次の構成を順に試し、**借方合計（費用+営業利益）が売上と1割以内で合う最初の構成**で描く（開示された科目だけを積む）。
@@ -208,17 +221,6 @@ WaterfallChart（CF用。5段の構成は全形式共通）
 内訳を先に試すのは、内訳と一括を併記する企業で内訳（情報量が多い方）を捨てないため。逆に、原価が営業費用の内訳として併記される特定金融（内訳だけでは貸借が合わない）は2で描かれる。どちらでも合わなければ描かない。
 
 BSも同様に、固定資産は「有形・無形・投資その他の3分類の合計が固定資産に合うときだけ内訳」で描き、合わない業種（電気・鉄道・電気通信の単体など、業種別様式で3分類を持たない）は固定資産合計の1段で描く。
-
-### 実例2: 表示不可も正常系（東京海上のPL）
-
-保険IFRSは収益が企業拡張タグのみで標準タグから取れない（実測は[07章](07_taxonomy_mapping.md)）。その場合も**カード全体を落とさず、取れなかったチャートだけ**説明文にする。
-
-```json
-{ "profitLoss":   { "renderable": false,
-                    "note": "損益計算書: この企業のIFRS損益計算書は表示に対応していません。" },
-  "balanceSheet": { "renderable": true, "bars": [...] },
-  "cashFlow":     { "renderable": true, "steps": [...] } }
-```
 
 ### Builderの分担と共通ルール
 
