@@ -1,0 +1,24 @@
+# Dependabot security updates（脆弱性fix時の自動PR）のグループ化設定。
+# version updates（定期バンプPR）は使わない方針のため、各エントリは
+# open-pull-requests-limit: 0 で定期PRを無効化している（scheduleは必須項目のため形式的に記載）。
+# security updatesの有効/無効自体はリポジトリ設定側のトグルで制御される
+version: 2
+updates:
+  - package-ecosystem: bundler
+    directory: /application/backend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    groups:
+      backend-security:
+        applies-to: security-updates
+        patterns: ["*"]
+  - package-ecosystem: npm
+    directory: /application/frontend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    groups:
+      frontend-security:
+        applies-to: security-updates
+        patterns: ["*"]
