@@ -17,7 +17,14 @@ const nonJgaapBadge: Record<string, string> = {
   us_gaap: '米国基準',
 };
 
-export function ReportCard({ report }: { report: FinancialReport }) {
+// メモ化する理由: 無限スクロールの追加読込のたびに一覧全体が再レンダリングされるが、
+// 表示済みカードのreportはApolloキャッシュが同一参照を返すため、
+// チャート3枚分の再レンダリングを表示済みカードでスキップできる
+export const ReportCard = React.memo(function ReportCard({
+  report,
+}: {
+  report: FinancialReport;
+}) {
   const consolidationTypeLabel =
     report.consolidationType === 'consolidated' ? '連結' : '単体';
   // hasOwnPropertyで引く: 素の[]アクセスだとaccountingStandardが"constructor"等のとき
@@ -81,4 +88,4 @@ export function ReportCard({ report }: { report: FinancialReport }) {
       </CardContent>
     </Card>
   );
-}
+});
