@@ -1,4 +1,4 @@
-# 改善バックログ — DX / SEO・Web / AI活用
+# 改善バックログ — SEO・Web / AI活用
 
 未着手の改善候補を「現状・意図 → 作業手順」の形で、着手時にそのまま手を動かせる粒度で書く。
 対応が完了した項目は記述ごと削除する（完了の記録はgit履歴とdocs/guide/が持つ）。
@@ -91,8 +91,9 @@ backend-ci / frontend-ci が変更のあった側だけ本体ジョブを実行�
      end
    end
    ```
-2. nginx（`web/sites-enabled`）に `/sitemap.xml` → appserver へのproxy設定を追加
-   （現状 `/graphql` などAPI系のみproxyしているはずなので1 location追加）
+2. nginxに `/sitemap.xml` → appserver へのproxy設定を追加。開発は `web/sites-enabled/flaza.conf`
+   （現状は `/` → appfront、`/api` → appserver の2 location）。本番のnginx設定はリポジトリ外
+   管理のため、サーバ側にも同じlocationの追加が必要（[06章](guide/06_development_operations.md)）
 3. `frontend/public/sitemap.xml` を削除し、`robots.txt` の `Sitemap:` はそのまま
    （URLは変わらないため）
 4. Search Consoleでsitemapを再送信し、カバレッジを確認
@@ -177,8 +178,8 @@ CI常設のAPIコスト・Secrets管理に見合わない）
 1. 取込時に `unsupported` 判定されたら、factダンプ（要素名×コンテキスト×値のTSV）を
    S3等に保存し、`unsupported_format_samples` テーブルに (業種コード, docID, パス) を記録
 2. 週次ジョブ: 業種コードごとにサンプル1件のfactダンプをClaude APIに投げる。プロンプト骨子:
-   「以下は日本基準・業種コードXXXの有報XBRLのfact一覧。`docs/guide/03_system_overview.md` の
-   科目コード一覧に対応するタグを、根拠となる値の整合性（合計=内訳の和）と共に提案せよ」
+   「以下は日本基準・業種コードXXXの有報XBRLのfact一覧。`app/lib/financial_statements/item_codes.rb` の
+   科目コードに対応するタグを、根拠となる値の整合性（合計=内訳の和）と共に提案せよ」
 3. 提案をGitHub Issueとして自動起票（gh CLI or API）。**自動でコードに反映しない**——
    マッピングの正しさは人間が実測値と突き合わせて確認し、Extractorクラスとして実装する
 4. 実装後、そのサンプルをテストfixture（spec/fixtures/xbrl）に昇格させる
@@ -208,7 +209,7 @@ CI常設のAPIコスト・Secrets管理に見合わない）
 ### 3-6. データ品質の異常検知
 
 - **意図**: 「貸借が合わない」「前期比で桁が飛んだ」等の取込異常の早期検知
-  （現在は取込時の例外と「is_primaryなのにbs.assetsがない」のSentry警告のみ）
+  （現在は取込時の例外と、取込時のSentryメッセージ5種〈会計基準不明・EDINETコード不正・証券コード不一致・空抽出スキップ・is_primaryなのにbs.assetsがない〉のみ）
 
 **手順**（backend・1日。まずルールベースで開始、LLMは要約のみ）:
 

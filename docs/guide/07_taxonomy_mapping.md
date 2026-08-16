@@ -72,7 +72,7 @@ flowchart TB
 | `Prior1YearInstant` | 前期末時点（CFの期首残高のみ） |
 | 上記 + `_NonConsolidatedMember` | 単体（サフィックスなしは連結） |
 
-単体財務諸表はIFRS適用企業でも日本基準（`jppfs_cor`）でタグ付けされるため、単体は常に「一般」または「銀行」の形式で処理される。
+単体財務諸表はIFRS適用企業でも日本基準（`jppfs_cor`）でタグ付けされるため、単体は常に日本基準として処理される（業種により「一般」または「銀行」。それ以外の業種は未対応扱い）。
 
 ---
 
@@ -234,8 +234,10 @@ IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは
 ```ruby
 combined = money("jpigp_cor:GoodwillAndIntangibleAssetsIFRS", ...)
 if combined.nil?
-  combined = [money("jpigp_cor:GoodwillIFRS", ...),
-              money("jpigp_cor:IntangibleAssetsIFRS", ...)].compact.sum
+  goodwill   = money("jpigp_cor:GoodwillIFRS", ...)
+  intangible = money("jpigp_cor:IntangibleAssetsIFRS", ...)
+  # 3タグとも無い企業では合算せずnilのまま（「開示なし」に0を保存しない）
+  combined = [goodwill, intangible].compact.sum if goodwill || intangible
 end
 ```
 
@@ -261,14 +263,14 @@ end
 1. 対象企業の有報XBRLを取得して実際のタグを確認する（取得手順はbackendの `spec/fixtures/xbrl/README.md`）
 2. 科目コードが未定義なら `item_codes.rb` に追加する
 3. 該当形式のExtractorのマッピング定数に1行足す
-4. 表示に使うなら該当BuilderのSPECに追加する
+4. 表示に使うなら該当Builderの科目指定（`debit_specs`/`credit_specs` や CFの `STEPS` など）に追加する
 5. この文書の表を更新する
 
 3で `item_codes.rb` に無いコードを書くと、`mapping_consistency_spec.rb` が落ちて気づけるようになっている。
 
 ---
 
-## 実地調査の記録（6社・4形式）
+## 実地調査の記録（8社・4形式）
 
 ここまでの表の根拠になった実測。EDINET API v2で実際に有報XBRLを取得し、全factをダンプして確認した（調査当時の旧系統実装の実行結果とも突き合わせ済み）。タクソノミの公式資料だけでは分からない実態が実装判断を左右するため、実物での確認記録を残している。
 
@@ -282,8 +284,11 @@ end
 | 楽天グループ | 4755 | S100XTNW | IFRS | cte | ifrs_liquidity |
 | 東京海上HD | 8766 | S100YLS8 | IFRS | **INS** | ifrs_liquidity |
 | 三菱UFJ FG | 8306 | S100YJQO | Japan GAAP | **bnk** | jgaap_bank |
+| イオン | 8267 | S100YQ6Y | Japan GAAP | cte | jgaap_general |
+| インスペック | 6656 | S100YR8L | Japan GAAP | —（単体のみ。単体はCTE） | jgaap_general |
 
-- いずれも2026年提出の有報（楽天のみ2025/12期、他は2026/3期）
+- いずれも2026年提出の有報（楽天のみ2025/12期、イオンは2026/2期、インスペックは2026/4期、他は2026/3期）
+- イオン・インスペックは売上原価フォールバック対応（営業収益型・当期製品製造原価型。PLの表）のために後から追加した実測
 - 東京海上HDは2026/3期からIFRSへ移行済みだった（当初は日本基準・保険業のサンプルとして選定）。そのため**日本基準・保険業の実測サンプルは未取得**。将来対応時に実測すること
 
 ### 実測での発見と実装への反映
@@ -315,3 +320,10 @@ end
 | cf.operating | 1,041,431 | 1,490,041 | 1,485,190 | 424,093 | 1,390,562 | -23,064,420 |
 
 単位: 百万円。※1 = 親会社帰属7,955,554 + 非支配96,816。※2 = サマリタグからのフォールバック値。
+
+jgaap_generalの2社は売上原価フォールバックの検証用（単位はXBRLの開示単位のまま）:
+
+| item | イオン S100YQ6Y（百万円） | インスペック S100YR8L（千円） |
+|---|---|---|
+| pl.revenue | 10,715,342（`OperatingRevenue1`。`NetSales` 9,355,439ではない） | 2,478,950 |
+| pl.cost_of_sales | 6,804,966（`OperatingCost`） | 1,621,713（`CostOfProductsManufactured`） |
