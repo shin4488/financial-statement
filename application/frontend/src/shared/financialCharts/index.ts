@@ -1,6 +1,7 @@
 export { StackedBarChart, toStackRows } from './StackedBarChart';
 export { WaterfallChart, toWaterfallRows } from './WaterfallChart';
 export { ChartUnavailable } from './ChartUnavailable';
+export { formatAmount } from './formatAmount';
 export { colorByRole, colorForRole, stackLabelColor } from './colorRoles';
 export type {
   Segment,
