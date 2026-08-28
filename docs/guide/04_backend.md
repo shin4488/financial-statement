@@ -134,6 +134,7 @@ flowchart LR
 | `JgaapInsurance` | 有価証券・貸付金・保険契約準備金など保険専用タグ。**経常収益のタグ名が `OperatingIncomeINS`**（一般形式の営業利益 `OperatingIncome` と同系の名前で意味が違う） |
 | `IfrsClassified` | 非流動負債はタクソノミ公式のタイポ（`NonCurrentLabilitiesIFRS`）を先に引く。のれん+無形は合算記法 |
 | `IfrsLiquidity` | BSは合計系+現金。PL/CFは`IfrsClassified`と定数を共有（継承はしない。[03章](03_system_overview.md)） |
+| `IfrsSummary` | 詳細タグの無い有報（2019年3月期より前）用。経営指標サマリ（`jpcrp_cor:*IFRSSummaryOfBusinessResults`）から収益・税引前利益・CF5点の7科目のみ抽出。**BSは抽出しない**（サマリに負債の実値が無く、導出すると非支配持分が混ざるため） |
 
 同じ入口から、形式によって違う科目が出てくる（キーが無い = 開示なし）。
 
