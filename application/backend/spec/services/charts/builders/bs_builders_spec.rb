@@ -1,8 +1,16 @@
 require "rails_helper"
 
-# BS5形式のBuilderは共通基盤（two_sided_chart）の上の宣言なので、
+# 貸借2本を描くBS Builderは共通基盤（two_sided_chart）の上の宣言なので、
 # 「正常系 / 債務超過 / 貸借乖離」の3観点を形式ごとに検証する
 RSpec.describe "Charts::Builders BS各種" do
+  describe Charts::Builders::BsIfrsSummary do
+    it "科目によらず理由の説明つきで表示不可になる" do
+      chart = described_class.new({}).build
+      expect(chart.renderable).to be false
+      expect(chart.note).to include "詳細データが収録されていない"
+    end
+  end
+
   describe Charts::Builders::BsJgaapGeneral do
     let(:items) do
       { "bs.current_assets" => 400, "bs.tangible_fixed_assets" => 300,

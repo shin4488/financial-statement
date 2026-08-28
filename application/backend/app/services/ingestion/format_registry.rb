@@ -7,15 +7,18 @@ module Ingestion
     JGAAP_INSURANCE = "jgaap_insurance"
     IFRS_CLASSIFIED = "ifrs_classified"
     IFRS_LIQUIDITY  = "ifrs_liquidity"
+    IFRS_SUMMARY    = "ifrs_summary"
     UNSUPPORTED     = "unsupported"
-    ALL = [ JGAAP_GENERAL, JGAAP_BANK, JGAAP_INSURANCE, IFRS_CLASSIFIED, IFRS_LIQUIDITY, UNSUPPORTED ].freeze
+    ALL = [ JGAAP_GENERAL, JGAAP_BANK, JGAAP_INSURANCE, IFRS_CLASSIFIED, IFRS_LIQUIDITY,
+            IFRS_SUMMARY, UNSUPPORTED ].freeze
 
     EXTRACTORS = {
       JGAAP_GENERAL   => Extractors::JgaapGeneral,
       JGAAP_BANK      => Extractors::JgaapBank,
       JGAAP_INSURANCE => Extractors::JgaapInsurance,
       IFRS_CLASSIFIED => Extractors::IfrsClassified,
-      IFRS_LIQUIDITY  => Extractors::IfrsLiquidity
+      IFRS_LIQUIDITY  => Extractors::IfrsLiquidity,
+      IFRS_SUMMARY    => Extractors::IfrsSummary
     }.freeze
 
     def self.extractor_for(format) = EXTRACTORS[format] # unsupportedはnil

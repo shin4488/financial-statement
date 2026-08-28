@@ -7,6 +7,9 @@ module FinancialStatements
     #
     # コメントを1コードずつ書けるよう %w[] ではなく通常の配列リテラルで定義する
     # （%w[] 内にはコメントを書けないため。この可読性はレジストリの本質的な価値なので崩さないこと）
+    #
+    # ifrs_summary（経営指標サマリのみで構成する形式）は各セクションの形式の列挙に含めず、
+    # ここに1回だけ記す: 保存するのは pl.revenue / pl.profit_before_tax / cf.* の7コードのみ
 
     BS = [
       # ---- 全形式共通（jgaap_general / jgaap_bank / jgaap_insurance / ifrs_classified / ifrs_liquidity すべてが保存する）----

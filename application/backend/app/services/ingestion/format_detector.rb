@@ -19,12 +19,15 @@ module Ingestion
       when "ifrs"
         # IFRSのBS 2様式（流動/非流動 511000・流動性配列 512000）はDEIでは区別できないため
         # 「流動資産合計タグの実在」で判定する（流動性配列の様式には流動/非流動の合計要素自体が存在しない）。
-        # moneyがnil = タグ自体がない or 数値でない、のどちらでも流動性配列側に倒れるが、
-        # その場合BsIfrsLiquidityは合計科目だけで描けるため安全側の誤判定になる
+        # さらに資産合計タグすら無い書類は、本表の詳細タグ付けが行われる前
+        # （義務化は2019年3月31日以後終了事業年度から）の有報で jpigp_cor のfact自体が
+        # 収録されていないため、経営指標サマリだけで構成する形式に落とす
         if xbrl.money("jpigp_cor:CurrentAssetsIFRS", "CurrentYearInstant#{consolidation}")
           FormatRegistry::IFRS_CLASSIFIED
-        else
+        elsif xbrl.money("jpigp_cor:AssetsIFRS", "CurrentYearInstant#{consolidation}")
           FormatRegistry::IFRS_LIQUIDITY
+        else
+          FormatRegistry::IFRS_SUMMARY
         end
       else
         # us_gaap: 本表の詳細タグがEDINETタクソノミに存在しない（企業拡張タグのみ）

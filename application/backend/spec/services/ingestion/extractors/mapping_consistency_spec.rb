@@ -9,7 +9,8 @@ RSpec.describe "ExtractorマッピングとItemCodesレジストリの整合" do
     Ingestion::Extractors::JgaapBank      => %w[cf.cash_begin],
     Ingestion::Extractors::JgaapInsurance => %w[cf.cash_begin],
     Ingestion::Extractors::IfrsClassified => %w[cf.cash_begin],
-    Ingestion::Extractors::IfrsLiquidity  => %w[cf.cash_begin]
+    Ingestion::Extractors::IfrsLiquidity  => %w[cf.cash_begin],
+    Ingestion::Extractors::IfrsSummary    => %w[cf.cash_begin]
   }.freeze
 
   # マッピング表の値（単一タグ / フォールバックリスト / 合算 / 最大値）を平坦なタグ一覧にする
