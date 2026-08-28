@@ -20,6 +20,37 @@ namespace :ingestion do
     end
   end
 
+  # ifrs_summary形式の追加前に取り込まれ、詳細タグの無い有報が ifrs_liquidity として
+  # 保存されている既存データを取り直すためのタスク。対象を「primaryなのに資産合計が無い」に
+  # 絞るのは、正しく ifrs_liquidity と判定された有報を再取込せず EDINETへのリクエストを
+  # 最小にするため（移行完了後は対象0件になり、再実行しても何もしない）
+  desc "BSが取れていないifrs_liquidityの有報を再取込する（ifrs_summaryへの移行）"
+  task reingest_ifrs_summary: :environment do
+    target_statements = Disclosure::FinancialStatement
+                          .where(presentation_format: Ingestion::FormatRegistry::IFRS_LIQUIDITY,
+                                 is_primary: true)
+                          .where.not(id: Disclosure::FinancialStatementItem
+                                           .where(item_code: "bs.assets")
+                                           .select(:financial_statement_id))
+    doc_ids = Disclosure::Report.where(id: target_statements.select(:report_id))
+                                .order(:filing_date).pluck(:edinet_document_id)
+    puts "reingest #{doc_ids.size} documents"
+    ingester = Ingestion::ReportIngester.new
+    Dir.mktmpdir("edinet") do |work_dir|
+      doc_ids.each do |doc_id|
+        # 1件の失敗を他に波及させない（日次取込と同じ方針）。失敗分はログを見て個別に再実行する
+        begin
+          ingester.ingest(doc_id: doc_id, work_dir: work_dir)
+          puts "ingested #{doc_id}"
+        rescue => e
+          puts "ingest failed #{doc_id}: #{e.message}"
+          Sentry.capture_exception(e)
+        end
+        sleep(Ingestion::DailyIngestionService::THROTTLE_SECONDS) # EDINETのレート制限（403）対策
+      end
+    end
+  end
+
   # 新しい形式（業種）に対応したあと、既に unsupported で保存済みの有報を取り直すためのタスク。
   # 対象を unsupported に絞るのは、全期間のバックフィルより EDINET へのリクエストが桁違いに少なくて済むため
   desc "unsupported判定の財務諸表を含む有報（提出日の範囲指定）を再取込する 例: rake 'ingestion:reingest_unsupported[2025-08-01,2026-08-16]'"
