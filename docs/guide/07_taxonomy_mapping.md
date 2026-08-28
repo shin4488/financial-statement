@@ -40,6 +40,7 @@ flowchart TB
 | 保険 | `jgaap_insurance` | 日本基準・保険（生保・損保） |
 | 分類 | `ifrs_classified` | IFRS・流動/非流動分類BS（様式511000） |
 | 配列 | `ifrs_liquidity` | IFRS・流動性配列BS（様式512000） |
+| サマリ | `ifrs_summary` | IFRS・詳細タグなし（2019年3月期より前の有報。経営指標サマリ `jpcrp_cor:*IFRSSummaryOfBusinessResults` のみで構成） |
 
 業種別の勘定科目のタグは、標準タグ名に業種の接尾辞が付く（`OperatingRevenueELE`=電気の営業収益、`OperatingExpensesRWY`=鉄道の営業費、`SecuritiesAssetsINS`=保険の有価証券）。接尾辞は業種DEIコードと同じ: CNS=建設、BNK=銀行、INS=保険、SEC=証券、RWY=鉄道、WAT=海運、ELC=電気通信、ELE=電気、GAS=ガス、SPF=特定金融、CMD=商品先物、IVT=投資運用、INV=投資業（一覧はEDINETタクソノミの勘定科目リスト `1f_AccountList.xlsx` の業種別シート）。
 

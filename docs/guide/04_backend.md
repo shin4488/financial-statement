@@ -269,6 +269,7 @@ BSも同様に、固定資産は「有形・無形・投資その他の3分類�
 | `jgaap_insurance` | 主要科目+残差 | 銀行と共通 | 同上 |
 | `ifrs_classified` | 流動/非流動 | 費用+税引前利益（残差つき） | 同上 |
 | `ifrs_liquidity` | 現金+残差 | ifrs_classifiedと共通 | 同上 |
+| `ifrs_summary` | 「詳細データが収録されていない」（renderable: false。負債の実値がサマリに無く残差でも描かない） | ifrs_classifiedと共通（サマリの収益+税引前利益で骨格を描く） | 同上 |
 | `unsupported` | 「表示に対応していません」（renderable: false） | 同左 | Builderは共通だが科目が無いため常にrenderable: false |
 
 形式によらない共通ルールは基底クラスに1回だけ書く（形式別Builderには書かせない）。

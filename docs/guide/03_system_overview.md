@@ -291,10 +291,13 @@ flowchart TB
     FinTag -->|"ない（金融機関の様式）"| Fin["jgaap_bank / jgaap_insurance"]
     FinTag -->|"ある（持株会社の単体など）"| General
     Tag -->|ある| Cls["ifrs_classified"]
-    Tag -->|ない| Liq["ifrs_liquidity"]
+    Tag -->|"ない"| AssetsTag{"資産合計タグ<br>AssetsIFRS があるか"}
+    AssetsTag -->|ある| Liq["ifrs_liquidity"]
+    AssetsTag -->|"ない（詳細タグ義務化前の有報）"| Sum["ifrs_summary"]
 ```
 
 - IFRSの2様式はDEI（書類メタ情報。[01章](01_financial_knowledge.md)）では区別できず、タグの実在で判定する（根拠の実測は[07章](07_taxonomy_mapping.md)）
+- 資産合計タグすら無いIFRS書類は、本表の詳細タグ付けが義務化された2019年3月31日以後終了事業年度より前の有報（jpigp_corのfact自体が収録されていない）。経営指標サマリ（jpcrp_cor）だけで構成する `ifrs_summary` に落とす
 - 日本基準で形式を分けるのは、財務諸表の**骨格そのものが違う**銀行・保険だけ。建設・鉄道・電気・ガス・海運・電気通信・証券・特定金融・商品先物・投資業などは業種別の勘定科目を持つが骨格は一般と同じなので `jgaap_general` にまとめ、タグ名の違いはExtractorのフォールバックで吸収する（[04章](04_backend.md)）
 - 業種コードが銀行・保険でも流動資産タグを持つ財務諸表（持株会社の単体など）は一般様式で作られているため、タグの実在で `jgaap_general` に戻す（業種コードは提出者が付けるため、様式はデータで確かめる）
 - **単体財務諸表は常に日本基準として扱う**（[01章](01_financial_knowledge.md)の「IFRS企業でも単体は日本基準タグ」の実装反映）
