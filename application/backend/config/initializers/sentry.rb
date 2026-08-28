@@ -3,6 +3,13 @@ Sentry.init do |config|
   config.dsn = ENV["SENTRY_DSN"]
   config.breadcrumbs_logger = [ :active_support_logger, :http_logger ]
 
+  # 本番のみ送信する: development/testはローカル作業のエラー（DB未起動・デバッグ片等）が
+  # そのまま流れてノイズになるため
+  config.enabled_environments = %w[production]
+  # 運用スクリプトの正常終了（exit）や停止シグナル（kill・デプロイ再起動）は障害ではないため
+  # 送信しない。予期しないOOM等のSIGTERMも見えなくなるトレードオフは許容する
+  config.excluded_exceptions += %w[SystemExit SignalException]
+
   # send_default_piiは有効にしない: sentry-rubyのNet::HTTPパッチが外部APIリクエストの
   # クエリ文字列（EDINETのSubscription-Key）とボディまでSentryへ送出してしまうため
   config.send_default_pii = false
