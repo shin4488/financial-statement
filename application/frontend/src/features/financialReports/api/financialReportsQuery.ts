@@ -38,7 +38,7 @@ export const FINANCIAL_REPORTS_QUERY = gql(`
       cashFlow {
         renderable
         note
-        steps { key label amount kind }
+        steps { key label amount kind colorRole }
       }
     }
   }

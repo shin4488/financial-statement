@@ -98,15 +98,54 @@ export function StackedBarChart({
             backgroundColor: tooltipBackgroundColor,
             textAlign: 'left',
           }}
-          labelFormatter={() => ''} // 行インデックスが出てしまうため空に
-          formatter={(_value: unknown, key: unknown, item: unknown) => {
-            const payload = (item as { payload?: Row } | undefined)?.payload;
-            const s: Segment | undefined = payload?.__segments?.[key as string];
-            if (!s || hiddenRoles.has(s.colorRole)) {
-              return [null, null];
+          // 標準のツールチップにしない理由: formatterで[null, null]を返しても
+          // 空の行（約8px）が残るため、非表示role（spacer）を行ごと描かない
+          content={(props: unknown) => {
+            const p = props as {
+              active?: boolean;
+              payload?: { dataKey?: unknown; color?: string; payload?: Row }[];
+            };
+            const payload = p.payload ?? [];
+            const row = payload[0]?.payload;
+            if (!p.active || !row) {
+              return null;
             }
-            // 表示はsignedAmount: 債務超過の純資産や損失は負で見せる
-            return [formatAmount(s.signedAmount), s.label];
+            const entries = payload.filter((entry) => {
+              const s = row.__segments[String(entry.dataKey)];
+              return s !== undefined && !hiddenRoles.has(s.colorRole);
+            });
+            if (entries.length === 0) {
+              return null;
+            }
+            // 見た目はrechartsの標準ツールチップに合わせる（白地・グレー枠・行間4px・系列色の文字）
+            return (
+              <div
+                style={{
+                  margin: 0,
+                  padding: 10,
+                  backgroundColor: '#fff',
+                  border: '1px solid #ccc',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {entries.map((entry) => {
+                  const s: Segment = row.__segments[String(entry.dataKey)];
+                  return (
+                    <div
+                      key={s.key}
+                      style={{
+                        color: entry.color,
+                        paddingTop: 4,
+                        paddingBottom: 4,
+                      }}
+                    >
+                      {/* 表示はsignedAmount: 債務超過の純資産や損失は負で見せる */}
+                      {`${s.label} : ${formatAmount(s.signedAmount)}`}
+                    </div>
+                  );
+                })}
+              </div>
+            );
           }}
         />
         {columns.map(({ key, label, colorRole }) => (
