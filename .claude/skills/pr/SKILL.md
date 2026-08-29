@@ -22,6 +22,21 @@ git checkout -b <feature/fix/choreブランチ名>
   **デプロイはbackend → frontendの順**（フロントが新APIに依存し得るため。/deploy 参照）
 - マージはユーザーが行う
 
+## コミット前の機密情報チェック
+
+作業ツリー全体ではなく「実際にコミットされるもの（ステージ済みの内容）」を確認してからコミットする:
+
+```bash
+git status --short   # gitignore対象（config/application.yml等）が誤ってstageされていないか
+git diff --cached | grep -niE "api[_-]?key|secret|password|token|dsn|private key|BEGIN (RSA|OPENSSH)"
+```
+
+- 実値を書いてはいけないもの: APIキー・DSN・パスワード・トークン類、本番のホスト名/IP/接続情報
+  （git管理されるファイルには「項目名と入手方法」まで。docs/guide/06章の規約）
+- grepの一致=即NGではない。変数名・設定キー名・sampleのプレースホルダは問題なく、**実値かどうか**で判断する
+- 機密を含めてコミットしてしまったら: push前ならcommitを作り直す。push済みなら履歴から消えないため、
+  該当キーのローテーション（無効化・再発行）が必要
+
 ## CI
 
 - `.github/workflows/` の backend-ci / frontend-ci が、変更のあった側だけ本体ジョブを

@@ -73,6 +73,21 @@ RSpec.describe Charts::Builders::PlJgaapGeneral do
     end
   end
 
+  describe "営業費用の色" do
+    it "一括型（原価を含む合計）では原価と同じ色になる" do
+      chart = described_class.new({ "pl.revenue" => 1_000, "pl.operating_expenses" => 900,
+                                    "pl.operating_profit" => 100 }).build
+      expect(chart.bars.first.segments.find { |s| s.key == "operatingExpenses" }.color_role).to eq "expense1"
+    end
+
+    it "原価+営業費用型（原価控除後の費用）では販管費と同じ色になり、隣接する原価と見分けられる" do
+      chart = described_class.new({ "pl.revenue" => 1_000, "pl.cost_of_sales" => 300,
+                                    "pl.operating_expenses" => 600, "pl.operating_profit" => 100 }).build
+      roles = chart.bars.first.segments.to_h { |s| [ s.key, s.color_role ] }
+      expect(roles).to include("costOfSales" => "expense1", "operatingExpenses" => "expense2")
+    end
+  end
+
   it "売上か営業利益が欠ければunrenderable" do
     expect(described_class.new({ "pl.operating_profit" => 100 }).build.renderable).to be false
     expect(described_class.new({ "pl.revenue" => 100 }).build.renderable).to be false

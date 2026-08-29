@@ -71,77 +71,91 @@ module Ingestion
       # 中途半端な状態を残さない。有報間は独立（1件の失敗が他社に波及しない）
       def persist(doc_id, dei, statements)
         ActiveRecord::Base.transaction do
-          # find_or_initialize + update! で作成/更新を同型に扱う（訂正有報・バックフィル
-          # 再実行の冪等性）。自然キーはedinet_code（証券コードは変わり得るがEDINETコードは不変）
-          company = Disclosure::Company.find_or_initialize_by(edinet_code: dei.edinet_code)
-          # 企業マスタの名前・証券コードは「最新期の有報」からのみ更新する。
-          # 過去年度をバックフィルしたとき、社名変更前の古い名前でマスタが
-          # 上書きされるのを防ぐため（当時の名前はreports側に保存する）
-          if latest_fiscal_year?(company, dei)
-            company.update!(stock_code: dei.stock_code, name_ja: dei.name_ja, name_en: dei.name_en)
-          end
-
-          # Reportの自然キーは (企業, 会計期間)。edinet_document_id ではない点に注意:
-          # 訂正有報は別docIDで届くが「同じ期の報告書の上書き」として扱いたいため
-          report = Disclosure::Report.find_or_initialize_by(
-            company: company,
-            fiscal_year_start_date: dei.fiscal_year_start_date,
-            fiscal_year_end_date: dei.fiscal_year_end_date)
-          report.update!(
-            edinet_document_id: doc_id, filing_date: dei.filing_date,
-            company_name_ja: dei.name_ja, company_name_en: dei.name_en,
-            accounting_standard: dei.accounting_standard,
-            has_consolidated_statement: dei.has_consolidated,
-            consolidated_industry_code: dei.consolidated_industry_code,
-            non_consolidated_industry_code: dei.non_consolidated_industry_code)
-
+          company = upsert_company(dei)
+          report = upsert_report(company, doc_id, dei)
           # 今回の取込に現れない区分の行は削除する。連結廃止
           # （has_consolidatedがtrue→false）の再取込で旧・連結行の is_primary: true が
           # 残ると、一覧検索のJOINが同じ有報を2回返してしまうため
           report.financial_statements
                 .where.not(consolidation_type: statements.map(&:consolidation_type))
                 .destroy_all
-
-          statements.each do |ext|
-            fs = Disclosure::FinancialStatement.find_or_initialize_by(
-              report: report, consolidation_type: ext.consolidation_type)
-            # 科目が1つも取れない再取込は既存行を保持してスキップする。
-            # 財務factを含まない訂正有報（訂正箇所のみのXBRL）で、正しい科目と
-            # 形式判定を空で上書きしないためのガード。空のまま新規作成するのは
-            # 正常系（unsupported形式など）なのでスキップしない
-            if ext.items.empty? && fs.persisted? && fs.items.exists?
-              Sentry.capture_message(
-                "skip empty extraction for existing statement: #{doc_id} (#{ext.consolidation_type})",
-                level: :warning)
-              next
-            end
-            fs.update!(
-              accounting_standard: ext.accounting_standard,
-              presentation_format: ext.format,
-              is_primary: primary?(ext, dei))
-            # 科目は総入れ替え（delete→insert）。upsertにしない理由:
-            # 「行の存在=開示あり」の規約のため、訂正で開示されなくなった科目は
-            # 消えてもらう必要がある。upsertでは残留してしまう
-            fs.items.delete_all
-            rows = ext.items.map { |code, amount|
-              { financial_statement_id: fs.id, item_code: code, amount: amount,
-                created_at: Time.current, updated_at: Time.current } }
-            # insert_all!はモデルのバリデーションを通らないため、item_codeの正当性は
-            # Extractorのマッピング定数がItemCodes::ALLの範囲内であることをspecで担保する
-            Disclosure::FinancialStatementItem.insert_all!(rows) if rows.any?
-
-            # 主対象なのに資産合計すら取れないのは形式判定ミスの可能性が高い。
-            # 取込自体は継続する（unsupported形式や科目欠落はエラーではないため）。
-            # 「BSを抽出する形式か」は個別の形式名でなくExtractorのマッピングに聞く
-            # （BSを抽出しない形式を増やしてもここを触らずに済む）
-            extractor_class = FormatRegistry.extractor_for(ext.format)
-            if fs.is_primary && !ext.items.key?("bs.assets") &&
-               extractor_class&.item_codes&.include?("bs.assets")
-              Sentry.capture_message(
-                "primary statement missing bs.assets: #{doc_id} (#{ext.format})", level: :warning)
-            end
-          end
+          statements.each { |ext| upsert_statement(report, ext, dei, doc_id) }
         end
+      end
+
+      # find_or_initialize + update! で作成/更新を同型に扱う（訂正有報・バックフィル
+      # 再実行の冪等性）。自然キーはedinet_code（証券コードは変わり得るがEDINETコードは不変）
+      def upsert_company(dei)
+        company = Disclosure::Company.find_or_initialize_by(edinet_code: dei.edinet_code)
+        # 企業マスタの名前・証券コードは「最新期の有報」からのみ更新する。
+        # 過去年度をバックフィルしたとき、社名変更前の古い名前でマスタが
+        # 上書きされるのを防ぐため（当時の名前はreports側に保存する）
+        if latest_fiscal_year?(company, dei)
+          company.update!(stock_code: dei.stock_code, name_ja: dei.name_ja, name_en: dei.name_en)
+        end
+        company
+      end
+
+      # Reportの自然キーは (企業, 会計期間)。edinet_document_id ではない点に注意:
+      # 訂正有報は別docIDで届くが「同じ期の報告書の上書き」として扱いたいため
+      def upsert_report(company, doc_id, dei)
+        report = Disclosure::Report.find_or_initialize_by(
+          company: company,
+          fiscal_year_start_date: dei.fiscal_year_start_date,
+          fiscal_year_end_date: dei.fiscal_year_end_date)
+        report.update!(
+          edinet_document_id: doc_id, filing_date: dei.filing_date,
+          company_name_ja: dei.name_ja, company_name_en: dei.name_en,
+          accounting_standard: dei.accounting_standard,
+          has_consolidated_statement: dei.has_consolidated,
+          consolidated_industry_code: dei.consolidated_industry_code,
+          non_consolidated_industry_code: dei.non_consolidated_industry_code)
+        report
+      end
+
+      def upsert_statement(report, ext, dei, doc_id)
+        fs = Disclosure::FinancialStatement.find_or_initialize_by(
+          report: report, consolidation_type: ext.consolidation_type)
+        # 科目が1つも取れない再取込は既存行を保持してスキップする。
+        # 財務factを含まない訂正有報（訂正箇所のみのXBRL）で、正しい科目と
+        # 形式判定を空で上書きしないためのガード。空のまま新規作成するのは
+        # 正常系（unsupported形式など）なのでスキップしない
+        if ext.items.empty? && fs.persisted? && fs.items.exists?
+          Sentry.capture_message(
+            "skip empty extraction for existing statement: #{doc_id} (#{ext.consolidation_type})",
+            level: :warning)
+          return
+        end
+        fs.update!(
+          accounting_standard: ext.accounting_standard,
+          presentation_format: ext.format,
+          is_primary: primary?(ext, dei))
+        replace_items(fs, ext.items)
+        warn_missing_assets(fs, ext, doc_id)
+      end
+
+      # 科目は総入れ替え（delete→insert）。upsertにしない理由:
+      # 「行の存在=開示あり」の規約のため、訂正で開示されなくなった科目は
+      # 消えてもらう必要がある。upsertでは残留してしまう
+      def replace_items(fs, items)
+        fs.items.delete_all
+        rows = items.map { |code, amount|
+          { financial_statement_id: fs.id, item_code: code, amount: amount,
+            created_at: Time.current, updated_at: Time.current } }
+        # insert_all!はモデルのバリデーションを通らないため、item_codeの正当性は
+        # Extractorのマッピング定数がItemCodes::ALLの範囲内であることをspecで担保する
+        Disclosure::FinancialStatementItem.insert_all!(rows) if rows.any?
+      end
+
+      # 主対象なのに資産合計すら取れないのは形式判定ミスの可能性が高い。
+      # 取込自体は継続する（unsupported形式や科目欠落はエラーではないため）。
+      # 「BSを抽出する形式か」は個別の形式名でなくExtractorのマッピングに聞く
+      # （BSを抽出しない形式を増やしてもここを触らずに済む）
+      def warn_missing_assets(fs, ext, doc_id)
+        return unless fs.is_primary && !ext.items.key?("bs.assets")
+        return unless FormatRegistry.extractor_for(ext.format)&.item_codes&.include?("bs.assets")
+        Sentry.capture_message(
+          "primary statement missing bs.assets: #{doc_id} (#{ext.format})", level: :warning)
       end
 
       # is_primary = 一覧表示・検索の対象。投資判断では連結が重要のため連結を優先し、
