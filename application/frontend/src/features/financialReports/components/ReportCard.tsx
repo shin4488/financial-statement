@@ -3,8 +3,8 @@ import { Link } from '@mui/material';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
-import AppCarousel from './appCarousel/AppCarousel';
-import FirebaseAnalytics from '@/plugins/firebase/analytics';
+import AppCarousel from './AppCarousel';
+import { logClickEvent } from '@/plugins/firebase/analytics';
 import { StackedBarChart, WaterfallChart } from '@/shared/financialCharts';
 import type { FinancialReport } from '../api/types';
 
@@ -16,6 +16,9 @@ const nonJgaapBadge: Record<string, string> = {
   ifrs: 'IFRS',
   us_gaap: '米国基準',
 };
+
+// リンク先URLとアナリティクスのlink_domainを同じ値から導出する
+const KABUTAN_HOST = 'kabutan.jp';
 
 // React.memoで包む理由: 無限スクロールで次の30件を読み込むと一覧全体が再レンダリングされ、
 // 画面に表示済みの（何も変わっていない）カードまでチャート3枚ごと描き直されて重い。
@@ -37,7 +40,7 @@ export const ReportCard = React.memo(function ReportCard({
   )
     ? nonJgaapBadge[report.accountingStandard]
     : undefined;
-  const kabutanUrl = `https://kabutan.jp/stock/?code=${encodeURIComponent(
+  const kabutanUrl = `https://${KABUTAN_HOST}/stock/?code=${encodeURIComponent(
     report.stockCode ?? '',
   )}`;
   const subheaderSuffix = standardLabel
@@ -60,9 +63,9 @@ export const ReportCard = React.memo(function ReportCard({
             >
               <span
                 onClick={() =>
-                  FirebaseAnalytics.logClickEvent({
+                  logClickEvent({
                     content_type: 'url',
-                    link_domain: 'kabutan.jp',
+                    link_domain: KABUTAN_HOST,
                     link_url: kabutanUrl,
                     custom_stock_code: report.stockCode ?? '',
                     custom_title: report.companyName ?? '',
