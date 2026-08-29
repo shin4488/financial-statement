@@ -13,10 +13,10 @@ RSpec.describe Ingestion::ReportIngester do
       filing_date: nil, consolidated_industry_code: nil, non_consolidated_industry_code: nil)
   end
 
-  def extraction(consolidation_type, items: { "bs.assets" => 100 })
+  def extraction(consolidation_type, items: { "bs.assets" => 100 }, format: "jgaap_general")
     Ingestion::ReportIngester::Extraction.new(
       consolidation_type: consolidation_type, accounting_standard: "japan_gaap",
-      format: "jgaap_general", items: items)
+      format: format, items: items)
   end
 
   def statements
@@ -77,6 +77,29 @@ RSpec.describe Ingestion::ReportIngester do
       fs = Disclosure::FinancialStatement.sole
       expect(fs.items.pluck(:item_code, :amount)).to eq [ [ "bs.assets", 100 ] ]
       expect(fs.presentation_format).to eq "jgaap_general"
+    end
+  end
+
+  describe "primaryの財務諸表でbs.assetsが無いときの警告" do
+    def persist_primary(format:, items:, fy_start:, fy_end:)
+      ingester.send(:persist, "S0000001",
+                    dei(name_ja: "テスト", fy_start: fy_start, fy_end: fy_end),
+                    [ extraction(:non_consolidated, items: items, format: format) ])
+    end
+
+    it "BSを抽出する形式では形式判定ミスの可能性として警告する" do
+      expect(Sentry).to receive(:capture_message)
+        .with(/primary statement missing bs\.assets/, level: :warning)
+      persist_primary(format: "ifrs_liquidity", items: { "pl.revenue" => 1 },
+                      fy_start: "2025-04-01", fy_end: "2026-03-31")
+    end
+
+    it "BSを抽出しない形式（ifrs_summary・unsupported）では警告しない" do
+      expect(Sentry).not_to receive(:capture_message)
+      persist_primary(format: "ifrs_summary", items: { "pl.revenue" => 1 },
+                      fy_start: "2025-04-01", fy_end: "2026-03-31")
+      persist_primary(format: "unsupported", items: {},
+                      fy_start: "2024-04-01", fy_end: "2025-03-31")
     end
   end
 

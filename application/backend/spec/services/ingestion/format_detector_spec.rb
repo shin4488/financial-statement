@@ -67,9 +67,13 @@ RSpec.describe Ingestion::FormatDetector do
   end
 
   describe "IFRS" do
-    it "流動資産タグが実在すればclassified、なければliquidity" do
+    it "流動資産タグが実在すればclassified、資産合計のみならliquidity" do
       expect(detect(xbrl_with("jpigp_cor:CurrentAssetsIFRS"), "ifrs", "cte")).to eq "ifrs_classified"
-      expect(detect(xbrl_with, "ifrs", "INS")).to eq "ifrs_liquidity"
+      expect(detect(xbrl_with("jpigp_cor:AssetsIFRS"), "ifrs", "INS")).to eq "ifrs_liquidity"
+    end
+
+    it "本表タグが1つも無い書類（詳細タグ付け義務化前）はsummaryになる" do
+      expect(detect(xbrl_with, "ifrs", "cte")).to eq "ifrs_summary"
     end
   end
 

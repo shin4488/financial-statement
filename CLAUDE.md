@@ -35,7 +35,7 @@ docker-compose.yml     # 全体起動（web:10000, api:20000）
 
 - 証券コードはEDINET上5桁、UI上は4桁（末尾0を付けて検索する）
 - 会計基準はDEIタグ `AccountingStandardsDEI`（Japan GAAP / US GAAP / IFRS）で判定
-- **IFRS企業の連結財務諸表は `jpigp_cor` 名前空間**（日本基準は `jppfs_cor`）。現行実装はIFRS（`ifrs_classified` / `ifrs_liquidity`）と日本基準の銀行にも対応済み
+- **IFRS企業の連結財務諸表は `jpigp_cor` 名前空間**（日本基準は `jppfs_cor`）。現行実装はIFRS（`ifrs_classified` / `ifrs_liquidity`、詳細タグ義務化前=2019年3月期より前の有報は経営指標サマリのみの `ifrs_summary`）と日本基準の銀行にも対応済み
 - IFRS企業でも**単体財務諸表は日本基準**でタグ付けされる
 - 日本基準で骨格が違うのは銀行・保険（業種DEIコード bnk/ins。`jgaap_bank` / `jgaap_insurance`）。建設・鉄道・電気・ガス・海運・電気通信・証券・特定金融・商品先物・投資業などは業種別タグを持つが `jgaap_general` に吸収済み（Extractorのフォールバック）。米国基準は `unsupported`（グラフの代わりに説明文を出す正常系）
 - **実装済みアーキテクチャの正は `docs/guide/` の03章（全体像・4層設計・データモデル）と04章（取込・チャート生成・API）**。旧系統（SecurityReport系）のコードは削除済みで、`security_reports`テーブルのみ凍結保管（`docs/guide/08_unused_but_kept.md`）

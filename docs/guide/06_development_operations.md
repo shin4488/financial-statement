@@ -95,7 +95,7 @@ flowchart LR
 | `accounting standard unknown` | 未知の会計基準（取込対象外としてスキップ済み） | 対応不要。頻発するなら形式対応を検討 |
 | `primary statement missing bs.assets` | 取り込めたが主要科目が欠けている | Extractor・形式判定を修正して再取込 |
 
-新しい業種・形式に対応した後は、既に `unsupported` で保存済みの有報を `rake 'ingestion:reingest_unsupported[提出日from,提出日to]'` で取り直す（対象を `unsupported` を含む有報だけに絞るため、全期間のバックフィルよりEDINETへのリクエストが桁違いに少ない。1件ずつ1秒間隔・失敗は隔離）。取込コードを変えたデプロイでは、日次ジョブ側（sidekiq）の再起動も忘れないこと（[deployスキル](../../.claude/skills/deploy/SKILL.md)の2-b）。
+新しい業種・形式に対応した後は、既に `unsupported` で保存済みの有報を `rake 'ingestion:reingest_unsupported[提出日from,提出日to]'` で取り直す（対象を `unsupported` を含む有報だけに絞るため、全期間のバックフィルよりEDINETへのリクエストが桁違いに少ない。1件ずつ1秒間隔・失敗は隔離）。詳細タグ義務化前のIFRS有報が `ifrs_liquidity` のまま残っている環境では `rake ingestion:reingest_ifrs_summary` で取り直す（対象はDBから自動特定。移行完了後は0件になり再実行しても何もしない）。取込コードを変えたデプロイでは、日次ジョブ側（sidekiq）の再起動も忘れないこと（[deployスキル](../../.claude/skills/deploy/SKILL.md)の2-b）。
 
 日々の健全性確認は `.claude/skills/investee-daily-check/` のスクリプト1本にまとまっており、次を一度に確認できる。
 

@@ -40,6 +40,7 @@ flowchart TB
 | 保険 | `jgaap_insurance` | 日本基準・保険（生保・損保） |
 | 分類 | `ifrs_classified` | IFRS・流動/非流動分類BS（様式511000） |
 | 配列 | `ifrs_liquidity` | IFRS・流動性配列BS（様式512000） |
+| サマリ | `ifrs_summary` | IFRS・詳細タグなし（2019年3月期より前の有報。経営指標サマリ `jpcrp_cor:*IFRSSummaryOfBusinessResults` のみで構成） |
 
 業種別の勘定科目のタグは、標準タグ名に業種の接尾辞が付く（`OperatingRevenueELE`=電気の営業収益、`OperatingExpensesRWY`=鉄道の営業費、`SecuritiesAssetsINS`=保険の有価証券）。接尾辞は業種DEIコードと同じ: CNS=建設、BNK=銀行、INS=保険、SEC=証券、RWY=鉄道、WAT=海運、ELC=電気通信、ELE=電気、GAS=ガス、SPF=特定金融、CMD=商品先物、IVT=投資運用、INV=投資業（一覧はEDINETタクソノミの勘定科目リスト `1f_AccountList.xlsx` の業種別シート）。
 
@@ -351,6 +352,7 @@ IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは
 | 東京海上: 保険収益が拡張タグ `InsuranceRevenueIFRS`（7.69兆円）のみで、経営指標サマリの標準タグも存在しない | 標準タグだけでは取れない企業が実在する → 「PLは表示不可」を正常系にする（[04章](04_backend.md)実例2） |
 | CFの3区分と現金同等物は全形式で取得可能（タグ名が基準別に異なるのみ） | CFチャートを全形式共通のBuilderにできる（[04章](04_backend.md)） |
 | 銀行BSに流動/固定の区分がなく、合計だけは汎用タグ（`jppfs_cor:Assets` 等）で取れる | 銀行BSは主要科目+残差で描く（[04章](04_backend.md)実例1） |
+| 2019年3月期より前のIFRS有報（S100SO41ほか）は `jpigp_cor` のfact自体が収録されていない（詳細タグ付けは2019年3月31日以後終了事業年度から義務化）。財務諸表の値は経営指標サマリ `jpcrp_cor:*IFRSSummaryOfBusinessResults` のみ | 資産合計タグも無いIFRS書類はサマリだけで構成する `ifrs_summary` に落とす（[03章](03_system_overview.md)）。BSはサマリに負債の実値が無いため描かず説明文にする |
 
 ### 金融庁 IFRSタクソノミ要素リスト（1g_IFRS_ElementList.xlsx）からの知見
 
@@ -377,6 +379,12 @@ jgaap_generalの2社は売上原価フォールバックの検証用（単位は
 |---|---|---|
 | pl.revenue | 10,715,342（`OperatingRevenue1`。`NetSales` 9,355,439ではない） | 2,478,950 |
 | pl.cost_of_sales | 6,804,966（`OperatingCost`） | 1,621,713（`CostOfProductsManufactured`） |
+
+ifrs_summaryの検証用（クリエイト・レストランツHD S100SO41、2019年2月期。単位: 百万円。すべて経営指標サマリのタグから）:
+
+| pl.revenue | pl.profit_before_tax | cf.operating | cf.investing | cf.financing | cf.cash_begin | cf.cash_end |
+|---|---|---|---|---|---|---|
+| 119,281 | 3,688 | 8,364 | -4,886 | -2,900 | 12,665 | 13,248 |
 
 ### 業種別対応の実測（本番の直近1年で `unsupported` だった業種）
 

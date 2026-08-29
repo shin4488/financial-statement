@@ -9,7 +9,7 @@ bundle exec rails runner '
   dir = Rails.root.join("spec/fixtures/xbrl").to_s
   %w[S100YB5L S100YB25 S100YCP3 S100XTNW S100YLS8 S100YJQO S100YQ6Y S100YR8L
      S100YDJC S100YIHR S100YC7N S100YE63 S100Y9T5 S100Y90D S100XTDX S100YANQ S100YI2V
-     S100YJB4 S100Y0DB S100YD29 S100YCL0 S100YE7T].each do |doc_id|
+     S100YJB4 S100Y0DB S100YD29 S100YCL0 S100YE7T S100SO41].each do |doc_id|
     path = client.download_xbrl(doc_id: doc_id, work_dir: dir)
     puts "#{doc_id}: #{path}"
   end
@@ -40,6 +40,7 @@ bundle exec rails runner '
 | S100YD29 | かんぽ生命 | jgaap_insurance判定（連結・単体とも）/ 経常収益=OperatingIncomeINS / 保険契約準備金 |
 | S100YCL0 | ソニーフィナンシャルG | 連結はjgaap_insurance / 単体は業種コードinsでも流動資産があるためjgaap_general |
 | S100YE7T | 日本郵政 | 複数業種コード（bnk,ins）→ 先頭の銀行 / 貯金が企業拡張タグのためBSは描けない |
+| S100SO41 | クリエイト・レストランツHD | ifrs_summary判定（2019年2月期=詳細タグ義務化前でjpigp_corが無い）/ 経営指標サマリからPL骨格+CF5点 |
 
 期待値の出典はリポジトリルートの docs/guide/07_taxonomy_mapping.md の実測表。
 フィクスチャが存在しない場合、該当スペックはskipされる。

@@ -129,8 +129,10 @@ module Ingestion
             Disclosure::FinancialStatementItem.insert_all!(rows) if rows.any?
 
             # 主対象なのに資産合計すら取れないのは形式判定ミスの可能性が高い。
-            # 取込自体は継続する（unsupported形式や科目欠落はエラーではないため）
-            if fs.is_primary && !ext.items.key?("bs.assets") && ext.format != FormatRegistry::UNSUPPORTED
+            # 取込自体は継続する（unsupported形式や科目欠落はエラーではないため）。
+            # ifrs_summaryはBSを抽出しない形式のため対象外
+            if fs.is_primary && !ext.items.key?("bs.assets") &&
+               ![ FormatRegistry::UNSUPPORTED, FormatRegistry::IFRS_SUMMARY ].include?(ext.format)
               Sentry.capture_message(
                 "primary statement missing bs.assets: #{doc_id} (#{ext.format})", level: :warning)
             end
