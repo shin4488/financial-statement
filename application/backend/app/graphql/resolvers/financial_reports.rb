@@ -7,7 +7,7 @@ module Resolvers
 
     # 既定の複雑度は引数を見ないため limit:1 と limit:100 が同コスト扱いになり、
     # エイリアスを並べるだけで上限内に高負荷リクエストを作れてしまう。
-    # 実測したコストは「エイリアス数 x (固定コスト + 件数比例分)」の形のため、
+    # コストは「エイリアス数 * (固定コスト + 件数比例分)」の形になるため、
     # child_complexityで固定コスト分を、limitの項で件数比例分を負担させる
     complexity ->(_ctx, args, child_complexity) { child_complexity + args[:limit] / 2 }
 
@@ -41,7 +41,7 @@ module Resolvers
         charts = Charts::BuilderRegistry.build_all(fs)
         {
           id: report.id,
-          stock_code: report.company.stock_code&.delete_suffix("0"),
+          stock_code: Disclosure::StockCode.to_display(report.company.stock_code),
           # 有報に保存した提出時点の名前を優先する: 社名変更があった企業でも、
           # 各年度の有報は当時の企業名で表示するため（companiesは最新名のマスタ）
           company_name: report.company_name_ja || report.company.name_ja,
