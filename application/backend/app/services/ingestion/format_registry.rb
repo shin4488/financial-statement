@@ -1,6 +1,6 @@
 module Ingestion
   # 表示形式（presentation_format）の一覧と、形式→Extractorの対応。
-  # 新形式の追加はここに定数1つ（ALLへの追加含む） + EXTRACTORSに1行 + Extractorクラス1つ（+ Builder）で完結する
+  # 新しい形式に対応するときの手順全体は docs/guide/04_backend.md の「新しい業種・形式の追加手順」を参照
   module FormatRegistry
     JGAAP_GENERAL   = "jgaap_general"
     JGAAP_BANK      = "jgaap_bank"
@@ -9,8 +9,6 @@ module Ingestion
     IFRS_LIQUIDITY  = "ifrs_liquidity"
     IFRS_SUMMARY    = "ifrs_summary"
     UNSUPPORTED     = "unsupported"
-    ALL = [ JGAAP_GENERAL, JGAAP_BANK, JGAAP_INSURANCE, IFRS_CLASSIFIED, IFRS_LIQUIDITY,
-            IFRS_SUMMARY, UNSUPPORTED ].freeze
 
     EXTRACTORS = {
       JGAAP_GENERAL   => Extractors::JgaapGeneral,
@@ -20,6 +18,9 @@ module Ingestion
       IFRS_LIQUIDITY  => Extractors::IfrsLiquidity,
       IFRS_SUMMARY    => Extractors::IfrsSummary
     }.freeze
+
+    # 形式の正当な値一覧はEXTRACTORSから導出する（別に列挙すると形式追加時に片方を忘れるため）
+    ALL = (EXTRACTORS.keys + [ UNSUPPORTED ]).freeze
 
     def self.extractor_for(format) = EXTRACTORS[format] # unsupportedはnil
   end

@@ -41,8 +41,10 @@ module Ingestion
       FileUtils.rm_f(xbrl_path) if xbrl_path
     end
 
+    Extraction = Struct.new(:consolidation_type, :accounting_standard, :format, :items, keyword_init: true)
+    private_constant :Extraction
+
     private
-      Extraction = Struct.new(:consolidation_type, :accounting_standard, :format, :items, keyword_init: true)
 
       def build_statements(xbrl, dei)
         specs = []
@@ -130,9 +132,11 @@ module Ingestion
 
             # 主対象なのに資産合計すら取れないのは形式判定ミスの可能性が高い。
             # 取込自体は継続する（unsupported形式や科目欠落はエラーではないため）。
-            # ifrs_summaryはBSを抽出しない形式のため対象外
+            # 「BSを抽出する形式か」は個別の形式名でなくExtractorのマッピングに聞く
+            # （BSを抽出しない形式を増やしてもここを触らずに済む）
+            extractor_class = FormatRegistry.extractor_for(ext.format)
             if fs.is_primary && !ext.items.key?("bs.assets") &&
-               ![ FormatRegistry::UNSUPPORTED, FormatRegistry::IFRS_SUMMARY ].include?(ext.format)
+               extractor_class&.item_codes&.include?("bs.assets")
               Sentry.capture_message(
                 "primary statement missing bs.assets: #{doc_id} (#{ext.format})", level: :warning)
             end

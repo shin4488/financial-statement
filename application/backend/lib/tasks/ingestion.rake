@@ -1,5 +1,25 @@
 # rails cの手打ちにしない理由: 長時間ジョブは中断・再開が前提になるため、
 # コマンド1つで任意期間を再実行できる形にしておく（全処理が冪等のため重複実行は無害）
+module IngestionTasks
+  # docID列を上から順に取り込む（このファイルの全タスク共通の実行部）。
+  # 1件の失敗を他に波及させない（日次取込と同じ方針）。失敗分は出力を見て個別に再実行する
+  def self.ingest_each(doc_ids)
+    ingester = Ingestion::ReportIngester.new
+    Dir.mktmpdir("edinet") do |work_dir|
+      doc_ids.each do |doc_id|
+        begin
+          ingester.ingest(doc_id: doc_id, work_dir: work_dir)
+          puts "ingested #{doc_id}"
+        rescue => e
+          puts "ingest failed #{doc_id}: #{e.message}"
+          Sentry.capture_exception(e)
+        end
+        sleep(Ingestion::DailyIngestionService::THROTTLE_SECONDS) # EDINETのレート制限（403）対策
+      end
+    end
+  end
+end
+
 namespace :ingestion do
   desc "指定期間の有報をEDINETから取り込む 例: rake 'ingestion:backfill[2025-01-01,2025-12-31]'"
   task :backfill, [ :from, :to ] => :environment do |_, args|
@@ -11,13 +31,7 @@ namespace :ingestion do
 
   desc "docID指定で有報を取り込む 例: rake 'ingestion:documents[S100YB5L S100YB25]'"
   task :documents, [ :doc_ids ] => :environment do |_, args|
-    ingester = Ingestion::ReportIngester.new
-    Dir.mktmpdir("edinet") do |work_dir|
-      args.fetch(:doc_ids).split(/[,\s]+/).each do |doc_id|
-        ingester.ingest(doc_id: doc_id, work_dir: work_dir)
-        puts "ingested #{doc_id}"
-      end
-    end
+    IngestionTasks.ingest_each(args.fetch(:doc_ids).split(/[,\s]+/))
   end
 
   # ifrs_summary形式の追加前に取り込まれ、詳細タグの無い有報が ifrs_liquidity として
@@ -35,20 +49,7 @@ namespace :ingestion do
     doc_ids = Disclosure::Report.where(id: target_statements.select(:report_id))
                                 .order(:filing_date).pluck(:edinet_document_id)
     puts "reingest #{doc_ids.size} documents"
-    ingester = Ingestion::ReportIngester.new
-    Dir.mktmpdir("edinet") do |work_dir|
-      doc_ids.each do |doc_id|
-        # 1件の失敗を他に波及させない（日次取込と同じ方針）。失敗分はログを見て個別に再実行する
-        begin
-          ingester.ingest(doc_id: doc_id, work_dir: work_dir)
-          puts "ingested #{doc_id}"
-        rescue => e
-          puts "ingest failed #{doc_id}: #{e.message}"
-          Sentry.capture_exception(e)
-        end
-        sleep(Ingestion::DailyIngestionService::THROTTLE_SECONDS) # EDINETのレート制限（403）対策
-      end
-    end
+    IngestionTasks.ingest_each(doc_ids)
   end
 
   # 新しい形式（業種）に対応したあと、既に unsupported で保存済みの有報を取り直すためのタスク。
@@ -63,19 +64,6 @@ namespace :ingestion do
     doc_ids = Disclosure::Report.where(id: unsupported_report_ids, filing_date: from..to)
                                 .order(:filing_date).pluck(:edinet_document_id)
     puts "reingest #{doc_ids.size} documents (filing_date #{from}..#{to})"
-    ingester = Ingestion::ReportIngester.new
-    Dir.mktmpdir("edinet") do |work_dir|
-      doc_ids.each do |doc_id|
-        # 1件の失敗を他に波及させない（日次取込と同じ方針）。失敗分はログを見て個別に再実行する
-        begin
-          ingester.ingest(doc_id: doc_id, work_dir: work_dir)
-          puts "ingested #{doc_id}"
-        rescue => e
-          puts "ingest failed #{doc_id}: #{e.message}"
-          Sentry.capture_exception(e)
-        end
-        sleep(Ingestion::DailyIngestionService::THROTTLE_SECONDS) # EDINETのレート制限（403）対策
-      end
-    end
+    IngestionTasks.ingest_each(doc_ids)
   end
 end

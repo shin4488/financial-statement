@@ -10,6 +10,6 @@ class Charts::Builders::BsIfrsClassified < Charts::Builders::StackBase
         [ "nonCurrentLiabilities", "非流動負債", "bs.non_current_liabilities", "liability2" ]
       ],
       equity: val("bs.equity"), equity_label: "資本", base: val("bs.assets"),
-      unrenderable_note: "財政状態計算書: データがない、または表示対応していないデータです。")
+      unrenderable_note: no_data_note("財政状態計算書"))
   end
 end

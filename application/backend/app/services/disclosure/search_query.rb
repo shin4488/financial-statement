@@ -16,8 +16,8 @@ module Disclosure
                                        fiscal_year_end_date: :desc, updated_at: :desc)
                                 .limit(limit).offset(offset)
       if stock_codes.present?
-        # 証券コードはEDINET上5桁（4桁コード+チェック用の末尾"0"）。UIは4桁入力のため0パディングして照合する
-        scope = scope.joins(:company).where(companies: { stock_code: stock_codes.map { |c| "#{c}0" } })
+        scope = scope.joins(:company)
+                     .where(companies: { stock_code: stock_codes.map { |c| Disclosure::StockCode.to_edinet(c) } })
       end
       apply_cf_signs(scope, cf_signs.compact)
     end

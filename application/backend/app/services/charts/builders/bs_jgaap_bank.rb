@@ -8,7 +8,7 @@ class Charts::Builders::BsJgaapBank < Charts::Builders::StackBase
     # 形式判定ミスか取込不良の可能性が高い）。
     # 資産側の内訳（貸出金等）は欠けても残差の「その他資産」に吸収されるだけなので許容する
     deposits = val("bs.deposits")
-    return Charts::StackChart.unrenderable("貸借対照表: データがない、または表示対応していないデータです。") if deposits.nil?
+    return Charts::StackChart.unrenderable(no_data_note("貸借対照表")) if deposits.nil?
 
     assets = val("bs.assets")
     known_assets = %w[bs.cash_and_equivalents bs.loans bs.securities].sum { |c| val(c).to_i }
@@ -27,6 +27,6 @@ class Charts::Builders::BsJgaapBank < Charts::Builders::StackBase
         [ "otherLiabilities", "その他負債", other_liabilities, "liability2" ]
       ],
       equity: val("bs.equity"), equity_label: "純資産", base: assets,
-      unrenderable_note: "貸借対照表: データがない、または表示対応していないデータです。")
+      unrenderable_note: no_data_note("貸借対照表"))
   end
 end

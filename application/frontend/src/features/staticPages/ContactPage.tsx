@@ -18,7 +18,7 @@ import {
 const CONTACT_FORM_EMBED_URL =
   'https://docs.google.com/forms/d/e/1FAIpQLSdhCvJoiN7KLtGFu6ojHkNa6K6RllvkMXTZ5oyBGJGg00MY7w/viewform?embedded=true';
 // 高さはフォーム全体が枠内スクロールなしで収まる値（PC幅はGoogleフォームが埋め込みコードで提示した値。
-// スマホ幅は文字の折り返しで縦に伸びるため実測で余裕を持たせる）。枠が足りない場合も枠内でスクロールはできる
+// スマホ幅は文字の折り返しで縦に伸びるため余裕を持たせる）。枠が足りない場合も枠内でスクロールはできる
 const CONTACT_FORM_HEIGHT = { xs: 1450, sm: 1129 };
 
 function ContactForm() {

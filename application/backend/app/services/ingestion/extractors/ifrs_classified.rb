@@ -46,10 +46,4 @@ class Ingestion::Extractors::IfrsClassified < Ingestion::Extractors::Base
     "cf.investing" => "jpigp_cor:NetCashProvidedByUsedInInvestingActivitiesIFRS", # IFRSはInvesting（JGAAPはInvestment）
     "cf.financing" => "jpigp_cor:NetCashProvidedByUsedInFinancingActivitiesIFRS"
   }.freeze
-
-  private
-    def extract_extras(result)
-      put(result, "cf.cash_begin",
-          @xbrl.money("jpigp_cor:CashAndCashEquivalentsIFRS", "Prior1YearInstant#{@c}"))
-    end
 end

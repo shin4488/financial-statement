@@ -6,6 +6,12 @@ import {
   logEvent,
 } from 'firebase/analytics';
 
+type AnalyticsEventParams = {
+  [key: string]: unknown;
+  content_type?: string | undefined;
+  item_id?: string | undefined;
+};
+
 export default class FirebaseAnalytics {
   private static analytics: Analytics | null = null;
 
@@ -17,45 +23,27 @@ export default class FirebaseAnalytics {
   }
 
   private static logEvent(
-    evnetName: string,
-    eventParams?:
-      | {
-          [key: string]: unknown;
-          content_type?: string | undefined;
-          item_id?: string | undefined;
-        }
-      | undefined,
+    eventName: string,
+    eventParams?: AnalyticsEventParams,
     options?: AnalyticsCallOptions | undefined,
   ) {
     logEvent(
       this.analytics ?? FirebaseAnalytics.getAnalytics(),
-      evnetName,
+      eventName,
       eventParams,
       options,
     );
   }
 
   static logLoadMoreStatementsEvent(
-    eventParams?:
-      | {
-          [key: string]: unknown;
-          content_type?: string | undefined;
-          item_id?: string | undefined;
-        }
-      | undefined,
+    eventParams?: AnalyticsEventParams,
     options?: AnalyticsCallOptions | undefined,
   ) {
     FirebaseAnalytics.logEvent('load_more_statements', eventParams, options);
   }
 
   static logClickEvent(
-    eventParams?:
-      | {
-          [key: string]: unknown;
-          content_type?: string | undefined;
-          item_id?: string | undefined;
-        }
-      | undefined,
+    eventParams?: AnalyticsEventParams,
     options?: AnalyticsCallOptions | undefined,
   ) {
     FirebaseAnalytics.logEvent('click', eventParams, options);

@@ -21,7 +21,7 @@ class Charts::Builders::BsJgaapGeneral < Charts::Builders::StackBase
         [ "fixedLiabilities",   "固定負債", "bs.non_current_liabilities", "liability2" ]
       ],
       equity: val("bs.equity"), equity_label: "純資産", base: base,
-      unrenderable_note: "貸借対照表: データがない、または表示対応していないデータです。")
+      unrenderable_note: no_data_note("貸借対照表"))
   end
 
   private
@@ -33,8 +33,8 @@ class Charts::Builders::BsJgaapGeneral < Charts::Builders::StackBase
     def fixed_asset_specs
       total = val("bs.non_current_assets")
       breakdown_total = FIXED_ASSET_BREAKDOWN.sum { |_, _, code, _| val(code).to_i }
-      # 固定資産合計が取れない・ゼロの財務諸表は判断材料がないので従来どおり内訳で描く
-      return FIXED_ASSET_BREAKDOWN if total.nil? || total.zero? || balanced?(total, breakdown_total)
+      # 固定資産合計が取れない・ゼロの財務諸表は判断材料がないので内訳（基本形）で描く
+      return FIXED_ASSET_BREAKDOWN if total.nil? || total.zero? || within_tolerance?(total, breakdown_total)
       [ FIXED_ASSET_TOTAL ]
     end
 end

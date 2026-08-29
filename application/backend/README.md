@@ -30,6 +30,7 @@ cp config/application.yml.sample config/application.yml
 | `EDINET_API_KEY` | [アカウント登録ページ](https://api.edinet-fsa.go.jp/api/auth/index.aspx?mode=1)で無料発行 |
 | `SENTRY_DSN` | 任意（エラー監視を使う場合のみ。未設定なら通知は無効） |
 | `POSTGRES_*` / `REDIS_*` | docker利用時はsampleのデフォルト値のままでよい |
+| `SERVER_HOST_NAME` / `SECRET_KEY_BASE` | 本番のみ（開発では未設定でよい。用途と生成方法はsampleのコメント参照） |
 
 **git管理されるファイルには設定の「キー名と入手方法」までを書き、実値や実環境の識別子は書かない。**
 

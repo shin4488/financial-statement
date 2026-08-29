@@ -1,6 +1,7 @@
 # 日本基準・保険（生命保険業・損害保険業）。
 # 銀行と同じく流動/固定の区分がなく、PLは経常収益−経常費用=経常利益 の骨格。
-# JgaapBankと似るが継承で差分定義しない（形式ごとに独立して保守するため。IfrsLiquidityの注記と同じ方針）
+# JgaapBankと似るが継承で差分定義しない（継承だと親の変更が暗黙に子へ波及し、
+# 形式ごとに独立して保守できなくなるため。共通タグの重複は許容する）
 class Ingestion::Extractors::JgaapInsurance < Ingestion::Extractors::Base
   INSTANT_MAPPING = {
     # 合計3科目は一般事業会社と同じ汎用タグ
@@ -32,10 +33,4 @@ class Ingestion::Extractors::JgaapInsurance < Ingestion::Extractors::Base
     "cf.investing" => "jppfs_cor:NetCashProvidedByUsedInInvestmentActivities",
     "cf.financing" => "jppfs_cor:NetCashProvidedByUsedInFinancingActivities"
   }.freeze
-
-  private
-    def extract_extras(result)
-      put(result, "cf.cash_begin",
-          @xbrl.money("jppfs_cor:CashAndCashEquivalents", "Prior1YearInstant#{@c}"))
-    end
 end

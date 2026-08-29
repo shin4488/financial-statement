@@ -39,6 +39,10 @@ import {
 } from '@/constants/values';
 import { SiteFooter } from '@/features/siteLayout/SiteFooter';
 import { siteRoutes } from '@/features/siteLayout/siteRoutes';
+import {
+  parseCashFlowType,
+  parseStockCodes,
+} from '@/features/financialReports/searchCriteria';
 
 // 一覧ページのシェル（AppBar・フッター）。検索条件はURLクエリを正とするためReduxには置かず、
 // 自動切替だけはautoPlayStatusSliceを共有する
@@ -51,10 +55,9 @@ export function ReportListLayout({ children }: { children: React.ReactNode }) {
     (state: RootState) => state.autoPlayStatus.isAutoPlay,
   );
 
-  const stockCodes =
-    searchParams.get('stock-codes')?.split(',').filter(Boolean) ?? [];
-  const cashFlowType = (searchParams.get('cash-flow-type') ??
-    'none') as CashFlowTypeValue;
+  // 表示（チップ・セレクト）も送信側と同じパースを通す: 表示と検索結果を食い違わせない
+  const stockCodes = parseStockCodes(searchParams);
+  const cashFlowType = parseCashFlowType(searchParams);
 
   const applyQuery = (codes: string[], cfType: CashFlowTypeValue) => {
     const next = new URLSearchParams();
@@ -102,7 +105,6 @@ export function ReportListLayout({ children }: { children: React.ReactNode }) {
       }
     >
       <IconButton size="small">
-        <span></span>
         <InfoIcon fontSize="small" />
       </IconButton>
     </Tooltip>

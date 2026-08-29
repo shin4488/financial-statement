@@ -23,7 +23,8 @@ module Ingestion
         name_en: normalize_width(xbrl.text("jpcrp_cor:CompanyNameInEnglishCoverPage", FILING) ||
                                  xbrl.text("jpdei_cor:FilerNameInEnglishDEI", FILING)),
         accounting_standard: STANDARD_MAP.fetch(xbrl.text("jpdei_cor:AccountingStandardsDEI", FILING), nil),
-        has_consolidated: xbrl.text("jpdei_cor:WhetherConsolidatedFinancialStatementsArePreparedDEI", FILING) == "true",
+        # xs:booleanの真は "true" と "1" の2表記が正当なため両方受ける
+        has_consolidated: %w[true 1].include?(xbrl.text("jpdei_cor:WhetherConsolidatedFinancialStatementsArePreparedDEI", FILING)),
         fiscal_year_start_date: xbrl.text("jpdei_cor:CurrentFiscalYearStartDateDEI", FILING),
         fiscal_year_end_date: xbrl.text("jpdei_cor:CurrentFiscalYearEndDateDEI", FILING),
         filing_date: xbrl.text("jpcrp_cor:FilingDateCoverPage", FILING),

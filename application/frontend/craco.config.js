@@ -9,4 +9,12 @@ module.exports = {
       '@': path.resolve(__dirname, 'src'),
     },
   },
+  jest: {
+    configure: {
+      // webpackのaliasと同じ`@/`をテストでも解決できるようにする
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/src/$1',
+      },
+    },
+  },
 };

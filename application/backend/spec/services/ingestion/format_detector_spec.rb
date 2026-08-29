@@ -77,7 +77,7 @@ RSpec.describe Ingestion::FormatDetector do
     end
   end
 
-  it "US GAAPはunsupportedになる" do
-    expect(detect(nil, "us_gaap", nil)).to eq "unsupported"
+  it "US GAAPはタグの内容によらずunsupportedになる" do
+    expect(detect(xbrl_with("jppfs_cor:CurrentAssets"), "us_gaap", nil)).to eq "unsupported"
   end
 end

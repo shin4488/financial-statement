@@ -32,10 +32,12 @@ class Charts::Builders::PlJgaapGeneral < Charts::Builders::StackBase
 
     # どの構成でも貸借が合わなければ描画しない。原価・販管費の科目がフォールバックリスト外で
     # 取れていない企業をそのまま描くと、貸借の高さが合わない誤ったグラフになるため。
-    # balanced?の第1引数は乖離率の分母。ここでは売上を分母にする（表示の基準線が売上のため）
+    # 乖離率の分母は売上にする（表示の基準線が売上のため）。
+    # 費用科目が1つも取れない（=費用を開示しない持株会社の単体など）場合も、
+    # 売上と営業利益で貸借が合うなら正常系として描く
     expenses = EXPENSE_STRUCTURES
                  .map { |codes| codes.filter_map { |code| (v = val(code)) && [ code, v ] } }
-                 .find { |pairs| balanced?(revenue, pairs.sum { |_, v| v } + op) }
+                 .find { |pairs| within_tolerance?(revenue, pairs.sum { |_, v| v } + op) }
     return unrenderable if expenses.nil?
 
     debit = expenses.map do |code, v|
@@ -53,5 +55,5 @@ class Charts::Builders::PlJgaapGeneral < Charts::Builders::StackBase
   end
 
   private
-    def unrenderable = Charts::StackChart.unrenderable("損益計算書: データがない、または表示対応していないデータです。")
+    def unrenderable = Charts::StackChart.unrenderable(no_data_note("損益計算書"))
 end

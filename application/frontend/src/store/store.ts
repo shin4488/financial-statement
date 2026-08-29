@@ -8,5 +8,4 @@ export const store = configureStore({
 });
 
 export type AppDispatch = typeof store.dispatch;
-// stateの型定義
 export type RootState = ReturnType<typeof store.getState>;

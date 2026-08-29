@@ -7,13 +7,13 @@
 #   標準要素が同名で衝突し得るため、「namespace URIがどの標準タクソノミか」で引く
 module Xbrl
   class Document
+    # タクソノミはバージョン年度がURIに含まれる（例 .../jppfs/2025-11-01/jppfs_cor）ため正規表現で吸収
     NS = {
       "jpdei_cor" => %r{disclosure\.edinet-fsa\.go\.jp/taxonomy/jpdei/},
       "jppfs_cor" => %r{disclosure\.edinet-fsa\.go\.jp/taxonomy/jppfs/},
       "jpigp_cor" => %r{disclosure\.edinet-fsa\.go\.jp/taxonomy/jpigp/},
       "jpcrp_cor" => %r{disclosure\.edinet-fsa\.go\.jp/taxonomy/jpcrp/}
     }.freeze
-    # タクソノミはバージョン年度がURIに含まれる（例 .../jppfs/2025-11-01/jppfs_cor）ため正規表現で吸収
 
     def self.load(path)
       # cfg.huge: 有報XBRLは数MB・数万要素になるためNokogiriのデフォルト制限を外す
@@ -53,11 +53,6 @@ module Xbrl
       # to_iを使わない理由: to_iは"abc"を0にしてしまい「開示なし」と「ゼロ」の区別が壊れる
       value = Integer(raw, exception: false)
       BIGINT_RANGE.cover?(value) ? value : nil
-    end
-
-    # フォールバックリスト: 最初に値が取れたものを返す（リストの並び順=優先度）
-    def money_first(qnames, context)
-      qnames.lazy.filter_map { |q| money(q, context) }.first
     end
 
     def text(qname, context)

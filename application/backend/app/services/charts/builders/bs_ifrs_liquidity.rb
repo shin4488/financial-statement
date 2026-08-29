@@ -13,6 +13,6 @@ class Charts::Builders::BsIfrsLiquidity < Charts::Builders::StackBase
         [ "liabilities", "負債", "bs.liabilities", "liability1" ]
       ],
       equity: val("bs.equity"), equity_label: "資本", base: assets,
-      unrenderable_note: "財政状態計算書: データがない、または表示対応していないデータです。")
+      unrenderable_note: no_data_note("財政状態計算書"))
   end
 end

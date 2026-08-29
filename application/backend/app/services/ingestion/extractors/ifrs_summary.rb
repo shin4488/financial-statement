@@ -16,10 +16,4 @@ class Ingestion::Extractors::IfrsSummary < Ingestion::Extractors::Base
     "cf.investing" => "jpcrp_cor:CashFlowsFromUsedInInvestingActivitiesIFRSSummaryOfBusinessResults",
     "cf.financing" => "jpcrp_cor:CashFlowsFromUsedInFinancingActivitiesIFRSSummaryOfBusinessResults"
   }.freeze
-
-  private
-    def extract_extras(result)
-      put(result, "cf.cash_begin",
-          @xbrl.money("jpcrp_cor:CashAndCashEquivalentsIFRSSummaryOfBusinessResults", "Prior1YearInstant#{@c}"))
-    end
 end

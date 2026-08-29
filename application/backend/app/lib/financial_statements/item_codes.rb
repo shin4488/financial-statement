@@ -53,10 +53,11 @@ module FinancialStatements
       "pl.sga",                           # 販売費及び一般管理費（IFRSでは開示任意）
       # ---- 日本基準・一般のみ（jgaap_general が保存する）----
       "pl.financial_expenses",            # 金融費用（証券・商品先物。営業収益−金融費用=純営業収益）
-      "pl.gross_profit",                  # 売上総利益（営業総利益を含む）
-      "pl.operating_profit",              # 営業利益（IFRSでも任意開示があれば ifrs_* も保存する）
       "pl.non_operating_income",          # 営業外収益
       "pl.non_operating_expenses",        # 営業外費用
+      # ---- 日本基準・一般 + IFRS（jgaap_general は必ず、ifrs_classified / ifrs_liquidity は任意開示があれば保存する）----
+      "pl.gross_profit",                  # 売上総利益（営業総利益を含む）
+      "pl.operating_profit",              # 営業利益
       # ---- 日本基準のみ・特別損益（jgaap_general / jgaap_bank / jgaap_insurance が保存する）----
       "pl.extraordinary_income",          # 特別利益
       "pl.extraordinary_loss",            # 特別損失
