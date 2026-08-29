@@ -6,7 +6,7 @@ RSpec.describe Edinet::Client do
 
   describe "#list_annual_reports" do
     def stub_list(results)
-      stub_request(:get, %r{disclosure\.edinet-fsa\.go\.jp/api/v2/documents\.json})
+      stub_request(:get, %r{api\.edinet-fsa\.go\.jp/api/v2/documents\.json})
         .to_return(status: 200, body: { "results" => results }.to_json)
     end
 
@@ -40,7 +40,7 @@ RSpec.describe Edinet::Client do
     end
 
     def stub_download(doc_id, body)
-      stub_request(:get, %r{disclosure\.edinet-fsa\.go\.jp/api/v2/documents/#{doc_id}})
+      stub_request(:get, %r{api\.edinet-fsa\.go\.jp/api/v2/documents/#{doc_id}})
         .to_return(status: 200, body: body)
     end
 
