@@ -11,16 +11,16 @@ module Edinet
 
     # EDINETのdocIDは英大文字+数字8桁（例: S100YB5L）。外部由来の値をファイルパス・URLに
     # 埋め込む前の形式ガード（rakeタスクの手入力ミス対策を兼ねる）
-    DOC_ID_PATTERN = /\A[A-Z0-9]{8}\z/.freeze
-    # 有報zipの1エントリの展開サイズ上限（500MB）。実測の有報XBRLは数MB程度のため、
+    DOC_ID_PATTERN = /\A[A-Z0-9]{8}\z/
+    # 有報zipの1エントリの展開サイズ上限（500MB）。有報XBRLは通常数MB程度のため、
     # これを大きく超えるものは異常（zip爆弾・EDINET側の障害）として展開しない
     MAX_ENTRY_SIZE = 500 * 1024 * 1024
-    # ダウンロードするzip自体のサイズ上限（500MB）。実測の有報zipは1書類あたり数MBで、
+    # ダウンロードするzip自体のサイズ上限（500MB）。有報zipは1書類あたり通常数MBのため、
     # EDINET側の障害で巨大なレスポンスが返ってきたときに一時ディレクトリを
     # 埋め尽くさないための可用性ガード
     MAX_ZIP_SIZE = 500 * 1024 * 1024
 
-    DocumentMeta = Struct.new(:doc_id, :sec_code, :filer_name, :doc_type_code, keyword_init: true)
+    DocumentMeta = Struct.new(:doc_id, :sec_code, :filer_name, keyword_init: true)
 
     # その日に提出された上場企業の有報・訂正有報の一覧
     def list_annual_reports(date:)
@@ -39,8 +39,7 @@ module Edinet
         # secCodeなし = 非上場（投資信託・組合等の提出物）。本アプリの対象外
         next if r["secCode"].nil?
         next unless [ ANNUAL_REPORT, AMENDED_ANNUAL_REPORT ].include?(r["docTypeCode"])
-        DocumentMeta.new(doc_id: r["docID"], sec_code: r["secCode"],
-                         filer_name: r["filerName"], doc_type_code: r["docTypeCode"])
+        DocumentMeta.new(doc_id: r["docID"], sec_code: r["secCode"], filer_name: r["filerName"])
       end
     end
 
@@ -73,8 +72,9 @@ module Edinet
       end
       xbrl_path
     ensure
-      # zipは展開後すぐ消す: 全上場企業分を貯めるとディスクを圧迫する（1書類数MB*日次数十件）
-      FileUtils.rm_f(zip_path)
+      # zipは展開後すぐ消す: 全上場企業分を貯めるとディスクを圧迫する（1書類数MB*日次数十件）。
+      # docID不正で早期にraiseした場合はzip_pathが未代入なのでガードする
+      FileUtils.rm_f(zip_path) if zip_path
     end
 
     private

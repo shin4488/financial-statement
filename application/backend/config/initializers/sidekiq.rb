@@ -1,14 +1,12 @@
-redis_host_name = ENV["REDIS_HOST_NAME"]
-redis_post = ENV["REDIS_PORT"]
-redis_url = "redis://#{redis_host_name}:#{redis_post}"
+# server（Sidekiqプロセス）とclient（ジョブを積むRails側）で接続設定を揃える。
+# 片方だけパスワードを渡し忘れると、REDIS_PASSWORDのある環境でenqueueだけがNOAUTHで失敗する
+redis_options = {
+  url: "redis://#{ENV["REDIS_HOST_NAME"]}:#{ENV["REDIS_PORT"]}"
+}
+redis_options[:password] = ENV["REDIS_PASSWORD"] if ENV["REDIS_PASSWORD"].present?
 
 Sidekiq.configure_server do |config|
-    redis_password = ENV["REDIS_PASSWORD"]
-    if redis_password.present?
-      config.redis = { url: redis_url, password: redis_password }
-    else
-      config.redis = { url: redis_url }
-    end
+    config.redis = redis_options
 
     config.on(:startup) do
         config_file_path = "config/sidekiq-cron.yml"
@@ -24,5 +22,5 @@ Sidekiq.configure_server do |config|
 end
 
 Sidekiq.configure_client do |config|
-    config.redis = { url: redis_url }
+    config.redis = redis_options
 end
