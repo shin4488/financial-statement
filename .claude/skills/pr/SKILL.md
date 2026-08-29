@@ -39,17 +39,19 @@ git diff --cached | grep -niE "api[_-]?key|secret|password|token|dsn|private key
 
 ## コミット前のspec実行（backend変更時）
 
-バックエンドに変更があるときは、コミット・PR作成の前にローカルで全specを実行して確認する:
+実XBRLフィクスチャを入力にするスペックは、フィクスチャがgit管理外（ローカル限定）のため
+**CIではskip（pending扱い）されて緑になる**。この範囲の保証はローカル実行だけが担うので、
+バックエンドに変更があるときはコミット・PR作成の前に該当specをローカルで実行する
+（それ以外のspecはCIが全件実行するため、ローカルで回すのはこの範囲だけでよい）:
 
 ```bash
-docker compose exec appserver bash -lc 'cd /home/app/financialStatement && bundle exec rspec'
+docker compose exec appserver bash -c 'cd /home/app/financialStatement && bundle exec rspec $(grep -rl xbrl_fixture spec --include="*_spec.rb")'
 ```
 
-- 結果の見方: `0 failures` かつ **pendingが出ていないこと**まで確認する。
-  実XBRLフィクスチャを入力にするスペックは、フィクスチャがgit管理外（ローカル限定）のため
-  **CIではskip（pending扱い）されて緑になる**。つまりこの範囲の保証はローカル実行だけが担う
-- `N pending` が出た場合はフィクスチャ未取得。`application/backend/spec/fixtures/xbrl/README.md`
-  の手順で取得してから再実行する
+- 対象ファイルはフィクスチャ利用の目印（`xbrl_fixture` ヘルパ呼び出し）をgrepで拾う。
+  固定リストにしない理由: フィクスチャを使うspecが増えたときにここを直し忘れても漏れないようにする
+- 結果は `0 failures` かつ **pendingなし**まで確認する。`N pending` が出たらフィクスチャ未取得
+  （`application/backend/spec/fixtures/xbrl/README.md` の手順で取得して再実行）
 
 ## CI
 
