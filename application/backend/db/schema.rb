@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_16_000002) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_29_120001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -42,9 +42,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_16_000002) do
     t.boolean "is_primary", default: false, null: false, comment: "表示・検索の主対象（連結があれば連結）"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["is_primary"], name: "index_financial_statements_on_is_primary"
     t.index ["report_id", "consolidation_type"], name: "idx_fs_report_consolidation", unique: true
     t.index ["report_id"], name: "index_financial_statements_on_report_id"
+    t.index ["report_id"], name: "index_financial_statements_primary_unique_per_report", unique: true, where: "is_primary"
   end
 
   create_table "reports", comment: "有価証券報告書", force: :cascade do |t|
