@@ -26,17 +26,7 @@ module FinancialStatement
     # 本番VPSのメモリ余力を確認してから有効化を判断する
     config.yjit = false
 
-    # Configuration for the application, engines, and railties goes here.
-    #
-    # These settings can be overridden in specific environments using the files
-    # in config/environments, which are processed later.
-    #
-    # config.time_zone = "Central Time (US & Canada)"
-    # config.eager_load_paths << Rails.root.join("extras")
-
-    # Only loads a smaller set of middleware suitable for API only apps.
-    # Middleware like session, flash, cookies can be added back manually.
-    # Skip views, helpers and assets when generating a new resource.
+    # session・cookie等の画面向けミドルウェアを持たないAPI専用構成
     config.api_only = true
 
     # ActiveRecordやTime.zoneで扱うタイムゾーン
