@@ -15,7 +15,7 @@ class Charts::Builders::CashFlow < Charts::Builders::StackBase
     # 理由: ウォーターフォールは1点欠けると滝の繋がりが崩れ、誤解を招くグラフになる
     steps = STEPS.map { |key, label, code, kind|
       v = val(code)
-      return Charts::WaterfallChart.unrenderable("キャッシュフロー: データがない、または表示対応していないデータです。") if v.nil?
+      return Charts::WaterfallChart.unrenderable(no_data_note("キャッシュフロー")) if v.nil?
       # amountはStackChartと違い符号付きのまま渡す。増減の向きが情報そのものだから
       Charts::WaterfallStep.new(key: key, label: label, amount: v, kind: kind)
     }

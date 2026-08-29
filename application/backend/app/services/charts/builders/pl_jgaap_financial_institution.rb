@@ -7,7 +7,7 @@ class Charts::Builders::PlJgaapFinancialInstitution < Charts::Builders::StackBas
     revenue = val("pl.ordinary_revenue")
     expenses = val("pl.ordinary_expenses")
     profit = val("pl.ordinary_profit")
-    return Charts::StackChart.unrenderable("損益計算書: データがない、または表示対応していないデータです。") if revenue.nil? || expenses.nil? || profit.nil?
+    return Charts::StackChart.unrenderable(no_data_note("損益計算書")) if revenue.nil? || expenses.nil? || profit.nil?
 
     debit = [ seg("ordinaryExpenses", "経常費用", expenses, "expense1", base: revenue) ]
     credit = [ seg("ordinaryRevenue", "経常収益", revenue, "revenue", base: revenue) ]

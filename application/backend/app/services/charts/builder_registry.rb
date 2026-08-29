@@ -1,5 +1,6 @@
 module Charts
-  # presentation_format → Builderの対応表。新形式の追加はここに1行 + Builderクラス追加で完結する
+  # presentation_format → Builderの対応表。新形式はBS表・PL表に1行ずつ + Builderクラスの追加で対応する
+  # （BS側だけ足すとPLが説明文になるだけで例外にはならないため、両方揃っているかはspecで検証している）
   module BuilderRegistry
     BS = {
       "jgaap_general"   => Builders::BsJgaapGeneral,

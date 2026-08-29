@@ -7,7 +7,7 @@ class Charts::Builders::BsJgaapInsurance < Charts::Builders::StackBase
     # 「保険契約準備金0%の保険会社」という誤ったグラフになるため（形式判定ミスか取込不良の可能性が高い）。
     # 資産側の内訳は欠けても残差の「その他資産」に吸収されるだけなので許容する
     policy_reserves = val("bs.policy_reserves")
-    return Charts::StackChart.unrenderable("貸借対照表: データがない、または表示対応していないデータです。") if policy_reserves.nil?
+    return Charts::StackChart.unrenderable(no_data_note("貸借対照表")) if policy_reserves.nil?
 
     assets = val("bs.assets")
     known_assets = %w[bs.cash_and_equivalents bs.securities bs.loans].sum { |c| val(c).to_i }
@@ -26,6 +26,6 @@ class Charts::Builders::BsJgaapInsurance < Charts::Builders::StackBase
         [ "otherLiabilities", "その他負債",     other_liabilities,    "liability2" ]
       ],
       equity: val("bs.equity"), equity_label: "純資産", base: assets,
-      unrenderable_note: "貸借対照表: データがない、または表示対応していないデータです。")
+      unrenderable_note: no_data_note("貸借対照表"))
   end
 end

@@ -2,9 +2,13 @@ module Charts
   module Builders
     class StackBase
       RATIO_PRECISION = 1 # %表示の小数桁数
-      # 貸借の許容乖離1割。超えたら「未対応の様式か取込不良」とみなして描画しない。
+      # 合計と突き合わせるときの許容乖離1割（貸借合計・固定資産の内訳合計など）。
+      # 超えたら「未対応の様式か取込不良」とみなして描画しない。
       # 誤ったグラフを出すより出さない方がよい、という安全側の判断
       TOLERANCE = 0.1
+
+      # 「描けない」の共通文言。個別の理由を説明できる形式（ifrs_summaryなど）だけ独自文言を使う
+      NO_DATA_NOTE = "データがない、または表示対応していないデータです。".freeze
 
       def initialize(items)
         @items = items # {item_code => amount} (Disclosure::FinancialStatement#items_hash)
@@ -12,6 +16,8 @@ module Charts
 
       private
         def val(code) = @items[code]
+
+        def no_data_note(statement_label) = "#{statement_label}: #{NO_DATA_NOTE}"
 
         # 比率は%値（0-100）。truncate（切り捨て）を使う理由: 四捨五入だと内訳の合計が
         # 100%を超えて表示され得るため。
@@ -47,7 +53,7 @@ module Charts
           # 債務超過時に挿入するspacer（描画用の詰め物）まで合計に含まれ常に不一致になる
           debit_total = debit.sum(&:amount)
           credit_total = credit.sum(&:signed_amount) + equity
-          return StackChart.unrenderable(unrenderable_note) unless balanced?(debit_total, credit_total)
+          return StackChart.unrenderable(unrenderable_note) unless within_tolerance?(debit_total, credit_total)
 
           bars = [ Bar.new(label: "借方", segments: debit) ]
           if equity.negative?
@@ -77,9 +83,10 @@ module Charts
           end
         end
 
-        def balanced?(debit_total, credit_total)
-          return false if debit_total.zero?
-          (credit_total - debit_total).abs <= debit_total * TOLERANCE
+        # base（乖離率の分母になる側）に対して value が TOLERANCE 以内か
+        def within_tolerance?(base, value)
+          return false if base.zero?
+          (value - base).abs <= base * TOLERANCE
         end
     end
   end
