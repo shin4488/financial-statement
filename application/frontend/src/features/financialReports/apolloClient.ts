@@ -1,7 +1,7 @@
 import { ApolloClient, InMemoryCache } from '@apollo/client';
 
-// ApolloClientService（アプリ共有のシングルトン）を使わない理由:
-// 無限スクロールの結果連結にtypePolicies（merge）が必要で、共有シングルトンの
+// アプリ全体で共有するApolloクライアントにしない理由:
+// 無限スクロールの結果連結にtypePolicies（merge）が必要で、共有クライアントの
 // キャッシュ設定を変えると他ページに波及するため、このfeature専用クライアントを持つ
 export const financialReportsClient = new ApolloClient({
   // nginx経由の相対パス。ホストをハードコードしないことで開発と本番を同一コードにする
