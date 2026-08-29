@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import './types/mui/styles.d';
 import './App.css';
 import FinancialReportListPage from '@/features/financialReports/FinancialReportListPage';
 import AboutPage from '@/features/staticPages/AboutPage';
@@ -39,7 +38,7 @@ export default class App extends React.Component {
         <CssBaseline />
         <BrowserRouter>
           <Routes>
-            {/* 静的ページ（サイト説明・規約系）。一覧ページは従来どおり残りの全URLを受ける */}
+            {/* 静的ページ（サイト説明・規約系）。一覧ページは残りの全URLを受ける */}
             <Route path={siteRoutes.about} element={<AboutPage />} />
             <Route path={siteRoutes.guide} element={<GuidePage />} />
             <Route path={siteRoutes.privacy} element={<PrivacyPolicyPage />} />
