@@ -20,6 +20,9 @@ export const colorByRole: Record<string, string> = {
   profit: '#8EC3B0', // 利益
   loss: '#F7C04A', // 損失（営業損失・経常損失・税引前損失）
   spacer: 'transparent', // 債務超過バーの位置合わせ用詰め物
+  // ウォーターフォール（CF）の増減。増加=収益と同じ青系 / 減少=赤系
+  cashIncrease: '#A1C2F1',
+  cashDecrease: '#FF9EAA',
 };
 
 // 見せる情報を持たないrole（描画上の詰め物）。ツールチップに出さない。
@@ -27,11 +30,6 @@ export const colorByRole: Record<string, string> = {
 export const hiddenRoles = new Set<string>(['spacer']);
 
 export const stackLabelColor = '#FFFFFF';
-
-// ウォーターフォール（CF）はcolorRoleを使わず増減の符号で塗る契約
-// （増減の向きそのものが情報のため。バックエンドはWaterfallStepに色を持たせない）
-export const cashIncreaseColor = '#A1C2F1';
-export const cashDecreaseColor = '#FF9EAA';
 
 export const tooltipBackgroundColor = '#F6F4EB';
 
