@@ -36,3 +36,4 @@ Webフロントとブラウザ拡張（financial-statement-chrome-extension）�
   ウォーターフォールもAPIが `WaterfallStep.colorRole`（cashIncrease / cashDecrease）で指定する。
   フィールドを取得しない古い呼び出し元では符号から同じroleを補う（後方互換）
 - セグメントの並び順・ラベルはAPIの配列順序が契約。フロントで並べ替え・翻訳をしない
+- `Segment.tooltipLabel` はツールチップ専用の表示名（補足つきの名前）。無ければ `label` を表示する

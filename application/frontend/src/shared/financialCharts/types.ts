@@ -10,6 +10,9 @@ export interface Segment {
   signedAmount: number; // 実値。ツールチップはこちらを表示（赤字は負で届く）
   ratio?: number | null; // %。null/undefinedは「表示しない」（spacer等）
   colorRole: string; // colorRoles.tsのキー
+  // ツールチップ専用の表示名（補足つき）。無ければlabelを表示する。
+  // optionalなのはフィールド追加前のAPI・古いクエリの呼び出し元でも動かすため
+  tooltipLabel?: string | null;
 }
 
 export interface StackBar {
