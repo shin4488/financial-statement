@@ -43,6 +43,8 @@ jobs:
           cache-dependency-path: application/frontend/yarn.lock
       - run: yarn install --frozen-lockfile
       - run: npx tsc --noEmit
+      # CI=trueで自動的にwatchなしの1回実行になる
+      - run: yarn test
       - run: npx eslint 'src/**/*.{ts,tsx}'
       - run: npx prettier --check 'src/**/*.{ts,tsx}'
       # 型生成の取り込み忘れ検知（src/__generated__はコミットする運用）
