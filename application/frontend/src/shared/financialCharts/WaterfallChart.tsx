@@ -10,14 +10,16 @@ import {
   YAxis,
 } from 'recharts';
 import { ChartUnavailable } from './ChartUnavailable';
+import {
+  cashDecreaseColor,
+  cashIncreaseColor,
+  tooltipBackgroundColor,
+} from './colorRoles';
 import { formatAmount } from './formatAmount';
 import type {
   WaterfallChart as WaterfallChartData,
   WaterfallStep,
 } from './types';
-
-const POSITIVE_COLOR = '#A1C2F1';
-const NEGATIVE_COLOR = '#FF9EAA';
 
 type Row = {
   name: string;
@@ -70,7 +72,8 @@ export function WaterfallChart({
   height = 400,
 }: WaterfallChartProps) {
   if (!chart.renderable) {
-    return <ChartUnavailable note={chart.note} />;
+    // カルーセル内でチャートと差し替わるため、サイズを揃えてスライド切替時のレイアウト跳ねを防ぐ
+    return <ChartUnavailable note={chart.note} width={width} height={height} />;
   }
   const rows = toWaterfallRows(chart.steps);
 
@@ -87,7 +90,7 @@ export function WaterfallChart({
         <Tooltip
           cursor={false}
           wrapperStyle={{
-            backgroundColor: '#F6F4EB',
+            backgroundColor: tooltipBackgroundColor,
             opacity: '0.8',
             padding: '10px',
           }}
@@ -95,13 +98,14 @@ export function WaterfallChart({
             const p = props as {
               active?: boolean;
               label?: string;
-              payload?: { payload?: Row }[];
+              payload?: { dataKey?: string; payload?: Row }[];
             };
-            if (!p.active || !p.payload || p.payload.length === 0) {
+            if (!p.active || !p.payload) {
               return null;
             }
-            // ペイロードの2要素目が色付き部分のデータ（1要素目は透明のベース部分）
-            const row = p.payload[1]?.payload;
+            // 色付き部分（span）のペイロードを選ぶ。配列の並びはBarの宣言順に依存するため、
+            // 位置でなくdataKeyで引く
+            const row = p.payload.find((e) => e.dataKey === 'span')?.payload;
             if (!row) {
               return null;
             }
@@ -115,7 +119,7 @@ export function WaterfallChart({
           isAnimationActive={false}
         />
         <Bar dataKey="span" stackId="w" isAnimationActive={false}>
-          {/* バー上のラベルもツールチップと同じ単位（百万円）で出す。円のままだと桁が多く重なって読めない */}
+          {/* バー上のラベルもツールチップと同じformatAmount表記で出す。円のままだと桁が多く重なって読めない */}
           <LabelList
             dataKey="value"
             position="top"
@@ -124,7 +128,7 @@ export function WaterfallChart({
           {rows.map((row) => (
             <Cell
               key={row.step.key}
-              fill={row.value < 0 ? NEGATIVE_COLOR : POSITIVE_COLOR}
+              fill={row.value < 0 ? cashDecreaseColor : cashIncreaseColor}
             />
           ))}
         </Bar>

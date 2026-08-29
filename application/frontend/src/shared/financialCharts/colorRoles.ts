@@ -22,7 +22,18 @@ export const colorByRole: Record<string, string> = {
   spacer: 'transparent', // 債務超過バーの位置合わせ用詰め物
 };
 
+// 見せる情報を持たないrole（描画上の詰め物）。ツールチップに出さない。
+// role名の判定をチャートコンポーネントに直書きせず、role一覧と同じこのファイルで管理する
+export const hiddenRoles = new Set<string>(['spacer']);
+
 export const stackLabelColor = '#FFFFFF';
+
+// ウォーターフォール（CF）はcolorRoleを使わず増減の符号で塗る契約
+// （増減の向きそのものが情報のため。バックエンドはWaterfallStepに色を持たせない）
+export const cashIncreaseColor = '#A1C2F1';
+export const cashDecreaseColor = '#FF9EAA';
+
+export const tooltipBackgroundColor = '#F6F4EB';
 
 // バックエンドが未知のroleを返した場合の色（グレー）。
 // このマップはBE/FE間で唯一ドリフトし得る契約点なので、undefinedのまま
