@@ -73,18 +73,24 @@ RSpec.describe Charts::Builders::PlJgaapGeneral do
     end
   end
 
-  describe "営業費用の色" do
-    it "一括型（原価を含む合計）では原価と同じ色になる" do
+  describe "営業費用の色とツールチップ表示名" do
+    it "一括型（原価を含む合計）では原価と同じ色になり、ツールチップは原価込みであることを補足する" do
       chart = described_class.new({ "pl.revenue" => 1_000, "pl.operating_expenses" => 900,
                                     "pl.operating_profit" => 100 }).build
-      expect(chart.bars.first.segments.find { |s| s.key == "operatingExpenses" }.color_role).to eq "expense1"
+      oe = chart.bars.first.segments.find { |s| s.key == "operatingExpenses" }
+      expect(oe.color_role).to eq "expense1"
+      expect(oe.label).to eq "営業費用" # バー内ラベルは折り返し・見切れが起きるため補足を足さない
+      expect(oe.tooltip_label).to eq "営業費用（原価を含む）"
     end
 
-    it "原価+営業費用型（原価控除後の費用）では販管費と同じ色になり、隣接する原価と見分けられる" do
+    it "原価+営業費用型（原価控除後の費用）では販管費と同じ色になり、ツールチップは原価を除くことを補足する" do
       chart = described_class.new({ "pl.revenue" => 1_000, "pl.cost_of_sales" => 300,
                                     "pl.operating_expenses" => 600, "pl.operating_profit" => 100 }).build
-      roles = chart.bars.first.segments.to_h { |s| [ s.key, s.color_role ] }
-      expect(roles).to include("costOfSales" => "expense1", "operatingExpenses" => "expense2")
+      segments = chart.bars.first.segments.to_h { |s| [ s.key, s ] }
+      expect(segments["costOfSales"].color_role).to eq "expense1"
+      expect(segments["costOfSales"].tooltip_label).to be_nil
+      expect(segments["operatingExpenses"].color_role).to eq "expense2"
+      expect(segments["operatingExpenses"].tooltip_label).to eq "営業費用（原価を除く）"
     end
   end
 

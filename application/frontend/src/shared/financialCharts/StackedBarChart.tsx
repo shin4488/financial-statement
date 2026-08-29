@@ -140,7 +140,9 @@ export function StackedBarChart({
                       }}
                     >
                       {/* 表示はsignedAmount: 債務超過の純資産や損失は負で見せる */}
-                      {`${s.label} : ${formatAmount(s.signedAmount)}`}
+                      {`${s.tooltipLabel ?? s.label} : ${formatAmount(
+                        s.signedAmount,
+                      )}`}
                     </div>
                   );
                 })}

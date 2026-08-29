@@ -59,6 +59,11 @@ type Segment {
   実値（ツールチップ用。損失は負）
   """
   signedAmount: Money!
+
+  """
+  ツールチップでの表示名（nullならlabelを表示）
+  """
+  tooltipLabel: String
 }
 
 type StackBar {

@@ -24,7 +24,7 @@ export const FINANCIAL_REPORTS_QUERY = gql(`
         note
         bars {
           label
-          segments { key label amount signedAmount ratio colorRole }
+          segments { key label amount signedAmount ratio colorRole tooltipLabel }
         }
       }
       profitLoss {
@@ -32,7 +32,7 @@ export const FINANCIAL_REPORTS_QUERY = gql(`
         note
         bars {
           label
-          segments { key label amount signedAmount ratio colorRole }
+          segments { key label amount signedAmount ratio colorRole tooltipLabel }
         }
       }
       cashFlow {
