@@ -12,7 +12,9 @@ module Charts
     def self.unrenderable(note) = new(renderable: false, note: note, bars: [])
   end
 
-  WaterfallStep = Struct.new(:key, :label, :amount, :kind, keyword_init: true) # kind: "balance" | "flow"
+  # kind: "balance" | "flow"。color_roleは増減の向き（cashIncrease / cashDecrease）:
+  # StackChartのSegmentと同じく「色の決定はバックエンド」の契約に揃え、フロントに符号の再解釈をさせない
+  WaterfallStep = Struct.new(:key, :label, :amount, :kind, :color_role, keyword_init: true)
   WaterfallChart = Struct.new(:renderable, :note, :steps, keyword_init: true) do
     def self.unrenderable(note) = new(renderable: false, note: note, steps: [])
   end
