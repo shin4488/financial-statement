@@ -112,7 +112,7 @@ export function ReportListLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <AppBar position="sticky" color="default" sx={{ bgcolor: 'F9F9E0' }}>
+      <AppBar position="sticky" color="default">
         <Toolbar sx={{ ml: -4 }} variant="dense">
           <Box sx={{ flexGrow: 1 }}>
             <Grid container>
