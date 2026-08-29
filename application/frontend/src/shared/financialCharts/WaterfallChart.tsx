@@ -10,11 +10,7 @@ import {
   YAxis,
 } from 'recharts';
 import { ChartUnavailable } from './ChartUnavailable';
-import {
-  cashDecreaseColor,
-  cashIncreaseColor,
-  tooltipBackgroundColor,
-} from './colorRoles';
+import { colorForRole, tooltipBackgroundColor } from './colorRoles';
 import { formatAmount } from './formatAmount';
 import type {
   WaterfallChart as WaterfallChartData,
@@ -128,7 +124,12 @@ export function WaterfallChart({
           {rows.map((row) => (
             <Cell
               key={row.step.key}
-              fill={row.value < 0 ? cashDecreaseColor : cashIncreaseColor}
+              // colorRoleが無いのは古いAPI・クエリ（コピー先の拡張やサンプルデータ）から来た場合。
+              // その間も同じ見た目になるよう符号から同じroleを補う
+              fill={colorForRole(
+                row.step.colorRole ??
+                  (row.value < 0 ? 'cashDecrease' : 'cashIncrease'),
+              )}
             />
           ))}
         </Bar>

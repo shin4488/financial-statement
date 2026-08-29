@@ -28,6 +28,9 @@ export interface WaterfallStep {
   label: string;
   amount: number; // こちらは符号付き（増減をそのまま表す）
   kind: string; // 'balance'=残高（0起点） / 'flow'=増減（累積位置から浮かせる）
+  // 'cashIncrease' | 'cashDecrease'。optionalなのはフィールド追加前のAPI・古いクエリの
+  // 呼び出し元（コピー先の拡張など）でも動かすため。無ければ符号から補う
+  colorRole?: string | null;
 }
 
 export interface WaterfallChart {

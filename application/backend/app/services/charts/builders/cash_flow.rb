@@ -17,7 +17,8 @@ class Charts::Builders::CashFlow < Charts::Builders::StackBase
       v = val(code)
       return Charts::WaterfallChart.unrenderable(no_data_note("キャッシュフロー")) if v.nil?
       # amountはStackChartと違い符号付きのまま渡す。増減の向きが情報そのものだから
-      Charts::WaterfallStep.new(key: key, label: label, amount: v, kind: kind)
+      Charts::WaterfallStep.new(key: key, label: label, amount: v, kind: kind,
+                                color_role: v.negative? ? "cashDecrease" : "cashIncrease")
     }
     Charts::WaterfallChart.new(renderable: true, note: nil, steps: steps)
   end

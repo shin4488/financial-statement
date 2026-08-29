@@ -87,6 +87,11 @@ type WaterfallStep {
   符号付き（増減の向きが情報のため）
   """
   amount: Money!
+
+  """
+  "cashIncrease" | "cashDecrease"（Segmentと同じくフロントのパレット対応キー）
+  """
+  colorRole: String!
   key: String!
 
   """

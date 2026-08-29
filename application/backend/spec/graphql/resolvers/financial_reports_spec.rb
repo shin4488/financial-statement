@@ -13,7 +13,7 @@ RSpec.describe "financialReports query" do
         presentationFormat
         balanceSheet { renderable note bars { label segments { key label amount signedAmount ratio colorRole } } }
         profitLoss { renderable note bars { label segments { key amount signedAmount } } }
-        cashFlow { renderable steps { key label amount kind } }
+        cashFlow { renderable steps { key label amount kind colorRole } }
       }
     }
   GRAPHQL
@@ -57,7 +57,10 @@ RSpec.describe "financialReports query" do
     pl_credit = report.dig("profitLoss", "bars", 1, "segments")
     expect(pl_credit.last["signedAmount"]).to eq(-142_355_000_000)
 
-    expect(report.dig("cashFlow", "steps").size).to eq 5
+    cf_steps = report.dig("cashFlow", "steps")
+    expect(cf_steps.size).to eq 5
+    # 投資CFは負のためcashDecrease（色の決定はバックエンドの契約）
+    expect(cf_steps.find { |s| s["key"] == "investing" }["colorRole"]).to eq "cashDecrease"
   end
 
   it "CF符号フィルタの引数が効く" do
