@@ -200,11 +200,12 @@ WaterfallChart（CF用。5段の構成は全形式共通）
 └ steps: [
     { key: "cashBegin", label: "期首残",
       amount: 符号付きの円（-23兆もあり得る）,
-      kind: "balance" },                                       # 残高: 0起点で描く
-    { key: "operating", label: "営業CF", amount, kind: "flow" }, # 増減: 累積から浮かせる
-    { key: "investing", label: "投資CF", amount, kind: "flow" },
-    { key: "financing", label: "財務CF", amount, kind: "flow" },
-    { key: "cashEnd",   label: "期末残", amount, kind: "balance" } ]
+      kind: "balance",                                         # 残高: 0起点で描く
+      colorRole: "cashIncrease" },                             # 増減の向きの色（負ならcashDecrease）
+    { key: "operating", label: "営業CF", amount, kind: "flow", colorRole }, # 増減: 累積から浮かせる
+    { key: "investing", label: "投資CF", amount, kind: "flow", colorRole },
+    { key: "financing", label: "財務CF", amount, kind: "flow", colorRole },
+    { key: "cashEnd",   label: "期末残", amount, kind: "balance", colorRole } ]
 ```
 
 | 構造の仕掛け | 吸収する業務上の差異 |
@@ -299,7 +300,7 @@ query {
     accountingStandard      # バッジ表示のみに使う。描画分岐に使わない（規律）
     balanceSheet { renderable note bars { label segments { key label amount signedAmount ratio colorRole } } }
     profitLoss   { ... }
-    cashFlow     { renderable note steps { key label amount kind } }
+    cashFlow     { renderable note steps { key label amount kind colorRole } }
   }
 }
 ```
