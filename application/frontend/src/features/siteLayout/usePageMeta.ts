@@ -18,9 +18,6 @@ interface HeadValues {
   canonical: string;
 }
 
-// index.html由来の値。最初にフックが動いたときに1度だけ退避する
-let defaults: HeadValues | null = null;
-
 const descriptionMeta = () =>
   document.head.querySelector<HTMLMetaElement>('meta[name="description"]');
 const canonicalLink = () =>
@@ -46,13 +43,25 @@ function writeHead(values: HeadValues) {
   }
 }
 
+// index.html由来の「戻し先」。モジュール読込時（Reactの描画前）に退避する。
+// 初回フック実行まで退避を遅らせると、その時点でheadが既に書き換わっていた場合に
+// 誤った値を戻し先として覚えてしまうため
+const defaults = readHead();
+
+// 使用中のページ数。ルーティング上このフックを使うページは同時に1つだが、
+// 万一重なっても「最後の1つが外れたときだけindex.htmlへ戻す」に収まるようにする
+// （数えないと、先に外れた側のクリーンアップが表示中のページのメタ情報を戻してしまう）
+let activeCount = 0;
+
 export function usePageMeta({ title, description, path }: PageMeta) {
   useEffect(() => {
-    if (!defaults) {
-      defaults = readHead();
-    }
-    const restoreTo = defaults;
+    activeCount += 1;
     writeHead({ title, description, canonical: `${siteOrigin}${path}` });
-    return () => writeHead(restoreTo);
+    return () => {
+      activeCount -= 1;
+      if (activeCount === 0) {
+        writeHead(defaults);
+      }
+    };
   }, [title, description, path]);
 }
