@@ -8,7 +8,8 @@ RSpec.describe Ingestion::Extractors::Base do
     Class.new(described_class) do
       const_set(:INSTANT_MAPPING, {
         "bs.assets" => "t:Assets",
-        "bs.equity" => [ "t:EquityTotal", sum("t:EquityA", "t:EquityB") ]
+        "bs.equity" => [ "t:EquityTotal", sum("t:EquityA", "t:EquityB") ],
+        "cf.cash_end" => "t:Cash"
       }.freeze)
       const_set(:DURATION_MAPPING, {
         "pl.revenue" => [ "t:IndustryTotal", max("t:OperatingRevenue", sum("t:NetSales", "t:OperatingIncome2")) ]
@@ -58,6 +59,17 @@ RSpec.describe Ingestion::Extractors::Base do
     it "フォールバックの前段（業種固有の総額）があればそちらを優先する" do
       facts = { [ "t:IndustryTotal", "CurrentYearDuration" ] => 382, [ "t:NetSales", "CurrentYearDuration" ] => 295 }
       expect(extract_with(facts)["pl.revenue"]).to eq 382
+    end
+  end
+
+  describe "CF期首残高の導出" do
+    it "期末残高（cf.cash_end）と同じタグを前期末（Prior1YearInstant）から引く" do
+      facts = { [ "t:Cash", "CurrentYearInstant" ] => 120, [ "t:Cash", "Prior1YearInstant" ] => 100 }
+      expect(extract_with(facts)).to include("cf.cash_end" => 120, "cf.cash_begin" => 100)
+    end
+
+    it "前期末の値が無ければcf.cash_beginのキー自体を作らない" do
+      expect(extract_with({ [ "t:Cash", "CurrentYearInstant" ] => 120 })).not_to have_key("cf.cash_begin")
     end
   end
 end

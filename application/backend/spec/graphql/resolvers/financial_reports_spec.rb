@@ -1,7 +1,8 @@
 require "rails_helper"
 
 RSpec.describe "financialReports query" do
-  QUERY = <<~GRAPHQL
+  # 定数でなくlet: describe内のトップレベル定数はObjectにリークして他specから見えてしまうため
+  let(:query) { <<~GRAPHQL }
     query($limit: Int!, $offset: Int!, $operatingCfSign: CashFlowSign) {
       financialReports(limit: $limit, offset: $offset, operatingCfSign: $operatingCfSign) {
         id
@@ -35,7 +36,7 @@ RSpec.describe "financialReports query" do
   end
 
   def execute(variables)
-    FinancialStatementSchema.execute(QUERY, variables: variables).to_h
+    FinancialStatementSchema.execute(query, variables: variables).to_h
   end
 
   it "チャート構造が返り、金額はJSON数値（文字列でない）で返る" do
@@ -62,9 +63,5 @@ RSpec.describe "financialReports query" do
   it "CF符号フィルタの引数が効く" do
     result = execute({ "limit" => 10, "offset" => 0, "operatingCfSign" => "NEGATIVE" })
     expect(result.dig("data", "financialReports")).to eq []
-  end
-
-  it "スキーマにfinancialReportsが定義されている" do
-    expect(FinancialStatementSchema.to_definition).to include("financialReports")
   end
 end
