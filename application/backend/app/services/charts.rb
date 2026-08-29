@@ -6,7 +6,11 @@ module Charts
   # 分ける理由: 負値をそのまま棒グラフに渡すと逆向きに描画されるため、
   # 「高さは正・実値は符号付き」を契約レベルで分離してフロントの分岐をなくす
   # color_role: フロントのパレット対応キー（意味ベースの固定enum。科目名ではなく役割で塗る）
-  Segment = Struct.new(:key, :label, :amount, :signed_amount, :ratio, :color_role, keyword_init: true)
+  # tooltip_label: ツールチップだけ補足つきの名前にしたい科目用（nilならlabelを表示）。
+  # バー内ラベルはバー幅で折り返し・見切れが起きるため補足を足せないが、ツールチップは
+  # 文字に合わせて広がるので、注釈はこちらにだけ載せる
+  Segment = Struct.new(:key, :label, :amount, :signed_amount, :ratio, :color_role, :tooltip_label,
+                       keyword_init: true)
   Bar = Struct.new(:label, :segments, keyword_init: true)
   StackChart = Struct.new(:renderable, :note, :bars, keyword_init: true) do
     def self.unrenderable(note) = new(renderable: false, note: note, bars: [])

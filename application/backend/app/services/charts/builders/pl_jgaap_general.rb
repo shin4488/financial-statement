@@ -2,7 +2,8 @@
 # two_sided_chart は使わずBuilderごとに組み立てる。共通ヘルパ（seg/ratio）のみ利用
 class Charts::Builders::PlJgaapGeneral < Charts::Builders::StackBase
   # 費用の構成は業種で異なる。この順に試し、借方合計（費用+営業利益）が売上と1割以内で合う
-  # 最初の構成で描く（開示されている科目だけを積む）。各要素は [科目コード, key, ラベル, 色の役割]:
+  # 最初の構成で描く（開示されている科目だけを積む）。
+  # 各要素は [科目コード, key, ラベル, 色の役割, ツールチップ表示名（labelと同じならnil）]:
   #   1. 内訳型: 売上原価・金融費用（証券）・販管費 … 一般事業会社の基本形
   #   2. 一括型: 営業費用 … 原価と販管費に分けず一括開示する業種（電気・特定金融・投資業など）
   #   3. 原価+営業費用型: 売上原価と、その控除後の営業費用 … 商品先物取引業
@@ -12,14 +13,16 @@ class Charts::Builders::PlJgaapGeneral < Charts::Builders::StackBase
   # 原価を二重に積まないため（合計なら2で先に合う）。
   # 営業費用の色が構成で違う理由: 一括型の営業費用は原価を含む合計（=原価の位置づけ）なので
   # 原価と同じ色、原価+営業費用型では原価控除後の費用（=販管費の位置づけ）なので販管費と同じ色にする
-  # （同じ色だと売上原価との境界が見えなくなる）
+  # （同じ色だと売上原価との境界が見えなくなる）。
+  # 「営業費用」の中身が構成で違う（原価込みか、原価控除後か）ことはツールチップ表示名で補足する。
+  # バー内ラベルに足さないのは、バー幅で折り返し・見切れが起きるため
   EXPENSE_STRUCTURES = [
-    [ [ "pl.cost_of_sales",      "costOfSales",       "売上原価",       "expense1" ],
-      [ "pl.financial_expenses", "financialExpenses", "金融費用",       "expense1" ],
-      [ "pl.sga",                "sga",               "販売一般管理費", "expense2" ] ],
-    [ [ "pl.operating_expenses", "operatingExpenses", "営業費用",       "expense1" ] ],
-    [ [ "pl.cost_of_sales",      "costOfSales",       "売上原価",       "expense1" ],
-      [ "pl.operating_expenses", "operatingExpenses", "営業費用",       "expense2" ] ]
+    [ [ "pl.cost_of_sales",      "costOfSales",       "売上原価",       "expense1", nil ],
+      [ "pl.financial_expenses", "financialExpenses", "金融費用",       "expense1", nil ],
+      [ "pl.sga",                "sga",               "販売一般管理費", "expense2", nil ] ],
+    [ [ "pl.operating_expenses", "operatingExpenses", "営業費用",       "expense1", "営業費用（原価を含む）" ] ],
+    [ [ "pl.cost_of_sales",      "costOfSales",       "売上原価",       "expense1", nil ],
+      [ "pl.operating_expenses", "operatingExpenses", "営業費用",       "expense2", "営業費用（原価を除く）" ] ]
   ].freeze
 
   # 借方[費用…, 営業利益] / 貸方[売上高(, 営業損失)]
@@ -35,11 +38,11 @@ class Charts::Builders::PlJgaapGeneral < Charts::Builders::StackBase
     # 費用科目が1つも取れない（=費用を開示しない持株会社の単体など）場合も、
     # 売上と営業利益で貸借が合うなら正常系として描く
     expenses = EXPENSE_STRUCTURES
-                 .map { |specs| specs.filter_map { |code, key, label, role| (v = val(code)) && [ key, label, v, role ] } }
-                 .find { |segs| within_tolerance?(revenue, segs.sum { |_, _, v, _| v } + op) }
+                 .map { |specs| specs.filter_map { |code, key, label, role, tooltip| (v = val(code)) && [ key, label, v, role, tooltip ] } }
+                 .find { |segs| within_tolerance?(revenue, segs.sum { |_, _, v, _, _| v } + op) }
     return unrenderable if expenses.nil?
 
-    debit = expenses.map { |key, label, v, role| seg(key, label, v, role, base: revenue) }
+    debit = expenses.map { |key, label, v, role, tooltip| seg(key, label, v, role, base: revenue, tooltip: tooltip) }
     credit = [ seg("revenue", "売上", revenue, "revenue", base: revenue) ]
     if op.negative?
       credit << seg("operatingLoss", "営業損失", -op, "loss", base: revenue, signed: op)
