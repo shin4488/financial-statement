@@ -310,7 +310,7 @@ IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは
                                    sum("jpigp_cor:GoodwillIFRS", "jpigp_cor:IntangibleAssetsIFRS") ]
 ```
 
-マッピング表（当期のコンテキスト固定）で表せないのは**別コンテキストの参照**だけで、`extract_extras` に書く。現在あるのはCF期首残高（`Prior1YearInstant`）のみ（全形式共通）。
+マッピング表（当期のコンテキスト固定）で表せないのは**別コンテキストの参照**だけ。現在あるのはCF期首残高（`Prior1YearInstant`）のみで、全形式共通のためExtractorの基底クラスが `cf.cash_end` のマッピングから導出する（前述「CF」の節）。
 
 ---
 
