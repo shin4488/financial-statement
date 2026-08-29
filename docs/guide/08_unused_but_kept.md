@@ -8,7 +8,6 @@
 |---|---|---|
 | `security_reports` テーブルと凍結データ | 本番PostgreSQL | 旧系統の取込結果との突き合わせ用（次節） |
 | `security_reports` のテーブル定義 | backendの `db/schema.rb`・`db/migrate/20230904131246_create_financial_statement_documents.rb` | 定義だけ消すと本番の実テーブルと `schema.rb` が食い違い、マイグレーション履歴の整合も壊れる。テーブル本体の扱いが決まるまで触らない |
-| テスト実行基盤（CRA雛形） | frontendの `src/setupTests.ts` と `craco test` | テストコードは0件（[05章](05_frontend.md)）だが、書き始めるときの土台としてそのまま残す |
 
 ## `security_reports`: 旧系統の凍結データ
 

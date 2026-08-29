@@ -42,7 +42,14 @@ flowchart TB
 | 配列 | `ifrs_liquidity` | IFRS・流動性配列BS（様式512000） |
 | サマリ | `ifrs_summary` | IFRS・詳細タグなし（2019年3月期より前の有報。経営指標サマリ `jpcrp_cor:*IFRSSummaryOfBusinessResults` のみで構成） |
 
-業種別の勘定科目のタグは、標準タグ名に業種の接尾辞が付く（`OperatingRevenueELE`=電気の営業収益、`OperatingExpensesRWY`=鉄道の営業費、`SecuritiesAssetsINS`=保険の有価証券）。接尾辞は業種DEIコードと同じ: CNS=建設、BNK=銀行、INS=保険、SEC=証券、RWY=鉄道、WAT=海運、ELC=電気通信、ELE=電気、GAS=ガス、SPF=特定金融、CMD=商品先物、IVT=投資運用、INV=投資業（一覧はEDINETタクソノミの勘定科目リスト `1f_AccountList.xlsx` の業種別シート）。
+業種別の勘定科目のタグは、標準タグ名に業種の接尾辞が付く（`OperatingRevenueELE`=電気の営業収益、`OperatingExpensesRWY`=鉄道の営業費）。接尾辞は業種DEIコードと同じ（一覧はEDINETタクソノミの勘定科目リスト `1f_AccountList.xlsx` の業種別シート）。
+
+| 接尾辞 | 業種 | 接尾辞 | 業種 | 接尾辞 | 業種 |
+|---|---|---|---|---|---|
+| CNS | 建設 | BNK | 銀行 | INS | 保険 |
+| SEC | 証券 | RWY | 鉄道 | WAT | 海運 |
+| ELC | 電気通信 | ELE | 電気 | GAS | ガス |
+| SPF | 特定金融 | CMD | 商品先物 | IVT / INV | 投資運用 / 投資業 |
 
 ### タクソノミと名前空間
 
@@ -84,12 +91,12 @@ flowchart TB
 
 ### 全形式で共通して取る科目
 
-この4科目はどの形式でも取得できる。形式をまたぐ検索・表示はこの4科目を前提にできる。
+この4科目は本表の詳細タグがある形式（サマリ以外）ならどれでも取得できる。形式をまたぐ検索・表示はこの4科目を前提にできる（サマリはBS科目を保存しない。後述「サマリのタグ」）。
 
 | 科目コード | 日本語 | 一般 / 銀行 | 分類 / 配列 | 使うBuilder |
 |---|---|---|---|---|
-| `bs.assets` | 資産合計 | `jppfs_cor:Assets` | `jpigp_cor:AssetsIFRS` | 銀行・分類・配列 |
-| `bs.liabilities` | 負債合計 | `jppfs_cor:Liabilities` | `jpigp_cor:LiabilitiesIFRS` | 銀行・配列 |
+| `bs.assets` | 資産合計 | `jppfs_cor:Assets` | `jpigp_cor:AssetsIFRS` | 銀行・保険・分類・配列 |
+| `bs.liabilities` | 負債合計 | `jppfs_cor:Liabilities` | `jpigp_cor:LiabilitiesIFRS` | 銀行・保険・配列 |
 | `bs.equity` | 資本（純資産）合計 | `jppfs_cor:NetAssets` | `jpigp_cor:EquityIFRS` | BS全Builder |
 | `bs.cash_and_equivalents` | 現金及び現金同等物 | 一般 `jppfs_cor:CashAndCashEquivalents`<br>銀行 `jppfs_cor:CashAndDueFromBanksAssetsBNK`<br>保険 `jppfs_cor:CashAndDepositsAssetsINS` | `jpigp_cor:CashAndCashEquivalentsIFRS` | 銀行・保険・配列 |
 
@@ -270,7 +277,20 @@ IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは
 
 投資活動のタグ名が日本基準は `Investment`、IFRSは `Investing` で異なる。CFは5科目そろわないとウォーターフォールが繋がらないため、1つでも欠けるとチャートは `renderable: false` になる。
 
-期首残高だけはマッピング表に載せられない。表は `CurrentYear` のコンテキストを前提としており、期首残高は前期末（`Prior1YearInstant`）を見る必要があるため、各Extractorの`extract_extras` フックで個別に実装している。
+期首残高（`cf.cash_begin`）は個別のマッピングを持たない。期首残高=前期末残高という関係は全形式共通のため、Extractorの基底クラスが `cf.cash_end` と同じタグを前期末（`Prior1YearInstant`）コンテキストで引いて導出する。
+
+### サマリ（ifrs_summary）のタグ
+
+詳細タグの無い有報は、経営指標サマリ（`jpcrp_cor`）の標準タグから次の7科目だけを抽出する。BS科目を保存しないのは、サマリで実値が取れるのが資産合計と親会社所有者帰属持分だけで、負債合計は導出でしか作れない（非支配持分が混ざる）ため。
+
+| 科目コード | XBRLタグ（すべて `jpcrp_cor`） |
+|---|---|
+| `pl.revenue` | `RevenueIFRSSummaryOfBusinessResults` |
+| `pl.profit_before_tax` | `ProfitLossBeforeTaxIFRSSummaryOfBusinessResults` |
+| `cf.operating` | `CashFlowsFromUsedInOperatingActivitiesIFRSSummaryOfBusinessResults` |
+| `cf.investing` | `CashFlowsFromUsedInInvestingActivitiesIFRSSummaryOfBusinessResults` |
+| `cf.financing` | `CashFlowsFromUsedInFinancingActivitiesIFRSSummaryOfBusinessResults` |
+| `cf.cash_end` / `cf.cash_begin` | `CashAndCashEquivalentsIFRSSummaryOfBusinessResults`（期首は `Prior1YearInstant`） |
 
 ---
 

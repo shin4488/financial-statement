@@ -1,6 +1,6 @@
 # 05. フロントエンド実装
 
-`application/frontend`（React SPA）の実装ガイド。画面は[02章](02_product.md)の一覧ページ1つと文章中心の静的ページ4つで、ソースは `src/` 配下の約35ファイルと小さい。チャートキットの規約の原本はキット内の `src/shared/financialCharts/README.md`（コピー先のChrome拡張にも同じREADMEが入る）。
+`application/frontend`（React SPA）の実装ガイド。画面は[02章](02_product.md)の一覧ページ1つと文章中心の静的ページ4つで、ソースは `src/` 配下に収まる小ささ。チャートキットの規約の原本はキット内の `src/shared/financialCharts/README.md`（コピー先のChrome拡張にも同じREADMEが入る）。
 
 ## 使っている技術
 
@@ -58,6 +58,7 @@ GraphQL変数:  { limit: 30, offset: 0,
 | 実装上の決まり | 内容 |
 |---|---|
 | 検索状態の正はURLクエリだけ | 検索UIは `navigate()` でURLを書き換えるだけ。リロード・共有で状態が再現できる |
+| URLの解釈は `searchCriteria.ts` に1本化 | 正規化（大文字化・trim）・件数上限・未知値のフォールバックを、GraphQL変数化とチップ表示の両方が同じ関数で行う（表示と検索結果を食い違わせない） |
 | 追加取得の併合 | Apolloのキャッシュ設定（`typePolicies`）で `offset` の位置に書き込んで1リストに併合。`offset` 以外の条件が変わると別リスト扱い |
 | 無限スクロールの終端判定 | 「取得済み件数が30の倍数」の間は続行し、30件未満しか返らなかったら終端 |
 | APIの向き先 | 相対パス `/api/graphql` 固定。nginxが中継するため開発と本番でコードが同じ（環境変数・`.env` なし） |
@@ -80,14 +81,7 @@ GraphQL変数:  { limit: 30, offset: 0,
 
 ## チャート描画キット（`shared/financialCharts/`）
 
-Chrome拡張（別リポジトリ `financial-statement-chrome-extension`）へディレクトリごとコピーして共有するため、次の規約を守る。チャート部品を両リポジトリで二重保守しないための決まりごとになる。
-
-| 規約 | 理由 |
-|---|---|
-| importしてよいのは `react` と `recharts` だけ（キット内は相対importのみ） | 両リポジトリ共通の依存だけに絞る |
-| GraphQLクライアント・codegen生成型・ルーティング・Redux・`@/`エイリアスに依存しない | アプリごとの設定・生成物に依存させない |
-| 受け取る型は `types.ts` の構造的型で定義する | codegen生成型と構造が一致するため、変換なしで代入できる |
-| スタイルはコンポーネント内で完結させる | コピー先に外部CSSを要求しない |
+Chrome拡張（別リポジトリ `financial-statement-chrome-extension`）へディレクトリごとコピーして共有するため、依存の制限（`react`と`recharts`のみ・アプリ固有物に依存しない等）がある。規約の全文と展開手順はキット内READMEが原本（この章では繰り返さない）。
 
 ### 積み上げ棒（`StackedBarChart`）
 
@@ -151,9 +145,9 @@ flowchart LR
 
 | 項目 | 状態 |
 |---|---|
-| 検証コマンド | `npx tsc --noEmit` / eslint / prettier / `CI=false yarn build`（`application/frontend/README.md` が正） |
-| CI | 導入済み（`.github/workflows/frontend-ci.yml`。検証コマンド一式 + 型生成の差分検知 + build） |
-| テストコード | **0件**（CRA雛形のテスト基盤のみ残している。[08章](08_unused_but_kept.md)） |
+| 検証コマンド | `npx tsc --noEmit` / `yarn test` / eslint / prettier / `CI=false yarn build`（`application/frontend/README.md` が正） |
+| CI | 導入済み（`.github/workflows/frontend-ci.yml`。検証コマンド一式 + テスト + 型生成の差分検知 + build） |
+| テストコード | ロジックを持つ純粋関数（チャートの行列変換・金額表示・色解決・検索条件パース）に仕様ベースのユニットテストあり。コンポーネント描画のテストは無い |
 | GraphQLエラー時の画面表示 | 未実装（エラー時も0件時と同じ「条件に一致する企業がありません。」が表示される） |
 
 ---

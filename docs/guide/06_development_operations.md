@@ -95,7 +95,14 @@ flowchart LR
 | `accounting standard unknown` | 未知の会計基準（取込対象外としてスキップ済み） | 対応不要。頻発するなら形式対応を検討 |
 | `primary statement missing bs.assets` | 取り込めたが主要科目が欠けている | Extractor・形式判定を修正して再取込 |
 
-新しい業種・形式に対応した後は、既に `unsupported` で保存済みの有報を `rake 'ingestion:reingest_unsupported[提出日from,提出日to]'` で取り直す（対象を `unsupported` を含む有報だけに絞るため、全期間のバックフィルよりEDINETへのリクエストが桁違いに少ない。1件ずつ1秒間隔・失敗は隔離）。詳細タグ義務化前のIFRS有報が `ifrs_liquidity` のまま残っている環境では `rake ingestion:reingest_ifrs_summary` で取り直す（対象はDBから自動特定。移行完了後は0件になり再実行しても何もしない）。取込コードを変えたデプロイでは、日次ジョブ側（sidekiq）の再起動も忘れないこと（[deployスキル](../../.claude/skills/deploy/SKILL.md)の2-b）。
+形式対応を広げた後にまとめて取り直す再取込タスク:
+
+| きっかけ | コマンド | 対象の絞り込み |
+|---|---|---|
+| 新しい業種・形式に対応した | `rake 'ingestion:reingest_unsupported[提出日from,提出日to]'` | `unsupported` を含む有報だけ（全期間のバックフィルよりEDINETへのリクエストが桁違いに少ない） |
+| 詳細タグ義務化前のIFRS有報が `ifrs_liquidity` のまま残っている | `rake ingestion:reingest_ifrs_summary` | 「primaryなのに資産合計が無い」有報をDBから自動特定（移行完了後は0件になり、再実行しても何もしない） |
+
+どの再取込も1件ずつ1秒間隔・失敗は隔離（日次と同じ方針）。取込コードを変えたデプロイでは、日次ジョブ側（sidekiq）の再起動も忘れないこと（[deployスキル](../../.claude/skills/deploy/SKILL.md)の2-b）。
 
 日々の健全性確認は `.claude/skills/investee-daily-check/` のスクリプト1本にまとまっており、次を一度に確認できる。
 
@@ -109,7 +116,7 @@ flowchart LR
 
 | 仕組み | 内容 |
 |---|---|
-| Sentry | 例外・警告の通知先。個人情報を送らない設定（EDINET APIキーがURLに含まれるため、リクエスト情報の送出を明示的に抑止している）。パフォーマンストレースは10%サンプリング |
+| Sentry | 例外・警告の通知先。**送信は本番環境のみ**（development・testからは送らない）。デプロイ時のプロセス停止による `SystemExit` / `SignalException` は通知しない。個人情報を送らない設定（EDINET APIキーがURLに含まれるため、リクエスト情報の送出を明示的に抑止している）。パフォーマンストレースは10%サンプリング |
 | ログ | lograge形式で `log/production.log` へ。サイズ上限つきローテーション（ディスク枯渇対策）。SQLログは別ファイル |
 
 ## リリースタグ

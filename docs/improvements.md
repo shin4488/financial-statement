@@ -70,7 +70,7 @@ backend-ci / frontend-ci が変更のあった側だけ本体ジョブを実行�
 
 ### 2-3. 動的sitemap
 
-- **現状**: 静的sitemap.xml（トップのみ）
+- **現状**: 静的sitemap.xml（トップ + 静的ページ4URL）
 - **意図**: 2-1の企業別URLをクローラに全量通知
 
 **手順**（backend + web・半日。2-1が前提）:

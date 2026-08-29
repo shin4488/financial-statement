@@ -126,11 +126,13 @@ npm run compile        # graphql-codegen。src/__generated__/ が更新される
 
 | 形式 | 対象 | 状態 |
 |---|---|---|
-| `jgaap_general` | 日本基準・一般事業会社 | 対応済み |
+| `jgaap_general` | 日本基準・一般事業会社（建設・鉄道・電気など業種別の勘定科目を持つ業種も骨格が同じためここに吸収） | 対応済み |
 | `jgaap_bank` | 日本基準・銀行 | 対応済み |
+| `jgaap_insurance` | 日本基準・保険 | 対応済み |
 | `ifrs_classified` / `ifrs_liquidity` | IFRS（連結） | 対応済み |
-| `unsupported` | 米国基準・日本基準の保険等 | チャートの代わりに説明文を表示（正常系） |
+| `ifrs_summary` | IFRS・詳細タグ義務化前（2019年3月期より前）の有報 | 対応済み（経営指標サマリからPL・CFを表示。BSは説明文） |
+| `unsupported` | 米国基準など | チャートの代わりに説明文を表示（正常系） |
 
-- **米国基準・日本基準の保険業などは未対応**: 上記 `unsupported` として扱われ、グラフの代わりにその旨が表示される。追加はExtractor・Builderのファイル追加のみで済む（マイグレーション不要。手順は [docs/guide/04_backend.md](docs/guide/04_backend.md)）
+- **米国基準は未対応**: 上記 `unsupported` として扱われ、グラフの代わりにその旨が表示される。新しい形式の追加はExtractor・Builderのファイル追加のみで済む（マイグレーション不要。手順は [docs/guide/04_backend.md](docs/guide/04_backend.md)）
 - **旧系統（SecurityReport系）は`security_reports`テーブルのみ凍結保管**: コードはすべて削除済み。凍結データの扱いは[docs/guide/08_unused_but_kept.md](docs/guide/08_unused_but_kept.md)
 - その他は [docs/improvements.md](docs/improvements.md) を参照
