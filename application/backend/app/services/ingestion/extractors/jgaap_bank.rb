@@ -32,10 +32,4 @@ class Ingestion::Extractors::JgaapBank < Ingestion::Extractors::Base
     "cf.investing" => "jppfs_cor:NetCashProvidedByUsedInInvestmentActivities",
     "cf.financing" => "jppfs_cor:NetCashProvidedByUsedInFinancingActivities"
   }.freeze
-
-  private
-    def extract_extras(result)
-      put(result, "cf.cash_begin",
-          @xbrl.money("jppfs_cor:CashAndCashEquivalents", "Prior1YearInstant#{@c}"))
-    end
 end

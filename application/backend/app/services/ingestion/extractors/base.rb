@@ -26,6 +26,13 @@ module Ingestion
         @c = consolidation # コンテキストサフィックス
       end
 
+      # この形式が生成し得る科目コードの一覧
+      def self.item_codes
+        codes = self::INSTANT_MAPPING.keys + self::DURATION_MAPPING.keys
+        codes << "cf.cash_begin" if self::INSTANT_MAPPING.key?("cf.cash_end")
+        codes
+      end
+
       # {item_code => amount} を返す。取れなかった科目はキーごと入れない
       # （「開示なし」をnilや0でなくキーの不存在で表す。DBの「行の不存在=開示なし」と対になる規約）
       def extract
@@ -38,15 +45,16 @@ module Ingestion
         self.class::DURATION_MAPPING.each do |code, spec|
           put(result, code, lookup(spec, "CurrentYearDuration#{@c}"))
         end
-        extract_extras(result)
+        # CF期首残高 = 前期末時点の現金及び現金同等物。これは会計基準・業種によらない定義なので、
+        # 期末残高（cf.cash_end）と同じタグを前期末（Prior1YearInstant）コンテキストで引いて導出する。
+        # 各形式のマッピングには cf.cash_end だけ書けばよい
+        if (cash_end_spec = self.class::INSTANT_MAPPING["cf.cash_end"])
+          put(result, "cf.cash_begin", lookup(cash_end_spec, "Prior1YearInstant#{@c}"))
+        end
         result
       end
 
       private
-        # 単純な「1コード→タグの対応」で表せない科目のためのフック。
-        # 具体例: 期首残高（Prior1YearInstantという別コンテキストを参照）。各形式クラスが必要な分だけ実装する
-        def extract_extras(result); end
-
         def put(result, code, value)
           result[code] = value unless value.nil?
         end

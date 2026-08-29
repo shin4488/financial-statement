@@ -139,12 +139,4 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
     "cf.investing" => "jppfs_cor:NetCashProvidedByUsedInInvestmentActivities", # JGAAPはInvestment（IFRSはInvesting。取り違え注意）
     "cf.financing" => "jppfs_cor:NetCashProvidedByUsedInFinancingActivities"
   }.freeze
-
-  private
-    def extract_extras(result)
-      # CF期首残高だけは「前期末時点」= Prior1YearInstant コンテキストを見る必要があるため
-      # マッピング表（CurrentYear固定）に載せられずここで実装（全Extractor共通のパターン）
-      put(result, "cf.cash_begin",
-          @xbrl.money("jppfs_cor:CashAndCashEquivalents", "Prior1YearInstant#{@c}"))
-    end
 end
