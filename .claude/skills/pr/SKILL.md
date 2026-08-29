@@ -37,6 +37,20 @@ git diff --cached | grep -niE "api[_-]?key|secret|password|token|dsn|private key
 - 機密を含めてコミットしてしまったら: push前ならcommitを作り直す。push済みなら履歴から消えないため、
   該当キーのローテーション（無効化・再発行）が必要
 
+## コミット前のspec実行（backend変更時）
+
+バックエンドに変更があるときは、コミット・PR作成の前にローカルで全specを実行して確認する:
+
+```bash
+docker compose exec appserver bash -lc 'cd /home/app/financialStatement && bundle exec rspec'
+```
+
+- 結果の見方: `0 failures` かつ **pendingが出ていないこと**まで確認する。
+  実XBRLフィクスチャを入力にするスペックは、フィクスチャがgit管理外（ローカル限定）のため
+  **CIではskip（pending扱い）されて緑になる**。つまりこの範囲の保証はローカル実行だけが担う
+- `N pending` が出た場合はフィクスチャ未取得。`application/backend/spec/fixtures/xbrl/README.md`
+  の手順で取得してから再実行する
+
 ## CI
 
 - `.github/workflows/` の backend-ci / frontend-ci が、変更のあった側だけ本体ジョブを
