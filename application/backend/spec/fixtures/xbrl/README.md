@@ -1,20 +1,22 @@
 # 実XBRLフィクスチャ
 
-Extractor系スペックの入力に使う実際の有報XBRL。1件数MBあるためgit管理せず、
-必要なときに以下でEDINETから取得する（`EDINET_API_KEY` が必要）:
+Extractor系スペックの入力に使う実際の有報XBRL。**間引き済みでコミットされている**（1件数十〜数百KB）。
+
+- 元の有報XBRLは1件数MBあるが、大半はテストが読まないHTML本文（TextBlock）のため、
+  テストが読む範囲（標準4名前空間・当期/前期末/提出日コンテキスト・短いfact）だけに間引いてある。
+  **数値は実際の開示値のまま**で、期待値の出典はリポジトリルートの docs/guide/07_taxonomy_mapping.md の実測表
+- 間引きの条件と対象docIDの一覧は `lib/tasks/fixtures.rake` が正
+- フィクスチャが無い場合、スペックはskipせず**失敗**する（コミット済みが前提のため）
+
+## 取り直すとき（`EDINET_API_KEY` が必要）
+
+新しい書類を足すときは `lib/tasks/fixtures.rake` の `DOC_IDS` と下の表に追記してから:
 
 ```bash
-bundle exec rails runner '
-  client = Edinet::Client.new
-  dir = Rails.root.join("spec/fixtures/xbrl").to_s
-  %w[S100YB5L S100YB25 S100YCP3 S100XTNW S100YLS8 S100YJQO S100YQ6Y S100YR8L
-     S100YDJC S100YIHR S100YC7N S100YE63 S100Y9T5 S100Y90D S100XTDX S100YANQ S100YI2V
-     S100YJB4 S100Y0DB S100YD29 S100YCL0 S100YE7T S100SO41].each do |doc_id|
-    path = client.download_xbrl(doc_id: doc_id, work_dir: dir)
-    puts "#{doc_id}: #{path}"
-  end
-'
+bundle exec rake fixtures:refresh_xbrl
 ```
+
+Extractorが読むコンテキスト・名前空間を広げたときは、rake側の間引き条件（`KEEP_CONTEXTS` 等）も合わせて広げて取り直す。
 
 | docID | 企業 | 検証ポイント |
 |---|---|---|
@@ -41,6 +43,3 @@ bundle exec rails runner '
 | S100YCL0 | ソニーフィナンシャルG | 連結はjgaap_insurance / 単体は業種コードinsでも流動資産があるためjgaap_general |
 | S100YE7T | 日本郵政 | 複数業種コード（bnk,ins）→ 先頭の銀行 / 貯金が企業拡張タグのためBSは描けない |
 | S100SO41 | クリエイト・レストランツHD | ifrs_summary判定（2019年2月期=詳細タグ義務化前でjpigp_corが無い）/ 経営指標サマリからPL骨格+CF5点 |
-
-期待値の出典はリポジトリルートの docs/guide/07_taxonomy_mapping.md の実測表。
-フィクスチャが存在しない場合、該当スペックはskipされる。

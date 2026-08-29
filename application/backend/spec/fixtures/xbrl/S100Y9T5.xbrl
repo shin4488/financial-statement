@@ -1,0 +1,2018 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbrli:xbrl xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:jpcrp030000-asr_E04460-000="http://disclosure.edinet-fsa.go.jp/jpcrp030000/asr/001/E04460-000/2026-03-31/01/2026-06-09" xmlns:jpcrp_cor="http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp/2025-11-01/jpcrp_cor" xmlns:jpdei_cor="http://disclosure.edinet-fsa.go.jp/taxonomy/jpdei/2013-08-31/jpdei_cor" xmlns:jppfs_cor="http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2025-11-01/jppfs_cor" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:utr="http://www.xbrl.org/2009/utr" xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <jpdei_cor:NumberOfSubmissionDEI contextRef="FilingDateInstant" decimals="0" unitRef="pure">1</jpdei_cor:NumberOfSubmissionDEI>
+  
+  
+  
+  
+  <jpcrp_cor:OperatingRevenue1SummaryOfBusinessResults contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">86348000000</jpcrp_cor:OperatingRevenue1SummaryOfBusinessResults>
+  
+  
+  
+  
+  <jpcrp_cor:OrdinaryIncomeLossSummaryOfBusinessResults contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">18864000000</jpcrp_cor:OrdinaryIncomeLossSummaryOfBusinessResults>
+  
+  
+  
+  
+  <jpcrp_cor:ProfitLossAttributableToOwnersOfParentSummaryOfBusinessResults contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">13217000000</jpcrp_cor:ProfitLossAttributableToOwnersOfParentSummaryOfBusinessResults>
+  
+  
+  
+  
+  <jpcrp_cor:ComprehensiveIncomeSummaryOfBusinessResults contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">13700000000</jpcrp_cor:ComprehensiveIncomeSummaryOfBusinessResults>
+  
+  
+  
+  <jpcrp_cor:NetAssetsSummaryOfBusinessResults contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">99193000000</jpcrp_cor:NetAssetsSummaryOfBusinessResults>
+  <jpcrp_cor:NetAssetsSummaryOfBusinessResults contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">101914000000</jpcrp_cor:NetAssetsSummaryOfBusinessResults>
+  
+  
+  
+  <jpcrp_cor:TotalAssetsSummaryOfBusinessResults contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">118266000000</jpcrp_cor:TotalAssetsSummaryOfBusinessResults>
+  <jpcrp_cor:TotalAssetsSummaryOfBusinessResults contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">120457000000</jpcrp_cor:TotalAssetsSummaryOfBusinessResults>
+  
+  
+  
+  <jpcrp_cor:NetAssetsPerShareSummaryOfBusinessResults contextRef="Prior1YearInstant" decimals="2" unitRef="JPYPerShares">1027.18</jpcrp_cor:NetAssetsPerShareSummaryOfBusinessResults>
+  <jpcrp_cor:NetAssetsPerShareSummaryOfBusinessResults contextRef="CurrentYearInstant" decimals="2" unitRef="JPYPerShares">1074.26</jpcrp_cor:NetAssetsPerShareSummaryOfBusinessResults>
+  
+  
+  
+  
+  <jpcrp_cor:BasicEarningsLossPerShareSummaryOfBusinessResults contextRef="CurrentYearDuration" decimals="2" unitRef="JPYPerShares">142.05</jpcrp_cor:BasicEarningsLossPerShareSummaryOfBusinessResults>
+  
+  
+  
+  
+  <jpcrp_cor:DilutedEarningsPerShareSummaryOfBusinessResults contextRef="CurrentYearDuration" unitRef="JPYPerShares" xsi:nil="true"/>
+  
+  
+  
+  <jpcrp_cor:EquityToAssetRatioSummaryOfBusinessResults contextRef="Prior1YearInstant" decimals="3" unitRef="pure">0.816</jpcrp_cor:EquityToAssetRatioSummaryOfBusinessResults>
+  <jpcrp_cor:EquityToAssetRatioSummaryOfBusinessResults contextRef="CurrentYearInstant" decimals="3" unitRef="pure">0.822</jpcrp_cor:EquityToAssetRatioSummaryOfBusinessResults>
+  
+  
+  
+  
+  <jpcrp_cor:RateOfReturnOnEquitySummaryOfBusinessResults contextRef="CurrentYearDuration" decimals="3" unitRef="pure">0.135</jpcrp_cor:RateOfReturnOnEquitySummaryOfBusinessResults>
+  
+  
+  
+  
+  <jpcrp_cor:PriceEarningsRatioSummaryOfBusinessResults contextRef="CurrentYearDuration" decimals="2" unitRef="pure">24.18</jpcrp_cor:PriceEarningsRatioSummaryOfBusinessResults>
+  
+  
+  
+  
+  <jpcrp_cor:NetCashProvidedByUsedInOperatingActivitiesSummaryOfBusinessResults contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">16329000000</jpcrp_cor:NetCashProvidedByUsedInOperatingActivitiesSummaryOfBusinessResults>
+  
+  
+  
+  
+  <jpcrp_cor:NetCashProvidedByUsedInInvestingActivitiesSummaryOfBusinessResults contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-5377000000</jpcrp_cor:NetCashProvidedByUsedInInvestingActivitiesSummaryOfBusinessResults>
+  
+  
+  
+  
+  <jpcrp_cor:NetCashProvidedByUsedInFinancingActivitiesSummaryOfBusinessResults contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-11039000000</jpcrp_cor:NetCashProvidedByUsedInFinancingActivitiesSummaryOfBusinessResults>
+  
+  
+  
+  <jpcrp_cor:CashAndCashEquivalentsSummaryOfBusinessResults contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">3506000000</jpcrp_cor:CashAndCashEquivalentsSummaryOfBusinessResults>
+  <jpcrp_cor:CashAndCashEquivalentsSummaryOfBusinessResults contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">3418000000</jpcrp_cor:CashAndCashEquivalentsSummaryOfBusinessResults>
+  
+  
+  
+  <jpcrp_cor:NumberOfEmployees contextRef="Prior1YearInstant" decimals="0" unitRef="pure">521</jpcrp_cor:NumberOfEmployees>
+  <jpcrp_cor:NumberOfEmployees contextRef="CurrentYearInstant" decimals="0" unitRef="pure">545</jpcrp_cor:NumberOfEmployees>
+  
+  
+  
+  <jpcrp_cor:AverageNumberOfTemporaryWorkers contextRef="Prior1YearInstant" decimals="0" unitRef="pure">145</jpcrp_cor:AverageNumberOfTemporaryWorkers>
+  <jpcrp_cor:AverageNumberOfTemporaryWorkers contextRef="CurrentYearInstant" decimals="0" unitRef="pure">165</jpcrp_cor:AverageNumberOfTemporaryWorkers>
+  
+  
+  
+  
+  <jpcrp_cor:OperatingRevenue1SummaryOfBusinessResults contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">82552000000</jpcrp_cor:OperatingRevenue1SummaryOfBusinessResults>
+  
+  
+  
+  
+  <jpcrp_cor:OrdinaryIncomeLossSummaryOfBusinessResults contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">17237000000</jpcrp_cor:OrdinaryIncomeLossSummaryOfBusinessResults>
+  
+  
+  
+  
+  <jpcrp_cor:NetIncomeLossSummaryOfBusinessResults contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">12307000000</jpcrp_cor:NetIncomeLossSummaryOfBusinessResults>
+  
+  
+  
+  <jpcrp_cor:CapitalStockSummaryOfBusinessResults contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">1414000000</jpcrp_cor:CapitalStockSummaryOfBusinessResults>
+  <jpcrp_cor:CapitalStockSummaryOfBusinessResults contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">1414000000</jpcrp_cor:CapitalStockSummaryOfBusinessResults>
+  
+  
+  
+  <jpcrp_cor:TotalNumberOfIssuedSharesSummaryOfBusinessResults contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="0" unitRef="shares">48314982</jpcrp_cor:TotalNumberOfIssuedSharesSummaryOfBusinessResults>
+  <jpcrp_cor:TotalNumberOfIssuedSharesSummaryOfBusinessResults contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="0" unitRef="shares">94178804</jpcrp_cor:TotalNumberOfIssuedSharesSummaryOfBusinessResults>
+  
+  
+  
+  <jpcrp_cor:NetAssetsSummaryOfBusinessResults contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">90202000000</jpcrp_cor:NetAssetsSummaryOfBusinessResults>
+  <jpcrp_cor:NetAssetsSummaryOfBusinessResults contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">91540000000</jpcrp_cor:NetAssetsSummaryOfBusinessResults>
+  
+  
+  
+  <jpcrp_cor:TotalAssetsSummaryOfBusinessResults contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">111167000000</jpcrp_cor:TotalAssetsSummaryOfBusinessResults>
+  <jpcrp_cor:TotalAssetsSummaryOfBusinessResults contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">113218000000</jpcrp_cor:TotalAssetsSummaryOfBusinessResults>
+  
+  
+  
+  <jpcrp_cor:NetAssetsPerShareSummaryOfBusinessResults contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="2" unitRef="JPYPerShares">959.72</jpcrp_cor:NetAssetsPerShareSummaryOfBusinessResults>
+  <jpcrp_cor:NetAssetsPerShareSummaryOfBusinessResults contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="2" unitRef="JPYPerShares">993.66</jpcrp_cor:NetAssetsPerShareSummaryOfBusinessResults>
+  
+  
+  
+  
+  <jpcrp_cor:DividendPaidPerShareSummaryOfBusinessResults contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="2" unitRef="JPYPerShares">99.00</jpcrp_cor:DividendPaidPerShareSummaryOfBusinessResults>
+  
+  
+  
+  
+  <jpcrp_cor:InterimDividendPaidPerShareSummaryOfBusinessResults contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="2" unitRef="JPYPerShares">64.00</jpcrp_cor:InterimDividendPaidPerShareSummaryOfBusinessResults>
+  
+  
+  
+  
+  <jpcrp_cor:BasicEarningsLossPerShareSummaryOfBusinessResults contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="2" unitRef="JPYPerShares">132.26</jpcrp_cor:BasicEarningsLossPerShareSummaryOfBusinessResults>
+  
+  
+  
+  
+  <jpcrp_cor:DilutedEarningsPerShareSummaryOfBusinessResults contextRef="CurrentYearDuration_NonConsolidatedMember" unitRef="JPYPerShares" xsi:nil="true"/>
+  
+  
+  
+  <jpcrp_cor:EquityToAssetRatioSummaryOfBusinessResults contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="3" unitRef="pure">0.811</jpcrp_cor:EquityToAssetRatioSummaryOfBusinessResults>
+  <jpcrp_cor:EquityToAssetRatioSummaryOfBusinessResults contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="3" unitRef="pure">0.809</jpcrp_cor:EquityToAssetRatioSummaryOfBusinessResults>
+  
+  
+  
+  
+  <jpcrp_cor:RateOfReturnOnEquitySummaryOfBusinessResults contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="3" unitRef="pure">0.135</jpcrp_cor:RateOfReturnOnEquitySummaryOfBusinessResults>
+  
+  
+  
+  
+  <jpcrp_cor:PriceEarningsRatioSummaryOfBusinessResults contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="2" unitRef="pure">25.97</jpcrp_cor:PriceEarningsRatioSummaryOfBusinessResults>
+  
+  
+  
+  
+  <jpcrp_cor:PayoutRatioSummaryOfBusinessResults contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="3" unitRef="pure">0.507</jpcrp_cor:PayoutRatioSummaryOfBusinessResults>
+  
+  
+  
+  <jpcrp_cor:NumberOfEmployees contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="0" unitRef="pure">325</jpcrp_cor:NumberOfEmployees>
+  <jpcrp_cor:NumberOfEmployees contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="0" unitRef="pure">347</jpcrp_cor:NumberOfEmployees>
+  
+  
+  
+  <jpcrp_cor:AverageNumberOfTemporaryWorkers contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="0" unitRef="pure">64</jpcrp_cor:AverageNumberOfTemporaryWorkers>
+  <jpcrp_cor:AverageNumberOfTemporaryWorkers contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="0" unitRef="pure">70</jpcrp_cor:AverageNumberOfTemporaryWorkers>
+  
+  
+  
+  <jpcrp_cor:TotalShareholderReturn contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="3" unitRef="pure">1.841</jpcrp_cor:TotalShareholderReturn>
+  <jpcrp_cor:TotalShareholderReturn contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="3" unitRef="pure">2.917</jpcrp_cor:TotalShareholderReturn>
+  
+  
+  
+  <jpcrp_cor:TotalReturnOnSharePriceIndex contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="3" unitRef="pure">1.502</jpcrp_cor:TotalReturnOnSharePriceIndex>
+  <jpcrp_cor:TotalReturnOnSharePriceIndex contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="3" unitRef="pure">2.022</jpcrp_cor:TotalReturnOnSharePriceIndex>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <jpcrp_cor:CapitalExpendituresOverviewOfCapitalExpendituresEtc contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">6525000000</jpcrp_cor:CapitalExpendituresOverviewOfCapitalExpendituresEtc>
+  
+  
+  <jpcrp_cor:NumberOfIssuedSharesAsOfFiscalYearEndIssuedSharesTotalNumberOfSharesEtc contextRef="FilingDateInstant" decimals="0" unitRef="shares">94178804</jpcrp_cor:NumberOfIssuedSharesAsOfFiscalYearEndIssuedSharesTotalNumberOfSharesEtc>
+  <jpcrp_cor:NumberOfIssuedSharesAsOfFilingDateIssuedSharesTotalNumberOfSharesEtc contextRef="FilingDateInstant" decimals="0" unitRef="shares">92303304</jpcrp_cor:NumberOfIssuedSharesAsOfFilingDateIssuedSharesTotalNumberOfSharesEtc>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <jpcrp_cor:NumberOfSharesHeld contextRef="CurrentYearInstant" decimals="0" unitRef="shares">61601291</jpcrp_cor:NumberOfSharesHeld>
+  <jpcrp_cor:ShareholdingRatio contextRef="CurrentYearInstant" decimals="4" unitRef="pure">0.6674</jpcrp_cor:ShareholdingRatio>
+  
+  
+  
+  
+  
+  
+  
+  
+  <jpcrp_cor:NumberOfSharesIssuedSharesVotingRights contextRef="CurrentYearInstant" decimals="0" unitRef="shares">94178804</jpcrp_cor:NumberOfSharesIssuedSharesVotingRights>
+  <jpcrp_cor:NumberOfVotingRightsIssuedSharesVotingRights contextRef="CurrentYearInstant" decimals="0" unitRef="pure">918755</jpcrp_cor:NumberOfVotingRightsIssuedSharesVotingRights>
+  
+  
+  
+  
+  <jpcrp_cor:NumberOfSharesHeldInOwnNameTreasurySharesEtc contextRef="CurrentYearInstant" decimals="0" unitRef="shares">1875500</jpcrp_cor:NumberOfSharesHeldInOwnNameTreasurySharesEtc>
+  <jpcrp_cor:NumberOfSharesHeldInOthersNamesTreasurySharesEtc contextRef="CurrentYearInstant" unitRef="shares" xsi:nil="true"/>
+  <jpcrp_cor:TotalNumberOfSharesHeldTreasurySharesEtc contextRef="CurrentYearInstant" decimals="0" unitRef="shares">1875500</jpcrp_cor:TotalNumberOfSharesHeldTreasurySharesEtc>
+  <jpcrp_cor:ShareholdingRatioTreasurySharesEtc contextRef="CurrentYearInstant" decimals="4" unitRef="pure">0.0199</jpcrp_cor:ShareholdingRatioTreasurySharesEtc>
+  
+  
+  
+  
+  <jpcrp_cor:NumberOfMaleDirectorsAndOtherOfficers contextRef="FilingDateInstant" decimals="0" unitRef="pure">10</jpcrp_cor:NumberOfMaleDirectorsAndOtherOfficers>
+  <jpcrp_cor:NumberOfFemaleDirectorsAndOtherOfficers contextRef="FilingDateInstant" decimals="0" unitRef="pure">3</jpcrp_cor:NumberOfFemaleDirectorsAndOtherOfficers>
+  <jpcrp_cor:RatioOfFemaleDirectorsAndOtherOfficers contextRef="FilingDateInstant" decimals="3" unitRef="pure">0.231</jpcrp_cor:RatioOfFemaleDirectorsAndOtherOfficers>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <jpcrp_cor:NumberOfSharesHeldOrdinarySharesInformationAboutDirectorsAndCorporateAuditors contextRef="FilingDateInstant" decimals="0" unitRef="shares">85207</jpcrp_cor:NumberOfSharesHeldOrdinarySharesInformationAboutDirectorsAndCorporateAuditors>
+  <jpcrp_cor:NumberOfMaleDirectorsAndOtherOfficersProposal contextRef="FilingDateInstant" decimals="0" unitRef="pure">10</jpcrp_cor:NumberOfMaleDirectorsAndOtherOfficersProposal>
+  <jpcrp_cor:NumberOfFemaleDirectorsAndOtherOfficersProposal contextRef="FilingDateInstant" decimals="0" unitRef="pure">2</jpcrp_cor:NumberOfFemaleDirectorsAndOtherOfficersProposal>
+  <jpcrp_cor:RatioOfFemaleDirectorsAndOtherOfficersProposal contextRef="FilingDateInstant" decimals="3" unitRef="pure">0.167</jpcrp_cor:RatioOfFemaleDirectorsAndOtherOfficersProposal>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <jpcrp_cor:NumberOfSharesHeldOrdinarySharesInformationAboutDirectorsAndCorporateAuditorsProposal contextRef="FilingDateInstant" decimals="0" unitRef="shares">69944</jpcrp_cor:NumberOfSharesHeldOrdinarySharesInformationAboutDirectorsAndCorporateAuditorsProposal>
+  
+  
+  <jpcrp_cor:AuditFeesReportingCompany contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">42000000</jpcrp_cor:AuditFeesReportingCompany>
+  <jpcrp_cor:NonAuditFeesReportingCompany contextRef="CurrentYearDuration" unitRef="JPY" xsi:nil="true"/>
+  
+  
+  <jpcrp_cor:AuditFeesConsolidatedSubsidiaries contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">7000000</jpcrp_cor:AuditFeesConsolidatedSubsidiaries>
+  <jpcrp_cor:NonAuditFeesConsolidatedSubsidiaries contextRef="CurrentYearDuration" unitRef="JPY" xsi:nil="true"/>
+  
+  
+  <jpcrp_cor:AuditFeesTotal contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">49000000</jpcrp_cor:AuditFeesTotal>
+  <jpcrp_cor:NonAuditFeesTotal contextRef="CurrentYearDuration" unitRef="JPY" xsi:nil="true"/>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <jpcrp_cor:NumberOfIssuesSharesNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany contextRef="CurrentYearInstant" decimals="0" unitRef="pure">9</jpcrp_cor:NumberOfIssuesSharesNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany>
+  <jpcrp_cor:CarryingAmountSharesNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">639000000</jpcrp_cor:CarryingAmountSharesNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany>
+  <jpcrp_cor:NumberOfIssuesSharesOtherThanThoseNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany contextRef="CurrentYearInstant" unitRef="pure" xsi:nil="true"/>
+  <jpcrp_cor:CarryingAmountSharesOtherThanThoseNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany contextRef="CurrentYearInstant" unitRef="JPY" xsi:nil="true"/>
+  <jpcrp_cor:NumberOfIssuesWhoseNumberOfSharesIncreasedSharesNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany contextRef="CurrentYearDuration" decimals="0" unitRef="pure">2</jpcrp_cor:NumberOfIssuesWhoseNumberOfSharesIncreasedSharesNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany>
+  <jpcrp_cor:TotalAcquisitionCostForIncreasedSharesSharesNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">57000000</jpcrp_cor:TotalAcquisitionCostForIncreasedSharesSharesNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany>
+  <jpcrp_cor:NumberOfIssuesWhoseNumberOfSharesIncreasedSharesOtherThanThoseNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany contextRef="CurrentYearDuration" unitRef="pure" xsi:nil="true"/>
+  <jpcrp_cor:TotalAcquisitionCostForIncreasedSharesSharesOtherThanThoseNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany contextRef="CurrentYearDuration" unitRef="JPY" xsi:nil="true"/>
+  <jpcrp_cor:NumberOfIssuesWhoseNumberOfSharesDecreasedSharesNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany contextRef="CurrentYearDuration" unitRef="pure" xsi:nil="true"/>
+  <jpcrp_cor:TotalSaleAmountForDecreasedSharesSharesNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany contextRef="CurrentYearDuration" unitRef="JPY" xsi:nil="true"/>
+  <jpcrp_cor:NumberOfIssuesWhoseNumberOfSharesDecreasedSharesOtherThanThoseNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany contextRef="CurrentYearDuration" unitRef="pure" xsi:nil="true"/>
+  <jpcrp_cor:TotalSaleAmountForDecreasedSharesSharesOtherThanThoseNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany contextRef="CurrentYearDuration" unitRef="JPY" xsi:nil="true"/>
+  <jpcrp_cor:NumberOfEmployees contextRef="CurrentYearInstant" decimals="0" unitRef="pure">545</jpcrp_cor:NumberOfEmployees>
+  <jpcrp_cor:AverageNumberOfTemporaryWorkers contextRef="CurrentYearInstant" decimals="0" unitRef="pure">165</jpcrp_cor:AverageNumberOfTemporaryWorkers>
+  <jpcrp_cor:NumberOfEmployees contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="0" unitRef="pure">347</jpcrp_cor:NumberOfEmployees>
+  <jpcrp_cor:AverageNumberOfTemporaryWorkers contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="0" unitRef="pure">70</jpcrp_cor:AverageNumberOfTemporaryWorkers>
+  <jpcrp_cor:AverageAgeYearsInformationAboutReportingCompanyInformationAboutEmployees contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="1" unitRef="pure">39.2</jpcrp_cor:AverageAgeYearsInformationAboutReportingCompanyInformationAboutEmployees>
+  <jpcrp_cor:AverageLengthOfServiceYearsInformationAboutReportingCompanyInformationAboutEmployees contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="1" unitRef="pure">9.4</jpcrp_cor:AverageLengthOfServiceYearsInformationAboutReportingCompanyInformationAboutEmployees>
+  <jpcrp_cor:AverageAnnualSalaryInformationAboutReportingCompanyInformationAboutEmployees contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="0" unitRef="JPY">7200451</jpcrp_cor:AverageAnnualSalaryInformationAboutReportingCompanyInformationAboutEmployees>
+  
+  <jpcrp_cor:RatioOfFemaleEmployeesInManagerialPositionsMetricsOfReportingCompany contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="3" unitRef="pure">0.183</jpcrp_cor:RatioOfFemaleEmployeesInManagerialPositionsMetricsOfReportingCompany>
+  <jpcrp_cor:AllEmployeesCalculatedBasedOnProvisionsOfArticle714Item2OfOrdinanceForEnforcementOfActOnChildcareLeaveCaregiverLeaveAndOtherMeasuresForTheWelfareOfWorkersCaringForChildrenOrOtherFamilyMembersRatioOfMaleEmployeesTakingChildcareLeaveMetricsOfReportingCompany contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="3" unitRef="pure">1.000</jpcrp_cor:AllEmployeesCalculatedBasedOnProvisionsOfArticle714Item2OfOrdinanceForEnforcementOfActOnChildcareLeaveCaregiverLeaveAndOtherMeasuresForTheWelfareOfWorkersCaringForChildrenOrOtherFamilyMembersRatioOfMaleEmployeesTakingChildcareLeaveMetricsOfReportingCompany>
+  <jpcrp_cor:AllEmployeesDifferencesInWagesBetweenMaleAndFemaleEmployeesMetricsOfReportingCompany contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="3" unitRef="pure">0.785</jpcrp_cor:AllEmployeesDifferencesInWagesBetweenMaleAndFemaleEmployeesMetricsOfReportingCompany>
+  <jpcrp_cor:RegularEmployeesDifferencesInWagesBetweenMaleAndFemaleEmployeesMetricsOfReportingCompany contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="3" unitRef="pure">0.761</jpcrp_cor:RegularEmployeesDifferencesInWagesBetweenMaleAndFemaleEmployeesMetricsOfReportingCompany>
+  <jpcrp_cor:NonRegularEmployeesDifferencesInWagesBetweenMaleAndFemaleEmployeesMetricsOfReportingCompany contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="3" unitRef="pure">0.762</jpcrp_cor:NonRegularEmployeesDifferencesInWagesBetweenMaleAndFemaleEmployeesMetricsOfReportingCompany>
+  
+  
+  
+  
+  
+  <jppfs_cor:MachineryNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" id="IdFact1472387067" unitRef="JPY">39716000000</jppfs_cor:MachineryNCATelecommunications>
+  <jppfs_cor:MachineryNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" id="IdFact1014957379" unitRef="JPY">40787000000</jppfs_cor:MachineryNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationMachineryNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">-28539000000</jppfs_cor:AccumulatedDepreciationMachineryNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationMachineryNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">-29357000000</jppfs_cor:AccumulatedDepreciationMachineryNCATelecommunications>
+  <jppfs_cor:MachineryNetNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">11176000000</jppfs_cor:MachineryNetNCATelecommunications>
+  <jppfs_cor:MachineryNetNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">11429000000</jppfs_cor:MachineryNetNCATelecommunications>
+  <jppfs_cor:AntennaFacilitiesNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">14361000000</jppfs_cor:AntennaFacilitiesNCATelecommunications>
+  <jppfs_cor:AntennaFacilitiesNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">15026000000</jppfs_cor:AntennaFacilitiesNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationAntennaNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">-9717000000</jppfs_cor:AccumulatedDepreciationAntennaNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationAntennaNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">-10233000000</jppfs_cor:AccumulatedDepreciationAntennaNCATelecommunications>
+  <jppfs_cor:AntennaFacilitiesNetNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">4643000000</jppfs_cor:AntennaFacilitiesNetNCATelecommunications>
+  <jppfs_cor:AntennaFacilitiesNetNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">4792000000</jppfs_cor:AntennaFacilitiesNetNCATelecommunications>
+  <jppfs_cor:TerminalFacilitiesNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">1185000000</jppfs_cor:TerminalFacilitiesNCATelecommunications>
+  <jppfs_cor:TerminalFacilitiesNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">1180000000</jppfs_cor:TerminalFacilitiesNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationTerminalNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">-806000000</jppfs_cor:AccumulatedDepreciationTerminalNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationTerminalNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">-783000000</jppfs_cor:AccumulatedDepreciationTerminalNCATelecommunications>
+  <jppfs_cor:TerminalFacilitiesNetNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">379000000</jppfs_cor:TerminalFacilitiesNetNCATelecommunications>
+  <jppfs_cor:TerminalFacilitiesNetNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">397000000</jppfs_cor:TerminalFacilitiesNetNCATelecommunications>
+  <jppfs_cor:LocalLineFacilitiesNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">16635000000</jppfs_cor:LocalLineFacilitiesNCATelecommunications>
+  <jppfs_cor:LocalLineFacilitiesNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">17537000000</jppfs_cor:LocalLineFacilitiesNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationLocalNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">-12590000000</jppfs_cor:AccumulatedDepreciationLocalNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationLocalNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">-13266000000</jppfs_cor:AccumulatedDepreciationLocalNCATelecommunications>
+  <jppfs_cor:LocalLineFacilitiesNetNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">4044000000</jppfs_cor:LocalLineFacilitiesNetNCATelecommunications>
+  <jppfs_cor:LocalLineFacilitiesNetNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">4270000000</jppfs_cor:LocalLineFacilitiesNetNCATelecommunications>
+  <jppfs_cor:LongDistanceLineFacilitiesNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" id="IdFact1217331274" unitRef="JPY">262000000</jppfs_cor:LongDistanceLineFacilitiesNCATelecommunications>
+  <jppfs_cor:LongDistanceLineFacilitiesNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" id="IdFact1599135653" unitRef="JPY">257000000</jppfs_cor:LongDistanceLineFacilitiesNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationLongNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">-79000000</jppfs_cor:AccumulatedDepreciationLongNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationLongNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">-94000000</jppfs_cor:AccumulatedDepreciationLongNCATelecommunications>
+  <jppfs_cor:LongDistanceLineFacilitiesNetNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">182000000</jppfs_cor:LongDistanceLineFacilitiesNetNCATelecommunications>
+  <jppfs_cor:LongDistanceLineFacilitiesNetNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">162000000</jppfs_cor:LongDistanceLineFacilitiesNetNCATelecommunications>
+  <jppfs_cor:EngineeringFacilitiesNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" id="IdFact510441147" unitRef="JPY">1158000000</jppfs_cor:EngineeringFacilitiesNCATelecommunications>
+  <jppfs_cor:EngineeringFacilitiesNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" id="IdFact1518202152" unitRef="JPY">1169000000</jppfs_cor:EngineeringFacilitiesNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationEngineeringNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">-259000000</jppfs_cor:AccumulatedDepreciationEngineeringNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationEngineeringNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">-316000000</jppfs_cor:AccumulatedDepreciationEngineeringNCATelecommunications>
+  <jppfs_cor:EngineeringFacilitiesNetNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">899000000</jppfs_cor:EngineeringFacilitiesNetNCATelecommunications>
+  <jppfs_cor:EngineeringFacilitiesNetNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">852000000</jppfs_cor:EngineeringFacilitiesNetNCATelecommunications>
+  <jppfs_cor:SubmarineLineFacilitiesNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" id="IdFact1782590333" unitRef="JPY">3948000000</jppfs_cor:SubmarineLineFacilitiesNCATelecommunications>
+  <jppfs_cor:SubmarineLineFacilitiesNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" id="IdFact867466343" unitRef="JPY">3948000000</jppfs_cor:SubmarineLineFacilitiesNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationSubmarineNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">-1553000000</jppfs_cor:AccumulatedDepreciationSubmarineNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationSubmarineNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">-1693000000</jppfs_cor:AccumulatedDepreciationSubmarineNCATelecommunications>
+  <jppfs_cor:SubmarineLineFacilitiesNetNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">2394000000</jppfs_cor:SubmarineLineFacilitiesNetNCATelecommunications>
+  <jppfs_cor:SubmarineLineFacilitiesNetNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">2254000000</jppfs_cor:SubmarineLineFacilitiesNetNCATelecommunications>
+  <jppfs_cor:BuildingsNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" id="IdFact1217842628" unitRef="JPY">10898000000</jppfs_cor:BuildingsNCATelecommunications>
+  <jppfs_cor:BuildingsNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" id="IdFact2109173075" unitRef="JPY">10924000000</jppfs_cor:BuildingsNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationBuildingNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">-5323000000</jppfs_cor:AccumulatedDepreciationBuildingNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationBuildingNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">-5647000000</jppfs_cor:AccumulatedDepreciationBuildingNCATelecommunications>
+  <jppfs_cor:BuildingsNetNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">5575000000</jppfs_cor:BuildingsNetNCATelecommunications>
+  <jppfs_cor:BuildingsNetNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">5276000000</jppfs_cor:BuildingsNetNCATelecommunications>
+  <jppfs_cor:StructuresNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" id="IdFact382184027" unitRef="JPY">1344000000</jppfs_cor:StructuresNCATelecommunications>
+  <jppfs_cor:StructuresNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" id="IdFact100707232" unitRef="JPY">1353000000</jppfs_cor:StructuresNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationStructuresNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">-1071000000</jppfs_cor:AccumulatedDepreciationStructuresNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationStructuresNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">-1086000000</jppfs_cor:AccumulatedDepreciationStructuresNCATelecommunications>
+  <jppfs_cor:StructuresNetNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">273000000</jppfs_cor:StructuresNetNCATelecommunications>
+  <jppfs_cor:StructuresNetNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">267000000</jppfs_cor:StructuresNetNCATelecommunications>
+  <jppfs_cor:MachineryAndEquipmentNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">190000000</jppfs_cor:MachineryAndEquipmentNCATelecommunications>
+  <jppfs_cor:MachineryAndEquipmentNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">185000000</jppfs_cor:MachineryAndEquipmentNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationMachineryAndEquipmentNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">-158000000</jppfs_cor:AccumulatedDepreciationMachineryAndEquipmentNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationMachineryAndEquipmentNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">-159000000</jppfs_cor:AccumulatedDepreciationMachineryAndEquipmentNCATelecommunications>
+  <jppfs_cor:MachineryAndEquipmentNetNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">32000000</jppfs_cor:MachineryAndEquipmentNetNCATelecommunications>
+  <jppfs_cor:MachineryAndEquipmentNetNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">25000000</jppfs_cor:MachineryAndEquipmentNetNCATelecommunications>
+  <jppfs_cor:VehiclesNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">197000000</jppfs_cor:VehiclesNCATelecommunications>
+  <jppfs_cor:VehiclesNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">197000000</jppfs_cor:VehiclesNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationVehiclesNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">-196000000</jppfs_cor:AccumulatedDepreciationVehiclesNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationVehiclesNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">-197000000</jppfs_cor:AccumulatedDepreciationVehiclesNCATelecommunications>
+  <jppfs_cor:VehiclesNetNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">1000000</jppfs_cor:VehiclesNetNCATelecommunications>
+  <jppfs_cor:VehiclesNetNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">0</jppfs_cor:VehiclesNetNCATelecommunications>
+  <jppfs_cor:ToolsFurnitureAndFixturesNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" id="IdFact2022096457" unitRef="JPY">1506000000</jppfs_cor:ToolsFurnitureAndFixturesNCATelecommunications>
+  <jppfs_cor:ToolsFurnitureAndFixturesNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" id="IdFact1042127359" unitRef="JPY">1667000000</jppfs_cor:ToolsFurnitureAndFixturesNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationToolsFurnitureAndFixturesNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">-1079000000</jppfs_cor:AccumulatedDepreciationToolsFurnitureAndFixturesNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationToolsFurnitureAndFixturesNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">-1060000000</jppfs_cor:AccumulatedDepreciationToolsFurnitureAndFixturesNCATelecommunications>
+  <jppfs_cor:ToolsFurnitureAndFixturesNetNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">427000000</jppfs_cor:ToolsFurnitureAndFixturesNetNCATelecommunications>
+  <jppfs_cor:ToolsFurnitureAndFixturesNetNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">607000000</jppfs_cor:ToolsFurnitureAndFixturesNetNCATelecommunications>
+  <jppfs_cor:LandNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">2494000000</jppfs_cor:LandNCATelecommunications>
+  <jppfs_cor:LandNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">2494000000</jppfs_cor:LandNCATelecommunications>
+  <jppfs_cor:LeaseAssetsPPE contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">6000000</jppfs_cor:LeaseAssetsPPE>
+  <jppfs_cor:LeaseAssetsPPE contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">13000000</jppfs_cor:LeaseAssetsPPE>
+  <jppfs_cor:AccumulatedDepreciationLeaseAssetsPPE contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">-0</jppfs_cor:AccumulatedDepreciationLeaseAssetsPPE>
+  <jppfs_cor:AccumulatedDepreciationLeaseAssetsPPE contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">-7000000</jppfs_cor:AccumulatedDepreciationLeaseAssetsPPE>
+  <jppfs_cor:LeaseAssetsNetPPE contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">5000000</jppfs_cor:LeaseAssetsNetPPE>
+  <jppfs_cor:LeaseAssetsNetPPE contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">6000000</jppfs_cor:LeaseAssetsNetPPE>
+  <jppfs_cor:ConstructionInProgressNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">2084000000</jppfs_cor:ConstructionInProgressNCATelecommunications>
+  <jppfs_cor:ConstructionInProgressNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">1488000000</jppfs_cor:ConstructionInProgressNCATelecommunications>
+  <jppfs_cor:PropertyPlantAndEquipmentNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">34615000000</jppfs_cor:PropertyPlantAndEquipmentNCATelecommunications>
+  <jppfs_cor:PropertyPlantAndEquipmentNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">34328000000</jppfs_cor:PropertyPlantAndEquipmentNCATelecommunications>
+  <jppfs_cor:RightOfUsingFacilitiesIANCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">17000000</jppfs_cor:RightOfUsingFacilitiesIANCATelecommunications>
+  <jppfs_cor:RightOfUsingFacilitiesIANCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">14000000</jppfs_cor:RightOfUsingFacilitiesIANCATelecommunications>
+  <jppfs_cor:SoftwareIANCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">410000000</jppfs_cor:SoftwareIANCATelecommunications>
+  <jppfs_cor:SoftwareIANCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">399000000</jppfs_cor:SoftwareIANCATelecommunications>
+  <jppfs_cor:LeaseholdRightIANCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">2000000</jppfs_cor:LeaseholdRightIANCATelecommunications>
+  <jppfs_cor:LeaseholdRightIANCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">2000000</jppfs_cor:LeaseholdRightIANCATelecommunications>
+  <jppfs_cor:OtherIntangibleAssetsIANCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">12000000</jppfs_cor:OtherIntangibleAssetsIANCATelecommunications>
+  <jppfs_cor:OtherIntangibleAssetsIANCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">14000000</jppfs_cor:OtherIntangibleAssetsIANCATelecommunications>
+  <jppfs_cor:IntangibleAssetsNCATelecommunications contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">442000000</jppfs_cor:IntangibleAssetsNCATelecommunications>
+  <jppfs_cor:IntangibleAssetsNCATelecommunications contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">430000000</jppfs_cor:IntangibleAssetsNCATelecommunications>
+  <jppfs_cor:NoncurrentAssetsTelecommunicationsBusinessELC contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">35057000000</jppfs_cor:NoncurrentAssetsTelecommunicationsBusinessELC>
+  <jppfs_cor:NoncurrentAssetsTelecommunicationsBusinessELC contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">34758000000</jppfs_cor:NoncurrentAssetsTelecommunicationsBusinessELC>
+  <jppfs_cor:PropertyPlantAndEquipmentGrossNCAIncidentalELC contextRef="Prior1YearInstant" decimals="-6" id="IdFact354646293" unitRef="JPY">8169000000</jppfs_cor:PropertyPlantAndEquipmentGrossNCAIncidentalELC>
+  <jppfs_cor:PropertyPlantAndEquipmentGrossNCAIncidentalELC contextRef="CurrentYearInstant" decimals="-6" id="IdFact377331130" unitRef="JPY">8328000000</jppfs_cor:PropertyPlantAndEquipmentGrossNCAIncidentalELC>
+  <jppfs_cor:AccumulatedDepreciationPPEIncidentalELC contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">-1212000000</jppfs_cor:AccumulatedDepreciationPPEIncidentalELC>
+  <jppfs_cor:AccumulatedDepreciationPPEIncidentalELC contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">-1527000000</jppfs_cor:AccumulatedDepreciationPPEIncidentalELC>
+  
+  
+  <jppfs_cor:PropertyPlantAndEquipmentNCAIncidentalELC contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">6957000000</jppfs_cor:PropertyPlantAndEquipmentNCAIncidentalELC>
+  <jppfs_cor:PropertyPlantAndEquipmentNCAIncidentalELC contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">6800000000</jppfs_cor:PropertyPlantAndEquipmentNCAIncidentalELC>
+  <jppfs_cor:IntangibleAssetsNCAIncidentalELC contextRef="Prior1YearInstant" decimals="-6" id="IdFact1531186634" unitRef="JPY">122000000</jppfs_cor:IntangibleAssetsNCAIncidentalELC>
+  <jppfs_cor:IntangibleAssetsNCAIncidentalELC contextRef="CurrentYearInstant" decimals="-6" id="IdFact155493692" unitRef="JPY">132000000</jppfs_cor:IntangibleAssetsNCAIncidentalELC>
+  <jppfs_cor:NoncurrentAssetsIncidentalBusinessNCAELC contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">7079000000</jppfs_cor:NoncurrentAssetsIncidentalBusinessNCAELC>
+  <jppfs_cor:NoncurrentAssetsIncidentalBusinessNCAELC contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">6932000000</jppfs_cor:NoncurrentAssetsIncidentalBusinessNCAELC>
+  <jppfs_cor:InvestmentSecurities contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">981000000</jppfs_cor:InvestmentSecurities>
+  <jppfs_cor:InvestmentSecurities contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">1142000000</jppfs_cor:InvestmentSecurities>
+  <jppfs_cor:LongTermLoansReceivableFromInterCompanyInvestmentSecuritiesELC contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">56000000</jppfs_cor:LongTermLoansReceivableFromInterCompanyInvestmentSecuritiesELC>
+  <jppfs_cor:LongTermLoansReceivableFromInterCompanyInvestmentSecuritiesELC contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">50000000</jppfs_cor:LongTermLoansReceivableFromInterCompanyInvestmentSecuritiesELC>
+  <jppfs_cor:LongTermPrepaidExpenses contextRef="Prior1YearInstant" decimals="-6" id="IdFact119643856" unitRef="JPY">1430000000</jppfs_cor:LongTermPrepaidExpenses>
+  <jppfs_cor:LongTermPrepaidExpenses contextRef="CurrentYearInstant" decimals="-6" id="IdFact2110477251" unitRef="JPY">1204000000</jppfs_cor:LongTermPrepaidExpenses>
+  <jppfs_cor:NetDefinedBenefitAsset contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">719000000</jppfs_cor:NetDefinedBenefitAsset>
+  <jppfs_cor:NetDefinedBenefitAsset contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">1048000000</jppfs_cor:NetDefinedBenefitAsset>
+  <jppfs_cor:DeferredTaxAssets contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">1645000000</jppfs_cor:DeferredTaxAssets>
+  <jppfs_cor:DeferredTaxAssets contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">1709000000</jppfs_cor:DeferredTaxAssets>
+  <jppfs_cor:LeaseAndGuaranteeDeposits contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">61000000</jppfs_cor:LeaseAndGuaranteeDeposits>
+  <jppfs_cor:LeaseAndGuaranteeDeposits contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">78000000</jppfs_cor:LeaseAndGuaranteeDeposits>
+  <jppfs_cor:OtherIOA contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">16000000</jppfs_cor:OtherIOA>
+  <jppfs_cor:OtherIOA contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">15000000</jppfs_cor:OtherIOA>
+  <jppfs_cor:AllowanceForDoubtfulAccountsIOAByGroup contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">-15000000</jppfs_cor:AllowanceForDoubtfulAccountsIOAByGroup>
+  <jppfs_cor:AllowanceForDoubtfulAccountsIOAByGroup contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">-14000000</jppfs_cor:AllowanceForDoubtfulAccountsIOAByGroup>
+  <jppfs_cor:InvestmentsAndOtherAssets contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">4896000000</jppfs_cor:InvestmentsAndOtherAssets>
+  <jppfs_cor:InvestmentsAndOtherAssets contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">5237000000</jppfs_cor:InvestmentsAndOtherAssets>
+  <jppfs_cor:NoncurrentAssets contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">47033000000</jppfs_cor:NoncurrentAssets>
+  <jppfs_cor:NoncurrentAssets contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">46927000000</jppfs_cor:NoncurrentAssets>
+  <jppfs_cor:CashAndDeposits contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">3506000000</jppfs_cor:CashAndDeposits>
+  <jppfs_cor:CashAndDeposits contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">3418000000</jppfs_cor:CashAndDeposits>
+  <jppfs_cor:AccountsReceivableTrade contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">44730000000</jppfs_cor:AccountsReceivableTrade>
+  <jppfs_cor:AccountsReceivableTrade contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">48174000000</jppfs_cor:AccountsReceivableTrade>
+  <jppfs_cor:AccountsReceivableOther contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">3696000000</jppfs_cor:AccountsReceivableOther>
+  <jppfs_cor:AccountsReceivableOther contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">3474000000</jppfs_cor:AccountsReceivableOther>
+  <jppfs_cor:Supplies contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">1147000000</jppfs_cor:Supplies>
+  <jppfs_cor:Supplies contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">1166000000</jppfs_cor:Supplies>
+  <jppfs_cor:PrepaidExpenses contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">376000000</jppfs_cor:PrepaidExpenses>
+  <jppfs_cor:PrepaidExpenses contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">503000000</jppfs_cor:PrepaidExpenses>
+  <jppfs_cor:ShortTermLoansReceivableToSubsidiariesAndAffiliates contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">17725000000</jppfs_cor:ShortTermLoansReceivableToSubsidiariesAndAffiliates>
+  <jppfs_cor:ShortTermLoansReceivableToSubsidiariesAndAffiliates contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">16733000000</jppfs_cor:ShortTermLoansReceivableToSubsidiariesAndAffiliates>
+  <jppfs_cor:OtherCA contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">61000000</jppfs_cor:OtherCA>
+  <jppfs_cor:OtherCA contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">68000000</jppfs_cor:OtherCA>
+  <jppfs_cor:AllowanceForDoubtfulAccountsCA contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">-11000000</jppfs_cor:AllowanceForDoubtfulAccountsCA>
+  <jppfs_cor:AllowanceForDoubtfulAccountsCA contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">-10000000</jppfs_cor:AllowanceForDoubtfulAccountsCA>
+  <jppfs_cor:CurrentAssets contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">71233000000</jppfs_cor:CurrentAssets>
+  <jppfs_cor:CurrentAssets contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">73529000000</jppfs_cor:CurrentAssets>
+  <jppfs_cor:Assets contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">118266000000</jppfs_cor:Assets>
+  <jppfs_cor:Assets contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">120457000000</jppfs_cor:Assets>
+  <jppfs_cor:LeaseObligationsNCL contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">6000000</jppfs_cor:LeaseObligationsNCL>
+  <jppfs_cor:LeaseObligationsNCL contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">11000000</jppfs_cor:LeaseObligationsNCL>
+  <jppfs_cor:ProvisionForPointCardCertificatesNCL contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">98000000</jppfs_cor:ProvisionForPointCardCertificatesNCL>
+  <jppfs_cor:ProvisionForPointCardCertificatesNCL contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">101000000</jppfs_cor:ProvisionForPointCardCertificatesNCL>
+  <jppfs_cor:ProvisionForShareBasedRemunerationNCL contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">144000000</jppfs_cor:ProvisionForShareBasedRemunerationNCL>
+  <jppfs_cor:ProvisionForShareBasedRemunerationNCL contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">139000000</jppfs_cor:ProvisionForShareBasedRemunerationNCL>
+  
+  
+  <jppfs_cor:NetDefinedBenefitLiability contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">403000000</jppfs_cor:NetDefinedBenefitLiability>
+  <jppfs_cor:NetDefinedBenefitLiability contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">442000000</jppfs_cor:NetDefinedBenefitLiability>
+  <jppfs_cor:AssetRetirementObligationsNCL contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">244000000</jppfs_cor:AssetRetirementObligationsNCL>
+  <jppfs_cor:AssetRetirementObligationsNCL contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">248000000</jppfs_cor:AssetRetirementObligationsNCL>
+  <jppfs_cor:OtherNCL contextRef="Prior1YearInstant" decimals="-6" id="IdFact102382573" unitRef="JPY">974000000</jppfs_cor:OtherNCL>
+  <jppfs_cor:OtherNCL contextRef="CurrentYearInstant" decimals="-6" id="IdFact710611799" unitRef="JPY">1020000000</jppfs_cor:OtherNCL>
+  <jppfs_cor:NoncurrentLiabilities contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">2136000000</jppfs_cor:NoncurrentLiabilities>
+  <jppfs_cor:NoncurrentLiabilities contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">2143000000</jppfs_cor:NoncurrentLiabilities>
+  <jppfs_cor:AccountsPayableTrade contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">3020000000</jppfs_cor:AccountsPayableTrade>
+  <jppfs_cor:AccountsPayableTrade contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">2933000000</jppfs_cor:AccountsPayableTrade>
+  <jppfs_cor:LeaseObligationsCL contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">4000000</jppfs_cor:LeaseObligationsCL>
+  <jppfs_cor:LeaseObligationsCL contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">5000000</jppfs_cor:LeaseObligationsCL>
+  <jppfs_cor:AccountsPayableOther contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">9060000000</jppfs_cor:AccountsPayableOther>
+  <jppfs_cor:AccountsPayableOther contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">7983000000</jppfs_cor:AccountsPayableOther>
+  <jppfs_cor:AccruedExpenses contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">166000000</jppfs_cor:AccruedExpenses>
+  <jppfs_cor:AccruedExpenses contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">175000000</jppfs_cor:AccruedExpenses>
+  <jppfs_cor:IncomeTaxesPayable contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">2988000000</jppfs_cor:IncomeTaxesPayable>
+  <jppfs_cor:IncomeTaxesPayable contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">3073000000</jppfs_cor:IncomeTaxesPayable>
+  <jppfs_cor:AdvancesReceived contextRef="Prior1YearInstant" decimals="-6" id="IdFact554164178" unitRef="JPY">246000000</jppfs_cor:AdvancesReceived>
+  <jppfs_cor:AdvancesReceived contextRef="CurrentYearInstant" decimals="-6" id="IdFact116774266" unitRef="JPY">389000000</jppfs_cor:AdvancesReceived>
+  <jppfs_cor:DepositsReceived contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">340000000</jppfs_cor:DepositsReceived>
+  <jppfs_cor:DepositsReceived contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">347000000</jppfs_cor:DepositsReceived>
+  <jppfs_cor:UnearnedRevenue contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">28000000</jppfs_cor:UnearnedRevenue>
+  <jppfs_cor:UnearnedRevenue contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">49000000</jppfs_cor:UnearnedRevenue>
+  <jppfs_cor:ProvisionForBonuses contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">412000000</jppfs_cor:ProvisionForBonuses>
+  <jppfs_cor:ProvisionForBonuses contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">449000000</jppfs_cor:ProvisionForBonuses>
+  <jppfs_cor:ProvisionForDirectorsBonuses contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">25000000</jppfs_cor:ProvisionForDirectorsBonuses>
+  <jppfs_cor:ProvisionForDirectorsBonuses contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">35000000</jppfs_cor:ProvisionForDirectorsBonuses>
+  
+  
+  <jppfs_cor:OtherCL contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">3000000</jppfs_cor:OtherCL>
+  <jppfs_cor:OtherCL contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">5000000</jppfs_cor:OtherCL>
+  <jppfs_cor:CurrentLiabilities contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">16936000000</jppfs_cor:CurrentLiabilities>
+  <jppfs_cor:CurrentLiabilities contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">16399000000</jppfs_cor:CurrentLiabilities>
+  <jppfs_cor:Liabilities contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">19073000000</jppfs_cor:Liabilities>
+  <jppfs_cor:Liabilities contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">18543000000</jppfs_cor:Liabilities>
+  <jppfs_cor:CapitalStock contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">1414000000</jppfs_cor:CapitalStock>
+  <jppfs_cor:CapitalStock contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">1414000000</jppfs_cor:CapitalStock>
+  <jppfs_cor:CapitalSurplus contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">1665000000</jppfs_cor:CapitalSurplus>
+  <jppfs_cor:CapitalSurplus contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">1665000000</jppfs_cor:CapitalSurplus>
+  <jppfs_cor:RetainedEarnings contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">98413000000</jppfs_cor:RetainedEarnings>
+  <jppfs_cor:RetainedEarnings contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">100629000000</jppfs_cor:RetainedEarnings>
+  <jppfs_cor:TreasuryStock contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">-5284000000</jppfs_cor:TreasuryStock>
+  <jppfs_cor:TreasuryStock contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">-5251000000</jppfs_cor:TreasuryStock>
+  <jppfs_cor:ShareholdersEquity contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">96209000000</jppfs_cor:ShareholdersEquity>
+  <jppfs_cor:ShareholdersEquity contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">98458000000</jppfs_cor:ShareholdersEquity>
+  <jppfs_cor:RemeasurementsOfDefinedBenefitPlans contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">333000000</jppfs_cor:RemeasurementsOfDefinedBenefitPlans>
+  <jppfs_cor:RemeasurementsOfDefinedBenefitPlans contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">508000000</jppfs_cor:RemeasurementsOfDefinedBenefitPlans>
+  <jppfs_cor:ValuationAndTranslationAdjustments contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">333000000</jppfs_cor:ValuationAndTranslationAdjustments>
+  <jppfs_cor:ValuationAndTranslationAdjustments contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">508000000</jppfs_cor:ValuationAndTranslationAdjustments>
+  <jppfs_cor:NonControllingInterests contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">2650000000</jppfs_cor:NonControllingInterests>
+  <jppfs_cor:NonControllingInterests contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">2947000000</jppfs_cor:NonControllingInterests>
+  <jppfs_cor:NetAssets contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">99193000000</jppfs_cor:NetAssets>
+  <jppfs_cor:NetAssets contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">101914000000</jppfs_cor:NetAssets>
+  <jppfs_cor:LiabilitiesAndNetAssets contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">118266000000</jppfs_cor:LiabilitiesAndNetAssets>
+  <jppfs_cor:LiabilitiesAndNetAssets contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">120457000000</jppfs_cor:LiabilitiesAndNetAssets>
+  
+  <jppfs_cor:OperatingRevenueOILTelecommunications contextRef="CurrentYearDuration" decimals="-6" id="IdFact601109466" unitRef="JPY">52291000000</jppfs_cor:OperatingRevenueOILTelecommunications>
+  
+  <jppfs_cor:BusinessExpensesOEOILTelecommunications contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">12676000000</jppfs_cor:BusinessExpensesOEOILTelecommunications>
+  
+  <jppfs_cor:FacilitiesMaintenanceExpensesOEOILTelecommunications contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">5170000000</jppfs_cor:FacilitiesMaintenanceExpensesOEOILTelecommunications>
+  
+  <jppfs_cor:AdministrativeExpensesOEOILTelecommunications contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">2687000000</jppfs_cor:AdministrativeExpensesOEOILTelecommunications>
+  
+  <jppfs_cor:DepreciationOEOILTelecommunications contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">5989000000</jppfs_cor:DepreciationOEOILTelecommunications>
+  
+  <jppfs_cor:NoncurrentAssetsRetirementCostOEOILTelecommunications contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">423000000</jppfs_cor:NoncurrentAssetsRetirementCostOEOILTelecommunications>
+  
+  <jppfs_cor:CommunicationFacilityFeeOEOILTelecommunications contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">5706000000</jppfs_cor:CommunicationFacilityFeeOEOILTelecommunications>
+  
+  <jppfs_cor:TaxesAndDuesOEOILTelecommunications contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">828000000</jppfs_cor:TaxesAndDuesOEOILTelecommunications>
+  
+  <jppfs_cor:OperatingExpensesOILTelecommunications contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">33482000000</jppfs_cor:OperatingExpensesOILTelecommunications>
+  
+  <jppfs_cor:NetOperatingIncomeFromTelecommunicationELC contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">18808000000</jppfs_cor:NetOperatingIncomeFromTelecommunicationELC>
+  
+  <jppfs_cor:OperatingRevenueIncidentalELC contextRef="CurrentYearDuration" decimals="-6" id="IdFact340053460" unitRef="JPY">34057000000</jppfs_cor:OperatingRevenueIncidentalELC>
+  
+  <jppfs_cor:OperatingExpensesIncidentalELC contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">34172000000</jppfs_cor:OperatingExpensesIncidentalELC>
+  
+  <jppfs_cor:NetOperatingIncomeFromIncidentalBusinessELC contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-115000000</jppfs_cor:NetOperatingIncomeFromIncidentalBusinessELC>
+  
+  <jppfs_cor:OperatingIncome contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">18693000000</jppfs_cor:OperatingIncome>
+  
+  <jppfs_cor:InterestIncomeNOI contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">112000000</jppfs_cor:InterestIncomeNOI>
+  
+  <jppfs_cor:DividendsIncomeNOI contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">8000000</jppfs_cor:DividendsIncomeNOI>
+  
+  <jppfs_cor:RentIncomeNOI contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">5000000</jppfs_cor:RentIncomeNOI>
+  
+  <jppfs_cor:InsuranceIncomeNOI contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">3000000</jppfs_cor:InsuranceIncomeNOI>
+  
+  <jppfs_cor:SubsidyIncomeNOI contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">32000000</jppfs_cor:SubsidyIncomeNOI>
+  
+  <jppfs_cor:CommissionFeeNOI contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">2000000</jppfs_cor:CommissionFeeNOI>
+  
+  <jppfs_cor:MiscellaneousIncomeNOI contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">34000000</jppfs_cor:MiscellaneousIncomeNOI>
+  
+  <jppfs_cor:NonOperatingIncome contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">201000000</jppfs_cor:NonOperatingIncome>
+  
+  <jppfs_cor:CommissionForPurchaseOfTreasuryStockNOE contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">24000000</jppfs_cor:CommissionForPurchaseOfTreasuryStockNOE>
+  
+  <jppfs_cor:EquityInLossesOfAffiliatesNOE contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">4000000</jppfs_cor:EquityInLossesOfAffiliatesNOE>
+  
+  <jppfs_cor:MiscellaneousExpensesNOEELC contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">0</jppfs_cor:MiscellaneousExpensesNOEELC>
+  
+  <jppfs_cor:NonOperatingExpenses contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">29000000</jppfs_cor:NonOperatingExpenses>
+  
+  <jppfs_cor:OrdinaryIncome contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">18864000000</jppfs_cor:OrdinaryIncome>
+  
+  <jppfs_cor:IncomeBeforeIncomeTaxes contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">18864000000</jppfs_cor:IncomeBeforeIncomeTaxes>
+  
+  <jppfs_cor:IncomeTaxesCurrent contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">5488000000</jppfs_cor:IncomeTaxesCurrent>
+  
+  <jppfs_cor:IncomeTaxesDeferred contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-148000000</jppfs_cor:IncomeTaxesDeferred>
+  
+  <jppfs_cor:IncomeTaxes contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">5339000000</jppfs_cor:IncomeTaxes>
+  
+  <jppfs_cor:ProfitLoss contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">13525000000</jppfs_cor:ProfitLoss>
+  
+  <jppfs_cor:ProfitLossAttributableToNonControllingInterests contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">307000000</jppfs_cor:ProfitLossAttributableToNonControllingInterests>
+  
+  <jppfs_cor:ProfitLossAttributableToOwnersOfParent contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">13217000000</jppfs_cor:ProfitLossAttributableToOwnersOfParent>
+  
+  <jppfs_cor:ProfitLoss contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">13525000000</jppfs_cor:ProfitLoss>
+  
+  <jppfs_cor:RemeasurementsOfDefinedBenefitPlansNetOfTaxOCI contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">174000000</jppfs_cor:RemeasurementsOfDefinedBenefitPlansNetOfTaxOCI>
+  
+  <jppfs_cor:OtherComprehensiveIncome contextRef="CurrentYearDuration" decimals="-6" id="IdFact2107118854" unitRef="JPY">174000000</jppfs_cor:OtherComprehensiveIncome>
+  
+  <jppfs_cor:ComprehensiveIncome contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">13700000000</jppfs_cor:ComprehensiveIncome>
+  
+  <jppfs_cor:ComprehensiveIncomeAttributableToOwnersOfTheParent contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">13392000000</jppfs_cor:ComprehensiveIncomeAttributableToOwnersOfTheParent>
+  
+  <jppfs_cor:ComprehensiveIncomeAttributableToNonControllingInterests contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">307000000</jppfs_cor:ComprehensiveIncomeAttributableToNonControllingInterests>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <jppfs_cor:NetAssets contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">99193000000</jppfs_cor:NetAssets>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <jppfs_cor:NetAssets contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">99193000000</jppfs_cor:NetAssets>
+  <jppfs_cor:DividendsFromSurplus contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-5997000000</jppfs_cor:DividendsFromSurplus>
+  <jppfs_cor:ProfitLossAttributableToOwnersOfParent contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">13217000000</jppfs_cor:ProfitLossAttributableToOwnersOfParent>
+  <jppfs_cor:PurchaseOfTreasuryStock contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-4999000000</jppfs_cor:PurchaseOfTreasuryStock>
+  <jppfs_cor:RetirementOfTreasuryStock contextRef="CurrentYearDuration" unitRef="JPY" xsi:nil="true"/>
+  <jppfs_cor:DisposalOfTreasuryStock contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">29000000</jppfs_cor:DisposalOfTreasuryStock>
+  <jppfs_cor:TransferToCapitalSurplusFromRetainedEarnings contextRef="CurrentYearDuration" unitRef="JPY" xsi:nil="true"/>
+  
+  
+  
+  <jppfs_cor:NetChangesOfItemsOtherThanShareholdersEquity contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">471000000</jppfs_cor:NetChangesOfItemsOtherThanShareholdersEquity>
+  
+  
+  
+  <jppfs_cor:TotalChangesOfItemsDuringThePeriod contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">2720000000</jppfs_cor:TotalChangesOfItemsDuringThePeriod>
+  
+  
+  
+  <jppfs_cor:NetAssets contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">101914000000</jppfs_cor:NetAssets>
+  
+  <jppfs_cor:IncomeBeforeIncomeTaxes contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">18864000000</jppfs_cor:IncomeBeforeIncomeTaxes>
+  
+  <jppfs_cor:DepreciationAndAmortizationOpeCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">6351000000</jppfs_cor:DepreciationAndAmortizationOpeCF>
+  
+  <jppfs_cor:LossOnRetirementOfNoncurrentAssetsOpeCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">246000000</jppfs_cor:LossOnRetirementOfNoncurrentAssetsOpeCF>
+  
+  
+  
+  <jppfs_cor:IncreaseDecreaseInAllowanceForDoubtfulAccountsOpeCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-2000000</jppfs_cor:IncreaseDecreaseInAllowanceForDoubtfulAccountsOpeCF>
+  
+  <jppfs_cor:IncreaseDecreaseInProvisionForPointCardCertificatesOpeCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">3000000</jppfs_cor:IncreaseDecreaseInProvisionForPointCardCertificatesOpeCF>
+  
+  
+  
+  <jppfs_cor:IncreaseDecreaseInProvisionForBonusesOpeCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">37000000</jppfs_cor:IncreaseDecreaseInProvisionForBonusesOpeCF>
+  
+  <jppfs_cor:IncreaseDecreaseInNetDefinedBenefitAssetOpeCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-329000000</jppfs_cor:IncreaseDecreaseInNetDefinedBenefitAssetOpeCF>
+  
+  <jppfs_cor:IncreaseDecreaseInNetDefinedBenefitLiabilityOpeCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">39000000</jppfs_cor:IncreaseDecreaseInNetDefinedBenefitLiabilityOpeCF>
+  
+  <jppfs_cor:InterestAndDividendsIncomeOpeCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-121000000</jppfs_cor:InterestAndDividendsIncomeOpeCF>
+  
+  <jppfs_cor:DecreaseIncreaseInNotesAndAccountsReceivableTradeOpeCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-3444000000</jppfs_cor:DecreaseIncreaseInNotesAndAccountsReceivableTradeOpeCF>
+  
+  <jppfs_cor:DecreaseIncreaseInInventoriesOpeCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">55000000</jppfs_cor:DecreaseIncreaseInInventoriesOpeCF>
+  
+  <jppfs_cor:IncreaseDecreaseInNotesAndAccountsPayableTradeOpeCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-87000000</jppfs_cor:IncreaseDecreaseInNotesAndAccountsPayableTradeOpeCF>
+  
+  <jppfs_cor:IncreaseDecreaseInAccountsPayableOtherOpeCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-853000000</jppfs_cor:IncreaseDecreaseInAccountsPayableOtherOpeCF>
+  
+  <jppfs_cor:OtherNetOpeCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">636000000</jppfs_cor:OtherNetOpeCF>
+  
+  <jppfs_cor:SubtotalOpeCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">21622000000</jppfs_cor:SubtotalOpeCF>
+  
+  <jppfs_cor:InterestAndDividendsIncomeReceivedOpeCFInvCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">121000000</jppfs_cor:InterestAndDividendsIncomeReceivedOpeCFInvCF>
+  
+  <jppfs_cor:IncomeTaxesPaidOpeCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-5415000000</jppfs_cor:IncomeTaxesPaidOpeCF>
+  
+  <jppfs_cor:NetCashProvidedByUsedInOperatingActivities contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">16329000000</jppfs_cor:NetCashProvidedByUsedInOperatingActivities>
+  
+  <jppfs_cor:PurchaseOfPropertyPlantAndEquipmentInvCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-5804000000</jppfs_cor:PurchaseOfPropertyPlantAndEquipmentInvCF>
+  
+  <jppfs_cor:PurchaseOfIntangibleAssetsInvCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-181000000</jppfs_cor:PurchaseOfIntangibleAssetsInvCF>
+  
+  <jppfs_cor:PurchaseOfInvestmentSecuritiesInvCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-200000000</jppfs_cor:PurchaseOfInvestmentSecuritiesInvCF>
+  
+  <jppfs_cor:PaymentsOfLoansReceivableToSubsidiariesAndAffiliatesInvCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-30807000000</jppfs_cor:PaymentsOfLoansReceivableToSubsidiariesAndAffiliatesInvCF>
+  
+  
+  
+  <jppfs_cor:OtherPaymentsInvCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-238000000</jppfs_cor:OtherPaymentsInvCF>
+  
+  <jppfs_cor:OtherProceedsInvCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">55000000</jppfs_cor:OtherProceedsInvCF>
+  
+  <jppfs_cor:NetCashProvidedByUsedInInvestmentActivities contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-5377000000</jppfs_cor:NetCashProvidedByUsedInInvestmentActivities>
+  
+  <jppfs_cor:RepaymentsOfLeaseObligationsFinCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-6000000</jppfs_cor:RepaymentsOfLeaseObligationsFinCF>
+  
+  <jppfs_cor:PurchaseOfTreasuryStockFinCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-5024000000</jppfs_cor:PurchaseOfTreasuryStockFinCF>
+  
+  <jppfs_cor:CashDividendsPaidFinCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-5997000000</jppfs_cor:CashDividendsPaidFinCF>
+  
+  <jppfs_cor:DividendsPaidToNonControllingInterestsFinCF contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-10000000</jppfs_cor:DividendsPaidToNonControllingInterestsFinCF>
+  
+  <jppfs_cor:NetCashProvidedByUsedInFinancingActivities contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-11039000000</jppfs_cor:NetCashProvidedByUsedInFinancingActivities>
+  
+  <jppfs_cor:EffectOfExchangeRateChangeOnCashAndCashEquivalents contextRef="CurrentYearDuration" unitRef="JPY" xsi:nil="true"/>
+  
+  <jppfs_cor:NetIncreaseDecreaseInCashAndCashEquivalents contextRef="CurrentYearDuration" decimals="-6" unitRef="JPY">-88000000</jppfs_cor:NetIncreaseDecreaseInCashAndCashEquivalents>
+  
+  <jppfs_cor:CashAndCashEquivalents contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">3506000000</jppfs_cor:CashAndCashEquivalents>
+  <jppfs_cor:CashAndCashEquivalents contextRef="Prior1YearInstant" decimals="-6" id="IdFact1426835681" unitRef="JPY">3506000000</jppfs_cor:CashAndCashEquivalents>
+  <jppfs_cor:CashAndCashEquivalents contextRef="CurrentYearInstant" decimals="-6" id="IdFact1729332729" unitRef="JPY">3418000000</jppfs_cor:CashAndCashEquivalents>
+  <jpcrp_cor:NumberOfConsolidatedSubsidiaries contextRef="CurrentYearInstant" decimals="0" unitRef="pure">3</jpcrp_cor:NumberOfConsolidatedSubsidiaries>
+  <jpcrp_cor:NumberOfAssociatesAccountedForUsingEquityMethod contextRef="CurrentYearInstant" decimals="0" unitRef="pure">1</jpcrp_cor:NumberOfAssociatesAccountedForUsingEquityMethod>
+  
+  
+  
+  
+  <jppfs_cor:ContractLiabilities contextRef="Prior1YearInstant" decimals="-6" unitRef="JPY">1066000000</jppfs_cor:ContractLiabilities>
+  <jppfs_cor:ContractLiabilities contextRef="CurrentYearInstant" decimals="-6" unitRef="JPY">1227000000</jppfs_cor:ContractLiabilities>
+  <jppfs_cor:MachineryNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" id="IdFact489147589" unitRef="JPY">31409000000</jppfs_cor:MachineryNCATelecommunications>
+  <jppfs_cor:MachineryNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" id="IdFact548067906" unitRef="JPY">31403000000</jppfs_cor:MachineryNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationMachineryNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-22375000000</jppfs_cor:AccumulatedDepreciationMachineryNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationMachineryNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-22567000000</jppfs_cor:AccumulatedDepreciationMachineryNCATelecommunications>
+  <jppfs_cor:MachineryNetNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">9033000000</jppfs_cor:MachineryNetNCATelecommunications>
+  <jppfs_cor:MachineryNetNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">8836000000</jppfs_cor:MachineryNetNCATelecommunications>
+  <jppfs_cor:AntennaFacilitiesNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">14361000000</jppfs_cor:AntennaFacilitiesNCATelecommunications>
+  <jppfs_cor:AntennaFacilitiesNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">15026000000</jppfs_cor:AntennaFacilitiesNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationAntennaNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-9717000000</jppfs_cor:AccumulatedDepreciationAntennaNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationAntennaNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-10233000000</jppfs_cor:AccumulatedDepreciationAntennaNCATelecommunications>
+  <jppfs_cor:AntennaFacilitiesNetNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">4643000000</jppfs_cor:AntennaFacilitiesNetNCATelecommunications>
+  <jppfs_cor:AntennaFacilitiesNetNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">4792000000</jppfs_cor:AntennaFacilitiesNetNCATelecommunications>
+  <jppfs_cor:LongDistanceLineFacilitiesNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" id="IdFact736969334" unitRef="JPY">262000000</jppfs_cor:LongDistanceLineFacilitiesNCATelecommunications>
+  <jppfs_cor:LongDistanceLineFacilitiesNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" id="IdFact1344939711" unitRef="JPY">257000000</jppfs_cor:LongDistanceLineFacilitiesNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationLongNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-79000000</jppfs_cor:AccumulatedDepreciationLongNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationLongNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-94000000</jppfs_cor:AccumulatedDepreciationLongNCATelecommunications>
+  <jppfs_cor:LongDistanceLineFacilitiesNetNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">182000000</jppfs_cor:LongDistanceLineFacilitiesNetNCATelecommunications>
+  <jppfs_cor:LongDistanceLineFacilitiesNetNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">162000000</jppfs_cor:LongDistanceLineFacilitiesNetNCATelecommunications>
+  <jppfs_cor:EngineeringFacilitiesNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" id="IdFact1934133659" unitRef="JPY">861000000</jppfs_cor:EngineeringFacilitiesNCATelecommunications>
+  <jppfs_cor:EngineeringFacilitiesNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" id="IdFact96875898" unitRef="JPY">861000000</jppfs_cor:EngineeringFacilitiesNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationEngineeringNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-150000000</jppfs_cor:AccumulatedDepreciationEngineeringNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationEngineeringNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-197000000</jppfs_cor:AccumulatedDepreciationEngineeringNCATelecommunications>
+  <jppfs_cor:EngineeringFacilitiesNetNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">710000000</jppfs_cor:EngineeringFacilitiesNetNCATelecommunications>
+  <jppfs_cor:EngineeringFacilitiesNetNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">663000000</jppfs_cor:EngineeringFacilitiesNetNCATelecommunications>
+  <jppfs_cor:SubmarineLineFacilitiesNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" id="IdFact1157179718" unitRef="JPY">3598000000</jppfs_cor:SubmarineLineFacilitiesNCATelecommunications>
+  <jppfs_cor:SubmarineLineFacilitiesNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" id="IdFact1172824248" unitRef="JPY">3598000000</jppfs_cor:SubmarineLineFacilitiesNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationSubmarineNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-1203000000</jppfs_cor:AccumulatedDepreciationSubmarineNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationSubmarineNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-1343000000</jppfs_cor:AccumulatedDepreciationSubmarineNCATelecommunications>
+  <jppfs_cor:SubmarineLineFacilitiesNetNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">2394000000</jppfs_cor:SubmarineLineFacilitiesNetNCATelecommunications>
+  <jppfs_cor:SubmarineLineFacilitiesNetNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">2254000000</jppfs_cor:SubmarineLineFacilitiesNetNCATelecommunications>
+  <jppfs_cor:BuildingsNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" id="IdFact1926544846" unitRef="JPY">10304000000</jppfs_cor:BuildingsNCATelecommunications>
+  <jppfs_cor:BuildingsNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" id="IdFact1175272203" unitRef="JPY">10329000000</jppfs_cor:BuildingsNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationBuildingNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-4934000000</jppfs_cor:AccumulatedDepreciationBuildingNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationBuildingNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-5244000000</jppfs_cor:AccumulatedDepreciationBuildingNCATelecommunications>
+  <jppfs_cor:BuildingsNetNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">5369000000</jppfs_cor:BuildingsNetNCATelecommunications>
+  <jppfs_cor:BuildingsNetNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">5085000000</jppfs_cor:BuildingsNetNCATelecommunications>
+  <jppfs_cor:StructuresNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" id="IdFact1261668757" unitRef="JPY">1339000000</jppfs_cor:StructuresNCATelecommunications>
+  <jppfs_cor:StructuresNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" id="IdFact833307243" unitRef="JPY">1347000000</jppfs_cor:StructuresNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationStructuresNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-1066000000</jppfs_cor:AccumulatedDepreciationStructuresNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationStructuresNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-1080000000</jppfs_cor:AccumulatedDepreciationStructuresNCATelecommunications>
+  <jppfs_cor:StructuresNetNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">273000000</jppfs_cor:StructuresNetNCATelecommunications>
+  <jppfs_cor:StructuresNetNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">267000000</jppfs_cor:StructuresNetNCATelecommunications>
+  <jppfs_cor:MachineryAndEquipmentNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">119000000</jppfs_cor:MachineryAndEquipmentNCATelecommunications>
+  <jppfs_cor:MachineryAndEquipmentNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">114000000</jppfs_cor:MachineryAndEquipmentNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationMachineryAndEquipmentNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-87000000</jppfs_cor:AccumulatedDepreciationMachineryAndEquipmentNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationMachineryAndEquipmentNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-88000000</jppfs_cor:AccumulatedDepreciationMachineryAndEquipmentNCATelecommunications>
+  <jppfs_cor:MachineryAndEquipmentNetNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">32000000</jppfs_cor:MachineryAndEquipmentNetNCATelecommunications>
+  <jppfs_cor:MachineryAndEquipmentNetNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">25000000</jppfs_cor:MachineryAndEquipmentNetNCATelecommunications>
+  <jppfs_cor:VehiclesNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">197000000</jppfs_cor:VehiclesNCATelecommunications>
+  <jppfs_cor:VehiclesNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">197000000</jppfs_cor:VehiclesNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationVehiclesNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-196000000</jppfs_cor:AccumulatedDepreciationVehiclesNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationVehiclesNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-197000000</jppfs_cor:AccumulatedDepreciationVehiclesNCATelecommunications>
+  <jppfs_cor:VehiclesNetNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">1000000</jppfs_cor:VehiclesNetNCATelecommunications>
+  <jppfs_cor:VehiclesNetNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">0</jppfs_cor:VehiclesNetNCATelecommunications>
+  <jppfs_cor:ToolsFurnitureAndFixturesNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" id="IdFact1715909469" unitRef="JPY">1234000000</jppfs_cor:ToolsFurnitureAndFixturesNCATelecommunications>
+  <jppfs_cor:ToolsFurnitureAndFixturesNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" id="IdFact1228675581" unitRef="JPY">1367000000</jppfs_cor:ToolsFurnitureAndFixturesNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationToolsFurnitureAndFixturesNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-848000000</jppfs_cor:AccumulatedDepreciationToolsFurnitureAndFixturesNCATelecommunications>
+  <jppfs_cor:AccumulatedDepreciationToolsFurnitureAndFixturesNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-825000000</jppfs_cor:AccumulatedDepreciationToolsFurnitureAndFixturesNCATelecommunications>
+  <jppfs_cor:ToolsFurnitureAndFixturesNetNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">386000000</jppfs_cor:ToolsFurnitureAndFixturesNetNCATelecommunications>
+  <jppfs_cor:ToolsFurnitureAndFixturesNetNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">542000000</jppfs_cor:ToolsFurnitureAndFixturesNetNCATelecommunications>
+  <jppfs_cor:LandNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">2494000000</jppfs_cor:LandNCATelecommunications>
+  <jppfs_cor:LandNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">2494000000</jppfs_cor:LandNCATelecommunications>
+  <jppfs_cor:LeaseAssetsPPE contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">6000000</jppfs_cor:LeaseAssetsPPE>
+  <jppfs_cor:LeaseAssetsPPE contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">6000000</jppfs_cor:LeaseAssetsPPE>
+  <jppfs_cor:AccumulatedDepreciationLeaseAssetsPPE contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-0</jppfs_cor:AccumulatedDepreciationLeaseAssetsPPE>
+  <jppfs_cor:AccumulatedDepreciationLeaseAssetsPPE contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-2000000</jppfs_cor:AccumulatedDepreciationLeaseAssetsPPE>
+  <jppfs_cor:LeaseAssetsNetPPE contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">5000000</jppfs_cor:LeaseAssetsNetPPE>
+  <jppfs_cor:LeaseAssetsNetPPE contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">4000000</jppfs_cor:LeaseAssetsNetPPE>
+  <jppfs_cor:ConstructionInProgressNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">1461000000</jppfs_cor:ConstructionInProgressNCATelecommunications>
+  <jppfs_cor:ConstructionInProgressNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">1221000000</jppfs_cor:ConstructionInProgressNCATelecommunications>
+  <jppfs_cor:PropertyPlantAndEquipmentNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">26988000000</jppfs_cor:PropertyPlantAndEquipmentNCATelecommunications>
+  <jppfs_cor:PropertyPlantAndEquipmentNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">26352000000</jppfs_cor:PropertyPlantAndEquipmentNCATelecommunications>
+  <jppfs_cor:RightOfUsingFacilitiesIANCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">1000000</jppfs_cor:RightOfUsingFacilitiesIANCATelecommunications>
+  <jppfs_cor:RightOfUsingFacilitiesIANCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">1000000</jppfs_cor:RightOfUsingFacilitiesIANCATelecommunications>
+  <jppfs_cor:SoftwareIANCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">359000000</jppfs_cor:SoftwareIANCATelecommunications>
+  <jppfs_cor:SoftwareIANCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">347000000</jppfs_cor:SoftwareIANCATelecommunications>
+  <jppfs_cor:LeaseholdRightIANCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">2000000</jppfs_cor:LeaseholdRightIANCATelecommunications>
+  <jppfs_cor:LeaseholdRightIANCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">2000000</jppfs_cor:LeaseholdRightIANCATelecommunications>
+  <jppfs_cor:OtherIntangibleAssetsIANCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">10000000</jppfs_cor:OtherIntangibleAssetsIANCATelecommunications>
+  <jppfs_cor:OtherIntangibleAssetsIANCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">11000000</jppfs_cor:OtherIntangibleAssetsIANCATelecommunications>
+  <jppfs_cor:IntangibleAssetsNCATelecommunications contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">373000000</jppfs_cor:IntangibleAssetsNCATelecommunications>
+  <jppfs_cor:IntangibleAssetsNCATelecommunications contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">361000000</jppfs_cor:IntangibleAssetsNCATelecommunications>
+  <jppfs_cor:NoncurrentAssetsTelecommunicationsBusinessELC contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">27361000000</jppfs_cor:NoncurrentAssetsTelecommunicationsBusinessELC>
+  <jppfs_cor:NoncurrentAssetsTelecommunicationsBusinessELC contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">26713000000</jppfs_cor:NoncurrentAssetsTelecommunicationsBusinessELC>
+  <jppfs_cor:PropertyPlantAndEquipmentGrossNCAIncidentalELC contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" id="IdFact513035886" unitRef="JPY">8138000000</jppfs_cor:PropertyPlantAndEquipmentGrossNCAIncidentalELC>
+  <jppfs_cor:PropertyPlantAndEquipmentGrossNCAIncidentalELC contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" id="IdFact1967652813" unitRef="JPY">8325000000</jppfs_cor:PropertyPlantAndEquipmentGrossNCAIncidentalELC>
+  <jppfs_cor:AccumulatedDepreciationPPEIncidentalELC contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-1194000000</jppfs_cor:AccumulatedDepreciationPPEIncidentalELC>
+  <jppfs_cor:AccumulatedDepreciationPPEIncidentalELC contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-1524000000</jppfs_cor:AccumulatedDepreciationPPEIncidentalELC>
+  
+  
+  <jppfs_cor:PropertyPlantAndEquipmentNCAIncidentalELC contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">6943000000</jppfs_cor:PropertyPlantAndEquipmentNCAIncidentalELC>
+  <jppfs_cor:PropertyPlantAndEquipmentNCAIncidentalELC contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">6801000000</jppfs_cor:PropertyPlantAndEquipmentNCAIncidentalELC>
+  <jppfs_cor:IntangibleAssetsNCAIncidentalELC contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" id="IdFact642279011" unitRef="JPY">17000000</jppfs_cor:IntangibleAssetsNCAIncidentalELC>
+  <jppfs_cor:IntangibleAssetsNCAIncidentalELC contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" id="IdFact252862630" unitRef="JPY">41000000</jppfs_cor:IntangibleAssetsNCAIncidentalELC>
+  <jppfs_cor:NoncurrentAssetsIncidentalBusinessNCAELC contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">6961000000</jppfs_cor:NoncurrentAssetsIncidentalBusinessNCAELC>
+  <jppfs_cor:NoncurrentAssetsIncidentalBusinessNCAELC contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">6842000000</jppfs_cor:NoncurrentAssetsIncidentalBusinessNCAELC>
+  <jppfs_cor:InvestmentSecurities contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">781000000</jppfs_cor:InvestmentSecurities>
+  <jppfs_cor:InvestmentSecurities contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">940000000</jppfs_cor:InvestmentSecurities>
+  <jppfs_cor:StocksOfSubsidiariesAndAffiliates contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">3215000000</jppfs_cor:StocksOfSubsidiariesAndAffiliates>
+  <jppfs_cor:StocksOfSubsidiariesAndAffiliates contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">3222000000</jppfs_cor:StocksOfSubsidiariesAndAffiliates>
+  <jppfs_cor:LongTermLoansReceivableFromInterCompanyInvestmentSecuritiesELC contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">56000000</jppfs_cor:LongTermLoansReceivableFromInterCompanyInvestmentSecuritiesELC>
+  <jppfs_cor:LongTermLoansReceivableFromInterCompanyInvestmentSecuritiesELC contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">50000000</jppfs_cor:LongTermLoansReceivableFromInterCompanyInvestmentSecuritiesELC>
+  <jppfs_cor:LongTermPrepaidExpenses contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" id="IdFact868853780" unitRef="JPY">1344000000</jppfs_cor:LongTermPrepaidExpenses>
+  <jppfs_cor:LongTermPrepaidExpenses contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" id="IdFact2042269751" unitRef="JPY">1140000000</jppfs_cor:LongTermPrepaidExpenses>
+  <jppfs_cor:PrepaidPensionCostIOA contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">244000000</jppfs_cor:PrepaidPensionCostIOA>
+  <jppfs_cor:PrepaidPensionCostIOA contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">314000000</jppfs_cor:PrepaidPensionCostIOA>
+  <jppfs_cor:DeferredTaxAssets contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">1499000000</jppfs_cor:DeferredTaxAssets>
+  <jppfs_cor:DeferredTaxAssets contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">1615000000</jppfs_cor:DeferredTaxAssets>
+  <jppfs_cor:LeaseAndGuaranteeDeposits contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">58000000</jppfs_cor:LeaseAndGuaranteeDeposits>
+  <jppfs_cor:LeaseAndGuaranteeDeposits contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">76000000</jppfs_cor:LeaseAndGuaranteeDeposits>
+  <jppfs_cor:OtherIOA contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">14000000</jppfs_cor:OtherIOA>
+  <jppfs_cor:OtherIOA contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">12000000</jppfs_cor:OtherIOA>
+  <jppfs_cor:AllowanceForDoubtfulAccountsIOAByGroup contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-14000000</jppfs_cor:AllowanceForDoubtfulAccountsIOAByGroup>
+  <jppfs_cor:AllowanceForDoubtfulAccountsIOAByGroup contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-12000000</jppfs_cor:AllowanceForDoubtfulAccountsIOAByGroup>
+  <jppfs_cor:InvestmentsAndOtherAssets contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">7200000000</jppfs_cor:InvestmentsAndOtherAssets>
+  <jppfs_cor:InvestmentsAndOtherAssets contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">7359000000</jppfs_cor:InvestmentsAndOtherAssets>
+  <jppfs_cor:NoncurrentAssets contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">41523000000</jppfs_cor:NoncurrentAssets>
+  <jppfs_cor:NoncurrentAssets contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">40915000000</jppfs_cor:NoncurrentAssets>
+  <jppfs_cor:CashAndDeposits contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">2884000000</jppfs_cor:CashAndDeposits>
+  <jppfs_cor:CashAndDeposits contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">2922000000</jppfs_cor:CashAndDeposits>
+  <jppfs_cor:AccountsReceivableTrade contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" id="IdFact480549405" unitRef="JPY">44036000000</jppfs_cor:AccountsReceivableTrade>
+  <jppfs_cor:AccountsReceivableTrade contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" id="IdFact11525759" unitRef="JPY">47649000000</jppfs_cor:AccountsReceivableTrade>
+  <jppfs_cor:AccountsReceivableOther contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" id="IdFact2128109430" unitRef="JPY">3532000000</jppfs_cor:AccountsReceivableOther>
+  <jppfs_cor:AccountsReceivableOther contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" id="IdFact1397642162" unitRef="JPY">3485000000</jppfs_cor:AccountsReceivableOther>
+  <jppfs_cor:Supplies contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">996000000</jppfs_cor:Supplies>
+  <jppfs_cor:Supplies contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">996000000</jppfs_cor:Supplies>
+  <jppfs_cor:PrepaidExpenses contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">289000000</jppfs_cor:PrepaidExpenses>
+  <jppfs_cor:PrepaidExpenses contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">391000000</jppfs_cor:PrepaidExpenses>
+  <jppfs_cor:ShortTermLoansReceivableToSubsidiariesAndAffiliates contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">18003000000</jppfs_cor:ShortTermLoansReceivableToSubsidiariesAndAffiliates>
+  <jppfs_cor:ShortTermLoansReceivableToSubsidiariesAndAffiliates contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">16898000000</jppfs_cor:ShortTermLoansReceivableToSubsidiariesAndAffiliates>
+  <jppfs_cor:OtherCA contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" id="IdFact1795317684" unitRef="JPY">49000000</jppfs_cor:OtherCA>
+  <jppfs_cor:OtherCA contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" id="IdFact354429069" unitRef="JPY">47000000</jppfs_cor:OtherCA>
+  <jppfs_cor:AllowanceForDoubtfulAccountsCA contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-148000000</jppfs_cor:AllowanceForDoubtfulAccountsCA>
+  <jppfs_cor:AllowanceForDoubtfulAccountsCA contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-88000000</jppfs_cor:AllowanceForDoubtfulAccountsCA>
+  <jppfs_cor:CurrentAssets contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">69643000000</jppfs_cor:CurrentAssets>
+  <jppfs_cor:CurrentAssets contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">72303000000</jppfs_cor:CurrentAssets>
+  <jppfs_cor:Assets contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">111167000000</jppfs_cor:Assets>
+  <jppfs_cor:Assets contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">113218000000</jppfs_cor:Assets>
+  <jppfs_cor:LeaseObligationsNCL contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">4000000</jppfs_cor:LeaseObligationsNCL>
+  <jppfs_cor:LeaseObligationsNCL contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">10000000</jppfs_cor:LeaseObligationsNCL>
+  <jppfs_cor:ProvisionForRetirementBenefits contextRef="Prior1YearInstant_NonConsolidatedMember" unitRef="JPY" xsi:nil="true"/>
+  <jppfs_cor:ProvisionForRetirementBenefits contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">1000000</jppfs_cor:ProvisionForRetirementBenefits>
+  <jppfs_cor:ProvisionForPointCardCertificatesNCL contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">98000000</jppfs_cor:ProvisionForPointCardCertificatesNCL>
+  <jppfs_cor:ProvisionForPointCardCertificatesNCL contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">101000000</jppfs_cor:ProvisionForPointCardCertificatesNCL>
+  <jppfs_cor:ProvisionForShareBasedRemunerationNCL contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">144000000</jppfs_cor:ProvisionForShareBasedRemunerationNCL>
+  <jppfs_cor:ProvisionForShareBasedRemunerationNCL contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">139000000</jppfs_cor:ProvisionForShareBasedRemunerationNCL>
+  
+  
+  <jppfs_cor:AssetRetirementObligationsNCL contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">244000000</jppfs_cor:AssetRetirementObligationsNCL>
+  <jppfs_cor:AssetRetirementObligationsNCL contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">248000000</jppfs_cor:AssetRetirementObligationsNCL>
+  <jppfs_cor:OtherNCL contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">840000000</jppfs_cor:OtherNCL>
+  <jppfs_cor:OtherNCL contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">980000000</jppfs_cor:OtherNCL>
+  <jppfs_cor:NoncurrentLiabilities contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">1597000000</jppfs_cor:NoncurrentLiabilities>
+  <jppfs_cor:NoncurrentLiabilities contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">1661000000</jppfs_cor:NoncurrentLiabilities>
+  <jppfs_cor:AccountsPayableTrade contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" id="IdFact692053680" unitRef="JPY">2828000000</jppfs_cor:AccountsPayableTrade>
+  <jppfs_cor:AccountsPayableTrade contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" id="IdFact147715046" unitRef="JPY">2938000000</jppfs_cor:AccountsPayableTrade>
+  <jppfs_cor:LeaseObligationsCL contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">1000000</jppfs_cor:LeaseObligationsCL>
+  <jppfs_cor:LeaseObligationsCL contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">3000000</jppfs_cor:LeaseObligationsCL>
+  <jppfs_cor:ShortTermLoansPayableToSubsidiariesAndAffiliates contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">3407000000</jppfs_cor:ShortTermLoansPayableToSubsidiariesAndAffiliates>
+  <jppfs_cor:ShortTermLoansPayableToSubsidiariesAndAffiliates contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">4216000000</jppfs_cor:ShortTermLoansPayableToSubsidiariesAndAffiliates>
+  <jppfs_cor:AccountsPayableOther contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" id="IdFact1900802740" unitRef="JPY">8611000000</jppfs_cor:AccountsPayableOther>
+  <jppfs_cor:AccountsPayableOther contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" id="IdFact1698420816" unitRef="JPY">7833000000</jppfs_cor:AccountsPayableOther>
+  <jppfs_cor:AccruedExpenses contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">121000000</jppfs_cor:AccruedExpenses>
+  <jppfs_cor:AccruedExpenses contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">128000000</jppfs_cor:AccruedExpenses>
+  <jppfs_cor:IncomeTaxesPayable contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">2747000000</jppfs_cor:IncomeTaxesPayable>
+  <jppfs_cor:IncomeTaxesPayable contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">2818000000</jppfs_cor:IncomeTaxesPayable>
+  <jppfs_cor:AdvancesReceived contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">315000000</jppfs_cor:AdvancesReceived>
+  <jppfs_cor:AdvancesReceived contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">360000000</jppfs_cor:AdvancesReceived>
+  <jppfs_cor:DepositsReceived contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">319000000</jppfs_cor:DepositsReceived>
+  <jppfs_cor:DepositsReceived contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">329000000</jppfs_cor:DepositsReceived>
+  <jppfs_cor:UnearnedRevenue contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">28000000</jppfs_cor:UnearnedRevenue>
+  <jppfs_cor:UnearnedRevenue contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">49000000</jppfs_cor:UnearnedRevenue>
+  <jppfs_cor:ProvisionForBonuses contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">322000000</jppfs_cor:ProvisionForBonuses>
+  <jppfs_cor:ProvisionForBonuses contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">352000000</jppfs_cor:ProvisionForBonuses>
+  <jppfs_cor:ProvisionForDirectorsBonuses contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">23000000</jppfs_cor:ProvisionForDirectorsBonuses>
+  <jppfs_cor:ProvisionForDirectorsBonuses contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">33000000</jppfs_cor:ProvisionForDirectorsBonuses>
+  
+  
+  <jppfs_cor:CurrentLiabilities contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">19367000000</jppfs_cor:CurrentLiabilities>
+  <jppfs_cor:CurrentLiabilities contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">20016000000</jppfs_cor:CurrentLiabilities>
+  <jppfs_cor:Liabilities contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">20964000000</jppfs_cor:Liabilities>
+  <jppfs_cor:Liabilities contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">21677000000</jppfs_cor:Liabilities>
+  <jppfs_cor:CapitalStock contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">1414000000</jppfs_cor:CapitalStock>
+  <jppfs_cor:CapitalStock contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">1414000000</jppfs_cor:CapitalStock>
+  <jppfs_cor:LegalCapitalSurplus contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">1614000000</jppfs_cor:LegalCapitalSurplus>
+  <jppfs_cor:LegalCapitalSurplus contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">1614000000</jppfs_cor:LegalCapitalSurplus>
+  <jppfs_cor:CapitalSurplus contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">1614000000</jppfs_cor:CapitalSurplus>
+  <jppfs_cor:CapitalSurplus contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">1614000000</jppfs_cor:CapitalSurplus>
+  <jppfs_cor:LegalRetainedEarnings contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">64000000</jppfs_cor:LegalRetainedEarnings>
+  <jppfs_cor:LegalRetainedEarnings contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">64000000</jppfs_cor:LegalRetainedEarnings>
+  <jppfs_cor:GeneralReserve contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">76100000000</jppfs_cor:GeneralReserve>
+  <jppfs_cor:GeneralReserve contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">76100000000</jppfs_cor:GeneralReserve>
+  <jppfs_cor:RetainedEarningsBroughtForward contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">16292000000</jppfs_cor:RetainedEarningsBroughtForward>
+  <jppfs_cor:RetainedEarningsBroughtForward contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">17598000000</jppfs_cor:RetainedEarningsBroughtForward>
+  <jppfs_cor:RetainedEarnings contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">92456000000</jppfs_cor:RetainedEarnings>
+  <jppfs_cor:RetainedEarnings contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">93762000000</jppfs_cor:RetainedEarnings>
+  <jppfs_cor:TreasuryStock contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-5284000000</jppfs_cor:TreasuryStock>
+  <jppfs_cor:TreasuryStock contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">-5251000000</jppfs_cor:TreasuryStock>
+  <jppfs_cor:ShareholdersEquity contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">90202000000</jppfs_cor:ShareholdersEquity>
+  <jppfs_cor:ShareholdersEquity contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">91540000000</jppfs_cor:ShareholdersEquity>
+  <jppfs_cor:NetAssets contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">90202000000</jppfs_cor:NetAssets>
+  <jppfs_cor:NetAssets contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">91540000000</jppfs_cor:NetAssets>
+  <jppfs_cor:LiabilitiesAndNetAssets contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">111167000000</jppfs_cor:LiabilitiesAndNetAssets>
+  <jppfs_cor:LiabilitiesAndNetAssets contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">113218000000</jppfs_cor:LiabilitiesAndNetAssets>
+  
+  <jppfs_cor:OperatingRevenueOILTelecommunications contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">48912000000</jppfs_cor:OperatingRevenueOILTelecommunications>
+  
+  <jppfs_cor:BusinessExpensesOEOILTelecommunications contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">12423000000</jppfs_cor:BusinessExpensesOEOILTelecommunications>
+  
+  <jppfs_cor:FacilitiesMaintenanceExpensesOEOILTelecommunications contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">3408000000</jppfs_cor:FacilitiesMaintenanceExpensesOEOILTelecommunications>
+  
+  <jppfs_cor:AdministrativeExpensesOEOILTelecommunications contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">2276000000</jppfs_cor:AdministrativeExpensesOEOILTelecommunications>
+  
+  <jppfs_cor:DepreciationOEOILTelecommunications contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">4400000000</jppfs_cor:DepreciationOEOILTelecommunications>
+  
+  <jppfs_cor:NoncurrentAssetsRetirementCostOEOILTelecommunications contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">227000000</jppfs_cor:NoncurrentAssetsRetirementCostOEOILTelecommunications>
+  
+  <jppfs_cor:CommunicationFacilityFeeOEOILTelecommunications contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">8358000000</jppfs_cor:CommunicationFacilityFeeOEOILTelecommunications>
+  
+  <jppfs_cor:TaxesAndDuesOEOILTelecommunications contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">670000000</jppfs_cor:TaxesAndDuesOEOILTelecommunications>
+  
+  <jppfs_cor:OperatingExpensesOILTelecommunications contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">31766000000</jppfs_cor:OperatingExpensesOILTelecommunications>
+  
+  <jppfs_cor:NetOperatingIncomeFromTelecommunicationELC contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">17146000000</jppfs_cor:NetOperatingIncomeFromTelecommunicationELC>
+  
+  <jppfs_cor:OperatingRevenueIncidentalELC contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">33640000000</jppfs_cor:OperatingRevenueIncidentalELC>
+  
+  <jppfs_cor:OperatingExpensesIncidentalELC contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" id="IdFact1423064952" unitRef="JPY">33785000000</jppfs_cor:OperatingExpensesIncidentalELC>
+  
+  <jppfs_cor:NetOperatingIncomeFromIncidentalBusinessELC contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">-145000000</jppfs_cor:NetOperatingIncomeFromIncidentalBusinessELC>
+  
+  <jppfs_cor:OperatingIncome contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">17000000000</jppfs_cor:OperatingIncome>
+  
+  <jppfs_cor:InterestIncomeNOI contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" id="IdFact1096816456" unitRef="JPY">113000000</jppfs_cor:InterestIncomeNOI>
+  
+  <jppfs_cor:DividendsIncomeNOI contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" id="IdFact178538123" unitRef="JPY">44000000</jppfs_cor:DividendsIncomeNOI>
+  
+  <jppfs_cor:RentIncomeNOI contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">5000000</jppfs_cor:RentIncomeNOI>
+  
+  <jppfs_cor:InsuranceIncomeNOI contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">3000000</jppfs_cor:InsuranceIncomeNOI>
+  
+  <jppfs_cor:SubsidyIncomeNOI contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">51000000</jppfs_cor:SubsidyIncomeNOI>
+  
+  <jppfs_cor:ReversalOfAllowanceForDoubtfulAccountsNOI contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">60000000</jppfs_cor:ReversalOfAllowanceForDoubtfulAccountsNOI>
+  
+  <jppfs_cor:MiscellaneousIncomeNOI contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">12000000</jppfs_cor:MiscellaneousIncomeNOI>
+  
+  <jppfs_cor:NonOperatingIncome contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">290000000</jppfs_cor:NonOperatingIncome>
+  
+  <jppfs_cor:InterestExpensesNOE contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" id="IdFact616183273" unitRef="JPY">28000000</jppfs_cor:InterestExpensesNOE>
+  
+  <jppfs_cor:CommissionForPurchaseOfTreasuryStockNOE contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">24000000</jppfs_cor:CommissionForPurchaseOfTreasuryStockNOE>
+  
+  <jppfs_cor:MiscellaneousExpensesNOE contextRef="CurrentYearDuration_NonConsolidatedMember" unitRef="JPY" xsi:nil="true"/>
+  
+  <jppfs_cor:NonOperatingExpenses contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">53000000</jppfs_cor:NonOperatingExpenses>
+  
+  <jppfs_cor:OrdinaryIncome contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">17237000000</jppfs_cor:OrdinaryIncome>
+  
+  <jppfs_cor:ProvisionOfAllowanceForDoubtfulAccountsForSubsidiariesAndAffiliatesEL contextRef="CurrentYearDuration_NonConsolidatedMember" unitRef="JPY" xsi:nil="true"/>
+  
+  <jppfs_cor:LossOnValuationOfStocksOfSubsidiariesAndAffiliatesEL contextRef="CurrentYearDuration_NonConsolidatedMember" unitRef="JPY" xsi:nil="true"/>
+  
+  <jppfs_cor:ExtraordinaryLoss contextRef="CurrentYearDuration_NonConsolidatedMember" unitRef="JPY" xsi:nil="true"/>
+  
+  <jppfs_cor:IncomeBeforeIncomeTaxes contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">17237000000</jppfs_cor:IncomeBeforeIncomeTaxes>
+  
+  <jppfs_cor:IncomeTaxesCurrent contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">5046000000</jppfs_cor:IncomeTaxesCurrent>
+  
+  <jppfs_cor:IncomeTaxesDeferred contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">-115000000</jppfs_cor:IncomeTaxesDeferred>
+  
+  <jppfs_cor:IncomeTaxes contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">4930000000</jppfs_cor:IncomeTaxes>
+  
+  <jppfs_cor:ProfitLoss contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">12307000000</jppfs_cor:ProfitLoss>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <jppfs_cor:NetAssets contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">90202000000</jppfs_cor:NetAssets>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <jppfs_cor:NetAssets contextRef="Prior1YearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">90202000000</jppfs_cor:NetAssets>
+  
+  <jppfs_cor:DividendsFromSurplus contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">-5997000000</jppfs_cor:DividendsFromSurplus>
+  
+  <jppfs_cor:ProfitLoss contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">12307000000</jppfs_cor:ProfitLoss>
+  
+  
+  <jppfs_cor:PurchaseOfTreasuryStock contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">-4999000000</jppfs_cor:PurchaseOfTreasuryStock>
+  
+  
+  <jppfs_cor:RetirementOfTreasuryStock contextRef="CurrentYearDuration_NonConsolidatedMember" unitRef="JPY" xsi:nil="true"/>
+  
+  
+  <jppfs_cor:DisposalOfTreasuryStock contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">29000000</jppfs_cor:DisposalOfTreasuryStock>
+  
+  <jppfs_cor:TransferToCapitalSurplusFromRetainedEarnings contextRef="CurrentYearDuration_NonConsolidatedMember" unitRef="JPY" xsi:nil="true"/>
+  
+  
+  <jppfs_cor:TotalChangesOfItemsDuringThePeriod contextRef="CurrentYearDuration_NonConsolidatedMember" decimals="-6" unitRef="JPY">1338000000</jppfs_cor:TotalChangesOfItemsDuringThePeriod>
+  
+  
+  <jppfs_cor:NetAssets contextRef="CurrentYearInstant_NonConsolidatedMember" decimals="-6" unitRef="JPY">91540000000</jppfs_cor:NetAssets>
+  <jpcrp_cor:DocumentTitleCoverPage contextRef="FilingDateInstant">有価証券報告書</jpcrp_cor:DocumentTitleCoverPage>
+  <jpcrp_cor:ClauseOfStipulationCoverPage contextRef="FilingDateInstant">金融商品取引法第24条第１項</jpcrp_cor:ClauseOfStipulationCoverPage>
+  <jpcrp_cor:PlaceOfFilingCoverPage contextRef="FilingDateInstant">沖縄総合事務局長</jpcrp_cor:PlaceOfFilingCoverPage>
+  <jpcrp_cor:FilingDateCoverPage contextRef="FilingDateInstant">2026-06-09</jpcrp_cor:FilingDateCoverPage>
+  <jpcrp_cor:FiscalYearCoverPage contextRef="FilingDateInstant">第35期（自　2025年４月１日　至　2026年３月31日）</jpcrp_cor:FiscalYearCoverPage>
+  <jpcrp_cor:CompanyNameCoverPage contextRef="FilingDateInstant">沖縄セルラー電話株式会社</jpcrp_cor:CompanyNameCoverPage>
+  <jpcrp_cor:CompanyNameInEnglishCoverPage contextRef="FilingDateInstant">OKINAWA CELLULAR TELEPHONE COMPANY</jpcrp_cor:CompanyNameInEnglishCoverPage>
+  <jpcrp_cor:TitleAndNameOfRepresentativeCoverPage contextRef="FilingDateInstant">代表取締役社長　　宮倉　康彰</jpcrp_cor:TitleAndNameOfRepresentativeCoverPage>
+  <jpcrp_cor:AddressOfRegisteredHeadquarterCoverPage contextRef="FilingDateInstant">沖縄県那覇市松山１丁目２番１号</jpcrp_cor:AddressOfRegisteredHeadquarterCoverPage>
+  <jpcrp_cor:TelephoneNumberAddressOfRegisteredHeadquarterCoverPage contextRef="FilingDateInstant">０９８（８６９）１００１（代表）</jpcrp_cor:TelephoneNumberAddressOfRegisteredHeadquarterCoverPage>
+  <jpcrp_cor:NameOfContactPersonAddressOfRegisteredHeadquarterCoverPage contextRef="FilingDateInstant">執行役員　経営管理本部長　　嶺井　敏樹</jpcrp_cor:NameOfContactPersonAddressOfRegisteredHeadquarterCoverPage>
+  <jpcrp_cor:NearestPlaceOfContactCoverPage contextRef="FilingDateInstant">沖縄県那覇市松山１丁目２番１号</jpcrp_cor:NearestPlaceOfContactCoverPage>
+  <jpcrp_cor:TelephoneNumberNearestPlaceOfContactCoverPage contextRef="FilingDateInstant">０９８（８６９）１００１（代表）</jpcrp_cor:TelephoneNumberNearestPlaceOfContactCoverPage>
+  <jpcrp_cor:NameOfContactPersonNearestPlaceOfContactCoverPage contextRef="FilingDateInstant">執行役員　経営管理本部長　　嶺井　敏樹</jpcrp_cor:NameOfContactPersonNearestPlaceOfContactCoverPage>
+  <jpcrp_cor:PlaceForPublicInspectionCoverPageTextBlock contextRef="FilingDateInstant">
+&lt;p style="margin-top: 3px; text-align: left"&gt;株式会社東京証券取引所&lt;/p&gt;
+&lt;p style="margin-bottom: 3px; text-align: left"&gt;（東京都中央区日本橋兜町２番１号）&lt;/p&gt;
+</jpcrp_cor:PlaceForPublicInspectionCoverPageTextBlock>
+  <jpdei_cor:EDINETCodeDEI contextRef="FilingDateInstant">E04460</jpdei_cor:EDINETCodeDEI>
+  <jpdei_cor:FundCodeDEI contextRef="FilingDateInstant" xsi:nil="true"/>
+  <jpdei_cor:SecurityCodeDEI contextRef="FilingDateInstant">94360</jpdei_cor:SecurityCodeDEI>
+  <jpdei_cor:FilerNameInJapaneseDEI contextRef="FilingDateInstant">沖縄セルラー電話株式会社</jpdei_cor:FilerNameInJapaneseDEI>
+  <jpdei_cor:FilerNameInEnglishDEI contextRef="FilingDateInstant">OKINAWA CELLULAR TELEPHONE COMPANY</jpdei_cor:FilerNameInEnglishDEI>
+  <jpdei_cor:FundNameInJapaneseDEI contextRef="FilingDateInstant" xsi:nil="true"/>
+  <jpdei_cor:FundNameInEnglishDEI contextRef="FilingDateInstant" xsi:nil="true"/>
+  <jpdei_cor:CabinetOfficeOrdinanceDEI contextRef="FilingDateInstant">企業内容等の開示に関する内閣府令</jpdei_cor:CabinetOfficeOrdinanceDEI>
+  <jpdei_cor:DocumentTypeDEI contextRef="FilingDateInstant">第三号様式</jpdei_cor:DocumentTypeDEI>
+  <jpdei_cor:AccountingStandardsDEI contextRef="FilingDateInstant">Japan GAAP</jpdei_cor:AccountingStandardsDEI>
+  <jpdei_cor:WhetherConsolidatedFinancialStatementsArePreparedDEI contextRef="FilingDateInstant">true</jpdei_cor:WhetherConsolidatedFinancialStatementsArePreparedDEI>
+  <jpdei_cor:IndustryCodeWhenConsolidatedFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI contextRef="FilingDateInstant">ELC</jpdei_cor:IndustryCodeWhenConsolidatedFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI>
+  <jpdei_cor:IndustryCodeWhenFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI contextRef="FilingDateInstant">ELC</jpdei_cor:IndustryCodeWhenFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI>
+  <jpdei_cor:CurrentFiscalYearStartDateDEI contextRef="FilingDateInstant">2025-04-01</jpdei_cor:CurrentFiscalYearStartDateDEI>
+  <jpdei_cor:CurrentPeriodEndDateDEI contextRef="FilingDateInstant">2026-03-31</jpdei_cor:CurrentPeriodEndDateDEI>
+  <jpdei_cor:TypeOfCurrentPeriodDEI contextRef="FilingDateInstant">FY</jpdei_cor:TypeOfCurrentPeriodDEI>
+  <jpdei_cor:CurrentFiscalYearEndDateDEI contextRef="FilingDateInstant">2026-03-31</jpdei_cor:CurrentFiscalYearEndDateDEI>
+  <jpdei_cor:PreviousFiscalYearStartDateDEI contextRef="FilingDateInstant">2024-04-01</jpdei_cor:PreviousFiscalYearStartDateDEI>
+  <jpdei_cor:ComparativePeriodEndDateDEI contextRef="FilingDateInstant">2025-03-31</jpdei_cor:ComparativePeriodEndDateDEI>
+  <jpdei_cor:PreviousFiscalYearEndDateDEI contextRef="FilingDateInstant">2025-03-31</jpdei_cor:PreviousFiscalYearEndDateDEI>
+  <jpdei_cor:NextFiscalYearStartDateDEI contextRef="FilingDateInstant" xsi:nil="true"/>
+  <jpdei_cor:EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI contextRef="FilingDateInstant" xsi:nil="true"/>
+  <jpdei_cor:AmendmentFlagDEI contextRef="FilingDateInstant">false</jpdei_cor:AmendmentFlagDEI>
+  <jpdei_cor:IdentificationOfDocumentSubjectToAmendmentDEI contextRef="FilingDateInstant" xsi:nil="true"/>
+  <jpdei_cor:ReportAmendmentFlagDEI contextRef="FilingDateInstant">false</jpdei_cor:ReportAmendmentFlagDEI>
+  <jpdei_cor:XBRLAmendmentFlagDEI contextRef="FilingDateInstant">false</jpdei_cor:XBRLAmendmentFlagDEI>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <jpcrp_cor:ReferenceToOtherInformationStrategy contextRef="FilingDateInstant">第４ 提出会社の状況 5 従業員の状況 （１） 人材戦略に関する基本方針等 ①企業戦略と関連付けた人的資本戦略（人財戦略）</jpcrp_cor:ReferenceToOtherInformationStrategy>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <jpcrp_cor:CriticalContractsTextBlock contextRef="FilingDateInstant">
+&lt;h3&gt;５【重要な契約等】&lt;/h3&gt;
+&lt;p style="margin-left: 12px; margin-right: 3.3333333333333333333333333333px; margin-bottom: 18px; text-align: left; text-indent: 12px"&gt;該当事項はありません。&lt;/p&gt;
+</jpcrp_cor:CriticalContractsTextBlock>
+  <jpcrp_cor:ResearchAndDevelopmentActivitiesTextBlock contextRef="FilingDateInstant">
+&lt;h3&gt;６【研究開発活動】&lt;/h3&gt;
+&lt;p style="margin-left: 12px; margin-bottom: 18px; text-align: left; text-indent: 12px"&gt;該当事項はありません。&lt;/p&gt;
+</jpcrp_cor:ResearchAndDevelopmentActivitiesTextBlock>
+  <jpcrp_cor:OverviewOfCapitalExpendituresEtcTextBlock contextRef="FilingDateInstant">
+&lt;h3&gt;１【設備投資等の概要】&lt;/h3&gt;
+&lt;p style="margin-left: 12px; text-align: left; text-indent: 12px"&gt;当連結会計年度においては、高速データ通信サービスに係る設備及びモバイルサービスにおけるデータトラフィックの増加に伴う通信設備の増設、FTTHサービスに係る設備の拡張などを実施いたしました。その結果、当連結会計年度の設備投資額は無形固定資産及び長期前払費用を含め6,525百万円となりました。&lt;/p&gt;
+&lt;p style="margin-left: 12px; margin-bottom: 18px; text-align: left; text-indent: 12px"&gt;また、当社グループは、電気通信事業の単一セグメントであるため、セグメント情報の記載を省略しております。&lt;/p&gt;
+</jpcrp_cor:OverviewOfCapitalExpendituresEtcTextBlock>
+  
+  
+  
+  
+  
+  
+  
+  <jpcrp_cor:DetailsOfEmployeeShareOptionProgramTextBlock contextRef="FilingDateInstant">
+&lt;h5&gt;①【ストックオプション制度の内容】&lt;/h5&gt;
+&lt;p style="margin-left: 48px; margin-bottom: 18px; text-align: left; text-indent: 12px"&gt;該当事項はありません。&lt;/p&gt;
+</jpcrp_cor:DetailsOfEmployeeShareOptionProgramTextBlock>
+  <jpcrp_cor:DescriptionOfRightsPlanTextBlock contextRef="FilingDateInstant">
+&lt;h5&gt;②【ライツプランの内容】&lt;/h5&gt;
+&lt;p style="margin-left: 48px; margin-bottom: 18px; text-align: left; text-indent: 12px"&gt;該当事項はありません。&lt;/p&gt;
+</jpcrp_cor:DescriptionOfRightsPlanTextBlock>
+  <jpcrp_cor:OtherInformationOnShareAcquisitionRightsTextBlock contextRef="FilingDateInstant">
+&lt;h5&gt;③【その他の新株予約権等の状況】&lt;/h5&gt;
+&lt;p style="margin-left: 48px; margin-bottom: 18px; text-align: left; text-indent: 12px"&gt;該当事項はありません。&lt;/p&gt;
+</jpcrp_cor:OtherInformationOnShareAcquisitionRightsTextBlock>
+  <jpcrp_cor:ExercisesEtcOfMovingStrikeConvertibleBondsEtcTextBlock contextRef="FilingDateInstant">
+&lt;h4&gt;（３）【行使価額修正条項付新株予約権付社債券等の行使状況等】&lt;/h4&gt;
+&lt;p style="margin-left: 42px; margin-bottom: 18px; text-align: left; text-indent: 12px"&gt;該当事項はありません。&lt;/p&gt;
+</jpcrp_cor:ExercisesEtcOfMovingStrikeConvertibleBondsEtcTextBlock>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <jpcrp_cor:ClassesOfSharesEtcTextBlock contextRef="FilingDateInstant">【株式の種類等】　会社法第155条第３号に該当する普通株式の取得及び会社法第155条第７号に該当する普通株式の取得</jpcrp_cor:ClassesOfSharesEtcTextBlock>
+  <jpcrp_cor:AcquisitionsByResolutionOfShareholdersMeetingTextBlock contextRef="FilingDateInstant">
+&lt;h4&gt;（１）【株主総会決議による取得の状況】&lt;/h4&gt;
+&lt;p style="margin-left: 48px; margin-bottom: 18px; text-align: left; text-indent: 12px"&gt;該当事項はありません。&lt;/p&gt;
+</jpcrp_cor:AcquisitionsByResolutionOfShareholdersMeetingTextBlock>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <jpcrp_cor:ReasonForIncreaseInNumberOfSharesSharesNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany contextRef="CurrentYearDuration">
+新規ビジネスを創出し、地域経済
+の発展に貢献するため
+</jpcrp_cor:ReasonForIncreaseInNumberOfSharesSharesNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany>
+  <jpcrp_cor:ReasonForIncreaseInNumberOfSharesSharesOtherThanThoseNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany contextRef="CurrentYearDuration">―</jpcrp_cor:ReasonForIncreaseInNumberOfSharesSharesOtherThanThoseNotListedInvestmentSharesHeldForPurposesOtherThanPureInvestmentReportingCompany>
+  
+  
+  
+  <jpcrp_cor:DescriptionOfFactThatConsolidatedFinancialStatementsHaveBeenPreparedInAccordanceWithSpecialOrdinanceOrRegulationsForIndustryInAppendedListFinancialInformation contextRef="CurrentYearDuration">（１）当社の連結財務諸表は、「連結財務諸表の用語、様式及び作成方法に関する規則」（昭和51年大蔵省令第28号。以下「連結財務諸表規則」という。）に基づき、同規則及び「電気通信事業会計規則」（昭和60年郵政省令第26号）により作成しております。</jpcrp_cor:DescriptionOfFactThatConsolidatedFinancialStatementsHaveBeenPreparedInAccordanceWithSpecialOrdinanceOrRegulationsForIndustryInAppendedListFinancialInformation>
+  <jpcrp_cor:DescriptionOfFactThatFinancialStatementsHaveBeenPreparedInAccordanceWithSpecialOrdinanceOrRegulationsForIndustryInAppendedListFinancialInformation contextRef="CurrentYearDuration">（２）当社の財務諸表は、「財務諸表等の用語、様式及び作成方法に関する規則」（昭和38年大蔵省令第59号。以下「財務諸表等規則」という。）に基づき、同規則及び「電気通信事業会計規則」（昭和60年郵政省令第26号）により作成しております。</jpcrp_cor:DescriptionOfFactThatFinancialStatementsHaveBeenPreparedInAccordanceWithSpecialOrdinanceOrRegulationsForIndustryInAppendedListFinancialInformation>
+  <jpcrp_cor:NoteOnIndependentAuditFinancialInformation contextRef="CurrentYearDuration">
+当社は、金融商品取引法第193条の２第１項の規定に基づき、連結会計年度（2025年４月１日から2026年３月31日まで）の連結財務諸表及び事業年度（2025年４月１日から2026年３月31日まで）の財務諸表について、PwC Japan有限責任監査法人による監査を受けております。
+ 
+</jpcrp_cor:NoteOnIndependentAuditFinancialInformation>
+  <jpcrp_cor:RemarkableEffortsToEnsureFairPresentationOfConsolidatedFinancialStatementsEtcFinancialInformation contextRef="CurrentYearDuration">当社は、連結財務諸表等の適正性を確保するための特段の取組を行っております。具体的には、会計基準等の内容を適切に把握し、適時適正な開示を実施できる体制を整備するため、公益財団法人財務会計基準機構へ加入し、会計基準設定主体等の行う研修への参加等をしております。</jpcrp_cor:RemarkableEffortsToEnsureFairPresentationOfConsolidatedFinancialStatementsEtcFinancialInformation>
+  
+  
+  
+  
+  
+  
+  
+  <jpcrp_cor:NumberOfConsolidatedSubsidiariesAndNamesOfMajorConsolidatedSubsidiariesTextBlock contextRef="CurrentYearDuration">
+&lt;p style="margin-left: 72px; text-align: left"&gt;連結子会社の数　3社&lt;/p&gt;
+&lt;p style="margin-left: 84px; text-align: left"&gt;主要な連結子会社の名称&lt;/p&gt;
+&lt;p style="margin-left: 96px; text-align: left"&gt;OTNet株式会社&lt;/p&gt;
+&lt;p style="margin-left: 96px; text-align: left"&gt; &lt;/p&gt;
+</jpcrp_cor:NumberOfConsolidatedSubsidiariesAndNamesOfMajorConsolidatedSubsidiariesTextBlock>
+  <jpcrp_cor:NumberOfUnconsolidatedSubsidiariesAndAssociatesAccountedForUsingEquityMethodAndNamesOfMajorEntitiesAccountedForUsingEquityMethodTextBlock contextRef="CurrentYearDuration">
+&lt;p style="margin-left: 48px; text-align: left"&gt;２．持分法の適用に関する事項&lt;/p&gt;
+&lt;p style="margin-left: 72px; text-align: left"&gt;持分法適用の関連会社数　1社&lt;/p&gt;
+&lt;p style="margin-left: 84px; text-align: left"&gt; &lt;/p&gt;
+</jpcrp_cor:NumberOfUnconsolidatedSubsidiariesAndAssociatesAccountedForUsingEquityMethodAndNamesOfMajorEntitiesAccountedForUsingEquityMethodTextBlock>
+  <jpcrp_cor:DisclosureAboutFiscalYearsEtcOfConsolidatedSubsidiariesTextBlock contextRef="CurrentYearDuration">
+&lt;p style="margin-left: 48px; text-align: left"&gt;３．連結子会社の事業年度等に関する事項&lt;/p&gt;
+&lt;p style="margin-left: 72px; margin-bottom: 18px; text-align: left"&gt;連結子会社の事業年度の末日は、連結決算日と一致しております。&lt;/p&gt;
+</jpcrp_cor:DisclosureAboutFiscalYearsEtcOfConsolidatedSubsidiariesTextBlock>
+  
+  
+  
+  
+  <jpcrp_cor:NotesChangesInPresentationConsolidatedFinancialStatementsTextBlock contextRef="CurrentYearDuration">
+&lt;h6&gt;（表示方法の変更）&lt;/h6&gt;
+&lt;p style="margin-left: 48px; text-align: left; text-indent: 12px"&gt;当連結会計年度より、収益の分解情報について区分を変更しております。詳細は「注記事項（収益認識関係）」をご参照ください。&lt;/p&gt;
+&lt;p style="text-align: left"&gt; &lt;/p&gt;
+</jpcrp_cor:NotesChangesInPresentationConsolidatedFinancialStatementsTextBlock>
+  
+  
+  
+  
+  
+  <jpcrp_cor:NotesRegardingAmountOfRevenueFromContractsWithCustomersTextBlock contextRef="CurrentYearDuration">
+&lt;p style="margin-left: 48px; text-align: left"&gt;※　顧客との契約から生じる収益&lt;/p&gt;
+&lt;p style="margin-left: 60px; text-align: left; text-indent: 12px"&gt;営業収益については、顧客との契約から生じる収益及びそれ以外の収益を区分して記載しておりません。顧客との契約から生じる収益の金額は、連結財務諸表「注記事項（収益認識関係）１．顧客との契約から生じる収益を分解した情報」に記載しております。&lt;/p&gt;
+</jpcrp_cor:NotesRegardingAmountOfRevenueFromContractsWithCustomersTextBlock>
+  
+  
+  
+  
+  
+  <jpcrp_cor:NotesRegardingNewShareSubscriptionRightsEtcTextBlock contextRef="CurrentYearDuration">
+&lt;p style="margin-left: 60px; margin-top: 8px; text-align: left"&gt;２．新株予約権及び自己新株予約権に関する事項&lt;/p&gt;
+&lt;p style="margin-left: 84px; margin-bottom: 8px; text-align: left"&gt;該当事項はありません。&lt;/p&gt;
+</jpcrp_cor:NotesRegardingNewShareSubscriptionRightsEtcTextBlock>
+  
+  
+  <jpcrp_cor:NotesLeasesConsolidatedFinancialStatementsTextBlock contextRef="CurrentYearDuration">
+&lt;h6&gt;（リース取引関係）&lt;/h6&gt;
+&lt;p style="margin-left: 48px; text-align: left"&gt;１．ファイナンス・リース取引&lt;/p&gt;
+&lt;p style="margin-left: 72px; margin-bottom: 18px; text-align: left"&gt;重要性が乏しいため記載を省略しております。&lt;/p&gt;
+&lt;p style="margin-left: 48px; text-align: left"&gt;２．オペレーティング・リース取引&lt;/p&gt;
+&lt;p style="margin-left: 72px; text-align: left"&gt;重要性が乏しいため記載を省略しております。&lt;/p&gt;
+&lt;p style="margin-left: 72px; text-align: left"&gt; &lt;/p&gt;
+</jpcrp_cor:NotesLeasesConsolidatedFinancialStatementsTextBlock>
+  
+  
+  <jpcrp_cor:NotesDerivativesConsolidatedFinancialStatementsTextBlock contextRef="CurrentYearDuration">
+&lt;h6&gt;（デリバティブ取引関係）&lt;/h6&gt;
+&lt;p style="margin-left: 60px; margin-bottom: 18px; text-align: left"&gt;該当事項はありません。&lt;/p&gt;
+</jpcrp_cor:NotesDerivativesConsolidatedFinancialStatementsTextBlock>
+  
+  <jpcrp_cor:NotesShareOptionsEtcConsolidatedFinancialStatementsTextBlock contextRef="CurrentYearDuration">
+&lt;h6&gt;（ストック・オプション等関係）&lt;/h6&gt;
+&lt;p style="margin-left: 60px; margin-bottom: 18px; text-align: left"&gt;該当事項はありません。&lt;/p&gt;
+</jpcrp_cor:NotesShareOptionsEtcConsolidatedFinancialStatementsTextBlock>
+  
+  <jpcrp_cor:NotesBusinessCombinationsConsolidatedFinancialStatementsTextBlock contextRef="CurrentYearDuration">
+&lt;h6&gt;（企業結合等関係）&lt;/h6&gt;
+&lt;p style="margin-left: 60px; text-align: left"&gt;重要性が乏しいため記載を省略しております。&lt;/p&gt;
+&lt;p style="text-align: left"&gt; &lt;/p&gt;
+</jpcrp_cor:NotesBusinessCombinationsConsolidatedFinancialStatementsTextBlock>
+  <jpcrp_cor:NotesAssetRetirementObligationsConsolidatedFinancialStatementsTextBlock contextRef="CurrentYearDuration">
+&lt;h6&gt;（資産除去債務関係）&lt;/h6&gt;
+&lt;p style="margin-left: 60px; margin-bottom: 18px; text-align: left"&gt;重要性が乏しいため記載を省略しております。&lt;/p&gt;
+</jpcrp_cor:NotesAssetRetirementObligationsConsolidatedFinancialStatementsTextBlock>
+  <jpcrp_cor:NotesRealEstateForLeaseEtcConsolidatedFinancialStatementsTextBlock contextRef="CurrentYearDuration">
+&lt;h6&gt;（賃貸等不動産関係）&lt;/h6&gt;
+&lt;p style="margin-left: 60px; margin-bottom: 18px; text-align: left"&gt;重要性が乏しいため記載を省略しております。&lt;/p&gt;
+</jpcrp_cor:NotesRealEstateForLeaseEtcConsolidatedFinancialStatementsTextBlock>
+  
+  
+  <jpcrp_cor:DescriptionOfFactThatCompanysBusinessComprisesSingleSegment contextRef="CurrentYearDuration">当社グループは単一セグメントであるため、記載を省略しております。</jpcrp_cor:DescriptionOfFactThatCompanysBusinessComprisesSingleSegment>
+  
+  
+  
+  <jpcrp_cor:InformationForEachProductOrServiceTextBlock contextRef="CurrentYearDuration">
+&lt;p style="margin-left: 72px; text-align: left; text-indent: -12px"&gt;１．製品及びサービスごとの情報&lt;/p&gt;
+&lt;p style="margin-left: 84px; margin-bottom: 18px; text-align: left; text-indent: 12px"&gt;「注記事項（収益認識関係）１．顧客との契約から生じる収益を分解した情報」に同一の内容を記載しているため、注記を省略しております。&lt;/p&gt;
+</jpcrp_cor:InformationForEachProductOrServiceTextBlock>
+  <jpcrp_cor:RevenuesFromExternalCustomersInformationForEachRegionTextBlock contextRef="CurrentYearDuration">
+&lt;p style="margin-left: 60px; text-align: left"&gt;（１）売上高&lt;/p&gt;
+&lt;p style="margin-left: 72px; margin-bottom: 18px; text-align: left; text-indent: 12px"&gt;本邦の外部顧客への売上高が連結損益計算書の営業収益の90％を超えるため、記載を省略しております。&lt;/p&gt;
+</jpcrp_cor:RevenuesFromExternalCustomersInformationForEachRegionTextBlock>
+  <jpcrp_cor:PropertyPlantAndEquipmentInformationForEachRegionTextBlock contextRef="CurrentYearDuration">
+&lt;p style="margin-left: 60px; text-align: left"&gt;（２）有形固定資産&lt;/p&gt;
+&lt;p style="margin-left: 72px; margin-bottom: 18px; text-align: left; text-indent: 12px"&gt;本邦に所在している有形固定資産の金額が連結貸借対照表の有形固定資産の金額の90%を超えるため、記載を省略しております。&lt;/p&gt;
+</jpcrp_cor:PropertyPlantAndEquipmentInformationForEachRegionTextBlock>
+  
+  
+  
+  <jpcrp_cor:AnnexedConsolidatedDetailedScheduleOfCorporateBondsTextBlock contextRef="CurrentYearDuration">
+&lt;h6&gt;【社債明細表】&lt;/h6&gt;
+&lt;p style="margin-left: 48px; margin-bottom: 18px; text-align: left; text-indent: 12px"&gt;該当事項はありません。&lt;/p&gt;
+</jpcrp_cor:AnnexedConsolidatedDetailedScheduleOfCorporateBondsTextBlock>
+  
+  <jpcrp_cor:AnnexedConsolidatedDetailedScheduleOfAssetRetirementObligationsTextBlock contextRef="CurrentYearDuration">
+&lt;h6&gt;【資産除去債務明細表】&lt;/h6&gt;
+&lt;p style="margin-left: 48px; margin-bottom: 12px; text-align: left; text-indent: 12px"&gt;当連結会計年度期首及び当連結会計年度末における資産除去債務の金額が、当連結会計年度期首及び当連結会計年度末における負債及び純資産の合計額の100分の１以下であるため、連結財務諸表規則第92条の２の規定により記載を省略しております。&lt;/p&gt;
+</jpcrp_cor:AnnexedConsolidatedDetailedScheduleOfAssetRetirementObligationsTextBlock>
+  
+  
+  
+  
+  
+  
+  
+  
+  <jpcrp_cor:NotesChangesInPresentationFinancialStatementsTextBlock contextRef="CurrentYearDuration">
+&lt;h6&gt;（表示方法の変更）&lt;/h6&gt;
+&lt;p style="margin-left: 48px; text-align: left; text-indent: 12px"&gt;当事業年度より、収益の分解情報について区分を変更しております。詳細は「注記事項（収益認識関係）」をご参照ください。&lt;/p&gt;
+</jpcrp_cor:NotesChangesInPresentationFinancialStatementsTextBlock>
+  <jpcrp_cor:NotesAdditionalInformationFinancialStatementsTextBlock contextRef="CurrentYearDuration">
+&lt;h6&gt;（追加情報）&lt;/h6&gt;
+&lt;p style="margin-left: 60px; text-align: left"&gt;（取締役に対する業績連動型株式報酬制度）&lt;/p&gt;
+&lt;p style="margin-left: 60px; margin-bottom: 18px; text-align: left; text-indent: 12px"&gt;取締役に対する業績連動型株式報酬制度に関する注記については、連結財務諸表「注記事項（追加情報）」に同一の内容を記載しているため、注記を省略しております。&lt;/p&gt;
+&lt;p style="margin-left: 60px; text-align: left"&gt;（管理職に対する株式付与制度）&lt;/p&gt;
+&lt;p style="margin-left: 60px; margin-bottom: 18px; text-align: left; text-indent: 12px"&gt;管理職に対する株式付与制度に関する注記については、連結財務諸表「注記事項(追加情報)」に同一の内容を記載しているため、注記を省略しております。&lt;/p&gt;
+</jpcrp_cor:NotesAdditionalInformationFinancialStatementsTextBlock>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <jpcrp_cor:NotesBusinessCombinationsFinancialStatementsTextBlock contextRef="CurrentYearDuration">
+&lt;h6&gt;（企業結合等関係）&lt;/h6&gt;
+&lt;p style="margin-left: 48px; text-align: left; text-indent: 12px"&gt;重要性が乏しいため記載を省略しております。&lt;/p&gt;
+&lt;p style="text-align: left"&gt; &lt;/p&gt;
+</jpcrp_cor:NotesBusinessCombinationsFinancialStatementsTextBlock>
+  <jpcrp_cor:NotesRevenueRecognitionFinancialStatementsTextBlock contextRef="CurrentYearDuration">
+&lt;h6&gt;（収益認識関係）&lt;/h6&gt;
+&lt;p style="margin-left: 48px; margin-bottom: 18px; text-align: left; text-indent: 12px"&gt;顧客との契約から生じる収益を理解するための基礎となる情報は、連結財務諸表「注記事項（収益認識関係）」に同一の内容を記載しているため、注記を省略しております。&lt;/p&gt;
+</jpcrp_cor:NotesRevenueRecognitionFinancialStatementsTextBlock>
+  
+  <jpcrp_cor:NotesSignificantEventsAfterReportingPeriodFinancialStatementsTextBlock contextRef="CurrentYearDuration">
+&lt;h6&gt;（重要な後発事象）&lt;/h6&gt;
+&lt;p style="margin-left: 48px; text-align: left; text-indent: 12px"&gt;「第５　経理の状況　１．連結財務諸表等（１）連結財務諸表　注記事項　重要な後発事象」をご参照くださ い。&lt;/p&gt;
+&lt;p style="margin-left: 48px; text-align: left; text-indent: 12px"&gt; &lt;/p&gt;
+&lt;p style="margin-left: 48px; text-align: left; text-indent: 12px"&gt; &lt;/p&gt;
+&lt;p style="margin-left: 48px; text-align: left; text-indent: 12px"&gt; &lt;/p&gt;
+&lt;p style="text-align: left"&gt; &lt;/p&gt;
+</jpcrp_cor:NotesSignificantEventsAfterReportingPeriodFinancialStatementsTextBlock>
+  
+  
+  <jpcrp_cor:AnnexedDetailedScheduleOfSecuritiesTextBlock contextRef="CurrentYearDuration">
+&lt;h6&gt;【有価証券明細表】&lt;/h6&gt;
+&lt;p style="margin-left: 48px; margin-bottom: 18px; text-align: left; text-indent: 12px"&gt;有価証券の金額が資産の総額の100分の１以下であるため記載を省略しております。&lt;/p&gt;
+</jpcrp_cor:AnnexedDetailedScheduleOfSecuritiesTextBlock>
+  
+  <jpcrp_cor:ComponentsOfMajorAssetsAndLiabilitiesTextBlock contextRef="CurrentYearDuration">
+&lt;h4&gt;（２）【主な資産及び負債の内容】&lt;/h4&gt;
+&lt;p style="margin-left: 48px; margin-bottom: 18px; text-align: left"&gt;連結財務諸表を作成しているため、記載を省略しております。&lt;/p&gt;
+</jpcrp_cor:ComponentsOfMajorAssetsAndLiabilitiesTextBlock>
+  <jpcrp_cor:OtherInformationFinancialStatementsEtcTextBlock contextRef="CurrentYearDuration">
+&lt;h4&gt;（３）【その他】&lt;/h4&gt;
+&lt;p style="margin-left: 48px; margin-bottom: 18px; text-align: left"&gt;該当事項はありません。&lt;/p&gt;
+</jpcrp_cor:OtherInformationFinancialStatementsEtcTextBlock>
+  
+  <jpcrp_cor:InformationAboutParentCompanyEtcOfReportingCompanyTextBlock contextRef="FilingDateInstant">
+&lt;h3&gt;１【提出会社の親会社等の情報】&lt;/h3&gt;
+&lt;p style="margin-left: 12px; margin-bottom: 18px; text-align: left; text-indent: 12px"&gt;当社は、金融商品取引法第24条の７第１項に規定する親会社等はありません。&lt;/p&gt;
+</jpcrp_cor:InformationAboutParentCompanyEtcOfReportingCompanyTextBlock>
+  
+  <jpcrp_cor:InformationAboutCompanyWhichProvidesGuaranteeToReportingCompanyTextBlock contextRef="FilingDateInstant">
+&lt;h1&gt;第二部【提出会社の保証会社等の情報】&lt;/h1&gt;
+&lt;p style="margin-left: 60px; margin-bottom: 18px; text-align: left"&gt;該当事項はありません。&lt;/p&gt;
+</jpcrp_cor:InformationAboutCompanyWhichProvidesGuaranteeToReportingCompanyTextBlock>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+</xbrli:xbrl>
