@@ -5,13 +5,13 @@ import { Grid } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
 import InfiniteScroll from 'react-infinite-scroller';
 import {
-  CashFlowTypeValue,
   cashFlowTypeRequestMap,
   financialStatementOffsetUnit,
 } from '@/constants/values';
 import { CashFlowSign } from '@/__generated__/graphql';
 import { FINANCIAL_REPORTS_QUERY } from './api/financialReportsQuery';
 import { financialReportsClient } from './apolloClient';
+import { parseCashFlowType, parseStockCodes } from './searchCriteria';
 import { ReportCard } from './components/ReportCard';
 import { ReportListLayout } from './components/ReportListLayout';
 
@@ -28,31 +28,12 @@ const toCashFlowSign = (sign: 'POSITIVE' | 'NEGATIVE' | null) =>
 function useQueryVariables() {
   const [searchParams] = useSearchParams();
   return useMemo(() => {
-    // 件数上限はサーバ側バリデーション（stockCodes最大100件）と対:
-    // 細工URLで巨大な配列を送ってエラー画面になるのを防ぐ
-    // 証券コードは大文字で保存されている（英数字コード対応後の391A等）。
-    // 小文字・空白混じりの入力や共有URLでも検索できるよう正規化する
-    const codes =
-      searchParams
-        .get('stock-codes')
-        ?.split(',')
-        .map((code) => code.trim().toUpperCase())
-        .filter(Boolean)
-        .slice(0, 100) ?? null;
-    const cfType = (searchParams.get('cash-flow-type') ??
-      'none') as CashFlowTypeValue;
-    // hasOwnPropertyで引く: 素の[]アクセスだとcash-flow-typeが"constructor"等のとき
-    // Object.prototypeのメンバーが返り、?? noneのフォールバックが効かないため
-    const cfRequest = Object.prototype.hasOwnProperty.call(
-      cashFlowTypeRequestMap,
-      cfType,
-    )
-      ? cashFlowTypeRequestMap[cfType]
-      : cashFlowTypeRequestMap.none;
+    const codes = parseStockCodes(searchParams);
+    const cfRequest = cashFlowTypeRequestMap[parseCashFlowType(searchParams)];
     return {
       limit: financialStatementOffsetUnit,
       offset: 0,
-      stockCodes: codes,
+      stockCodes: codes.length > 0 ? codes : null,
       operatingCfSign: toCashFlowSign(
         cfRequest.operatingActivitiesCashFlowSign,
       ),
