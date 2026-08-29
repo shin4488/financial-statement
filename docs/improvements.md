@@ -111,7 +111,7 @@ backend-ci / frontend-ci が変更のあった側だけ本体ジョブを実行�
    - run: npm run build && npx @lhci/cli autorun --collect.staticDistDir=./build
    ```
    予算(assertion)は最初は警告のみ運用にし、実測値が安定してからfailに切替
-5. web-vitals（導入済み）の計測値をFirebase Analyticsに送るコードを有効化し、実ユーザー値を蓄積
+5. web-vitalsを導入し、計測値をFirebase Analyticsに送って実ユーザー値を蓄積（CRA雛形の未使用コードは削除済みのため新規導入になる）
 
 ### 2-5. コンテンツ面のSEO（3-3のAI生成と連動）
 

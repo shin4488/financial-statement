@@ -1,4 +1,4 @@
-import FirebaseInitialization from './initialization';
+import { initializeApp } from 'firebase/app';
 import {
   Analytics,
   AnalyticsCallOptions,
@@ -6,46 +6,34 @@ import {
   logEvent,
 } from 'firebase/analytics';
 
+// Firebaseコンソールが発行するWebアプリ設定。公開前提の識別子で秘匿情報ではない
+const firebaseConfig = {
+  apiKey: 'AIzaSyAsyg8vgDV2r4uH5iZSpxvhxqqRQgzjbZc',
+  authDomain: 'flaza-17d8c.firebaseapp.com',
+  projectId: 'flaza-17d8c',
+  storageBucket: 'flaza-17d8c.appspot.com',
+  messagingSenderId: '282295142919',
+  appId: '1:282295142919:web:5dbe9007f48a49ad70f8a2',
+  measurementId: 'G-ZCJ8NTQ6KY',
+};
+
 type AnalyticsEventParams = {
   [key: string]: unknown;
   content_type?: string | undefined;
   item_id?: string | undefined;
 };
 
-export default class FirebaseAnalytics {
-  private static analytics: Analytics | null = null;
+let analytics: Analytics | null = null;
 
-  static getAnalytics(): Analytics {
-    this.analytics =
-      this.analytics ??
-      getAnalytics(new FirebaseInitialization().appInstance());
-    return this.analytics;
-  }
+// 初回呼び出しでFirebaseごと初期化する（アプリ起動時に一度呼んでおく）
+export function initializeAnalytics(): Analytics {
+  analytics = analytics ?? getAnalytics(initializeApp(firebaseConfig));
+  return analytics;
+}
 
-  private static logEvent(
-    eventName: string,
-    eventParams?: AnalyticsEventParams,
-    options?: AnalyticsCallOptions | undefined,
-  ) {
-    logEvent(
-      this.analytics ?? FirebaseAnalytics.getAnalytics(),
-      eventName,
-      eventParams,
-      options,
-    );
-  }
-
-  static logLoadMoreStatementsEvent(
-    eventParams?: AnalyticsEventParams,
-    options?: AnalyticsCallOptions | undefined,
-  ) {
-    FirebaseAnalytics.logEvent('load_more_statements', eventParams, options);
-  }
-
-  static logClickEvent(
-    eventParams?: AnalyticsEventParams,
-    options?: AnalyticsCallOptions | undefined,
-  ) {
-    FirebaseAnalytics.logEvent('click', eventParams, options);
-  }
+export function logClickEvent(
+  eventParams?: AnalyticsEventParams,
+  options?: AnalyticsCallOptions,
+) {
+  logEvent(initializeAnalytics(), 'click', eventParams, options);
 }

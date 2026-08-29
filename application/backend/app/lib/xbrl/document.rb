@@ -46,8 +46,7 @@ module Xbrl
 
     # "jppfs_cor:NetSales" 形式のqnameとコンテキストで整数値を引く。なければnil
     def money(qname, context)
-      prefix, name = qname.split(":")
-      raw = @facts[[ prefix, name, context ]]
+      raw = text(qname, context)
       return nil if raw.nil? || raw.empty?
       # exception: false → 数値でない値（空タグ・テキスト）はnil扱い。
       # to_iを使わない理由: to_iは"abc"を0にしてしまい「開示なし」と「ゼロ」の区別が壊れる

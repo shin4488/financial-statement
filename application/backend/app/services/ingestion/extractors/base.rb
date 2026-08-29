@@ -16,21 +16,46 @@ module Ingestion
       #   max("…:A", sum("…:B", "…:C"))        … 最大値。同じ科目の総額候補が複数併記され、どれが総額かが
       #                                           企業のタグ付けで揺れる場合（売上高と営業収益）に、内訳は総額を
       #                                           超えないことを根拠に「最も包括的な値」を採る。要素にはタグかsumを置ける
-      Sum = Struct.new(:qnames)
-      Max = Struct.new(:entries)
-      def self.sum(*qnames) = Sum.new(qnames)
-      def self.max(*entries) = Max.new(entries)
+      #
+      # 各記法は「XBRLとコンテキストを受けて金額かnilを返す」evaluateを持つ値オブジェクト。
+      # 記法を増やすときはStructを1つ足せばよく、評価側（lookup）や各Extractorには手が入らない
 
-      def initialize(xbrl, consolidation)
-        @xbrl = xbrl
-        @c = consolidation # コンテキストサフィックス
+      Tag = Struct.new(:qname) do
+        def evaluate(xbrl, context) = xbrl.money(qname, context)
       end
+
+      Sum = Struct.new(:tags) do
+        # 存在するタグだけを合算し、1つも無ければnil（「開示なし」に0を保存しない）。
+        # 部分集合でも合算するのは、事業区分の開示有無が企業ごとに違うため
+        # （例: 鉄道事業のみの会社と、鉄道+不動産の会社が同じ表で引ける）
+        def evaluate(xbrl, context)
+          values = tags.filter_map { |tag| tag.evaluate(xbrl, context) }
+          values.sum if values.any?
+        end
+      end
+
+      Max = Struct.new(:entries) do
+        def evaluate(xbrl, context)
+          values = entries.filter_map { |entry| entry.evaluate(xbrl, context) }
+          values.max if values.any?
+        end
+      end
+
+      def self.sum(*qnames) = Sum.new(qnames.map { |qname| Tag.new(qname) })
+      def self.max(*entries) = Max.new(entries.map { |entry| wrap(entry) })
+      # マッピング表では単一タグを裸の文字列で書けるようにしているため、評価前にTagへ揃える
+      def self.wrap(entry) = entry.is_a?(String) ? Tag.new(entry) : entry
 
       # この形式が生成し得る科目コードの一覧
       def self.item_codes
         codes = self::INSTANT_MAPPING.keys + self::DURATION_MAPPING.keys
         codes << "cf.cash_begin" if self::INSTANT_MAPPING.key?("cf.cash_end")
         codes
+      end
+
+      def initialize(xbrl, consolidation)
+        @xbrl = xbrl
+        @c = consolidation # コンテキストサフィックス
       end
 
       # {item_code => amount} を返す。取れなかった科目はキーごと入れない
@@ -60,27 +85,11 @@ module Ingestion
         end
 
         # マッピング表の1エントリ（上記4記法のいずれか）を評価する。
-        # 単一タグ・合算・最大値を「要素1つのフォールバックリスト」に揃えて同じ経路で扱う
+        # 単一の記法も「要素1つのフォールバックリスト」に揃えて同じ経路で扱う
         # （Array()を使わないのはStructがto_aで展開されてしまうため）
         def lookup(spec, context)
           entries = spec.is_a?(Array) ? spec : [ spec ]
-          entries.lazy.filter_map { |entry| evaluate(entry, context) }.first
-        end
-
-        # 存在するタグだけを合算・比較し、1つも無ければnil（「開示なし」に0を保存しない）。
-        # 部分集合でも合算するのは、事業区分の開示有無が企業ごとに違うため
-        # （例: 鉄道事業のみの会社と、鉄道+不動産の会社が同じ表で引ける）
-        def evaluate(entry, context)
-          case entry
-          when Sum
-            values = entry.qnames.filter_map { |q| @xbrl.money(q, context) }
-            values.sum if values.any?
-          when Max
-            values = entry.entries.filter_map { |e| evaluate(e, context) }
-            values.max if values.any?
-          else
-            @xbrl.money(entry, context)
-          end
+          entries.lazy.filter_map { |entry| self.class.wrap(entry).evaluate(@xbrl, context) }.first
         end
     end
   end

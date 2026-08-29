@@ -49,28 +49,8 @@ module Edinet
       raise ArgumentError, "invalid docID: #{doc_id.inspect}" unless doc_id.to_s.match?(DOC_ID_PATTERN)
 
       zip_path = File.join(work_dir, "#{doc_id}.zip")
-      # 書類取得APIの type=1 は「提出本文書及び監査報告書」のzip
-      uri = URI("#{BASE}/documents/#{doc_id}")
-      uri.query = URI.encode_www_form(type: 1, "Subscription-Key" => api_key)
-      # copy_stream: レスポンス全体をStringに載せず直接ファイルへ書く（巨大レスポンスでのOOM対策）。
-      # 上限+1バイトまで読んで超過を検出する（Content-Lengthは信用せず実バイト数で判定）
-      uri.open { |src| IO.copy_stream(src, zip_path, MAX_ZIP_SIZE + 1) }
-      if File.size(zip_path) > MAX_ZIP_SIZE
-        raise "EDINET zip too large: #{doc_id} (> #{MAX_ZIP_SIZE} bytes)"
-      end
-
-      xbrl_path = nil
-      Zip::File.open(zip_path) do |zip|
-        # PublicDoc = 提出本文（財務諸表を含む）。AuditDoc（監査報告書）側のXBRLは対象外。
-        # 本文XBRLインスタンスは1書類に1つ。無い書類（一部の訂正有報など）はnilを返し
-        # 呼び出し側が「財務データなし」としてスキップする
-        entry = zip.glob("*/PublicDoc/*.xbrl").first
-        next if entry.nil?
-        raise "zip entry too large: #{doc_id} (#{entry.size} bytes)" if entry.size > MAX_ENTRY_SIZE
-        xbrl_path = File.join(work_dir, "#{doc_id}.xbrl")
-        zip.extract(entry, xbrl_path) { true } # ブロックtrue = 既存ファイルは上書き（リトライ時）
-      end
-      xbrl_path
+      download_zip(doc_id, zip_path)
+      extract_public_doc_xbrl(doc_id, zip_path, work_dir)
     ensure
       # zipは展開後すぐ消す: 全上場企業分を貯めるとディスクを圧迫する（1書類数MB*日次数十件）。
       # docID不正で早期にraiseした場合はzip_pathが未代入なのでガードする
@@ -78,6 +58,33 @@ module Edinet
     end
 
     private
+      def download_zip(doc_id, zip_path)
+        # 書類取得APIの type=1 は「提出本文書及び監査報告書」のzip
+        uri = URI("#{BASE}/documents/#{doc_id}")
+        uri.query = URI.encode_www_form(type: 1, "Subscription-Key" => api_key)
+        # copy_stream: レスポンス全体をStringに載せず直接ファイルへ書く（巨大レスポンスでのOOM対策）。
+        # 上限+1バイトまで読んで超過を検出する（Content-Lengthは信用せず実バイト数で判定）
+        uri.open { |src| IO.copy_stream(src, zip_path, MAX_ZIP_SIZE + 1) }
+        if File.size(zip_path) > MAX_ZIP_SIZE
+          raise "EDINET zip too large: #{doc_id} (> #{MAX_ZIP_SIZE} bytes)"
+        end
+      end
+
+      def extract_public_doc_xbrl(doc_id, zip_path, work_dir)
+        xbrl_path = nil
+        Zip::File.open(zip_path) do |zip|
+          # PublicDoc = 提出本文（財務諸表を含む）。AuditDoc（監査報告書）側のXBRLは対象外。
+          # 本文XBRLインスタンスは1書類に1つ。無い書類（一部の訂正有報など）はnilを返し
+          # 呼び出し側が「財務データなし」としてスキップする
+          entry = zip.glob("*/PublicDoc/*.xbrl").first
+          next if entry.nil?
+          raise "zip entry too large: #{doc_id} (#{entry.size} bytes)" if entry.size > MAX_ENTRY_SIZE
+          xbrl_path = File.join(work_dir, "#{doc_id}.xbrl")
+          zip.extract(entry, xbrl_path) { true } # ブロックtrue = 既存ファイルは上書き（リトライ時）
+        end
+        xbrl_path
+      end
+
       def api_key = ENV.fetch("EDINET_API_KEY")
   end
 end
