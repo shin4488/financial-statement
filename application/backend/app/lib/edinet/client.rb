@@ -2,7 +2,9 @@
 # レート制限（リクエスト過多で403）のため同期・逐次実行が前提（並列化しない）
 module Edinet
   class Client
-    BASE = "https://disclosure.edinet-fsa.go.jp/api/v2".freeze
+    # API仕様書記載の公式ホスト。閲覧サイト側ホスト（disclosure.edinet-fsa.go.jp）の
+    # /api/v2 互換パスは廃止されエラー画面（HTML）を返すため使わない
+    BASE = "https://api.edinet-fsa.go.jp/api/v2".freeze
     # EDINETの書類種別コード。120=有価証券報告書、130=訂正有価証券報告書。
     # 訂正も取り込む理由: 数値誤りの訂正が本表に及ぶことがあり、上書き取込（冪等upsert）で
     # 最新の正しい値に置き換えるため
