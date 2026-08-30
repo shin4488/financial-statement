@@ -36,7 +36,7 @@
 | ELC | 電気通信 | ELE | 電気 | GAS | ガス |
 | SPF | 特定金融 | CMD | 商品先物 | IVT / INV | 投資運用 / 投資業 |
 
-長いタグ名は、表の列幅が偏らないよう途中に半角空白を入れて表記している。実際のタグ名に空白は無い。
+長いタグ名・科目コードは、表の列幅が偏らないよう途中に半角空白を入れて表記している。実際の名前に空白は無い。
 
 ## BS（貸借対照表）
 
@@ -90,10 +90,10 @@
 
 | 科目コード | 日本語 | 一般・銀行・保険 | 分類・配列 | 使うBuilder |
 |---|---|---|---|---|
-| `pl.profit_before_tax` | 税引前利益 | `jppfs_cor:IncomeBeforeIncomeTaxes` | `jpigp_cor:ProfitLossBeforeTaxIFRS` | IFRS |
+| `pl.profit_before_tax` | 税引前利益 | `jppfs_cor:IncomeBefore` `IncomeTaxes` | `jpigp_cor:ProfitLoss` `BeforeTaxIFRS` | IFRS |
 | `pl.income_tax` | 法人税等 | `jppfs_cor:IncomeTaxes` | `jpigp_cor:IncomeTaxExpenseIFRS` | — |
 | `pl.profit` | 当期純利益 | `jppfs_cor:ProfitLoss` | `jpigp_cor:ProfitLossIFRS` | — |
-| `pl.profit_attributable_to_owners` | 親会社帰属当期純利益 | `jppfs_cor:ProfitLoss` `AttributableToOwnersOfParent` | `jpigp_cor:ProfitLoss` `AttributableToOwnersOfParentIFRS` | — |
+| `pl.profit_` `attributable_to_owners` | 親会社帰属当期純利益 | `jppfs_cor:ProfitLoss` `AttributableToOwnersOfParent` | `jpigp_cor:ProfitLoss` `AttributableToOwnersOfParentIFRS` | — |
 
 ### トップライン（売上・収益）
 
