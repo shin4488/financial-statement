@@ -81,7 +81,7 @@ docker compose exec appserver bundle exec rake 'ingestion:backfill[2026-06-20,20
 
 ```bash
 # 方法2: EDINETの書類管理番号（docID）を指定して取込
-# 例は各会計基準・業種の検証用6社（詳細: docs/guide/07_taxonomy_mapping.md）
+# 例は各会計基準・業種の検証用6社（詳細: docs/guide/06_taxonomy_mapping.md の実地調査の記録）
 docker compose exec appserver bundle exec rake 'ingestion:documents[S100YB5L S100YB25 S100YCP3 S100XTNW S100YLS8 S100YJQO]'
 ```
 
@@ -116,7 +116,7 @@ npm run compile        # graphql-codegen。src/__generated__/ が更新される
 
 | パス | 内容 |
 |---|---|
-| [docs/guide/](docs/guide/README.md) | **ドキュメントの本体**。前提知識ゼロから読める入門〜設計〜運用（01〜06）+ タグ対応表・実測データなどの資料（07〜08） |
+| [docs/guide/](docs/guide/README.md) | **ドキュメントの本体**。前提知識ゼロから読める入門〜設計〜運用（01〜05）+ タグ対応表・実測記録などの資料（06〜07） |
 | [docs/improvements.md](docs/improvements.md) | SEO・Web / AI活用の改善バックログ（作業手順つき） |
 | [CLAUDE.md](CLAUDE.md) | AIエージェント向けコンテキスト（ドメイン知識・既知課題の要約） |
 
@@ -133,6 +133,6 @@ npm run compile        # graphql-codegen。src/__generated__/ が更新される
 | `ifrs_summary` | IFRS・詳細タグ義務化前（2019年3月期より前）の有報 | 対応済み（経営指標サマリからPL・CFを表示。BSは説明文） |
 | `unsupported` | 米国基準など | チャートの代わりに説明文を表示（正常系） |
 
-- **米国基準は未対応**: 上記 `unsupported` として扱われ、グラフの代わりにその旨が表示される。新しい形式の追加はExtractor・Builderのファイル追加のみで済む（マイグレーション不要。手順は [docs/guide/04_backend.md](docs/guide/04_backend.md)）
-- **旧系統（SecurityReport系）は`security_reports`テーブルのみ凍結保管**: コードはすべて削除済み。凍結データの扱いは[docs/guide/08_unused_but_kept.md](docs/guide/08_unused_but_kept.md)
+- **米国基準は未対応**: 上記 `unsupported` として扱われ、グラフの代わりにその旨が表示される。新しい形式の追加はExtractor・Builderのファイル追加のみで済む（マイグレーション不要。手順は [docs/guide/03_data_flow.md](docs/guide/03_data_flow.md) の変更ガイド）
+- **旧系統（SecurityReport系）は`security_reports`テーブルのみ凍結保管**: コードはすべて削除済み。凍結データの扱いは[docs/guide/07_unused_but_kept.md](docs/guide/07_unused_but_kept.md)
 - その他は [docs/improvements.md](docs/improvements.md) を参照

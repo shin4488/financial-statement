@@ -3,7 +3,7 @@
 # 商品先物・投資業など）も財務諸表の骨格は同じなのでこの形式で扱い、タグ名の違いは
 # フォールバックリストで吸収する。業種固有のタグはその業種の有報にしか現れないため、
 # リストの中で業種をまたぐ優先順位を気にする必要はない（同一業種内の順序だけが意味を持つ）。
-# 実測の根拠と対応表は docs/guide/07_taxonomy_mapping.md
+# 対応表と実測の根拠は docs/guide を参照
 class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
   INSTANT_MAPPING = {
     "bs.current_assets"               => "jppfs_cor:CurrentAssets",

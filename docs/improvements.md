@@ -64,7 +64,7 @@ backend-ci / frontend-ci が変更のあった側だけ本体ジョブを実行�
    docker-composeの `appfront` をNext.jsのstandalone出力（`output: 'standalone'`）に差し替え
 5. 切替: nginxのルーティングを新アプリに向け、Search Consoleでインデックス状況を2週間監視
 6. **より軽い代替案**（Next.jsを避けたい場合）: 2-1完了後、`react-snap` 等のビルド時プリレンダは
-   企業数分のビルド時間爆発で不向き。実用的なのは「トップだけ静的メタ改善（対応済み）+
+   企業数分だけビルド時間が膨らむため不向き。実用的なのは「トップだけ静的メタ改善（対応済み）+
    企業ページはGooglebotのJSレンダリングに任せる」で、まず2-1+2-3だけ入れて
    Search Consoleの実測を見てからSSR投資を判断するのも合理的
 
@@ -93,7 +93,7 @@ backend-ci / frontend-ci が変更のあった側だけ本体ジョブを実行�
    ```
 2. nginxに `/sitemap.xml` → appserver へのproxy設定を追加。開発は `web/sites-enabled/flaza.conf`
    （現状は `/` → appfront、`/api` → appserver の2 location）。本番のnginx設定はリポジトリ外
-   管理のため、サーバ側にも同じlocationの追加が必要（[06章](guide/06_development_operations.md)）
+   管理のため、サーバ側にも同じlocationの追加が必要（[05章](guide/05_development_operations.md)）
 3. `frontend/public/sitemap.xml` を削除し、`robots.txt` の `Sitemap:` はそのまま
    （URLは変わらないため）
 4. Search Consoleでsitemapを再送信し、カバレッジを確認
@@ -171,11 +171,11 @@ CI常設のAPIコスト・Secrets管理に見合わない）
 ### 3-4. 未対応フォーマットのAI支援マッピング
 
 - **状況（2026-08-16）**: 日本基準の業種別様式（建設・鉄道・電気・ガス・海運・電気通信・証券・特定金融・
-  商品先物・投資業・保険）は実測して対応済み（`docs/guide/07_taxonomy_mapping.md`）。残る `unsupported` は
+  商品先物・投資業・保険）は実測して対応済み（`docs/guide/06_taxonomy_mapping.md` の実地調査の記録）。残る `unsupported` は
   米国基準（本表のタグがEDINETタクソノミにない）のみで、収益等が企業拡張タグにしか無い企業は
   形式に関係なくそのチャートだけ表示不可になる。このバックログはその「拡張タグ・新業種の実測」を
   LLMに下書きさせる案として残す
-- **意図**: `unsupported` 判定になる形式や拡張タグでしか取れない科目への対応の律速は
+- **意図**: `unsupported` 判定になる形式や拡張タグでしか取れない科目への対応で最も時間がかかるのは
   「タグ実測とマッピング表作り」。ここをLLMに下書きさせる
 
 **手順**（1〜2日）:
@@ -254,5 +254,5 @@ CI常設のAPIコスト・Secrets管理に見合わない）
 ## 推奨着手順
 
 1. **2-1 企業別URL + 2-3 動的sitemap**（SEOの土台）
-2. **2-2 SSR / 3-3 コメント生成**（サイト価値の本丸）
+2. **2-2 SSR / 3-3 コメント生成**（サイト価値の中心）
 3. 3-4〜3-7 は順次
