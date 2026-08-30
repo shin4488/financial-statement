@@ -39,7 +39,7 @@ docker-compose.yml     # 全体起動（web:10000, api:20000）
 - IFRS企業でも**単体財務諸表は日本基準**でタグ付けされる
 - 日本基準で骨格が違うのは銀行・保険（業種DEIコード bnk/ins。`jgaap_bank` / `jgaap_insurance`）。建設・鉄道・電気・ガス・海運・電気通信・証券・特定金融・商品先物・投資業などは業種別タグを持つが `jgaap_general` に吸収済み（Extractorのフォールバック）。米国基準は `unsupported`（グラフの代わりに説明文を出す正常系）
 - **実装済みアーキテクチャの正は `docs/guide/` の03章（全体像・4層設計・データモデル）と04章（取込・チャート生成・API）**。旧系統（SecurityReport系）のコードは削除済みで、`security_reports`テーブルのみ凍結保管（`docs/guide/08_unused_but_kept.md`）
-- **XBRLタグを扱う作業の前に必ず`docs/guide/07_taxonomy_mapping.md`（8社実測データ）を読むこと**
+- **XBRLタグを扱う作業の前に必ず`docs/guide/07_taxonomy_mapping.md`の対応表（「実地調査の記録」より前）を読むこと**。同節以降は対応表の根拠になった実測記録なので、対応の理由を確かめたいときだけ開けばよい
 
 ## 改善バックログ
 
