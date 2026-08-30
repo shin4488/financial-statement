@@ -163,13 +163,13 @@
 |---|---|---|
 | 1 | `jppfs_cor:OperatingCost` | 営業原価 |
 | 2 | `jppfs_cor:CostOfSales` | 売上原価 |
-| 3 | `jppfs_cor:CostOfMerchandiseAnd` `FinishedGoodsSoldCOS` | 商品及び製品売上原価 |
+| 3 | `jppfs_cor:CostOfMerchandiseAndFinishedGoodsSoldCOS` | 商品及び製品売上原価 |
 | 4 | `jppfs_cor:CostOfFinishedGoodsSold` | 製品売上原価 |
 | 5 | `jppfs_cor:CostOfGoodsSold` | 商品売上原価 |
 | 6 | `jppfs_cor:CostOfCompletedWorkCOSExpOA` | 完成工事原価 |
-| 7 | `jppfs_cor:CostOfSalesOfCompleted` `ConstructionContractsCNS` | 完成工事原価（建設業） |
-| 8 | `jppfs_cor:OperatingExpensesAnd` `CostOfSalesOfTransportationRWY` | 運輸業等営業費及び売上原価（鉄道・連結） |
-| 9 | `jppfs_cor:ShippingBusinessExpenses` `AndOtherOperatingExpensesWAT` | 海運業費用及びその他の営業費用（海運） |
+| 7 | `jppfs_cor:CostOfSalesOfCompletedConstructionContractsCNS` | 完成工事原価（建設業） |
+| 8 | `jppfs_cor:OperatingExpensesAndCostOfSalesOfTransportationRWY` | 運輸業等営業費及び売上原価（鉄道・連結） |
+| 9 | `jppfs_cor:ShippingBusinessExpensesAndOtherOperatingExpensesWAT` | 海運業費用及びその他の営業費用（海運） |
 | 10 | 合算 `ShippingBusinessExpensesWAT` + `OtherBusinessExpensesWAT` | 海運（単体）: 海運業費用 + その他事業費用 |
 | 11 | `jppfs_cor:CostOfProductsManufactured` | 当期製品製造原価 |
 
