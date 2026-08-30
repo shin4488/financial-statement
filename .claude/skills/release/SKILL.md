@@ -49,9 +49,19 @@ git log $(git describe --tags --abbrev=0 main)..main --oneline   # それ以降�
 
 ### 4. 作成
 
+ノート本文は**ファイルに書いて `--notes-file` で渡す**。複数行を `--notes` に直接埋めると
+シェルのクォート次第で壊れる（改行を含む長い引数はツール側で弾かれることもある）。
+
+```bash
+# 本文をファイルに用意する（スクラッチ領域でよい。リポジトリには置かない）
+cat > /tmp/release-notes.md <<'EOF'
+- 変更点の箇条書き
+EOF
+```
+
 ```bash
 # リポジトリ直下で（tagも同時に作成される）
-gh release create release-X.Y.Z --target main --title "release-X.Y.Z" --notes "- 変更点の箇条書き"
+gh release create release-X.Y.Z --target main --title "release-X.Y.Z" --notes-file /tmp/release-notes.md
 ```
 
 ### 5. 確認
