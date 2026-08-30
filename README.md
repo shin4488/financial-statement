@@ -81,7 +81,7 @@ docker compose exec appserver bundle exec rake 'ingestion:backfill[2026-06-20,20
 
 ```bash
 # 方法2: EDINETの書類管理番号（docID）を指定して取込
-# 例は各会計基準・業種の検証用6社（詳細: docs/guide/07_taxonomy_survey.md）
+# 例は各会計基準・業種の検証用6社（詳細: docs/guide/06_taxonomy_mapping.md の実地調査の記録）
 docker compose exec appserver bundle exec rake 'ingestion:documents[S100YB5L S100YB25 S100YCP3 S100XTNW S100YLS8 S100YJQO]'
 ```
 
@@ -134,5 +134,5 @@ npm run compile        # graphql-codegen。src/__generated__/ が更新される
 | `unsupported` | 米国基準など | チャートの代わりに説明文を表示（正常系） |
 
 - **米国基準は未対応**: 上記 `unsupported` として扱われ、グラフの代わりにその旨が表示される。新しい形式の追加はExtractor・Builderのファイル追加のみで済む（マイグレーション不要。手順は [docs/guide/03_data_flow.md](docs/guide/03_data_flow.md) の変更ガイド）
-- **旧系統（SecurityReport系）は`security_reports`テーブルのみ凍結保管**: コードはすべて削除済み。凍結データの扱いは[docs/guide/08_unused_but_kept.md](docs/guide/08_unused_but_kept.md)
+- **旧系統（SecurityReport系）は`security_reports`テーブルのみ凍結保管**: コードはすべて削除済み。凍結データの扱いは[docs/guide/07_unused_but_kept.md](docs/guide/07_unused_but_kept.md)
 - その他は [docs/improvements.md](docs/improvements.md) を参照
