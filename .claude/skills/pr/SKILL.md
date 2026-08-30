@@ -32,7 +32,7 @@ git diff --cached | grep -niE "api[_-]?key|secret|password|token|dsn|private key
 ```
 
 - 実値を書いてはいけないもの: APIキー・DSN・パスワード・トークン類、本番のホスト名/IP/接続情報
-  （git管理されるファイルには「項目名と入手方法」まで。docs/guide/06章の規約）
+  （git管理されるファイルには「項目名と入手方法」まで。docs/guide/05章の規約）
 - grepの一致=即NGではない。変数名・設定キー名・sampleのプレースホルダは問題なく、**実値かどうか**で判断する
 - 機密を含めてコミットしてしまったら: push前ならcommitを作り直す。push済みなら履歴から消えないため、
   該当キーのローテーション（無効化・再発行）が必要

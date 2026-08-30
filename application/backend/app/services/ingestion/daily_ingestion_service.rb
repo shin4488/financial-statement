@@ -32,7 +32,7 @@ module Ingestion
         rescue => e
           # 一覧取得自体の失敗も日単位で隔離する。この日の有報は取り込まれないままになるため、
           # Sentry通知を見たら該当日を rake ingestion:backfill で再実行する（全処理が冪等）。
-          # 手順は docs/guide/06_development_operations.md の「日次バッチの監視とリカバリ」を参照
+          # 手順は docs/guide/05_development_operations.md の「日次バッチの監視とリカバリ」を参照
           Rails.logger.error("list failed #{date}: #{e.message}")
           Sentry.capture_exception(e)
         end

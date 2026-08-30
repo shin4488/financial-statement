@@ -87,7 +87,7 @@ app/graphql/
 ```
 
 設計意図・XBRLの形式ごとの差異はリポジトリルートの `docs/guide/`（03〜04章に設計解説）を参照。
-**XBRLタグを扱う作業の前に必ず `docs/guide/07_taxonomy_mapping.md` を読むこと。**
+**XBRLタグを扱う作業の前に必ず `docs/guide/06_taxonomy_mapping.md` の該当する表（BS/PL/CF）を読むこと。**
 
 `/graphql` は公開・未認証エンドポイントのため、スキーマに複雑度・深さの上限がある。
 フィールドを増やすときは上限に収まるか確認する（`financial_statement_schema.rb`）。

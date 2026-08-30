@@ -42,5 +42,5 @@ bundle exec rails runner '
 | S100YE7T | 日本郵政 | 複数業種コード（bnk,ins）→ 先頭の銀行 / 貯金が企業拡張タグのためBSは描けない |
 | S100SO41 | クリエイト・レストランツHD | ifrs_summary判定（2019年2月期=詳細タグ義務化前でjpigp_corが無い）/ 経営指標サマリからPL骨格+CF5点 |
 
-期待値の出典はリポジトリルートの docs/guide/07_taxonomy_mapping.md の実測表。
+期待値の出典はリポジトリルートの docs/guide/07_taxonomy_survey.md の実測表。
 フィクスチャが存在しない場合、該当スペックはskipされる。

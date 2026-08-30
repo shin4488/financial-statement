@@ -1,6 +1,6 @@
 module Ingestion
   # 表示形式（presentation_format）の一覧と、形式→Extractorの対応。
-  # 新しい形式に対応するときの手順全体は docs/guide/04_backend.md の「新しい業種・形式の追加手順」を参照
+  # 新しい形式に対応するときの手順全体は docs/guide/03_data_flow.md の「変更ガイド」を参照
   module FormatRegistry
     JGAAP_GENERAL   = "jgaap_general"
     JGAAP_BANK      = "jgaap_bank"

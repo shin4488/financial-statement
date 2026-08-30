@@ -93,7 +93,7 @@ backend-ci / frontend-ci が変更のあった側だけ本体ジョブを実行�
    ```
 2. nginxに `/sitemap.xml` → appserver へのproxy設定を追加。開発は `web/sites-enabled/flaza.conf`
    （現状は `/` → appfront、`/api` → appserver の2 location）。本番のnginx設定はリポジトリ外
-   管理のため、サーバ側にも同じlocationの追加が必要（[06章](guide/06_development_operations.md)）
+   管理のため、サーバ側にも同じlocationの追加が必要（[05章](guide/05_development_operations.md)）
 3. `frontend/public/sitemap.xml` を削除し、`robots.txt` の `Sitemap:` はそのまま
    （URLは変わらないため）
 4. Search Consoleでsitemapを再送信し、カバレッジを確認
@@ -171,7 +171,7 @@ CI常設のAPIコスト・Secrets管理に見合わない）
 ### 3-4. 未対応フォーマットのAI支援マッピング
 
 - **状況（2026-08-16）**: 日本基準の業種別様式（建設・鉄道・電気・ガス・海運・電気通信・証券・特定金融・
-  商品先物・投資業・保険）は実測して対応済み（`docs/guide/07_taxonomy_mapping.md`）。残る `unsupported` は
+  商品先物・投資業・保険）は実測して対応済み（`docs/guide/07_taxonomy_survey.md`）。残る `unsupported` は
   米国基準（本表のタグがEDINETタクソノミにない）のみで、収益等が企業拡張タグにしか無い企業は
   形式に関係なくそのチャートだけ表示不可になる。このバックログはその「拡張タグ・新業種の実測」を
   LLMに下書きさせる案として残す
