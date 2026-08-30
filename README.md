@@ -116,7 +116,7 @@ npm run compile        # graphql-codegen。src/__generated__/ が更新される
 
 | パス | 内容 |
 |---|---|
-| [docs/guide/](docs/guide/README.md) | **ドキュメントの本体**。前提知識ゼロから読める入門〜設計〜運用（01〜06）+ タグ対応表・実測データなどの資料（07〜08） |
+| [docs/guide/](docs/guide/README.md) | **ドキュメントの本体**。前提知識ゼロから読める入門〜設計〜運用（01〜05）+ タグ対応表・実測記録などの資料（06〜07） |
 | [docs/improvements.md](docs/improvements.md) | SEO・Web / AI活用の改善バックログ（作業手順つき） |
 | [CLAUDE.md](CLAUDE.md) | AIエージェント向けコンテキスト（ドメイン知識・既知課題の要約） |
 

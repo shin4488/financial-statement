@@ -1,8 +1,8 @@
 # 04. システム — 構成と実装
 
-[03章](03_data_flow.md)がデータの中身の話だったのに対し、この章はそれを動かす器の話。構成・使っている技術・取込ジョブの信頼性・公開APIとしての防御・画面の実装を、backend / frontendまとめて扱う。環境変数・起動・テスト実行などの手順は各README（`application/backend/README.md`・`application/frontend/README.md`）が正、開発の決まりと本番運用は[05章](05_development_operations.md)。
+[03章](03_data_flow.md)がデータの中身の話だったのに対し、この章はそれを動かすシステム側の話。構成・使っている技術・取込ジョブの信頼性・公開APIとしての防御・画面の実装を、backend / frontendまとめて扱う。環境変数・起動・テスト実行などの手順は各README（`application/backend/README.md`・`application/frontend/README.md`）が正、開発の決まりと本番運用は[05章](05_development_operations.md)。
 
-## 構成: 何でできているか
+## 構成
 
 画面・データ・取込で役割を分けた、Web開発で一般的な構成になっている。
 
