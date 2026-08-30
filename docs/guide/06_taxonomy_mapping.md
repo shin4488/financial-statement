@@ -90,7 +90,7 @@
 
 | 科目コード | 日本語 | 一般・銀行・保険 | 分類・配列 | 使うBuilder |
 |---|---|---|---|---|
-| `pl.profit_before_tax` | 税引前利益 | `jppfs_cor:IncomeBefore` `IncomeTaxes` | `jpigp_cor:ProfitLoss` `BeforeTaxIFRS` | IFRS |
+| `pl.profit_before_tax` | 税引前利益 | `jppfs_cor:IncomeBefore` `IncomeTaxes` | `jpigp_cor:ProfitLossBeforeTaxIFRS` | IFRS |
 | `pl.income_tax` | 法人税等 | `jppfs_cor:IncomeTaxes` | `jpigp_cor:IncomeTaxExpenseIFRS` | — |
 | `pl.profit` | 当期純利益 | `jppfs_cor:ProfitLoss` | `jpigp_cor:ProfitLossIFRS` | — |
 | `pl.profit_` `attributable_to_owners` | 親会社帰属当期純利益 | `jppfs_cor:ProfitLoss` `AttributableToOwnersOfParent` | `jpigp_cor:ProfitLoss` `AttributableToOwnersOfParentIFRS` | — |
