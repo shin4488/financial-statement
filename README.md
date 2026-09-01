@@ -116,7 +116,7 @@ npm run compile        # graphql-codegen。src/__generated__/ が更新される
 
 | パス | 内容 |
 |---|---|
-| [docs/guide/](docs/guide/README.md) | **ドキュメントの本体**。前提知識ゼロから読める入門〜設計〜運用（01〜05）+ タグ対応表・実測記録などの資料（06〜07） |
+| [docs/guide/](docs/guide/README.md) | **ドキュメントの本体**。前提知識ゼロから読める入門〜設計〜運用（01〜05）+ タグ対応表・実測記録などの資料（06） |
 | [docs/improvements.md](docs/improvements.md) | SEO・Web / AI活用の改善バックログ（作業手順つき） |
 | [CLAUDE.md](CLAUDE.md) | AIエージェント向けコンテキスト（ドメイン知識・既知課題の要約） |
 
@@ -134,5 +134,4 @@ npm run compile        # graphql-codegen。src/__generated__/ が更新される
 | `unsupported` | 米国基準など | チャートの代わりに説明文を表示（正常系） |
 
 - **米国基準は未対応**: 上記 `unsupported` として扱われ、グラフの代わりにその旨が表示される。新しい形式の追加はExtractor・Builderのファイル追加のみで済む（マイグレーション不要。手順は [docs/guide/03_data_flow.md](docs/guide/03_data_flow.md) の変更ガイド）
-- **旧系統（SecurityReport系）は`security_reports`テーブルのみ凍結保管**: コードはすべて削除済み。凍結データの扱いは[docs/guide/07_unused_but_kept.md](docs/guide/07_unused_but_kept.md)
 - その他は [docs/improvements.md](docs/improvements.md) を参照

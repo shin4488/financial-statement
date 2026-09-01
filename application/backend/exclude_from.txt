@@ -25,6 +25,7 @@
 - config/application.yml
 
 - vendor/bundle
+# XBRL調査で有報zipを展開するローカル作業ディレクトリ（本番に置かない）
 - security_reports
 # 実XBRLフィクスチャ（数MB/件・spec専用）は本番に置かない
 - spec/fixtures/xbrl/*.xbrl

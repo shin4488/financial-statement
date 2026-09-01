@@ -1,6 +1,6 @@
 require "rails_helper"
 
-# 業種別の勘定科目を持つ業種（07章の対応表）が jgaap_general のフォールバックで抽出できることの実測検証。
+# 業種別の勘定科目を持つ業種が jgaap_general のフォールバックで抽出できることの実測検証。
 # 期待値は各社の有報XBRLの実測値（spec/fixtures/xbrl/README.md）。単位: 円
 RSpec.describe Ingestion::Extractors::JgaapGeneral do
   def extract(doc_id, consolidation)

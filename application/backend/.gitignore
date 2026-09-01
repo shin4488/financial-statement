@@ -29,6 +29,7 @@
 /config/master.key
 
 /vendor/bundle
+# XBRL調査で有報zipを展開するローカル作業ディレクトリ
 security_reports
 config/credentials.yml.enc
 deploy.sh
