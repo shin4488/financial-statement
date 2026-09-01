@@ -25,6 +25,7 @@
 - config/application.yml
 
 - vendor/bundle
+# XBRL調査用のローカル作業ディレクトリ（削除済みのDBテーブルとは無関係）
 - security_reports
 # 実XBRLフィクスチャ（数MB/件・spec専用）は本番に置かない
 - spec/fixtures/xbrl/*.xbrl
