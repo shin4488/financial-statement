@@ -37,7 +37,7 @@
 flowchart LR
     Browser["ブラウザ<br>localhost:10000"] --> Web
     subgraph "Docker Compose"
-        Web["web（nginx）"] -->|"/ へのアクセス"| Front["appfront（React devサーバ）"]
+        Web["web（nginx）"] -->|"/ へのアクセス"| Front["appfront（Vite devサーバ）"]
         Web -->|"/api へのアクセス"| Server["appserver（Rails + Sidekiq）"]
         Server --> Database[("database<br>PostgreSQL")]
         Server -.-> Cache[("cache<br>Redis")]
@@ -71,7 +71,7 @@ flowchart LR
 |---|---|
 | React | UIライブラリ。画面を「コンポーネント」という部品の組み合わせで記述する |
 | TypeScript | JavaScriptに型を加えた言語。GraphQLの型生成と組み合わせてデータの形の間違いをコンパイル時に検出する |
-| CRA + craco | React公式の雛形ツール（Create React App）と、その設定を上書きするためのツール |
+| Vite + Vitest | 開発サーバと本番ビルドを担うツールと、その設定（パス別名など）を共有するテストランナー |
 | Apollo Client | GraphQLクライアント。問い合わせの発行と結果のキャッシュを担当する |
 | Redux Toolkit | 画面をまたいで共有する状態の置き場。ただしこのアプリでの用途はごく小さい（後述） |
 | MUI | Reactコンポーネント集（ボタン・カードなど）。Material Designベース |
@@ -258,7 +258,7 @@ flowchart LR
 
 | 項目 | 状態 |
 |---|---|
-| 検証コマンド | `npx tsc --noEmit` / `yarn test` / eslint / prettier / `CI=false yarn build`（`application/frontend/README.md` が正） |
+| 検証コマンド | `npx tsc --noEmit` / `yarn test` / eslint / prettier / `yarn build`（`application/frontend/README.md` が正） |
 | CI | 導入済み（`.github/workflows/frontend-ci.yml`。検証コマンド一式 + テスト + 型生成の差分検知 + build） |
 | テストコード | ロジックを持つ純粋関数（チャートの行列変換・金額表示・色解決・検索条件パース）に仕様ベースのユニットテストあり。コンポーネント描画のテストは無い |
 | GraphQLエラー時の画面表示 | 未実装（エラー時も0件時と同じ「条件に一致する企業がありません。」が表示される） |

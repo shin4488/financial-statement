@@ -8,11 +8,8 @@
     "@emotion/styled": "^11.11.0",
     "@mui/material": "^5.14.6",
     "@reduxjs/toolkit": "^1.9.5",
-    "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^13.0.0",
-    "@testing-library/user-event": "^13.2.1",
-    "@types/jest": "^27.0.1",
-    "@types/node": "^16.7.13",
+    "@types/node": "^24",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "firebase": "^10.14.1",
@@ -23,42 +20,38 @@
     "react-material-ui-carousel": "^3.4.2",
     "react-redux": "^8.1.2",
     "react-router-dom": "^7.18.2",
-    "react-scripts": "5.0.1",
     "recharts": "^2.7.2",
-    "typescript": "^4.4.2"
+    "typescript": "^5.9"
   },
   "devDependencies": {
-    "@craco/craco": "^7.1.0",
     "@graphql-codegen/cli": "^7.4.0",
     "@graphql-codegen/client-preset": "^6.1.3",
     "@parcel/watcher": "^2.3.0",
     "@types/react-infinite-scroller": "^1.2.3",
-    "@typescript-eslint/eslint-plugin": "^5.60.1",
-    "@typescript-eslint/parser": "^5.60.1",
-    "eslint": "^8.44.0",
+    "@typescript-eslint/eslint-plugin": "^8",
+    "@typescript-eslint/parser": "^8",
+    "@vitejs/plugin-react": "^6.1.1",
+    "browserslist": "^4.28.8",
+    "browserslist-to-esbuild": "^2.1.1",
+    "eslint": "^8.57.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-react": "^7.32.2",
-    "prettier": "^2.8.8"
+    "jsdom": "^30.0.1",
+    "prettier": "^2.8.8",
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11"
   },
   "resolutions": {
     "undici": "^6.28.0",
-    "lodash": "^4.18.0",
-    "@babel/helper-compilation-targets": "^7.29.0",
-    "browserslist": "^4.22.0"
+    "lodash": "^4.18.0"
   },
   "scripts": {
-    "start": "craco start",
-    "build": "craco build",
-    "test": "craco test",
-    "eject": "react-scripts eject",
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest",
     "compile": "graphql-codegen",
     "watch": "graphql-codegen -w"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
   },
   "browserslist": {
     "production": [

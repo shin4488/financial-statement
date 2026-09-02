@@ -27,7 +27,7 @@ docker-compose.yml     # 全体起動（web:10000, api:20000）
 
 ## フロントエンド（application/frontend）
 
-- CRA(craco) + TypeScript + Apollo Client + Redux Toolkit + MUI + recharts
+- Vite + Vitest + TypeScript + Apollo Client + Redux Toolkit + MUI + recharts
 - GraphQLの型生成: `npm run compile`（graphql-codegen。backendのコミット済み`schema.graphql` を参照するためバックエンド起動は不要）
 - 主要ページ: `src/features/financialReports/`、汎用チャート: `src/shared/financialCharts/`
 

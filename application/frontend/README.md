@@ -10,7 +10,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| ビルド | Create React App + craco / TypeScript |
+| ビルド・テスト | Vite（開発サーバ・本番ビルド）+ Vitest / TypeScript |
 | データ取得 | Apollo Client（GraphQL） + graphql-codegen（型の自動生成） |
 | UI | MUI / recharts |
 | 状態管理 | 検索条件はURLクエリ、カルーセルの自動切替のみRedux Toolkit |
@@ -48,7 +48,7 @@ npx tsc --noEmit && npx eslint 'src/**/*.{ts,tsx}' && npx prettier --check 'src/
 ```
 
 ```bash
-CI=false yarn build
+yarn build
 ```
 
 ## 主要な構成
