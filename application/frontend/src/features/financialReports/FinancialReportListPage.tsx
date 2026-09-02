@@ -8,20 +8,11 @@ import {
   cashFlowTypeRequestMap,
   financialStatementOffsetUnit,
 } from '@/constants/values';
-import { CashFlowSign } from '@/__generated__/graphql';
 import { FINANCIAL_REPORTS_QUERY } from './api/financialReportsQuery';
 import { financialReportsClient } from './apolloClient';
 import { parseCashFlowType, parseStockCodes } from './searchCriteria';
 import { ReportCard } from './components/ReportCard';
 import { ReportListLayout } from './components/ReportListLayout';
-
-// cashFlowTypeRequestMapの'POSITIVE'/'NEGATIVE'文字列 → 生成enum CashFlowSign への変換
-const toCashFlowSign = (sign: 'POSITIVE' | 'NEGATIVE' | null) =>
-  sign === 'POSITIVE'
-    ? CashFlowSign.Positive
-    : sign === 'NEGATIVE'
-    ? CashFlowSign.Negative
-    : null;
 
 // URLクエリ（例: /?stock-codes=7203,4502&cash-flow-type=healthy）→ GraphQL変数。
 // 検索条件をReduxでなくURLに持つ理由: 検索結果画面をURLで共有・ブックマークできる
@@ -34,15 +25,9 @@ function useQueryVariables() {
       limit: financialStatementOffsetUnit,
       offset: 0,
       stockCodes: codes.length > 0 ? codes : null,
-      operatingCfSign: toCashFlowSign(
-        cfRequest.operatingActivitiesCashFlowSign,
-      ),
-      investingCfSign: toCashFlowSign(
-        cfRequest.investingActivitiesCashFlowSign,
-      ),
-      financingCfSign: toCashFlowSign(
-        cfRequest.financingActivitiesCashFlowSign,
-      ),
+      operatingCfSign: cfRequest.operatingActivitiesCashFlowSign,
+      investingCfSign: cfRequest.investingActivitiesCashFlowSign,
+      financingCfSign: cfRequest.financingActivitiesCashFlowSign,
     };
   }, [searchParams]);
 }

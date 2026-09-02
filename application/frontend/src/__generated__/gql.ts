@@ -11,8 +11,12 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * 3. It does not support dead code elimination, so it will add unused operations.
  *
  * Therefore it is highly recommended to use the babel or swc plugin for production.
+ * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
-const documents = {
+type Documents = {
+    "\n  query FinancialReports(\n    $limit: Int!, $offset: Int!, $stockCodes: [String!],\n    $operatingCfSign: CashFlowSign, $investingCfSign: CashFlowSign, $financingCfSign: CashFlowSign\n  ) {\n    financialReports(\n      limit: $limit, offset: $offset, stockCodes: $stockCodes,\n      operatingCfSign: $operatingCfSign, investingCfSign: $investingCfSign, financingCfSign: $financingCfSign\n    ) {\n      id\n      stockCode\n      companyName\n      fiscalYearStartDate\n      fiscalYearEndDate\n      accountingStandard\n      consolidationType\n      balanceSheet {\n        renderable\n        note\n        bars {\n          label\n          segments { key label amount signedAmount ratio colorRole tooltipLabel }\n        }\n      }\n      profitLoss {\n        renderable\n        note\n        bars {\n          label\n          segments { key label amount signedAmount ratio colorRole tooltipLabel }\n        }\n      }\n      cashFlow {\n        renderable\n        note\n        steps { key label amount kind colorRole }\n      }\n    }\n  }\n": typeof types.FinancialReportsDocument,
+};
+const documents: Documents = {
     "\n  query FinancialReports(\n    $limit: Int!, $offset: Int!, $stockCodes: [String!],\n    $operatingCfSign: CashFlowSign, $investingCfSign: CashFlowSign, $financingCfSign: CashFlowSign\n  ) {\n    financialReports(\n      limit: $limit, offset: $offset, stockCodes: $stockCodes,\n      operatingCfSign: $operatingCfSign, investingCfSign: $investingCfSign, financingCfSign: $financingCfSign\n    ) {\n      id\n      stockCode\n      companyName\n      fiscalYearStartDate\n      fiscalYearEndDate\n      accountingStandard\n      consolidationType\n      balanceSheet {\n        renderable\n        note\n        bars {\n          label\n          segments { key label amount signedAmount ratio colorRole tooltipLabel }\n        }\n      }\n      profitLoss {\n        renderable\n        note\n        bars {\n          label\n          segments { key label amount signedAmount ratio colorRole tooltipLabel }\n        }\n      }\n      cashFlow {\n        renderable\n        note\n        steps { key label amount kind colorRole }\n      }\n    }\n  }\n": types.FinancialReportsDocument,
 };
 
