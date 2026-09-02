@@ -34,8 +34,11 @@ export default defineConfig({
     sourcemap: true,
     // 対象ブラウザはpackage.jsonのbrowserslist（production）で決める
     target: browserslistToEsbuild(),
-    rollupOptions: {
+    rolldownOptions: {
       output: {
+        // 第三者ライブラリのライセンス表記（@license / /*! …）はminify後も残す。
+        // CRA(terser)はLICENSE.txtに抽出して配布していたが、Viteの既定はminify時に全削除するため明示する
+        comments: { legal: true },
         entryFileNames: 'static/js/main.[hash].js',
         chunkFileNames: 'static/js/[name].[hash].js',
         assetFileNames: ({ names }) =>
