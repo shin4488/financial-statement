@@ -7,7 +7,7 @@
 
 Webフロントとブラウザ拡張（financial-statement-chrome-extension）で同一実装を使う想定のため:
 
-- import してよいのは `react` と `recharts` のみ（両リポジトリ共通の依存。`*.test.ts` はjest前提）
+- import してよいのは `react` と `recharts` のみ（両リポジトリ共通の依存。`*.test.ts` はグローバルの `describe` / `it` / `expect` だけを使い、`jest.*` / `vi.*` などランナー固有のAPIは使わない（コピー先のjestでも動かすため））
 - アプリ固有のもの（GraphQLクライアント・codegen生成型・ルーティング・状態管理・
   パスエイリアス `@/`）に依存しない。ディレクトリ内は相対importのみ
 - 型は `types.ts` の構造的型で受ける。codegen生成型はフィールド構造が一致するため

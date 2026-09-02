@@ -50,6 +50,3 @@ jobs:
       # 型生成の取り込み忘れ検知（src/__generated__はコミットする運用）
       - run: yarn compile && git diff --exit-code src/__generated__
       - run: yarn build
-        env:
-          # CRAはCI=trueだとwarningをerror扱いする。まずは通す設定で始め、後で外す
-          CI: "false"

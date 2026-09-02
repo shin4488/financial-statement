@@ -3,14 +3,13 @@ import { siteOrigin } from './siteRoutes';
 
 // 戻し先（index.htmlの値）はモジュール読込時に退避されるため、先にheadを整えてから読み込む
 let usePageMeta: typeof import('./usePageMeta').usePageMeta;
-beforeAll(() => {
+beforeAll(async () => {
   document.title = 'デフォルトタイトル';
   document.head.insertAdjacentHTML(
     'beforeend',
     '<meta name="description" content="デフォルト説明" /><link rel="canonical" href="https://example.com/" />',
   );
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  ({ usePageMeta } = require('./usePageMeta'));
+  ({ usePageMeta } = await import('./usePageMeta'));
 });
 
 const currentHead = () => ({
