@@ -17,6 +17,9 @@ services:
       # node_modulesはホストと共有しない（Vite/rolldownがOS別のネイティブバイナリを使うため、
       # コンテナ(Linux)内でinstallした実体を名前付きボリュームに持つ）
       - frontend_node_modules:/home/app/financialStatement/node_modules
+      # codegen（yarn watch / yarn compile）がcodegen.tsの ../backend/schema.graphql を読めるようにする。
+      # ファイル単体のマウントなのでinodeが変わる置き換え（git checkout等）後はコンテナ再起動が必要
+      - ./application/backend/schema.graphql:/home/app/backend/schema.graphql:ro
   appserver:
     build: ./application/backend
     # サーバ処理の動作確認を行えるようにポート解放する
