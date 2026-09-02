@@ -14,7 +14,9 @@ services:
     build: ./application/frontend
     volumes:
       - ./application/frontend:/home/app/financialStatement
-      - ./application/frontend/node_modules:/home/app/financialStatement/node_modules
+      # node_modulesはホストと共有しない（Vite/rolldownがOS別のネイティブバイナリを使うため、
+      # コンテナ(Linux)内でinstallした実体を名前付きボリュームに持つ）
+      - frontend_node_modules:/home/app/financialStatement/node_modules
   appserver:
     build: ./application/backend
     # サーバ処理の動作確認を行えるようにポート解放する
@@ -37,3 +39,5 @@ services:
     build: ./cache
     volumes:
       - ./cache/data:/data
+volumes:
+  frontend_node_modules:
