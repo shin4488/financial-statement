@@ -42,7 +42,7 @@ backend-ci / frontend-ci が変更のあった側だけ本体ジョブを実行�
 
 ### 2-2. プリレンダリング / SSR
 
-- **現状**: CRAのCSR。クローラの初期HTMLは空の `<div id="root">`。SNSカードも全URL共通
+- **現状**: Viteでビルドした静的SPA（CSR）。クローラの初期HTMLは空の `<div id="root">`。SNSカードも全URL共通
 - **意図**: 2-1の企業ページを確実・高速にインデックスさせ、企業ごとのOGPを出す
 
 **手順**（Next.js移行案・1〜2週間）:
