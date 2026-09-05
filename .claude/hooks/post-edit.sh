@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Claude / Codex 共通。残った指摘は返すが、編集後の処理はブロックしない。
-source "$(dirname "$0")/edited-files.sh"
+# 共通プラグインがリポジトリルートとファイル一覧を確定するため、イベントJSONは再解析しない。
+project_dir=$PWD
+files=("$@")
 backend=()
 frontend=()
 for file in "${files[@]}"; do
@@ -34,6 +36,7 @@ out=$({
 } 2>&1)
 
 if [ -n "$out" ]; then
+  # 編集済みのコードは残し、診断を追加コンテキストとして返す既存の運用を維持する。
   jq -n --arg ctx "format-lint hook: 自動修正後も残った指摘（CIで失敗し得るため対処すること）
 $out" '{hookSpecificOutput: {hookEventName: "PostToolUse", additionalContext: $ctx}}'
 fi

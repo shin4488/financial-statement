@@ -12,12 +12,12 @@ flowchart LR
     A["① バージョン選定"] -->|"Railsが目標Rubyに未対応"| R["Rails更新を先に実施<br>（別PR・別デプロイ）"]
     R --> A
     A --> B["② docker検証"]
-    B --> C["③ PR（/pr）"]
+    B --> C["③ PR（共通 create-pr skill）"]
     C --> D["④ 本番: rbenv install"]
     D --> E["⑤ rsync+gem再ビルド"]
     E --> F["⑥ start.sh(ユーザー端末)"]
     F --> G["⑦ 反映確認"]
-    G --> H["⑧ リリース（/release）"]
+    G --> H["⑧ リリース（共通 release skill）"]
 ```
 
 ## ① バージョン選定
@@ -93,7 +93,7 @@ nginx経由(:10000)で画面200・sidekiq起動とsidekiq-cronの`daily_ingestio
 
 ## ③ PR
 
-/pr の運用どおり。backend側の変更とREADME/CLAUDE.md更新を1本のPRにまとめる。
+共通 create-pr skill の運用どおり。backend側の変更とREADME/CLAUDE.md更新を1本のPRにまとめる。
 PR本文にはバージョン選定理由・検証チェックリスト・BUNDLED WITH固定の理由を書く。
 
 ## ④〜⑦ 本番反映（順序が生命線）
@@ -148,7 +148,7 @@ ssh -o BatchMode=yes "$HOST" "systemctl is-active <sidekiqユニット名>; cd $
 
 翌朝、日次取込（DailyIngestionJob）の初回実行が正常だったか確認する。
 
-⑧ 反映確認まで済んだら /release の手順でtag・releaseを作成する。
+⑧ 反映確認まで済んだら 共通 release skill の手順でtag・releaseを作成する。
 
 ## ロールバックと後始末
 
