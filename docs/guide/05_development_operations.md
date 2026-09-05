@@ -9,7 +9,8 @@
 | 初回セットアップ・起動・データ投入 | [ルートREADME](../../README.md) |
 | バックエンド単体の起動・環境変数・テスト実行 | `application/backend/README.md` |
 | フロントエンドの検証コマンド・ビルド | `application/frontend/README.md` |
-| デプロイ・日次確認・PR運用・リリース・Rubyバージョンアップ・ブラウザ拡張への同期の詳細手順 | `.claude/skills/` 配下の各SKILL.md |
+| PR運用・リリースの共通手順 | [agent-plugins](https://github.com/shin4488/agent-plugins) のskills。リポジトリ固有の条件はこの章 |
+| Rubyバージョンアップ・ブラウザ拡張への同期 | `.claude/skills/` 配下の各SKILL.md |
 
 ## 開発
 
@@ -27,11 +28,11 @@ flowchart LR
 - `npm run compile` はコミット済みの `schema.graphql` を参照するため、バックエンドの起動は不要（[04章](04_system.md)）
 - クエリ上限の値と意図は[04章](04_system.md)を参照
 - スキーマの書き出し忘れ・型生成の取り込み忘れはCIが差分検知する（`schema.graphql` が変わるとfrontend CIも起動し、型生成のズレを検知できる）
-- Claude Code / Codex での編集時は、フック（`.claude/hooks/format-lint.sh`）がCIと同じフォーマッタ・リンタ（backend: rubocop -A / frontend: eslint --fix → prettier → tsc --noEmit）を自動実行し、自動修正しきれなかった指摘をエージェントに返す。Codex の初回設定・依存ツールは [開発ガイド](../../CLAUDE.md) を参照
+- Claude Code / Codex での編集時は、共通プラグインから `.claude/hooks/post-edit.sh` を呼び、既存の整形・検査（backend: rubocop -A / frontend: eslint --fix → prettier → tsc --noEmit）を実行する。残った指摘はエージェントに返す。導入・依存ツールは [開発ガイド](../../CLAUDE.md) を参照
 
 ### ブランチ・PR運用
 
-単一リポジトリのため、ブランチを切って変更をまとめ、1本のPRでマージする（詳細手順はskill `pr` 参照）。
+単一リポジトリのため、関連する変更をブランチにまとめ、1本のPRにする。共通の `create-branch`・`commit`・`create-pr` を使い、マージはユーザーが行う。
 
 - backendとfrontend両方に変更があるときも1本のPRでよい。ただし**デプロイはbackend → frontendの順**（フロントが新しいAPIに依存し得るため）
 - CIは変更のあった側（backend-ci / frontend-ci）だけが本体ジョブを実行する。変更がない側はskipされ、必須チェックとしては成功扱いになる（docsのみのPRでもマージはブロックされない）
@@ -41,7 +42,20 @@ flowchart LR
 | 項目 | 規約 |
 |---|---|
 | コミットメッセージ | prefix `add:` / `update:` / `change:` / `fix:` を付ける |
+| AIの表記 | コミットの共同作成者とPR本文の署名は、実際に作業したAI・ツールを表記する |
 | docs変更 | 関連するコード変更と同じPRに同梱してよい |
+
+### backend変更時のローカル検証
+
+実XBRLフィクスチャを使うspecは、入力がGit管理外のためCIではpendingになる。この範囲はbackend変更時に、コミット・PR作成前のローカル実行で確認する。
+
+```bash
+docker compose exec appserver bash -c 'cd /home/app/financialStatement && bundle exec rspec $(grep -rl xbrl_fixture spec --include="*_spec.rb")'
+```
+
+- 固定リストではなく `xbrl_fixture` の利用箇所を探すため、新しいspecも対象になる。
+- `0 failures` だけでなくpendingがないことを確認する。不足する入力は [フィクスチャの手順](../../application/backend/spec/fixtures/xbrl/README.md) に従って用意する。
+- ほかのspecはCIが実行する。このローカル専用範囲が未実施なら、CI成功だけで検証済みとは扱わない。
 
 ## 本番環境の構成
 
@@ -123,8 +137,19 @@ flowchart LR
 
 デプロイと連動した自動化はないが、リリースの区切りをGitHub Releaseで記録する。
 
-- タグ名は `release-X.Y.Z`。機能追加ありはYを+1、修正のみはZを+1
-- リリースノートは公開情報のため、ホスト名・キーなどの実値を書かない
+共通の `release` skillを使い、以下の規約を適用する。
+
+| 項目 | 規約 |
+| --- | --- |
+| 対象 | 必要なPRをマージした後の、最新の `origin/main` のコミット。公開時はそのSHAを指定する |
+| タグ・Release名 | ともに `release-X.Y.Z` |
+| 増分 | 機能追加はYを+1し、Zを1に戻す。修正だけならZを+1する |
+| 事前確認 | backend → frontend の本番反映状況と、対象変更のマージを確認する |
+| 公開前の確認 | 変更点・提案する版番号・ノートをユーザーに示して確認する。既に承認された内容は再確認不要 |
+| ノート | 前回リリース以降の変更を簡潔な英語の箇条書きにする。ホスト名・キーなどの実値を書かない |
+| 配布物 | このリポジトリではzipの作成・添付は必須にしない |
+
+共通 `release` skillの手順で対象SHAのタグを作成・pushし、リモートのタグを確認する。ノートはファイルに書いて `gh release create <タグ> --verify-tag --title <タグ> --notes-file <ノートファイル>` で渡す。作成後はタグの参照先とReleaseを確認する。同名タグが別のSHAを指す場合は、削除・付け替えせず停止する。GitHub Release作成と本番デプロイは別の作業として報告する。
 
 ## ドキュメントの運用ルール
 

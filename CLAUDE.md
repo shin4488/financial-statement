@@ -51,10 +51,10 @@ SEO・Web/AI活用の改善候補は `docs/improvements.md` に整理されて�
 
 ## Claude Code と Codex の共通設定
 
-- 共通設定は Claude 側を編集し、相対シンボリックリンクで Codex と共有する。
-  - `AGENTS.md` → `CLAUDE.md`
-  - `.agents/skills` → `.claude/skills`
-  - `.codex/hooks` → `.claude/hooks`
-- Codex の hook は `.codex/hooks.json` に登録する。リポジトリを信頼し、CLI の `/hooks` で承認する。登録コマンド変更時も再承認する（[手順](https://learn.chatgpt.com/docs/hooks)）。
+- `make setup` で、導入済みのClaude・Codexに [agent-plugins](https://github.com/shin4488/agent-plugins) をユーザー単位でインストールする。
+- 共通のGit・PR・リリース・検証はプラグインのskillsを使う。このリポジトリの規約とリリース手順は [開発・運用ガイド](docs/guide/05_development_operations.md) に従う。
+- `AGENTS.md` → `CLAUDE.md`、`.agents/skills` → `.claude/skills` は相対シンボリックリンク。ローカルに残すskillと指示はClaude側を編集する。
+- 編集後の処理はプラグインから `.claude/hooks/post-edit.sh` を呼ぶ。Ruby・ESLint・Prettier・型検査を使うため、共通のBiome処理は適用しない。
+- インストール後にツールを読み込み直す。リポジトリを信頼し、CodexのCLIで `/hooks` を確認・承認する（[手順](https://learn.chatgpt.com/docs/hooks)）。
 - Claude の権限設定（`permissions`）は Codex には引き継がれない。
 - hook の実行にはホストの Bash・jq・realpath が必要。整形用に、プロジェクト指定の Ruby / Bundler と frontend の依存も事前にインストールする。
