@@ -48,3 +48,13 @@ SEO・Web/AI活用の改善候補は `docs/improvements.md` に整理されて�
 ## リポジトリ理解ガイド
 
 ドキュメントの本体は `docs/guide/`（README.mdが目次）。学ぶ章（01〜05: ドメイン知識→仕様→財務データのつながり→システム→開発と運用。技術の基礎説明と設計判断の「なぜ」は03〜04章に織り込まれている）+ 資料（06: タグ対応表と実地調査）の構成。
+
+## Claude Code と Codex の共通設定
+
+- 共通設定は Claude 側を編集し、相対シンボリックリンクで Codex と共有する。
+  - `AGENTS.md` → `CLAUDE.md`
+  - `.agents/skills` → `.claude/skills`
+  - `.codex/hooks` → `.claude/hooks`
+- Codex の hook は `.codex/hooks.json` に登録する。リポジトリを信頼し、CLI の `/hooks` で承認する。登録コマンド変更時も再承認する（[手順](https://learn.chatgpt.com/docs/hooks)）。
+- Claude の権限設定（`permissions`）は Codex には引き継がれない。
+- hook の実行にはホストの Bash・jq・realpath が必要。整形用に、プロジェクト指定の Ruby / Bundler と frontend の依存も事前にインストールする。
