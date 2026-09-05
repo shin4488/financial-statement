@@ -10,13 +10,14 @@ case "$file_path" in
   # 既定の形式は指摘ゼロでも進捗・集計行を出して空判定できないため、指摘1件=1行で他に何も出さないemacs形式にする
   *"/application/backend/"*.rb | *"/application/backend/"*.rake | *"/application/backend/"Gemfile | *"/application/backend/"Rakefile | *"/application/backend/"config.ru)
     cd "$project_dir/application/backend" || exit 0
-    out=$(bundle exec rubocop -A --force-exclusion --format emacs "$file_path" | grep -v '\[Corrected\]')
+    out=$(bundle exec rubocop -A --force-exclusion --format emacs "$file_path" 2>&1 | grep -v '\[Corrected\]')
     ;;
   # eslintの自動修正はコードを挿入することがある（curlyルールの波括弧補完など）ため、eslint --fix → prettier の順で整形を確定させる。
   # 型検査は1ファイル単位ではできないためCIと同じくプロジェクト全体にかける
   *"/application/frontend/"*.ts | *"/application/frontend/"*.tsx)
     cd "$project_dir/application/frontend" || exit 0
-    out=$(npx eslint --fix "$file_path"; npx prettier --write "$file_path" > /dev/null; npx tsc --noEmit)
+    # フックから不足パッケージを自動取得しない。事前にインストールしたツールだけを使う。
+    out=$({ node_modules/.bin/eslint --fix "$file_path"; node_modules/.bin/prettier --write "$file_path" > /dev/null; node_modules/.bin/tsc --noEmit; } 2>&1)
     ;;
   *) exit 0 ;;
 esac

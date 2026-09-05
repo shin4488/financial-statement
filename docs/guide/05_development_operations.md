@@ -27,7 +27,7 @@ flowchart LR
 - `npm run compile` はコミット済みの `schema.graphql` を参照するため、バックエンドの起動は不要（[04章](04_system.md)）
 - クエリ上限の値と意図は[04章](04_system.md)を参照
 - スキーマの書き出し忘れ・型生成の取り込み忘れはCIが差分検知する（`schema.graphql` が変わるとfrontend CIも起動し、型生成のズレを検知できる）
-- Claude Codeでの編集時は、フック（`.claude/hooks/format-lint.sh`）がCIと同じフォーマッタ・リンタ（backend: rubocop -A / frontend: eslint --fix → prettier → tsc --noEmit）を自動実行し、自動修正しきれなかった指摘をClaudeに返す
+- Claude Code / Codex での編集時は、フック（`.claude/hooks/format-lint.sh`）がCIと同じフォーマッタ・リンタ（backend: rubocop -A / frontend: eslint --fix → prettier → tsc --noEmit）を自動実行し、自動修正しきれなかった指摘をエージェントに返す。Codex の初回設定・依存ツールは [hooks の説明](../../.claude/hooks/README.md) を参照
 
 ### ブランチ・PR運用
 

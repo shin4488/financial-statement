@@ -48,3 +48,9 @@ SEO・Web/AI活用の改善候補は `docs/improvements.md` に整理されて�
 ## リポジトリ理解ガイド
 
 ドキュメントの本体は `docs/guide/`（README.mdが目次）。学ぶ章（01〜05: ドメイン知識→仕様→財務データのつながり→システム→開発と運用。技術の基礎説明と設計判断の「なぜ」は03〜04章に織り込まれている）+ 資料（06: タグ対応表と実地調査）の構成。
+
+## Claude Code と Codex の共通設定
+
+`AGENTS.md` は `CLAUDE.md`、`.agents/skills` は `.claude/skills`、`.codex/hooks` は `.claude/hooks` への相対シンボリックリンク。共通の指示・skill・hook は Claude 側の実体を編集する。
+
+Codex のフック登録は `.codex/hooks.json`、有効化は `.codex/config.toml` で管理する。初回の信頼設定、依存ツール、動作確認は [.claude/hooks/README.md](.claude/hooks/README.md) を参照。Claude の `permissions` 設定は Codex には引き継がれない。
