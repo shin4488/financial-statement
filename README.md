@@ -135,3 +135,13 @@ npm run compile        # graphql-codegen。src/__generated__/ が更新される
 
 - **米国基準は未対応**: 上記 `unsupported` として扱われ、グラフの代わりにその旨が表示される。新しい形式の追加はExtractor・Builderのファイル追加のみで済む（マイグレーション不要。手順は [docs/guide/03_data_flow.md](docs/guide/03_data_flow.md) の変更ガイド）
 - その他は [docs/improvements.md](docs/improvements.md) を参照
+
+## エージェントの導入とhook
+
+- `make setup` で、導入済みのClaude・Codexに [agent-plugins](https://github.com/shin4488/agent-plugins) をユーザー単位でインストールする。
+- 共通のGit・PR・リリース・検証はプラグインのskillsを使う。このリポジトリの規約とリリース手順は [開発・運用ガイド](docs/guide/05_development_operations.md) に従う。
+- `AGENTS.md` → `CLAUDE.md`、`.agents/skills` → `.claude/skills` は相対シンボリックリンク。ローカルに残すskillと指示はClaude側を編集する。
+- 編集後の処理はプラグインから `.claude/hooks/post-edit.sh` を呼ぶ。Ruby・ESLint・Prettier・型検査を使うため、共通のBiome処理は適用しない。
+- インストール後にツールを読み込み直す。リポジトリを信頼し、CodexのCLIで `/hooks` を確認・承認する（[手順](https://learn.chatgpt.com/docs/hooks)）。
+- Claude の権限設定（`permissions`）は Codex には引き継がれない。
+- hook の実行にはホストの Bash・jq・realpath が必要。整形用に、プロジェクト指定の Ruby / Bundler と frontend の依存も事前にインストールする。
