@@ -36,6 +36,29 @@ RSpec.describe Ingestion::DailyIngestionService do
     expect(Disclosure::Report.sole.edinet_document_id).to eq "S1000002"
   end
 
+  it "証券コードが00000の書類はダウンロード・通知せず、通常の書類を取り込む" do
+    date = Date.new(2026, 6, 20)
+    stub_list(date, [
+      { "docID" => "S1000001", "secCode" => "00000", "filerName" => "上場前の会社", "docTypeCode" => "120" },
+      { "docID" => "S1000002", "secCode" => "123A0", "filerName" => "上場会社", "docTypeCode" => "120" }
+    ])
+    skipped_download = stub_request(:get, %r{documents/S1000001})
+      .to_return(status: 200, body: zip_with_xbrl("S1000001", synthetic_xbrl_xml(dei: { stock_code: "999A0" })))
+    listed_xml = synthetic_xbrl_xml(
+      dei: { stock_code: "123A0" },
+      facts: { [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 100 })
+    stub_request(:get, %r{documents/S1000002})
+      .to_return(status: 200, body: zip_with_xbrl("S1000002", listed_xml))
+
+    expect(Sentry).not_to receive(:capture_message)
+    expect(Sentry).not_to receive(:capture_exception)
+    described_class.run(from_date: date, to_date: date)
+
+    expect(skipped_download).not_to have_been_requested
+    expect(Disclosure::Report.sole.edinet_document_id).to eq "S1000002"
+    expect(Disclosure::Company.sole.stock_code).to eq "123A0"
+  end
+
   it "一覧取得に失敗した日はスキップし、他の日の取込は続ける" do
     failed_date = Date.new(2026, 6, 20)
     ok_date = Date.new(2026, 6, 21)

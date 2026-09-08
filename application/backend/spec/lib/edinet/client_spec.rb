@@ -15,11 +15,15 @@ RSpec.describe Edinet::Client do
         { "docID" => "S1000001", "secCode" => "72030", "filerName" => "対象の有報", "docTypeCode" => "120" },
         { "docID" => "S1000002", "secCode" => "45020", "filerName" => "対象の訂正有報", "docTypeCode" => "130" },
         { "docID" => "S1000003", "secCode" => nil, "filerName" => "非上場（投資信託等）", "docTypeCode" => "120" },
-        { "docID" => "S1000004", "secCode" => "99990", "filerName" => "四半期報告書など", "docTypeCode" => "140" }
+        { "docID" => "S1000004", "secCode" => "99990", "filerName" => "四半期報告書など", "docTypeCode" => "140" },
+        { "docID" => "S1000005", "secCode" => "00000", "filerName" => "上場前の有報", "docTypeCode" => "120" },
+        { "docID" => "S1000006", "secCode" => "00000", "filerName" => "上場前の訂正有報", "docTypeCode" => "130" },
+        { "docID" => "S1000007", "secCode" => "123A0", "filerName" => "英字コードの有報", "docTypeCode" => "120" }
       ])
       metas = client.list_annual_reports(date: Date.new(2026, 6, 20))
       expect(metas.map { |m| [ m.doc_id, m.sec_code, m.filer_name ] })
-        .to eq [ [ "S1000001", "72030", "対象の有報" ], [ "S1000002", "45020", "対象の訂正有報" ] ]
+        .to eq [ [ "S1000001", "72030", "対象の有報" ], [ "S1000002", "45020", "対象の訂正有報" ],
+                 [ "S1000007", "123A0", "英字コードの有報" ] ]
     end
 
     it "HTTPエラーのときは本文をJSONとして読まず、ステータスつきで失敗する" do
