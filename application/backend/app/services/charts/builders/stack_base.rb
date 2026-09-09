@@ -2,11 +2,6 @@ module Charts
   module Builders
     class StackBase
       RATIO_PRECISION = 1 # %表示の小数桁数
-      # 合計と突き合わせるときの許容乖離1割（貸借合計・固定資産の内訳合計など）。
-      # 超えたら「未対応の様式か取込不良」とみなして描画しない。
-      # 誤ったグラフを出すより出さない方がよい、という安全側の判断
-      TOLERANCE = 0.1
-
       # 「描けない」の共通文言。個別の理由を説明できる形式（ifrs_summaryなど）だけ独自文言を使う
       NO_DATA_NOTE = "データがない、または表示対応していないデータです。".freeze
 
@@ -19,7 +14,7 @@ module Charts
 
         def no_data_note(statement_label) = "#{statement_label}: #{NO_DATA_NOTE}"
 
-        # 比率は%値（0-100）。truncate（切り捨て）を使う理由: 四捨五入だと内訳の合計が
+        # 比率は%値（損失は負、収益を上回る費用などは100を超える）。truncate（切り捨て）を使う理由: 四捨五入だと内訳の合計が
         # 100%を超えて表示され得るため。
         # *100までBigDecimalで計算してから最後にto_fする理由: floatにしてから掛けると
         # 2進数誤差で「19.900000000000002%」のような値がAPIに乗ってしまう
@@ -40,21 +35,29 @@ module Charts
         end
 
         # 貸借2本構成の共通組み立て:
-        # - specs: [key, label, item_code or 金額, color_role] の配列。金額nilの科目はスキップ
+        # - specs: [key, label, item_code, color_role] の配列。金額nilの科目はスキップ
         # - equity(資本・純資産)が負なら3本目バー（spacer + 資本のマイナス表示）
-        # - 貸借合計の乖離がTOLERANCE超なら描画不可
+        # - 貸借合計の乖離が開示精度超なら描画不可
         # 債務超過表示・貸借検証は形式によらず同じ問題なので、ここに1回だけ実装する
         # （形式別Builderに書かせない = 新形式追加時にこのロジックの再実装漏れが起きない）
         def two_sided_chart(debit_specs:, credit_specs:, equity:, equity_label:, base:, unrenderable_note:)
+          return StackChart.unrenderable(unrenderable_note) unless base&.positive? &&
+            reconciles?([ "bs.assets" ], [ "bs.liabilities", "bs.equity" ])
+          # 内訳が合計を説明できなければ、実在する合計を表示する。
+          debit_codes = debit_specs.map { |_, _, code, _| code }.select { |code| !val(code).nil? }
+          credit_codes = credit_specs.map { |_, _, code, _| code }.select { |code| !val(code).nil? }
+          unless reconciles?([ "bs.assets" ], debit_codes)
+            debit_specs = [ [ "assets", "資産合計", "bs.assets", "asset1" ] ]
+          end
+          unless reconciles?([ "bs.liabilities" ], credit_codes)
+            credit_specs = [ [ "liabilities", "負債合計", "bs.liabilities", "liability1" ] ]
+          end
           debit = build_segments(debit_specs, base)
           credit = build_segments(credit_specs, base)
           return StackChart.unrenderable(unrenderable_note) if debit.empty? || equity.nil?
 
-          # 貸借検証は「バーを組む前」に生の値で行う。バー構築後のセグメント合計で検証すると、
-          # 債務超過時に挿入するspacer（描画用の詰め物）まで合計に含まれ常に不一致になる
-          debit_total = debit.sum(&:amount)
-          credit_total = credit.sum(&:signed_amount) + equity
-          return StackChart.unrenderable(unrenderable_note) unless within_tolerance?(debit_total, credit_total)
+          return StackChart.unrenderable(unrenderable_note) if
+            (debit + credit).any? { |segment| segment.signed_amount.negative? }
 
           bars = [ Bar.new(label: "借方", segments: debit) ]
           if equity.negative?
@@ -84,10 +87,15 @@ module Charts
           end
         end
 
-        # base（乖離率の分母になる側）に対して value が TOLERANCE 以内か
-        def within_tolerance?(base, value)
-          return false if base.zero?
-          (value - base).abs <= base * TOLERANCE
+        # 開示値の等式を検算する。未知の精度には許容差を推測しない。
+        def reconciles?(left_codes, right_codes)
+          codes = left_codes + right_codes
+          return false if codes.any? { |code| val(code).nil? }
+          difference = (left_codes.sum { |code| val(code) } - right_codes.sum { |code| val(code) }).abs
+          return true if difference.zero?
+          return false unless @items.respond_to?(:rounding_errors)
+          errors = codes.map { |code| @items.rounding_errors[code] }
+          errors.none?(&:nil?) && difference < errors.sum
         end
     end
   end

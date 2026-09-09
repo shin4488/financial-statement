@@ -43,32 +43,32 @@ RSpec.describe Charts::Builders::PlJgaapGeneral do
 
   describe "費用の構成が業種で異なる" do
     it "証券（営業収益−金融費用−販管費=営業利益）は金融費用を原価の位置に積む" do
-      chart = described_class.new({ "pl.revenue" => 24_579, "pl.financial_expenses" => 71,
-                                    "pl.sga" => 18_347, "pl.operating_profit" => 6_160 }).build
+      chart = described_class.new(rounded_amounts({ "pl.revenue" => 24_579, "pl.financial_expenses" => 71,
+                                    "pl.sga" => 18_347, "pl.operating_profit" => 6_160 })).build
       expect(chart.bars.first.segments.map(&:key)).to eq %w[financialExpenses sga operatingProfit]
     end
 
     it "営業費用一括型（電気・特定金融など）は営業費用1本で描く" do
-      chart = described_class.new({ "pl.revenue" => 6_328_574, "pl.operating_expenses" => 5_990_884,
-                                    "pl.operating_profit" => 337_689 }).build
+      chart = described_class.new(rounded_amounts({ "pl.revenue" => 6_328_574, "pl.operating_expenses" => 5_990_884,
+                                    "pl.operating_profit" => 337_689 })).build
       expect(chart.bars.first.segments.map(&:key)).to eq %w[operatingExpenses operatingProfit]
     end
 
     it "内訳と一括の営業費用が併記されていれば内訳（原価・販管費）で描く（重複計上しない）" do
-      chart = described_class.new({ "pl.revenue" => 1_086_179, "pl.cost_of_sales" => 744_710, "pl.sga" => 238_275,
-                                    "pl.operating_expenses" => 982_986, "pl.operating_profit" => 103_193 }).build
+      chart = described_class.new(rounded_amounts({ "pl.revenue" => 1_086_179, "pl.cost_of_sales" => 744_710, "pl.sga" => 238_275,
+                                    "pl.operating_expenses" => 982_986, "pl.operating_profit" => 103_193 })).build
       expect(chart.bars.first.segments.map(&:key)).to eq %w[costOfSales sga operatingProfit]
     end
 
     it "内訳では貸借が合わず一括の営業費用でなら合う企業（原価が営業費用の内訳として併記される特定金融など）は一括で描く" do
-      chart = described_class.new({ "pl.revenue" => 8_779, "pl.cost_of_sales" => 272,
-                                    "pl.operating_expenses" => 2_959, "pl.operating_profit" => 5_819 }).build
+      chart = described_class.new(rounded_amounts({ "pl.revenue" => 8_779, "pl.cost_of_sales" => 272,
+                                    "pl.operating_expenses" => 2_959, "pl.operating_profit" => 5_819 })).build
       expect(chart.bars.first.segments.map(&:key)).to eq %w[operatingExpenses operatingProfit]
     end
 
     it "売上原価と原価控除後の営業費用を開示する商品先物取引業は [原価, 営業費用] で描く（単位: 千円）" do
-      chart = described_class.new({ "pl.revenue" => 5_047_625, "pl.cost_of_sales" => 1_654_880,
-                                    "pl.operating_expenses" => 3_210_396, "pl.operating_profit" => 182_347 }).build
+      chart = described_class.new(rounded_amounts({ "pl.revenue" => 5_047_625, "pl.cost_of_sales" => 1_654_880,
+                                    "pl.operating_expenses" => 3_210_396, "pl.operating_profit" => 182_347 })).build
       expect(chart.bars.first.segments.map(&:key)).to eq %w[costOfSales operatingExpenses operatingProfit]
     end
   end
@@ -100,7 +100,7 @@ RSpec.describe Charts::Builders::PlJgaapGeneral do
     expect(described_class.new({ "pl.revenue" => 0, "pl.operating_profit" => 1 }).build.renderable).to be false
   end
 
-  describe "貸借の1割超乖離" do
+  describe "開示精度の根拠がない不一致" do
     it "原価が科目ゆれで取れていない企業はunrenderable（単位: 円）" do
       chart = described_class.new({
         "pl.revenue" => 2_478_950_000, "pl.sga" => 748_887_000,
@@ -108,11 +108,11 @@ RSpec.describe Charts::Builders::PlJgaapGeneral do
       expect(chart.renderable).to be false
     end
 
-    it "乖離が1割以内なら描画される" do
+    it "乖離が1割以内でも描画しない" do
       chart = described_class.new({
         "pl.revenue" => 1_000, "pl.cost_of_sales" => 600, "pl.sga" => 250,
         "pl.operating_profit" => 100 }).build
-      expect(chart.renderable).to be true
+      expect(chart.renderable).to be false
     end
   end
 end

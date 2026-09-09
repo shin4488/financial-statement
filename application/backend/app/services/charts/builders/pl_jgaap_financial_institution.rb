@@ -9,6 +9,9 @@ class Charts::Builders::PlJgaapFinancialInstitution < Charts::Builders::StackBas
     profit = val("pl.ordinary_profit")
     return Charts::StackChart.unrenderable(no_data_note("損益計算書")) if revenue.nil? || expenses.nil? || profit.nil?
 
+    return Charts::StackChart.unrenderable(no_data_note("損益計算書")) unless revenue.positive? && expenses >= 0 &&
+      reconciles?([ "pl.ordinary_revenue" ], [ "pl.ordinary_expenses", "pl.ordinary_profit" ])
+
     debit = [ seg("ordinaryExpenses", "経常費用", expenses, "expense1", base: revenue) ]
     credit = [ seg("ordinaryRevenue", "経常収益", revenue, "revenue", base: revenue) ]
     if profit.negative?

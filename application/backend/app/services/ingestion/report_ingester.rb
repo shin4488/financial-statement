@@ -141,6 +141,7 @@ module Ingestion
         fs.items.delete_all
         rows = items.map { |code, amount|
           { financial_statement_id: fs.id, item_code: code, amount: amount,
+            rounding_error: items.respond_to?(:rounding_errors) ? items.rounding_errors[code] : nil,
             created_at: Time.current, updated_at: Time.current } }
         # insert_all!はモデルのバリデーションを通らないため、item_codeの正当性は
         # Extractorのマッピング定数がItemCodes::ALLの範囲内であることをspecで担保する

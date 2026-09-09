@@ -9,11 +9,7 @@ class Charts::Builders::BsJgaapGeneral < Charts::Builders::StackBase
 
   def build
     debit_specs = [ [ "currentAssets", "流動資産", "bs.current_assets", "asset1" ], *fixed_asset_specs ]
-    # 比率の分母をbs.assetsでなく「表示する科目の合計」にする理由:
-    # jppfs_cor:Assetsには繰延資産など表示しない科目も含まれ得るため、
-    # bs.assetsを分母にすると表示セグメントの比率合計が100%に届かない企業が出る。
-    # 表示するものの合計を分母にすれば定義上100%で完結する
-    base = debit_specs.sum { |_, _, code, _| val(code).to_i }
+    base = val("bs.assets")
     two_sided_chart(
       debit_specs: debit_specs,
       credit_specs: [
@@ -31,10 +27,8 @@ class Charts::Builders::BsJgaapGeneral < Charts::Builders::StackBase
     # 「内訳の合計が固定資産と合うか」で切り替えるのは、業種コードでなくデータの実態で判断するため
     # （一般事業会社で無形固定資産を開示しない企業などは、残りの2つで合計が合うので内訳のまま描ける）
     def fixed_asset_specs
-      total = val("bs.non_current_assets")
-      breakdown_total = FIXED_ASSET_BREAKDOWN.sum { |_, _, code, _| val(code).to_i }
-      # 固定資産合計が取れない・ゼロの財務諸表は判断材料がないので内訳（基本形）で描く
-      return FIXED_ASSET_BREAKDOWN if total.nil? || total.zero? || within_tolerance?(total, breakdown_total)
+      codes = FIXED_ASSET_BREAKDOWN.map { |_, _, code, _| code }.select { |code| !val(code).nil? }
+      return FIXED_ASSET_BREAKDOWN if reconciles?([ "bs.non_current_assets" ], codes)
       [ FIXED_ASSET_TOTAL ]
     end
 end

@@ -26,6 +26,7 @@ module Xbrl
       # 科目ごとにXPath検索する方式だと科目数*全要素走査になるため、
       # 先に全factをハッシュ化して以降の検索をO(1)にする
       @facts = {}
+      @decimals = {}
       doc.root.element_children.each do |el|
         ctx = el.attribute("contextRef")&.value
         next if ctx.nil? # contextRefなし = fact以外の要素（unit定義など）
@@ -34,9 +35,12 @@ module Xbrl
         # 意味の保証がないため、必要になったら NS に追加する形で明示的にオプトインする）
         prefix = NS.find { |_, pattern| el.namespace&.href&.match?(pattern) }&.first
         next if prefix.nil?
-        # ||= : 同じ要素*同じコンテキストのfactは本表と注記で重複出現することがある。
+        # 同じ要素*同じコンテキストのfactは本表と注記で重複出現することがある。
         # 値は同一のはずだが、万一異なっても文書の先頭側（本表側）を採用する
-        @facts[[ prefix, el.name, ctx ]] ||= el.text&.strip
+        key = [ prefix, el.name, ctx ]
+        next if @facts.key?(key)
+        @facts[key] = el.text&.strip
+        @decimals[key] = el.attribute("decimals")&.value
       end
     end
 
@@ -52,6 +56,16 @@ module Xbrl
       # to_iを使わない理由: to_iは"abc"を0にしてしまい「開示なし」と「ゼロ」の区別が壊れる
       value = Integer(raw, exception: false)
       BIGINT_RANGE.cover?(value) ? value : nil
+    end
+
+    # 切捨て開示も含むため1表示単位未満を上限とする。割合による許容は設けない。
+    def rounding_error(qname, context)
+      prefix, name = qname.split(":")
+      decimals = @decimals[[ prefix, name, context ]]
+      return 0.to_d if decimals == "INF"
+      places = Integer(decimals, exception: false)
+      return nil unless places && (-18..18).cover?(places)
+      BigDecimal("10") ** -places
     end
 
     def text(qname, context)
