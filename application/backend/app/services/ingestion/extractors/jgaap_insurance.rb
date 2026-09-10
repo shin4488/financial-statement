@@ -29,6 +29,9 @@ class Ingestion::Extractors::JgaapInsurance < Ingestion::Extractors::Base
     "pl.income_tax"         => "jppfs_cor:IncomeTaxes",
     "pl.profit"             => "jppfs_cor:ProfitLoss",
     "pl.profit_attributable_to_owners" => "jppfs_cor:ProfitLossAttributableToOwnersOfParent",
+    "cf.new_consolidation" => "jppfs_cor:IncreaseInCashAndCashEquivalentsFromNewlyConsolidatedSubsidiaryCCE",
+    "cf.consolidation_change" => "jppfs_cor:IncreaseDecreaseInCashAndCashEquivalentsResultingFromChangeOfScopeOfConsolidationCCE",
+    "cf.exchange_effect" => "jppfs_cor:EffectOfExchangeRateChangeOnCashAndCashEquivalents",
     "cf.operating" => "jppfs_cor:NetCashProvidedByUsedInOperatingActivities",
     "cf.investing" => "jppfs_cor:NetCashProvidedByUsedInInvestmentActivities",
     "cf.financing" => "jppfs_cor:NetCashProvidedByUsedInFinancingActivities"

@@ -18,8 +18,9 @@ RSpec.describe Ingestion::Extractors::Base do
   end
 
   # facts: { [qname, context] => 値 } のスタブ
-  def extract_with(facts)
+  def extract_with(facts, errors: {})
     xbrl = instance_double(Xbrl::Document)
+    allow(xbrl).to receive(:rounding_error) { |qname, ctx| errors[[ qname, ctx ]] }
     allow(xbrl).to receive(:money) { |qname, ctx| facts[[ qname, ctx ]] }
     extractor_class.new(xbrl, "").extract
   end
@@ -71,5 +72,19 @@ RSpec.describe Ingestion::Extractors::Base do
     it "前期末の値が無ければcf.cash_beginのキー自体を作らない" do
       expect(extract_with({ [ "t:Cash", "CurrentYearInstant" ] => 120 })).not_to have_key("cf.cash_begin")
     end
+  end
+  it "合算の丸め精度は入力の和、未知が混ざれば未知のまま保存する" do
+    facts = { [ "t:EquityA", "CurrentYearInstant" ] => 30, [ "t:EquityB", "CurrentYearInstant" ] => 20 }
+    errors = { [ "t:EquityA", "CurrentYearInstant" ] => 1.to_d, [ "t:EquityB", "CurrentYearInstant" ] => 10.to_d }
+    expect(extract_with(facts, errors: errors).rounding_errors["bs.equity"]).to eq 11
+    expect(extract_with(facts, errors: errors.except([ "t:EquityB", "CurrentYearInstant" ])).rounding_errors["bs.equity"]).to be_nil
+  end
+
+  it "採用した最大候補の精度を保持し、候補の金額を変更しない" do
+    facts = { [ "t:OperatingRevenue", "CurrentYearDuration" ] => 200, [ "t:NetSales", "CurrentYearDuration" ] => 3_500 }
+    errors = { [ "t:OperatingRevenue", "CurrentYearDuration" ] => 1.to_d, [ "t:NetSales", "CurrentYearDuration" ] => 10.to_d }
+    amounts = extract_with(facts, errors: errors)
+    expect(amounts["pl.revenue"]).to eq 3_500
+    expect(amounts.rounding_errors["pl.revenue"]).to eq 10
   end
 end

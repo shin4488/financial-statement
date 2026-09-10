@@ -22,9 +22,16 @@ module Ingestion
 
       Tag = Struct.new(:qname) do
         def evaluate(xbrl, context) = xbrl.money(qname, context)
+        def rounding_error(xbrl, context) = xbrl.rounding_error(qname, context)
       end
 
       Sum = Struct.new(:tags) do
+        def rounding_error(xbrl, context)
+          errors = tags.select { |tag| !tag.evaluate(xbrl, context).nil? }
+                       .map { |tag| tag.rounding_error(xbrl, context) }
+          errors.sum if errors.any? && errors.none?(&:nil?)
+        end
+
         # 存在するタグだけを合算し、1つも無ければnil（「開示なし」に0を保存しない）。
         # 部分集合でも合算するのは、事業区分の開示有無が企業ごとに違うため
         # （例: 鉄道事業のみの会社と、鉄道+不動産の会社が同じ表で引ける）
@@ -35,6 +42,11 @@ module Ingestion
       end
 
       Max = Struct.new(:entries) do
+        def rounding_error(xbrl, context)
+          value = evaluate(xbrl, context)
+          entries.find { |entry| !value.nil? && entry.evaluate(xbrl, context) == value }&.rounding_error(xbrl, context)
+        end
+
         def evaluate(xbrl, context)
           values = entries.filter_map { |entry| entry.evaluate(xbrl, context) }
           values.max if values.any?
@@ -61,7 +73,7 @@ module Ingestion
       # {item_code => amount} を返す。取れなかった科目はキーごと入れない
       # （「開示なし」をnilや0でなくキーの不存在で表す。DBの「行の不存在=開示なし」と対になる規約）
       def extract
-        result = {}
+        result = FinancialStatements::Amounts.new
         # マッピングを2表に分ける理由: XBRLは科目の期間タイプごとにコンテキストIDが違う。
         # BS残高系=Instant（時点） / PL・CF増減系=Duration（期間）
         self.class::INSTANT_MAPPING.each do |code, spec|
@@ -81,7 +93,10 @@ module Ingestion
 
       private
         def put(result, code, value)
-          result[code] = value unless value.nil?
+          unless value.nil?
+            result[code] = value
+            result.rounding_errors[code] = @last_rounding_error
+          end
         end
 
         # マッピング表の1エントリ（上記4記法のいずれか）を評価する。
@@ -89,7 +104,14 @@ module Ingestion
         # （Array()を使わないのはStructがto_aで展開されてしまうため）
         def lookup(spec, context)
           entries = spec.is_a?(Array) ? spec : [ spec ]
-          entries.lazy.filter_map { |entry| self.class.wrap(entry).evaluate(@xbrl, context) }.first
+          entries.each do |entry|
+            wrapped = self.class.wrap(entry)
+            value = wrapped.evaluate(@xbrl, context)
+            next if value.nil?
+            @last_rounding_error = wrapped.rounding_error(@xbrl, context)
+            return value
+          end
+          nil
         end
     end
   end

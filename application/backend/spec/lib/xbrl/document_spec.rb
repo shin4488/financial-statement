@@ -81,4 +81,18 @@ RSpec.describe Xbrl::Document do
       end
     end
   end
+  describe "#rounding_error" do
+    it "decimalsから金額単位の誤差上限を取り、INFは誤差なし、未知はnilにする" do
+      doc = document_from(xbrl(<<~BODY))
+        <jppfs_cor:Assets contextRef="millions" decimals="-6">1000000</jppfs_cor:Assets>
+        <jppfs_cor:Assets contextRef="exact" decimals="INF">1000000</jppfs_cor:Assets>
+        <jppfs_cor:Assets contextRef="unknown">1000000</jppfs_cor:Assets>
+        <jppfs_cor:Assets contextRef="invalid" decimals="-99999999">1000000</jppfs_cor:Assets>
+      BODY
+      expect(doc.rounding_error("jppfs_cor:Assets", "millions")).to eq 1_000_000
+      expect(doc.rounding_error("jppfs_cor:Assets", "exact")).to eq 0
+      expect(doc.rounding_error("jppfs_cor:Assets", "unknown")).to be_nil
+      expect(doc.rounding_error("jppfs_cor:Assets", "invalid")).to be_nil
+    end
+  end
 end

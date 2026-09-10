@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_09_01_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_09_10_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -30,6 +30,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_01_000001) do
     t.bigint "amount", null: false, comment: "金額（円）。取得できなかった科目は行を作らない"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "rounding_error", comment: "XBRL開示精度に基づく丸め誤差上限（円）。NULLは精度不明"
     t.index ["financial_statement_id", "item_code"], name: "idx_items_fs_code", unique: true
     t.index ["item_code", "amount"], name: "idx_items_code_amount"
   end
