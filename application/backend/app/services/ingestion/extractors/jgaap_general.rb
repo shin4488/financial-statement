@@ -135,6 +135,11 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
     "pl.income_tax"             => "jppfs_cor:IncomeTaxes",
     "pl.profit"                 => "jppfs_cor:ProfitLoss",
     "pl.profit_attributable_to_owners" => "jppfs_cor:ProfitLossAttributableToOwnersOfParent",
+    "pl.gas_miscellaneous_expenses" => "jppfs_cor:OperatingMiscellaneousExpensesGAS",
+    "pl.gas_incidental_expenses" => "jppfs_cor:ExpensesForIncidentalBusinessesGAS",
+    "cf.new_consolidation" => "jppfs_cor:IncreaseInCashAndCashEquivalentsFromNewlyConsolidatedSubsidiaryCCE",
+    "cf.consolidation_change" => "jppfs_cor:IncreaseDecreaseInCashAndCashEquivalentsResultingFromChangeOfScopeOfConsolidationCCE",
+    "cf.exchange_effect" => "jppfs_cor:EffectOfExchangeRateChangeOnCashAndCashEquivalents",
     "cf.operating" => "jppfs_cor:NetCashProvidedByUsedInOperatingActivities",
     "cf.investing" => "jppfs_cor:NetCashProvidedByUsedInInvestmentActivities", # JGAAPはInvestment（IFRSはInvesting。取り違え注意）
     "cf.financing" => "jppfs_cor:NetCashProvidedByUsedInFinancingActivities"

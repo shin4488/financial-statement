@@ -17,9 +17,12 @@ module Disclosure
 
     # {item_code => amount} のハッシュ。ChartBuilderへの入力形式。
     # メモ化する理由: 1つの財務諸表からBS/PL/CFの3つのBuilderが呼ばれるため、
-    # クエリを1回に抑える（preload済みならpluckはメモリ上で解決される）
+    # クエリを1回に抑える（preload済みなら科目と精度をメモリから取得する）
     def items_hash
-      @items_hash ||= items.pluck(:item_code, :amount).to_h
+      @items_hash ||= items.each_with_object(FinancialStatements::Amounts.new) do |item, amounts|
+        amounts[item.item_code] = item.amount
+        amounts.rounding_errors[item.item_code] = item.rounding_error
+      end
     end
   end
 end

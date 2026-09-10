@@ -42,6 +42,15 @@ module FinancialStatements
     ].freeze
 
     PL = [
+      "pl.gas_miscellaneous_expenses",
+      "pl.gas_incidental_expenses",
+      "pl.other_operating_income",
+      "pl.other_operating_expenses",
+      "pl.other_income_expenses_net",
+      "pl.research_and_development",
+      "pl.finance_income",
+      "pl.finance_costs",
+      "pl.equity_method_profit",
       # ---- 全形式共通 ----
       "pl.profit_before_tax",             # 税引前利益（日本基準では税引前当期純利益）
       "pl.income_tax",                    # 法人税等 / 法人所得税費用
@@ -72,6 +81,9 @@ module FinancialStatements
 
     CF = [
       # ---- 全形式共通（CFは基準・業種によらず構造が同一）----
+      "cf.new_consolidation",             # 新規連結に伴う現金残高の増加
+      "cf.consolidation_change",          # 連結範囲変更による現金残高の増減
+      "cf.exchange_effect",               # 現金及び現金同等物に係る換算差額
       "cf.cash_begin",                    # 現金及び現金同等物の期首残高（前期末 Prior1YearInstant）
       "cf.operating",                     # 営業活動によるキャッシュ・フロー
       "cf.investing",                     # 投資活動によるキャッシュ・フロー

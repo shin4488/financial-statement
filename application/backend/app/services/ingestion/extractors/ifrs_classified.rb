@@ -33,6 +33,13 @@ class Ingestion::Extractors::IfrsClassified < Ingestion::Extractors::Base
       jpigp_cor:NetSalesIFRS
       jpcrp_cor:RevenueIFRSSummaryOfBusinessResults
     ],
+    "pl.other_operating_income" => [ "jpigp_cor:OtherOperatingIncomeIFRS", "jpigp_cor:OtherIncomeIFRS" ],
+    "pl.other_operating_expenses" => [ "jpigp_cor:OtherOperatingExpensesIFRS", "jpigp_cor:OtherExpensesIFRS" ],
+    "pl.other_income_expenses_net" => "jpigp_cor:OtherIncomeExpensesNetIFRS",
+    "pl.research_and_development" => "jpigp_cor:ResearchAndDevelopmentExpenditureRecognizedAsExpenseDuringPeriodIFRS",
+    "pl.finance_income" => "jpigp_cor:FinanceIncomeIFRS",
+    "pl.finance_costs" => "jpigp_cor:FinanceCostsIFRS",
+    "pl.equity_method_profit" => "jpigp_cor:ShareOfProfitLossOfInvestmentsAccountedForUsingEquityMethodIFRS",
     "pl.cost_of_sales"      => "jpigp_cor:CostOfSalesIFRS",
     "pl.gross_profit"       => "jpigp_cor:GrossProfitIFRS",
     "pl.sga"                => "jpigp_cor:SellingGeneralAndAdministrativeExpensesIFRS",
@@ -42,6 +49,7 @@ class Ingestion::Extractors::IfrsClassified < Ingestion::Extractors::Base
     "pl.income_tax"         => "jpigp_cor:IncomeTaxExpenseIFRS",
     "pl.profit"             => "jpigp_cor:ProfitLossIFRS",
     "pl.profit_attributable_to_owners" => "jpigp_cor:ProfitLossAttributableToOwnersOfParentIFRS",
+    "cf.exchange_effect" => "jpigp_cor:EffectOfExchangeRateChangesOnCashAndCashEquivalentsIFRS",
     "cf.operating" => "jpigp_cor:NetCashProvidedByUsedInOperatingActivitiesIFRS",
     "cf.investing" => "jpigp_cor:NetCashProvidedByUsedInInvestingActivitiesIFRS", # IFRSはInvesting（JGAAPはInvestment）
     "cf.financing" => "jpigp_cor:NetCashProvidedByUsedInFinancingActivitiesIFRS"

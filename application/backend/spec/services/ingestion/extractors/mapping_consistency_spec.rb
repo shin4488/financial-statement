@@ -9,6 +9,7 @@ RSpec.describe "Extractorの出力とItemCodesレジストリの整合" do
   def xbrl_with_every_tag
     instance_double(Xbrl::Document).tap do |xbrl|
       allow(xbrl).to receive(:money).and_return(1)
+      allow(xbrl).to receive(:rounding_error).and_return(nil)
     end
   end
 

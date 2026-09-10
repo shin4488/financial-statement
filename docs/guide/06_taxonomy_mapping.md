@@ -201,6 +201,21 @@
 
 IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは使っていない。IFRSでは開示が任意で、開示する企業としない企業が混在して企業間の比較にならないため。
 
+### 追加保存する損益科目
+
+以下は取得・保存のみで、現在のチャートの計算には使用しない。
+
+| 科目コード | タグ名（IFRSはjpigp_cor、ガスはjppfs_cor） | 内容 |
+|---|---|---|
+| `pl.other_operating_income` | `OtherOperatingIncomeIFRS` → `OtherIncomeIFRS` | その他収益 |
+| `pl.other_operating_expenses` | `OtherOperatingExpensesIFRS` → `OtherExpensesIFRS` | その他費用 |
+| `pl.other_income_expenses_net` | `OtherIncomeExpensesNetIFRS` | その他損益の開示純額 |
+| `pl.research_and_development` | `ResearchAndDevelopmentExpenditureRecognizedAsExpenseDuringPeriodIFRS` | 研究開発費（他の費用と重複する場合がある） |
+| `pl.finance_income` / `pl.finance_costs` | `FinanceIncomeIFRS` / `FinanceCostsIFRS` | 金融収益／金融費用 |
+| `pl.equity_method_profit` | `ShareOfProfitLossOfInvestmentsAccountedForUsingEquityMethodIFRS` | 持分法損益（符号を保持） |
+| `pl.gas_miscellaneous_expenses` | `OperatingMiscellaneousExpensesGAS` | ガス雑営業費用 |
+| `pl.gas_incidental_expenses` | `ExpensesForIncidentalBusinessesGAS` | ガス附帯事業費用 |
+
 ## CF（キャッシュ・フロー計算書）
 
 | 科目コード | 日本語 | 一般・銀行・保険 | 分類・配列 |
@@ -214,6 +229,14 @@ IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは
 投資活動のタグ名が日本基準は `Investment`、IFRSは `Investing` で異なる。CFは5科目そろわないとウォーターフォールが繋がらないため、1つでも欠けるとチャートは `renderable: false` になる。
 
 期首残高（`cf.cash_begin`）は個別のマッピングを持たない。期首残高=前期末残高という関係は全形式共通のため、Extractorの基底クラスが `cf.cash_end` と同じタグを前期末（`Prior1YearInstant`）コンテキストで引いて導出する。マッピング表（当期のコンテキスト固定）で表せない「別コンテキストの参照」は現在これだけ。
+
+次の調整科目も保存する。現行の5点のチャートには使用しない。
+
+| 科目コード | 一般・銀行・保険（jppfs_cor） | 分類・配列（jpigp_cor） |
+|---|---|---|
+| `cf.exchange_effect` | `EffectOfExchangeRateChangeOnCashAndCashEquivalents` | `EffectOfExchangeRateChangesOnCashAndCashEquivalentsIFRS` |
+| `cf.new_consolidation` | `IncreaseInCashAndCashEquivalentsFromNewlyConsolidatedSubsidiaryCCE` | — |
+| `cf.consolidation_change` | `IncreaseDecreaseInCashAndCashEquivalentsResultingFromChangeOfScopeOfConsolidationCCE` | — |
 
 ### サマリ（ifrs_summary）のタグ
 
