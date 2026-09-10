@@ -1,7 +1,7 @@
-# PLは貸借バランスが定義的に成立する（導出項目が差分を埋める）ため、
+# PLは開示された収益・費用・利益を検算してから描画するため、
 # two_sided_chart は使わずBuilderごとに組み立てる。共通ヘルパ（seg/ratio）のみ利用
 class Charts::Builders::PlJgaapGeneral < Charts::Builders::StackBase
-  # 費用の構成は業種で異なる。この順に試し、借方合計（費用+営業利益）が売上と1割以内で合う
+  # 費用の構成は業種で異なる。この順に試し、借方合計（費用+営業利益）が売上と開示精度の範囲で合う
   # 最初の構成で描く（開示されている科目だけを積む）。
   # 各要素は [科目コード, key, ラベル, 色の役割, ツールチップ表示名（labelと同じならnil）]:
   #   1. 内訳型: 売上原価・金融費用（証券）・販管費 … 一般事業会社の基本形
@@ -19,7 +19,9 @@ class Charts::Builders::PlJgaapGeneral < Charts::Builders::StackBase
   EXPENSE_STRUCTURES = [
     [ [ "pl.cost_of_sales",      "costOfSales",       "売上原価",       "expense1", nil ],
       [ "pl.financial_expenses", "financialExpenses", "金融費用",       "expense1", nil ],
-      [ "pl.sga",                "sga",               "販売一般管理費", "expense2", nil ] ],
+      [ "pl.sga",                "sga",               "販売一般管理費", "expense2", nil ],
+      [ "pl.gas_miscellaneous_expenses", "gasMiscellaneous", "雑営業費用", "expense3", nil ],
+      [ "pl.gas_incidental_expenses", "gasIncidental", "附帯事業費用", "expense3", nil ] ],
     [ [ "pl.operating_expenses", "operatingExpenses", "営業費用",       "expense1", "営業費用（原価を含む）" ] ],
     [ [ "pl.cost_of_sales",      "costOfSales",       "売上原価",       "expense1", nil ],
       [ "pl.operating_expenses", "operatingExpenses", "営業費用",       "expense2", "営業費用（原価を除く）" ] ]
@@ -30,16 +32,18 @@ class Charts::Builders::PlJgaapGeneral < Charts::Builders::StackBase
     revenue = val("pl.revenue")
     op = val("pl.operating_profit")
     # 売上高と営業利益は日本基準の実質必須科目。無い=形式不一致か取込不良なので描画しない
-    return unrenderable if revenue.nil? || revenue.zero? || op.nil?
+    return unrenderable if revenue.nil? || !revenue.positive? || op.nil?
 
     # どの構成でも貸借が合わなければ描画しない。原価・販管費の科目がフォールバックリスト外で
     # 取れていない企業をそのまま描くと、貸借の高さが合わない誤ったグラフになるため。
-    # 乖離率の分母は売上にする（表示の基準線が売上のため）。
     # 費用科目が1つも取れない（=費用を開示しない持株会社の単体など）場合も、
     # 売上と営業利益で貸借が合うなら正常系として描く
-    expenses = EXPENSE_STRUCTURES
-                 .map { |specs| specs.filter_map { |code, key, label, role, tooltip| (v = val(code)) && [ key, label, v, role, tooltip ] } }
-                 .find { |segs| within_tolerance?(revenue, segs.sum { |_, _, v, _, _| v } + op) }
+    structure = EXPENSE_STRUCTURES.find do |specs|
+      codes = specs.map(&:first).select { |code| !val(code).nil? }
+      codes.all? { |code| val(code) >= 0 } &&
+        reconciles?([ "pl.revenue" ], codes + [ "pl.operating_profit" ])
+    end
+    expenses = structure&.filter_map { |code, key, label, role, tooltip| (v = val(code)) && [ key, label, v, role, tooltip ] }
     return unrenderable if expenses.nil?
 
     debit = expenses.map { |key, label, v, role, tooltip| seg(key, label, v, role, base: revenue, tooltip: tooltip) }
