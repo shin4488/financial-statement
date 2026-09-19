@@ -38,11 +38,12 @@ module SyntheticXbrl
 
   # dei:   DEI_DEFAULTS を上書きするハッシュ（値nilでそのタグ自体を出さない）
   # facts: { ["jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember"] => 100, ... }
-  def synthetic_xbrl_xml(dei: {}, facts: {})
+  def synthetic_xbrl_xml(dei: {}, facts: {}, contexts: nil)
     dei_values = DEI_DEFAULTS.merge(dei)
     elements = dei_values.filter_map do |key, value|
       fact_element(DEI_TAGS.fetch(key), "FilingDateInstant", value) unless value.nil?
     end
+    elements += contexts || financial_contexts(dei_values, facts.keys.map(&:last))
     elements += facts.map { |(qname, context), value| fact_element(qname, context, value) }
     ns_declarations = NS_URIS.map { |prefix, uri| %(xmlns:#{prefix}="#{uri}") }.join(" ")
     <<~XML
@@ -63,6 +64,31 @@ module SyntheticXbrl
   end
 
   private
+    # 取込テストでも期間と連結区分を持つ有効なcontextを使う。
+    # 任意IDや不正なcontextを試すspecはcontextsで明示的に渡す。
+    def financial_contexts(dei, ids)
+      periods = {
+        "FilingDateInstant" => [ dei[:filing_date] ],
+        "CurrentYearInstant" => [ dei[:fiscal_year_end_date] ],
+        "CurrentYearDuration" => [ dei[:fiscal_year_start_date], dei[:fiscal_year_end_date] ],
+        "Prior1YearInstant" => [ (Date.iso8601(dei[:fiscal_year_start_date]) - 1).to_s ]
+      }
+      ([ "FilingDateInstant" ] + ids).uniq.filter_map do |id|
+        base = id.delete_suffix("_NonConsolidatedMember")
+        dates = periods[base]
+        next unless dates
+        period = if dates.one?
+          "<xbrli:instant>#{dates.first}</xbrli:instant>"
+        else
+          "<xbrli:startDate>#{dates.first}</xbrli:startDate><xbrli:endDate>#{dates.last}</xbrli:endDate>"
+        end
+        scenario = if id.end_with?("_NonConsolidatedMember")
+          '<xbrli:scenario><d:explicitMember xmlns:d="http://xbrl.org/2006/xbrldi" dimension="jppfs_cor:ConsolidatedOrNonConsolidatedAxis">jppfs_cor:NonConsolidatedMember</d:explicitMember></xbrli:scenario>'
+        end
+        %(<xbrli:context id="#{id}"><xbrli:entity><xbrli:identifier scheme="urn:test">#{dei[:edinet_code]}</xbrli:identifier></xbrli:entity><xbrli:period>#{period}</xbrli:period>#{scenario}</xbrli:context>)
+      end
+    end
+
     def fact_element(qname, context, value)
       %(  <#{qname} contextRef="#{context}">#{ERB::Util.html_escape(value)}</#{qname}>)
     end

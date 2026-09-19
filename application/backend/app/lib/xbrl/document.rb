@@ -22,12 +22,15 @@ module Xbrl
     end
 
     def initialize(doc)
-      # {["jppfs_cor", "NetSales", "CurrentYearDuration"] => "12345", ...} を1passで構築。
+      # {["jppfs_cor", "NetSales", "CurrentYearDuration"] => Fact, ...} を1passで構築。
       # 科目ごとにXPath検索する方式だと科目数*全要素走査になるため、
       # 先に全factをハッシュ化して以降の検索をO(1)にする
       @facts = {}
-      @decimals = {}
+      @contexts = {}
       doc.root.element_children.each do |el|
+        if el.name == "context" && el.namespace&.href == Context::INSTANCE_NS
+          @contexts[el["id"]] = Context.new(el)
+        end
         ctx = el.attribute("contextRef")&.value
         next if ctx.nil? # contextRefなし = fact以外の要素（unit定義など）
         # 名前空間URIからプレフィクスを正引き。企業拡張タクソノミ（jpcrp030000-asr_EXXXXX-000等）は
@@ -39,38 +42,22 @@ module Xbrl
         # 値は同一のはずだが、万一異なっても文書の先頭側（本表側）を採用する
         key = [ prefix, el.name, ctx ]
         next if @facts.key?(key)
-        @facts[key] = el.text&.strip
-        @decimals[key] = el.attribute("decimals")&.value
+        @facts[key] = Fact.new(value: el.text&.strip, decimals: el["decimals"], unit: el["unitRef"])
       end
     end
 
-    # DBのbigint（8バイト整数）に収まる値域。XBRL上の異常値（極端な桁数）を
-    # insert時のDBエラーにせず「開示なし」として落とすための境界
-    BIGINT_RANGE = (-2**63..2**63 - 1)
-
-    # "jppfs_cor:NetSales" 形式のqnameとコンテキストで整数値を引く。なければnil
-    def money(qname, context)
-      raw = text(qname, context)
-      return nil if raw.nil? || raw.empty?
-      # exception: false → 数値でない値（空タグ・テキスト）はnil扱い。
-      # to_iを使わない理由: to_iは"abc"を0にしてしまい「開示なし」と「ゼロ」の区別が壊れる
-      value = Integer(raw, exception: false)
-      BIGINT_RANGE.cover?(value) ? value : nil
+    # XML上のIDによる検索と、事業年度を指定した検索を分ける。
+    def for_reporting_period(start_date:, end_date:)
+      ReportingPeriod.new(self, contexts: @contexts, start_date: start_date, end_date: end_date)
     end
 
-    # 切捨て開示も含むため1表示単位未満を上限とする。割合による許容は設けない。
-    def rounding_error(qname, context)
-      prefix, name = qname.split(":")
-      decimals = @decimals[[ prefix, name, context ]]
-      return 0.to_d if decimals == "INF"
-      places = Integer(decimals, exception: false)
-      return nil unless places && (-18..18).cover?(places)
-      BigDecimal("10") ** -places
-    end
-
-    def text(qname, context)
+    def fact(qname, context)
       prefix, name = qname.split(":")
       @facts[[ prefix, name, context ]]
     end
+
+    def money(qname, context) = fact(qname, context)&.money
+    def text(qname, context) = fact(qname, context)&.value
+    def rounding_error(qname, context) = fact(qname, context)&.rounding_error
   end
 end
