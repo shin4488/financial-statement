@@ -1,147 +1,139 @@
-# financial-statement（investee）
+# financial-statement (investee)
 
-上場企業の財務三表（貸借対照表・損益計算書・キャッシュフロー計算書）を可視化するWebアプリ。EDINET（金融庁の開示システム）から有価証券報告書のXBRLを日次で取得・パースしてPostgreSQLに保存し、Reactの画面で積み上げグラフ・ウォーターフォールグラフとして表示する。
+上場企業の財務三表（貸借対照表・損益計算書・キャッシュフロー計算書）をグラフで直感的に可視化するWebアプリケーションです。
 
-本番環境: https://investee.info
+金融庁の開示システム（EDINET）から有価証券報告書のXBRLデータを取得・解析し、積み上げグラフやウォーターフォールグラフとして表示します。
+
+- **本番サービス**: [https://investee.info](https://investee.info)
+
+---
 
 ## 主な機能
 
-- 上場企業の財務三表のグラフ表示（連結優先。連結がない企業は単体）
-- 証券コード（4桁）による企業検索
-- キャッシュフローのパターン（営業/投資/財務CFの正負の組合せ）による絞り込み
-- EDINETに提出された有報の日次自動取込（毎日2:00にバッチ実行）
+- **財務三表のビジュアル表示**: 貸借対照表（BS）、損益計算書（PL）、キャッシュフロー計算書（CF）を視覚的なグラフで比較・分析。
+- **銘柄検索・絞り込み**: 証券コードや企業名による検索、キャッシュフローのパターン（営業・投資・財務CFの正負の組み合わせ）によるスクリーニング。
+- **自動データ更新**: EDINET APIと連携し、提出された有価証券報告書を日次バッチで自動取り込み。
 
-## リポジトリ構成
+---
 
+## システム構成
+
+```mermaid
+flowchart TD
+    subgraph Data["外部データ連携"]
+        EDINET["金融庁 EDINET API v2<br>(有報 XBRL データ)"]
+    end
+
+    subgraph Backend["バックエンド (Rails 7 / GraphQL)"]
+        Batch["Sidekiq バッチ<br>(日次取込 / パース処理)"]
+        API["GraphQL API サーバ<br>(スキーマ・クエリ配信)"]
+    end
+
+    subgraph Storage["データストア"]
+        PG[("PostgreSQL<br>(財務・企業データ)")]
+        Redis[("Redis<br>(ジョブキュー)")]
+    end
+
+    subgraph Frontend["フロントエンド (React SPA)"]
+        Web["Nginx リバースプロキシ<br>(:10000)"]
+        Client["React / MUI / recharts<br>(グラフ描画 & 検索)"]
+    end
+
+    EDINET --> Batch
+    Batch --> PG
+    Batch -.-> Redis
+    API --> PG
+    Web --> Client
+    Client -->|"GraphQL Query"| Web
+    Web --> API
 ```
-financial-statement/            # このリポジトリ（monorepo）
-├── application/
-│   ├── backend/                # Rails APIサーバ
-│   └── frontend/               # React SPA
-├── web/                        # nginx（リバースプロキシ）の設定
-├── database/                   # PostgreSQLのDockerfile・初期化SQL
-├── cache/                      # RedisのDockerfile（Sidekiqのジョブキュー用）
-├── docs/                       # 設計ドキュメント
-├── docker-compose.yml          # 開発環境の全体起動
-└── CLAUDE.md                   # AIエージェント向けのリポジトリコンテキスト
-```
+
+---
 
 ## 技術スタック
 
-| 層 | 技術 |
+| レイヤー | 技術・ライブラリ |
 |---|---|
-| フロントエンド | React (CRA + craco) / TypeScript / Apollo Client / Redux Toolkit / MUI / recharts |
-| バックエンド | Ruby 3.4.10 / Rails 7 / GraphQL (graphql-ruby) / Sidekiq + sidekiq-cron |
-| データストア | PostgreSQL 12 / Redis |
-| インフラ（開発） | Docker Compose + nginx |
-| 外部API | EDINET API v2（有報一覧・XBRL取得） |
+| **フロントエンド** | React, TypeScript, Apollo Client, Redux Toolkit, Material-UI, recharts |
+| **バックエンド** | Ruby 3.4, Ruby on Rails 7, GraphQL (graphql-ruby), Sidekiq |
+| **データベース / キャッシュ** | PostgreSQL 12, Redis |
+| **インフラ / 実行環境** | Docker, Docker Compose, Nginx |
+| **外部連携** | 金融庁 EDINET API v2 |
 
-## セットアップ
+---
 
-### 前提
+## 開発環境のセットアップ
 
-- Docker / Docker Compose
-- EDINET APIキー（[アカウント登録ページ](https://api.edinet-fsa.go.jp/api/auth/index.aspx?mode=1)で無料発行できる）
+Docker Compose を利用して、バックエンド・フロントエンド・データベース・Redis を一括で立ち上げることができます。
 
-### 手順
+### 1. リポジトリの準備
 
 ```bash
-# 1. clone
 git clone https://github.com/shin4488/financial-statement.git
 cd financial-statement
+```
 
-# 2. バックエンドの環境変数ファイルを作成（figaro形式・gitignore済み）
-#    application/backend/config/application.yml に以下の項目を設定する:
-#      EDINET_API_KEY: EDINET APIのページで発行したキー
-#      SENTRY_DSN:     任意（エラー監視を使う場合のみ。空文字でよい）
-#    ※このファイルはシークレットを含むため、絶対にコミットしないこと
+### 2. 環境変数の設定
 
-# 3. 全サービス起動（初回はイメージビルド・bundle install・yarn installが走るため時間がかかる）
+`application/backend/config/application.yml`（Git管理外）を作成し、EDINET APIキーを設定します。
+
+```yaml
+EDINET_API_KEY: "発行したEDINET_APIキー"
+SENTRY_DSN: "" # 任意（エラー監視を使用する場合のみ）
+```
+※ EDINET APIキーは金融庁の[API利用登録ページ](https://api.edinet-fsa.go.jp/api/auth/index.aspx?mode=1)より無料で取得できます。
+
+### 3. コンテナの起動
+
+```bash
 docker compose up
 ```
 
-DB（`financial_statement_development`）は初回起動時に `database/init/1.0.0.sql` で作成され、マイグレーションはappserverコンテナの起動スクリプト内で自動実行される。DB接続情報などの環境変数は各Dockerfileに定義済みで、手動設定は不要。
+起動後、以下のURLから各サービスにアクセスできます：
+- **フロントエンド画面**: `http://localhost:10000`
+- **GraphQL エンドポイント**: `http://localhost:20000/graphql`
 
-### 起動後のURL
+---
 
-| URL | 内容 |
-|---|---|
-| http://localhost:10000 | フロントエンド（nginx経由） |
-| http://localhost:10000/api/... | バックエンドAPI（nginx経由。`/api` が appserver にプロキシされる） |
-| http://localhost:20000/graphql | バックエンドAPI直接（GraphQLエンドポイント） |
+## データの取り込み（有報インポート）
 
-### データ投入
-
-起動直後のDBは空。EDINETから有報を取り込むには（EDINET APIキーが必要）:
+ローカル環境のデータベースに有価証券報告書データを取り込むには、Rakeタスクを実行します。
 
 ```bash
-# 方法1: 日付範囲を指定して取込（その期間に提出された全上場企業の有報）
+# 日付範囲を指定して一括取り込み
 docker compose exec appserver bundle exec rake 'ingestion:backfill[2026-06-20,2026-06-30]'
+
+# 書類管理番号（docID）を指定してピンポイントで取り込み
+docker compose exec appserver bundle exec rake 'ingestion:documents[S100YB5L S100YB25]'
 ```
+
+---
+
+## 主な開発コマンド
 
 ```bash
-# 方法2: EDINETの書類管理番号（docID）を指定して取込
-# 例は各会計基準・業種の検証用6社（詳細: docs/guide/06_taxonomy_mapping.md の実地調査の記録）
-docker compose exec appserver bundle exec rake 'ingestion:documents[S100YB5L S100YB25 S100YCP3 S100XTNW S100YLS8 S100YJQO]'
+# フロントエンドの GraphQL 型生成（スキーマ変更時）
+cd application/frontend && npm run compile
+
+# バックエンドのテスト実行
+docker compose exec appserver bundle exec rspec
+
+# フロントエンドのテスト実行
+docker compose exec appserver yarn --cwd application/frontend test
 ```
 
-※ EDINET APIはリクエスト過多で403を返すため、取込は同期・逐次実行が前提（並列化しないこと）。※ 6月は有報提出のピークのため、方法1を6月の日付で実行すると1日あたり数百件の取込になる。
+---
 
-## 開発
+## リポジトリ構成
 
-### バックエンド単体で動かす（docker外）
-
-rbenv等でRuby 3.4.10を入れて:
-
-```bash
-cd application/backend
-bundle install
-bundle exec rails s   # DBはdocker側のdatabaseコンテナを起動しておく必要がある
+```text
+financial-statement/
+├── application/
+│   ├── backend/             # Rails API サーバ（モデル、バッチ、GraphQLスキーマ）
+│   └── frontend/            # React SPA（UIコンポーネント、チャート描画）
+├── web/                     # Nginx のリバースプロキシ設定
+├── database/                # PostgreSQL の初期化スクリプト
+├── cache/                   # Redis のコンテナ定義
+├── docs/                    # 会計基準別の変換仕様や運用設計ドキュメント
+└── docker-compose.yml       # 開発環境コンテナ定義
 ```
-
-### GraphQLの型生成（フロントエンド）
-
-バックエンドのスキーマ変更後、`rake graphql:dump_schema` で `schema.graphql` を更新してからフロントの型を再生成する（コミット済みSDLを参照するため、バックエンドの起動は不要）:
-
-```bash
-cd application/frontend
-npm run compile        # graphql-codegen。src/__generated__/ が更新される
-```
-
-### 日次バッチ
-
-`sidekiq-cron` により毎日2:00に前日提出分の有報を自動取込する（`application/backend/config/sidekiq-cron.yml` / `DailyIngestionJob`）。Sidekiqはappserverコンテナの起動スクリプト内で一緒に立ち上がる。
-
-## ドキュメント
-
-| パス | 内容 |
-|---|---|
-| [docs/guide/](docs/guide/README.md) | **ドキュメントの本体**。前提知識ゼロから読める入門〜設計〜運用（01〜05）+ タグ対応表・実測記録などの資料（06） |
-| [docs/improvements.md](docs/improvements.md) | SEO・Web / AI活用の改善バックログ（作業手順つき） |
-| [CLAUDE.md](CLAUDE.md) | AIエージェント向けコンテキスト（ドメイン知識・既知課題の要約） |
-
-## 対応状況と既知の課題
-
-表示できる形式は「会計基準 × 表示様式」で決まる（詳細は[docs/guide/02_product.md](docs/guide/02_product.md)）。
-
-| 形式 | 対象 | 状態 |
-|---|---|---|
-| `jgaap_general` | 日本基準・一般事業会社（建設・鉄道・電気など業種別の勘定科目を持つ業種も骨格が同じためここに吸収） | 対応済み |
-| `jgaap_bank` | 日本基準・銀行 | 対応済み |
-| `jgaap_insurance` | 日本基準・保険 | 対応済み |
-| `ifrs_classified` / `ifrs_liquidity` | IFRS（連結） | 対応済み |
-| `ifrs_summary` | IFRS・詳細タグ義務化前（2019年3月期より前）の有報 | 対応済み（経営指標サマリからPL・CFを表示。BSは説明文） |
-| `unsupported` | 米国基準など | チャートの代わりに説明文を表示（正常系） |
-
-- **米国基準は未対応**: 上記 `unsupported` として扱われ、グラフの代わりにその旨が表示される。新しい形式の追加はExtractor・Builderのファイル追加のみで済む（マイグレーション不要。手順は [docs/guide/03_data_flow.md](docs/guide/03_data_flow.md) の変更ガイド）
-- その他は [docs/improvements.md](docs/improvements.md) を参照
-
-## エージェントの導入とhook
-
-- `make setup` で、導入済みのClaude・Codexに [agent-plugins](https://github.com/shin4488/agent-plugins) をユーザー単位でインストールする。
-- 共通のGit・PR・リリース・検証はプラグインのskillsを使う。このリポジトリの規約とリリース手順は [開発・運用ガイド](docs/guide/05_development_operations.md) に従う。
-- `AGENTS.md` → `CLAUDE.md`、`.agents/skills` → `.claude/skills` は相対シンボリックリンク。ローカルに残すskillと指示はClaude側を編集する。
-- 編集後の処理はプラグインから `.claude/hooks/post-edit.sh` を呼ぶ。Ruby・ESLint・Prettier・型検査を使うため、共通のBiome処理は適用しない。
-- インストール後にツールを読み込み直す。リポジトリを信頼し、CodexのCLIで `/hooks` を確認・承認する（[手順](https://learn.chatgpt.com/docs/hooks)）。
-- Claude の権限設定（`permissions`）は Codex には引き継がれない。
-- hook の実行にはホストの Bash・jq・realpath が必要。整形用に、プロジェクト指定の Ruby / Bundler と frontend の依存も事前にインストールする。
