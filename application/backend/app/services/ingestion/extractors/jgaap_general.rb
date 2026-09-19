@@ -37,14 +37,13 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
       "jppfs_cor:OperatingRevenueIVT",                                  # 営業収益（投資運用）
       "jppfs_cor:OperatingRevenueINV",                                  # 営業収益（投資業）
       "jppfs_cor:ShippingBusinessRevenueAndOtherOperatingRevenueWAT",   # 海運業収益及びその他の営業収益（海運）
-      # 一般事業会社の総額。営業収益（OperatingRevenue1）と 売上高+営業収入（NetSales+OperatingRevenue2）は
-      # 制度上は 営業収益 = 売上高 + 営業収入 だが、どれをどう付けるかは企業で揺れる:
-      #   営業収益を総額に付ける小売（3タグとも） / 総額タグを付けず売上高と営業収入だけ付ける小売 /
-      #   売上高を総額とし営業収益を一部の事業にだけ付ける会社 / 営業収入だけを開示する持株会社の単体
-      # 内訳は総額を超えないので、最も包括的な値（最大）を採ればどのパターンでも総額になる
-      max("jppfs_cor:OperatingRevenue1",                                # 営業収益
-          sum("jppfs_cor:NetSales", "jppfs_cor:OperatingRevenue2")),    # 売上高 + 営業収入
-      "jppfs_cor:SalesFromGasBusinessGAS",                              # ガス事業売上高（ガス。単体は売上高でなくこれで開示する）
+      # 総額候補が食い違う場合は、金額の大小でどちらが総額かを決めない。
+      consistent("jppfs_cor:OperatingRevenue1",
+                 sum("jppfs_cor:NetSales", "jppfs_cor:OperatingRevenue2"),
+                 components: [ "jppfs_cor:OperatingCost", "jppfs_cor:OperatingGrossProfit" ]),
+      sum("jppfs_cor:SalesFromGasBusinessGAS",
+          "jppfs_cor:MiscellaneousOperatingRevenueGAS",
+          "jppfs_cor:RevenueForIncidentalBusinessesGAS"),                # ガス事業・雑営業・附帯事業の収益
       "jppfs_cor:GasSalesGAS",                                          # ガス売上（ガス。ガス事業売上高の内訳だが、これしか開示しない単体がある）
       "jppfs_cor:ContractsCompletedRevOA",                              # 完成工事高
       "jppfs_cor:NetSalesOfCompletedConstructionContractsCNS",          # 完成工事高（建設業）
@@ -83,8 +82,8 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
       "jppfs_cor:CostOfProductsManufactured"                            # 当期製品製造原価
     ],
     "pl.gross_profit" => [
-      "jppfs_cor:GrossProfit",                                          # 売上総利益
       "jppfs_cor:OperatingGrossProfit",                                 # 営業総利益（営業収益型）
+      "jppfs_cor:GrossProfit",                                          # 売上総利益
       "jppfs_cor:OperatingGrossProfitWAT"                               # 営業総利益（海運）
     ],
     "pl.sga" => [
@@ -95,7 +94,9 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
       # 販売費を持たず一般管理費だけを開示する持株会社等の最終手段
       "jppfs_cor:GeneralAndAdministrativeExpensesSGA"                   # 一般管理費
     ],
-    # 金融費用（証券・商品先物）: 営業収益−金融費用=純営業収益、−販管費=営業利益 の骨格を持つ業種の費用科目
+    "pl.gas_miscellaneous_expenses" => "jppfs_cor:OperatingMiscellaneousExpensesGAS",
+    "pl.gas_incidental_expenses" => "jppfs_cor:ExpensesForIncidentalBusinessesGAS",
+    # 証券: 営業収益−金融費用=純営業収益、−販管費=営業利益
     "pl.financial_expenses" => "jppfs_cor:FinancialExpensesSEC",
     # 営業費用: 原価と販管費に分けず一括開示する業種の営業費用。
     # 「営業費用」が原価・販管費を含む合計か（電気・特定金融）、内訳と併記されるか（鉄道連結）、
@@ -135,8 +136,6 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
     "pl.income_tax"             => "jppfs_cor:IncomeTaxes",
     "pl.profit"                 => "jppfs_cor:ProfitLoss",
     "pl.profit_attributable_to_owners" => "jppfs_cor:ProfitLossAttributableToOwnersOfParent",
-    "pl.gas_miscellaneous_expenses" => "jppfs_cor:OperatingMiscellaneousExpensesGAS",
-    "pl.gas_incidental_expenses" => "jppfs_cor:ExpensesForIncidentalBusinessesGAS",
     "cf.new_consolidation" => "jppfs_cor:IncreaseInCashAndCashEquivalentsFromNewlyConsolidatedSubsidiaryCCE",
     "cf.consolidation_change" => "jppfs_cor:IncreaseDecreaseInCashAndCashEquivalentsResultingFromChangeOfScopeOfConsolidationCCE",
     "cf.exchange_effect" => "jppfs_cor:EffectOfExchangeRateChangeOnCashAndCashEquivalents",

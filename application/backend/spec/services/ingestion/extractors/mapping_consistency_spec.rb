@@ -8,15 +8,16 @@ RSpec.describe "Extractorの出力とItemCodesレジストリの整合" do
   # 全タグに値がある書類: extractが生成し得る全キーを一度に出力させる
   def xbrl_with_every_tag
     instance_double(Xbrl::Document).tap do |xbrl|
-      allow(xbrl).to receive(:money).and_return(1)
       allow(xbrl).to receive(:rounding_error).and_return(nil)
+    allow(xbrl).to receive(:money).and_return(1)
     end
   end
 
   # 全タグが無い書類: フォールバックが途中で止まらず、参照し得る全タグの qname を観測できる
   def xbrl_recording_qnames(recorded)
     instance_double(Xbrl::Document).tap do |xbrl|
-      allow(xbrl).to receive(:money) do |qname, _context|
+      allow(xbrl).to receive(:rounding_error).and_return(nil)
+    allow(xbrl).to receive(:money) do |qname, _context|
         recorded << qname
         nil
       end

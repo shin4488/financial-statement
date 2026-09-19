@@ -18,7 +18,7 @@ module Charts
       # IFRSのPLはBSの様式（流動/非流動 or 流動性配列）に依存しないため共通Builderを使う
       "ifrs_classified" => Builders::PlIfrs,
       "ifrs_liquidity"  => Builders::PlIfrs,
-      # 詳細タグなしでも経営指標サマリの収益・税引前利益で同じ骨格を描けるため共用する
+      # 詳細タグなしは共通の検算を通し、費用を確認できなければ理由付きで表示不可にする
       "ifrs_summary"    => Builders::PlIfrs
     }.freeze
     UNSUPPORTED_NOTE = "この会計基準・業種の財務諸表は表示に対応していません。".freeze

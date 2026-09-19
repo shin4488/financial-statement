@@ -10,7 +10,7 @@
 | [凡例](#凡例) | 形式の略記と業種接尾辞の一覧 |
 | [BS（貸借対照表）](#bs貸借対照表) | 共通4科目・流動/非流動の区分・形式固有の内訳 |
 | [PL（損益計算書）](#pl損益計算書) | 共通科目・トップライン・費用と利益のフォールバック |
-| [CF（キャッシュ・フロー計算書）](#cfキャッシュフロー計算書) | CF5科目とサマリ（ifrs_summary）のタグ |
+| [CF（キャッシュ・フロー計算書）](#cfキャッシュフロー計算書) | CF必須5科目・調整科目とサマリのタグ |
 | [複数タグの合算の対象](#複数タグの合算の対象) | `sum(...)` で合算している科目の一覧 |
 | [実地調査の記録](#実地調査の記録) | 根拠の実測: 調査対象8社・発見と実装への反映・検証用の実測値・業種別の実測・3年分の全数検証 |
 
@@ -46,7 +46,7 @@
 
 | 科目コード | 日本語 | 一般 / 銀行 | 分類 / 配列 | 使うBuilder |
 |---|---|---|---|---|
-| `bs.assets` | 資産合計 | `jppfs_cor:Assets` | `jpigp_cor:AssetsIFRS` | 銀行・保険・分類・配列 |
+| `bs.assets` | 資産合計 | `jppfs_cor:Assets` | `jpigp_cor:AssetsIFRS` | BS全Builder |
 | `bs.liabilities` | 負債合計 | `jppfs_cor:Liabilities` | `jpigp_cor:LiabilitiesIFRS` | 銀行・保険・配列 |
 | `bs.equity` | 資本（純資産）合計 | `jppfs_cor:NetAssets` | `jpigp_cor:EquityIFRS` | BS全Builder |
 | `bs.cash_and_equivalents` | 現金及び現金同等物 | 一般 `jppfs_cor:CashAndCashEquivalents`<br>銀行 `jppfs_cor:CashAndDueFromBanksAssetsBNK`<br>保険 `jppfs_cor:CashAndDepositsAssetsINS` | `jpigp_cor:CashAndCashEquivalentsIFRS` | 銀行・保険・配列 |
@@ -110,8 +110,8 @@
 | 5 | `jppfs_cor:OperatingRevenueCMD` | 営業収益（商品先物） |
 | 6 | `jppfs_cor:OperatingRevenueIVT` / `OperatingRevenueINV` | 営業収益（投資運用 / 投資業） |
 | 7 | `jppfs_cor:ShippingBusinessRevenueAndOtherOperatingRevenueWAT` | 海運業収益及びその他の営業収益（海運） |
-| 8 | 最大値 `max(OperatingRevenue1, NetSales + OperatingRevenue2)` | 一般事業会社の総額: 営業収益 と 売上高+営業収入 の大きい方（企業のタグ付けの揺れを吸収する。なぜ最大値かは[03章](03_data_flow.md)） |
-| 9 | `jppfs_cor:SalesFromGasBusinessGAS` → `GasSalesGAS` | ガス事業売上高 → ガス売上（ガス。単体は売上高でなくこれらで開示する） |
+| 8 | 候補照合 `consistent(OperatingRevenue1, NetSales + OperatingRevenue2)` | 営業原価+営業総利益が揃えばその合計と照合し、揃わなければ候補同士の一致を要求（[03章](03_data_flow.md)） |
+| 9 | 合算 `SalesFromGasBusinessGAS` + `MiscellaneousOperatingRevenueGAS` + `RevenueForIncidentalBusinessesGAS` → `GasSalesGAS` | ガス事業・雑営業・附帯事業の収益合計。ガス売上タグは最終フォールバック |
 | 10 | `jppfs_cor:ContractsCompletedRevOA` | 完成工事高 |
 | 11 | `jppfs_cor:NetSalesOfCompletedConstructionContractsCNS` | 完成工事高（建設業） |
 | 12 | 合算 `OperatingRevenue{Railway, Railroad, Related, Incidental, SideLine, RealEstate, Development, Automobile, Other}RWY` | 鉄道（単体）: 事業区分別の営業収益の合計 |
@@ -149,7 +149,7 @@
 | `pl.financial_expenses` | 金融費用 | `jppfs_cor:FinancialExpensesSEC`（証券。営業収益−金融費用=純営業収益） | 存在しない | 一般 |
 | `pl.sga` | 販売費及び一般管理費 | フォールバック4件（下記） | `jpigp_cor:SellingGeneralAnd` `AdministrativeExpensesIFRS` | 一般・IFRS |
 | `pl.operating_expenses` | 営業費用（一括計上） | フォールバック10件（下記） | `jpigp_cor:OperatingExpensesIFRS` | 一般・IFRS |
-| `pl.gross_profit` | 売上総利益 | `jppfs_cor:GrossProfit` → `OperatingGrossProfit`（営業総利益）→ `OperatingGrossProfitWAT` | `jpigp_cor:GrossProfitIFRS` | — |
+| `pl.gross_profit` | 売上総利益 | `jppfs_cor:OperatingGrossProfit`（営業総利益）→ `GrossProfit`→ `OperatingGrossProfitWAT` | `jpigp_cor:GrossProfitIFRS` | — |
 | `pl.operating_profit` | 営業利益 | `jppfs_cor:OperatingIncome` → `OperatingIncomeTotalBusiness`（全事業営業利益。鉄道単体） | `jpigp_cor:OperatingProfitLossIFRS` | 一般 |
 | `pl.ordinary_profit` | 経常利益 | `jppfs_cor:OrdinaryIncome` | 存在しない | 銀行 |
 | `pl.non_operating_income` | 営業外収益 | `jppfs_cor:NonOperatingIncome` | 存在しない | — |
@@ -201,20 +201,22 @@
 
 IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは使っていない。IFRSでは開示が任意で、開示する企業としない企業が混在して企業間の比較にならないため。
 
-### 追加保存する損益科目
+### 開示損益の追加科目
 
-以下は取得・保存のみで、現在のチャートの計算には使用しない。
+以下は残差の代わりに取得する実値。IFRSはすべて`jpigp_cor`、ガスは`jppfs_cor`。IFRSの合計費用と内訳は同時に加算せず、税引前利益まで照合できる構成だけを表示する。
 
-| 科目コード | タグ名（IFRSはjpigp_cor、ガスはjppfs_cor） | 内容 |
+| 科目コード | タグ | 意味 |
 |---|---|---|
 | `pl.other_operating_income` | `OtherOperatingIncomeIFRS` → `OtherIncomeIFRS` | その他収益 |
 | `pl.other_operating_expenses` | `OtherOperatingExpensesIFRS` → `OtherExpensesIFRS` | その他費用 |
-| `pl.other_income_expenses_net` | `OtherIncomeExpensesNetIFRS` | その他損益の開示純額 |
-| `pl.research_and_development` | `ResearchAndDevelopmentExpenditureRecognizedAsExpenseDuringPeriodIFRS` | 研究開発費（他の費用と重複する場合がある） |
+| `pl.other_income_expenses_net` | `OtherIncomeExpensesNetIFRS` | 開示純額。上記総額科目がない場合のみ表示 |
+| `pl.research_and_development` | `ResearchAndDevelopmentExpenditureRecognizedAsExpenseDuringPeriodIFRS` | 研究開発費。原価・販管費との重複を避け、検算できる構成のみ採用 |
 | `pl.finance_income` / `pl.finance_costs` | `FinanceIncomeIFRS` / `FinanceCostsIFRS` | 金融収益／金融費用 |
 | `pl.equity_method_profit` | `ShareOfProfitLossOfInvestmentsAccountedForUsingEquityMethodIFRS` | 持分法損益（符号を保持） |
 | `pl.gas_miscellaneous_expenses` | `OperatingMiscellaneousExpensesGAS` | ガス雑営業費用 |
 | `pl.gas_incidental_expenses` | `ExpensesForIncidentalBusinessesGAS` | ガス附帯事業費用 |
+
+根拠: S100YCP3（NTT）、S100XTNW（楽天）、S100YB5L（武田）、S100XTDX（静岡ガス）の当期本表。静岡ガス単体はガス事業147,318＋雑営業3,518＋附帯4,680＝155,516百万円。ガス事業だけを売上とすると、営業利益までの計算が一致しない。武田は拡張タグの償却・減損633,544百万円を現在抽出できないため、差額で埋めずPLを表示不可にする。
 
 ## CF（キャッシュ・フロー計算書）
 
@@ -226,17 +228,19 @@ IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは
 | `cf.cash_end` | 現金及び現金同等物の期末残高 | `jppfs_cor:CashAndCashEquivalents` | `jpigp_cor:CashAndCashEquivalentsIFRS` |
 | `cf.cash_begin` | 同・期首残高 | 同上（`Prior1YearInstant`） | 同上（`Prior1YearInstant`） |
 
-投資活動のタグ名が日本基準は `Investment`、IFRSは `Investing` で異なる。CFは5科目そろわないとウォーターフォールが繋がらないため、1つでも欠けるとチャートは `renderable: false` になる。
+追加のCF調整科目（サマリ形式を除く）:
 
-期首残高（`cf.cash_begin`）は個別のマッピングを持たない。期首残高=前期末残高という関係は全形式共通のため、Extractorの基底クラスが `cf.cash_end` と同じタグを前期末（`Prior1YearInstant`）コンテキストで引いて導出する。マッピング表（当期のコンテキスト固定）で表せない「別コンテキストの参照」は現在これだけ。
-
-次の調整科目も保存する。現行の5点のチャートには使用しない。
-
-| 科目コード | 一般・銀行・保険（jppfs_cor） | 分類・配列（jpigp_cor） |
+| コード | 日本基準タグ（jppfs_cor） | IFRSタグ（jpigp_cor） |
 |---|---|---|
 | `cf.exchange_effect` | `EffectOfExchangeRateChangeOnCashAndCashEquivalents` | `EffectOfExchangeRateChangesOnCashAndCashEquivalentsIFRS` |
-| `cf.new_consolidation` | `IncreaseInCashAndCashEquivalentsFromNewlyConsolidatedSubsidiaryCCE` | — |
-| `cf.consolidation_change` | `IncreaseDecreaseInCashAndCashEquivalentsResultingFromChangeOfScopeOfConsolidationCCE` | — |
+| `cf.consolidation_change` | `IncreaseDecreaseInCashAndCashEquivalentsResultingFromChangeOfScopeOfConsolidationCCE` | 未対応 |
+| `cf.new_consolidation` | `IncreaseInCashAndCashEquivalentsFromNewlyConsolidatedSubsidiaryCCE` | 未対応 |
+
+連結範囲変更は純増減を優先し、新規連結の増加額と重複加算しない。アサックスS100YI2Vは純増減2,186,195千円、日本郵政S100YE7Tは新規連結83百万円を確認。これらを含めても期末残高に一致しない場合は表示不可にする。為替等を持たないIFRSサマリも、残高変動が説明できる場合だけ表示する。
+
+投資活動のタグ名が日本基準は `Investment`、IFRSは `Investing` で異なる。CFは5必須科目の存在と、調整科目を含めた期首・期末の照合を表示条件にする。
+
+期首残高（`cf.cash_begin`）は個別のマッピングを持たない。期首残高=前期末残高という関係は全形式共通のため、Extractorの基底クラスが `cf.cash_end` と同じタグを前期末（`Prior1YearInstant`）コンテキストで引いて導出する。マッピング表（当期のコンテキスト固定）で表せない「別コンテキストの参照」は現在これだけ。
 
 ### サマリ（ifrs_summary）のタグ
 
@@ -272,6 +276,8 @@ IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは
 
 ## 実地調査の記録
 
+以下の実測・件数は調査時点の記録。現在の計算・表示仕様は前半の対応表と03章を参照する。
+
 ここから後ろは、前半の対応表と[03章](03_data_flow.md)の形式判定・記法の根拠になった実測記録。EDINET API v2で実際に有報XBRLを取得し、全factをダンプして確認した。タクソノミの公式資料だけでは分からない実態が実装判断を左右するため、実物での確認記録を残している。構成は、初期実装時の基本8社・4形式 → 業種別対応で追加した実測 → 3年分の全数検証の順。
 
 ### 調査対象（基本8社・4形式）
@@ -300,7 +306,7 @@ IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは
 | NTT: 本表の収益が企業拡張タグ `jpcrp030000-asr_E04430-000:OperatingRevenuesIFRS`（営業収益14.41兆円）のみ。経営指標サマリの標準タグは本表と完全一致 | サマリタグを収益フォールバックの最後に置く（前半のPLの表） |
 | 東京海上: 保険収益が拡張タグ `InsuranceRevenueIFRS`（7.69兆円）のみで、経営指標サマリの標準タグも存在しない | 標準タグだけでは取れない企業が実在する → 「PLは表示不可」を正常系にする（[03章](03_data_flow.md)実例2） |
 | CFの3区分と現金同等物は全形式で取得可能（タグ名が基準別に異なるのみ） | CFチャートを全形式共通のBuilderにできる（[03章](03_data_flow.md)） |
-| 銀行BSに流動/固定の区分がなく、合計だけは汎用タグ（`jppfs_cor:Assets` 等）で取れる | 銀行BSは主要科目+残差で描く（[03章](03_data_flow.md)実例1） |
+| 銀行BSに流動/固定の区分がなく、合計だけは汎用タグ（`jppfs_cor:Assets` 等）で取れる | 銀行BSは合計を表示する（[03章](03_data_flow.md)実例1） |
 | 2019年3月期より前のIFRS有報（S100SO41ほか）は `jpigp_cor` のfact自体が収録されていない（詳細タグ付けは2019年3月31日以後終了事業年度から義務化）。財務諸表の値は経営指標サマリ `jpcrp_cor:*IFRSSummaryOfBusinessResults` のみ | 資産合計タグも無いIFRS書類はサマリだけで構成する `ifrs_summary` に落とす（[03章](03_data_flow.md)）。BSはサマリに負債の実値が無いため描かず説明文にする |
 
 ### 金融庁 IFRSタクソノミ要素リスト（1g_IFRS_ElementList.xlsx）からの知見

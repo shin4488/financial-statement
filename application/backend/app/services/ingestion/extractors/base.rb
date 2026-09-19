@@ -13,9 +13,8 @@ module Ingestion
       #                                           （鉄道・海運・電気通信の営業収益など）のために、
       #                                           存在するタグだけを足した値を1つの科目にする。
       #                                           リストの要素にも置ける（例: [ "…:Total", sum("…:A", "…:B") ]）
-      #   max("…:A", sum("…:B", "…:C"))        … 最大値。同じ科目の総額候補が複数併記され、どれが総額かが
-      #                                           企業のタグ付けで揺れる場合（売上高と営業収益）に、内訳は総額を
-      #                                           超えないことを根拠に「最も包括的な値」を採る。要素にはタグかsumを置ける
+      #   consistent("…:A", sum("…:B", "…:C")) … 総額候補が複数あれば開示精度内の一致を要求する。
+      #                                           金額の大小から総額・内訳を推測しない。
       #
       # 各記法は「XBRLとコンテキストを受けて金額かnilを返す」evaluateを持つ値オブジェクト。
       # 記法を増やすときはStructを1つ足せばよく、評価側（lookup）や各Extractorには手が入らない
@@ -41,20 +40,41 @@ module Ingestion
         end
       end
 
-      Max = Struct.new(:entries) do
-        def rounding_error(xbrl, context)
-          value = evaluate(xbrl, context)
-          entries.find { |entry| !value.nil? && entry.evaluate(xbrl, context) == value }&.rounding_error(xbrl, context)
+      Consistent = Struct.new(:entries, :components) do
+        def candidates(xbrl, context)
+          entries.select { |entry| !entry.evaluate(xbrl, context).nil? }
         end
 
         def evaluate(xbrl, context)
-          values = entries.filter_map { |entry| entry.evaluate(xbrl, context) }
-          values.max if values.any?
+          available = candidates(xbrl, context)
+          return nil if available.empty?
+          values = components.map { |entry| entry.evaluate(xbrl, context) }
+          if values.any? && values.none?(&:nil?)
+            component_errors = components.map { |entry| entry.rounding_error(xbrl, context) }
+            available = available.select do |entry|
+              difference = (entry.evaluate(xbrl, context) - values.sum).abs
+              errors = component_errors + [ entry.rounding_error(xbrl, context) ]
+              difference.zero? || (errors.none?(&:nil?) && difference < errors.sum)
+            end
+            return nil if available.empty?
+          end
+          first = available.first
+          value = first.evaluate(xbrl, context)
+          compatible = available.drop(1).all? do |entry|
+            difference = (entry.evaluate(xbrl, context) - value).abs
+            errors = [ first.rounding_error(xbrl, context), entry.rounding_error(xbrl, context) ]
+            difference.zero? || (errors.none?(&:nil?) && difference < errors.sum)
+          end
+          value if compatible
+        end
+
+        def rounding_error(xbrl, context)
+          candidates(xbrl, context).find { |entry| entry.evaluate(xbrl, context) == evaluate(xbrl, context) }&.rounding_error(xbrl, context)
         end
       end
 
       def self.sum(*qnames) = Sum.new(qnames.map { |qname| Tag.new(qname) })
-      def self.max(*entries) = Max.new(entries.map { |entry| wrap(entry) })
+      def self.consistent(*entries, components: []) = Consistent.new(entries.map { |entry| wrap(entry) }, components.map { |entry| wrap(entry) })
       # マッピング表では単一タグを裸の文字列で書けるようにしているため、評価前にTagへ揃える
       def self.wrap(entry) = entry.is_a?(String) ? Tag.new(entry) : entry
 

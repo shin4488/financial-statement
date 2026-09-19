@@ -100,9 +100,9 @@ RSpec.describe Ingestion::Extractors::JgaapGeneral do
                                "pl.sga" => 31_074_000_000, "pl.operating_profit" => 14_072_000_000)
     end
 
-    it "単体: 売上高はガス事業売上高（SalesFromGasBusinessGAS）で開示される" do
+    it "単体: ガス事業・雑営業・附帯事業の収益を合算する" do
       items = extract("S100XTDX", non_consolidated)
-      expect(items).to include("pl.revenue" => 147_318_000_000, "pl.cost_of_sales" => 118_689_000_000,
+      expect(items).to include("pl.revenue" => 155_516_000_000, "pl.cost_of_sales" => 118_689_000_000,
                                "pl.sga" => 21_773_000_000, "pl.operating_profit" => 7_277_000_000)
     end
   end

@@ -25,13 +25,13 @@ RSpec.describe "financialReports query" do
                           company_name_ja: "提出時点の社名"),
            items_hash: {
              "bs.current_assets" => 3_090_503_000_000, "bs.non_current_assets" => 12_421_004_000_000,
-             "bs.assets" => 15_511_506_000_000, "bs.current_liabilities" => 2_832_074_000_000,
+             "bs.assets" => 15_511_507_000_000, "bs.liabilities" => 8_080_858_000_000, "bs.current_liabilities" => 2_832_074_000_000,
              "bs.non_current_liabilities" => 5_248_784_000_000, "bs.equity" => 7_430_649_000_000,
-             "pl.revenue" => 4_505_720_000_000, "pl.cost_of_sales" => 1_571_588_000_000,
-             "pl.sga" => 1_084_215_000_000, "pl.profit_before_tax" => -142_355_000_000,
+             "pl.revenue" => 1_000, "pl.cost_of_sales" => 900,
+             "pl.sga" => 200, "pl.profit_before_tax" => -100,
              "cf.cash_begin" => 385_113_000_000, "cf.operating" => 1_041_431_000_000,
              "cf.investing" => -369_141_000_000, "cf.financing" => -496_820_000_000,
-             "cf.cash_end" => 595_054_000_000
+             "cf.exchange_effect" => 34_471_000_000, "cf.cash_end" => 595_054_000_000
            })
   end
 
@@ -55,10 +55,10 @@ RSpec.describe "financialReports query" do
     expect(amount).to eq 3_090_503_000_000
 
     pl_credit = report.dig("profitLoss", "bars", 1, "segments")
-    expect(pl_credit.last["signedAmount"]).to eq(-142_355_000_000)
+    expect(pl_credit.last["signedAmount"]).to eq(-100)
 
     cf_steps = report.dig("cashFlow", "steps")
-    expect(cf_steps.size).to eq 5
+    expect(cf_steps.size).to eq 6
     # 投資CFは負のためcashDecrease（色の決定はバックエンドの契約）
     expect(cf_steps.find { |s| s["key"] == "investing" }["colorRole"]).to eq "cashDecrease"
   end
