@@ -17,6 +17,8 @@
 
 ## セットアップ
 
+Node.jsは `.nvmrc` のバージョンを使う（nvm利用時はこのディレクトリで `nvm install && nvm use`）。
+
 リポジトリルートで `docker compose up` すると、バックエンド・DB込みで一括起動する
 （画面は http://localhost:10000）。単体で動かす場合:
 
@@ -27,6 +29,11 @@ yarn install
 ```bash
 yarn start
 ```
+
+Dockerで起動する場合も、ホスト側のエディタで型検査するには、このディレクトリで
+`yarn install --frozen-lockfile` を実行する。Docker内の `node_modules` はLinux向けの
+名前付きボリュームで、ホストには共有されない。ホスト側に依存がないと、エディタに
+`react/jsx-runtime` が見つからない（ts2875）などのエラーが出る。
 
 ## GraphQLの型生成
 

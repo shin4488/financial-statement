@@ -11,7 +11,8 @@ bundle exec rails runner '
      S100YDJC S100YIHR S100YC7N S100YE63 S100Y9T5 S100Y90D S100XTDX S100YANQ S100YI2V
      S100YJB4 S100Y0DB S100YD29 S100YCL0 S100YE7T S100SO41
      S100XCO8 S100XTLJ S100YDP3 S100YGH5 S100YJHA
-     S100YH8W S100YEGP S100YGFW S100YGOL S100YIW6 S100YGFN S100YZ8K S100YRHX S100YWE4 S100YZFP].each do |doc_id|
+     S100YH8W S100YEGP S100YGFW S100YGOL S100YIW6 S100YGFN S100YZ8K S100YRHX S100YWE4 S100YZFP
+     S100YS8T S100YSG1 S100YQR5 S100YR60 S100YXHA S100YTAL S100YTAR S100YRPF].each do |doc_id|
     path = client.download_xbrl(doc_id: doc_id, work_dir: dir)
     puts "#{doc_id}: #{path}"
     sleep 2
@@ -78,3 +79,20 @@ bundle exec rails runner '
 `S100YWE4`（丸井グループ）は、日本基準の収益が標準の `jppfs_cor:Revenue` で開示される例。収益276,862百万円を使い、売上関連の指標を欠損にしないことを検証する。
 
 `S100YZFP`（シーラHD）は連結初年度の公表ROE37.2%を保存・補完する回帰例。前年単体と当年連結の残高を混ぜず、ROA・レバレッジの欠損を残す。
+
+`spec/graphql/disclosed_roe_differences_spec.rb` は、公表ROEと平均残高での計算値が異なる8件を取込→保存→APIまで検証する。本表の利益・期首期末自己資本、公表ROEをそれぞれ独立した期待値で確認し、公表値に合わせて計算式を変更しないことを保証する。
+
+| docID | 企業 | 照合で確認する違い |
+|---|---|---|
+| S100YS8T | テンポスHD | 期末自己資本で公表値を再現できる |
+| S100YSG1 | 東和フードサービス | 同上（単体） |
+| S100YQR5 | 大豊工業 | 同上（赤字） |
+| S100YRHX | 信金中央金庫 | 小数第2位までの切捨てで公表値を再現できる |
+| S100YR60 | 琉球銀行 | 同上 |
+| S100YXHA | 新都HD | 同上 |
+| S100YTAR | ユビテック | 小数第1位までの0方向の切捨てで再現できる（赤字） |
+| S100YTAL | プレミアアンチエイジング | 公表比率の桁数より本表の金額の精度が粗い |
+
+上表は数値の再現条件であり、各企業の内部の計算方法を断定するものではない。金額と差の根拠は [タグ対応表の実地調査](../../../../../docs/guide/06_taxonomy_mapping.md#公表roeと計算値の差の追加照合) を参照。
+
+`spec/graphql/missing_revenue_indicators_spec.rb` は三菱UFJ FG・かんぽ生命・スカイマーク（S100YRPF）・東京海上HDで、売上関連の欠損がROE・ROA・レバレッジに波及しないことをAPIまで検証する。経常収益の売上高への読み替えや企業拡張タグの無条件取得は行わない。

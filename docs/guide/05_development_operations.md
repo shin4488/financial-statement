@@ -61,6 +61,8 @@ docker compose exec appserver bash -c 'cd /home/app/financialStatement && bundle
 
 ROE・ROAは期首総資産・期首自己資本などの追加科目を使う。既存レコードはDBマイグレーションだけでは埋まらず、不足した指標は「データなし」になる。バックエンド反映後、既存データを順次再取込してから新しいフロントエンドを配信する。
 
+本番では、マージ済みのmain・クリーンな作業ツリーを使い、**DBのバックアップをマイグレーション前に取得**する。取込コードはSidekiqにも読み込まれるため、PumaだけでなくSidekiqの再起動も必要。deployスキルに従い、Sidekiq再起動にsudoの対話認証が必要な環境では、その操作が可能な状態になってから反映する。バックアップはrsyncの削除対象外に置き、読み取り可能なことを確認する。
+
 ```bash
 bundle exec rake ingestion:reingest_indicators
 ```
