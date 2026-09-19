@@ -57,6 +57,10 @@
 
 `bs.assets_begin` は `bs.assets` と同じタグを `Prior1YearInstant` から取得する。自己資本の期末は `bs.equity_attributable_to_owners`、期首は同じ取得式を前期末に適用した `bs.equity_attributable_to_owners_begin`。単体ではどちらも `_NonConsolidatedMember` を付ける。別年度の有報の残高で補完しない。
 
+例外として、書類全体に `CurrentYearInstant` / `CurrentYearDuration`（単体を含む）のコンテキスト定義がない場合は、`Xbrl::Document#for_reporting_period` がDEIの事業年度と実日付が一致する `PriorNYear` コンテキストに対応付ける。当期末・当期の開始終了日・期首（開始日の前日）をそれぞれ照合し、企業・連結区分が一致する候補が一意なときだけ採用する。別セグメントや曖昧な候補は使わず、形式判定・BS/PL/CF・公表ROE・開示精度で同じ対応を使う。通常の有報の検索は変更しない。
+
+クラサスケミカルの届出書 `S100Z0VF` は2025年1月1日〜12月31日の実績が `Prior1YearDuration` / `Prior1YearInstant` に格納され、期首は `Prior2YearInstant`。連結総資産191,166百万円・公表ROE9.3%、単体総資産157,557百万円・公表ROE5.4%を取得できる。連結の期首総資産は未開示のためROAは欠損のままとする。
+
 | 形式 | 自己資本の取得式 |
 |---|---|
 | 一般・銀行・保険 | `jppfs_cor:ShareholdersEquity`（なければ信金の会員勘定合計 `ShareholdersEquityShinkinBNK`）+ `ValuationAndTranslationAdjustments`（なければ `AccumulatedOtherComprehensiveIncome`） |

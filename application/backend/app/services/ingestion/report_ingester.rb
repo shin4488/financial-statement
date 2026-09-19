@@ -38,7 +38,8 @@ module Ingestion
         return
       end
 
-      statements = build_statements(xbrl, dei)
+      period_xbrl = xbrl.for_reporting_period(start_date: dei.fiscal_year_start_date, end_date: dei.fiscal_year_end_date)
+      statements = build_statements(period_xbrl, dei)
       persist(doc_id, dei, statements)
     ensure
       FileUtils.rm_f(xbrl_path) if xbrl_path

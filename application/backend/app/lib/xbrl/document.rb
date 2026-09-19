@@ -27,7 +27,10 @@ module Xbrl
       # 先に全factをハッシュ化して以降の検索をO(1)にする
       @facts = {}
       @decimals = {}
+      @contexts = {}
+      @context_aliases = {}
       doc.root.element_children.each do |el|
+        index_context(el) if el.name == "context" && el.namespace&.href == "http://www.xbrl.org/2003/instance"
         ctx = el.attribute("contextRef")&.value
         next if ctx.nil? # contextRefなし = fact以外の要素（unit定義など）
         # 名前空間URIからプレフィクスを正引き。企業拡張タクソノミ（jpcrp030000-asr_EXXXXX-000等）は
@@ -48,6 +51,34 @@ module Xbrl
     # insert時のDBエラーにせず「開示なし」として落とすための境界
     BIGINT_RANGE = (-2**63..2**63 - 1)
 
+    # 届出書などCurrentYearコンテキストを持たない書類だけ、DEIの実日付に対応付ける。
+    # 元の辞書は変えず、形式判定・金額・公表比率・開示精度に同じ対応を適用する。
+    def for_reporting_period(start_date:, end_date:)
+      return self if @contexts.empty? || @contexts.keys.any? { |id| id.start_with?("CurrentYear") }
+      beginning = Date.iso8601(start_date.to_s)
+      ending = Date.iso8601(end_date.to_s)
+      return self if beginning > ending
+      entity = @contexts.dig("FilingDateInstant", :entity)
+      return self if entity.nil?
+
+      aliases = {}
+      [ "", "_NonConsolidatedMember" ].each do |suffix|
+        { "CurrentYearInstant" => [ ending.to_s ],
+          "CurrentYearDuration" => [ beginning.to_s, ending.to_s ],
+          "Prior1YearInstant" => [ (beginning - 1).to_s ] }.each do |name, period|
+          candidates = @contexts.select do |id, context|
+            id.match?(/\APrior\d+Year#{period.size == 1 ? 'Instant' : 'Duration'}#{suffix}\z/) &&
+              context[:period] == period && context[:entity] == entity && context[:valid_dimensions]
+          end
+          # 日付が一致しない・候補が複数あるときは推測せず欠損にする。期首を期末で補わない。
+          aliases["#{name}#{suffix}"] = candidates.one? ? candidates.keys.first : nil
+        end
+      end
+      dup.tap { |view| view.instance_variable_set(:@context_aliases, aliases) }
+    rescue Date::Error
+      self
+    end
+
     # "jppfs_cor:NetSales" 形式のqnameとコンテキストで整数値を引く。なければnil
     def money(qname, context)
       raw = text(qname, context)
@@ -61,7 +92,7 @@ module Xbrl
     # 切捨て開示も含むため1表示単位未満を上限とする。割合による許容は設けない。
     def rounding_error(qname, context)
       prefix, name = qname.split(":")
-      decimals = @decimals[[ prefix, name, context ]]
+      decimals = @decimals[[ prefix, name, @context_aliases.fetch(context, context) ]]
       return 0.to_d if decimals == "INF"
       places = Integer(decimals, exception: false)
       return nil unless places && (-18..18).cover?(places)
@@ -70,7 +101,36 @@ module Xbrl
 
     def text(qname, context)
       prefix, name = qname.split(":")
-      @facts[[ prefix, name, context ]]
+      @facts[[ prefix, name, @context_aliases.fetch(context, context) ]]
     end
+
+    private
+      def index_context(element)
+        id = element["id"].to_s
+        return unless id == "FilingDateInstant" || id.match?(/\A(?:CurrentYear|Prior\d+Year)(?:Instant|Duration)(?:_NonConsolidatedMember)?\z/)
+        ns = { "i" => "http://www.xbrl.org/2003/instance" }
+        identifier = element.at_xpath("./i:entity/i:identifier", ns)
+        period = element.at_xpath("./i:period", ns)
+        members = element.xpath("./i:scenario/* | ./i:entity/i:segment/*", ns)
+        valid_dimensions = members.empty?
+        if id.end_with?("_NonConsolidatedMember")
+          member = members.first
+          valid_dimensions = members.one? && member.name == "explicitMember" &&
+            member.namespace&.href == "http://xbrl.org/2006/xbrldi" &&
+            standard_member?(member, member["dimension"], "ConsolidatedOrNonConsolidatedAxis") &&
+            standard_member?(member, member.text.strip, "NonConsolidatedMember")
+        end
+        @contexts[id] = {
+          entity: identifier && [ identifier["scheme"], identifier.text.strip ],
+          period: period&.element_children&.map { |node| node.text.strip },
+          valid_dimensions: valid_dimensions
+        }
+      end
+
+      def standard_member?(element, qname, expected)
+        prefix, name = qname.to_s.split(":")
+        uri = element.namespaces["xmlns:#{prefix}"]
+        name == expected && uri && %w[jppfs_cor jpcrp_cor jpigp_cor].any? { |key| uri.match?(NS.fetch(key)) }
+      end
   end
 end

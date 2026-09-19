@@ -12,7 +12,7 @@ bundle exec rails runner '
      S100YJB4 S100Y0DB S100YD29 S100YCL0 S100YE7T S100SO41
      S100XCO8 S100XTLJ S100YDP3 S100YGH5 S100YJHA
      S100YH8W S100YEGP S100YGFW S100YGOL S100YIW6 S100YGFN S100YZ8K S100YRHX S100YWE4 S100YZFP
-     S100YS8T S100YSG1 S100YQR5 S100YR60 S100YXHA S100YTAL S100YTAR S100YRPF].each do |doc_id|
+     S100YS8T S100YSG1 S100YQR5 S100YR60 S100YXHA S100YTAL S100YTAR S100YRPF S100Z0VF].each do |doc_id|
     path = client.download_xbrl(doc_id: doc_id, work_dir: dir)
     puts "#{doc_id}: #{path}"
     sleep 2
@@ -22,6 +22,7 @@ bundle exec rails runner '
 
 | docID | 企業 | 検証ポイント |
 |---|---|---|
+| S100Z0VF | クラサスケミカル | 届出書の実日付とDEI年度の照合。Prior1Yearから当期、Prior2Yearから期首を取得。連結・単体、公表ROE、再取込時の三表保持 |
 | S100YB5L | 武田薬品 | ifrs_classified / 税引前損失 / その他損益が費用側 / のれん+無形の別掲合算 |
 | S100YB25 | 三菱商事 | ifrs_classified / その他損益が収益側 / のれん無形の合算タグ / Revenue2IFRS |
 | S100YCP3 | NTT | ifrs_classified / 収益が企業拡張タグ→経営指標サマリでフォールバック |
