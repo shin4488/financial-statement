@@ -90,7 +90,10 @@ export const ReportCard = React.memo(function ReportCard({
           <StackedBarChart chart={report.balanceSheet} />
           <StackedBarChart chart={report.profitLoss} />
           <WaterfallChart chart={report.cashFlow} />
-          <FinancialIndicators indicators={report.financialIndicators} />
+          <FinancialIndicators
+            indicators={report.financialIndicators}
+            compact
+          />
         </AppCarousel>
       </CardContent>
     </Card>
