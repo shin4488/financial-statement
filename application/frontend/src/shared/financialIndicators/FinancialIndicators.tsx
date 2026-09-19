@@ -1,10 +1,17 @@
 import React from 'react';
 import { Box, Chip, Stack, Tooltip, Typography } from '@mui/material';
 import { amber, green, purple } from '@mui/material/colors';
-import type { FinancialReport } from '../api/types';
+import type { FinancialIndicatorsData, FinancialMetric } from './types';
 
-type Indicators = FinancialReport['financialIndicators'];
-type Metric = Indicators['roa'];
+type Metric = FinancialMetric;
+const missing: Metric = { status: 'MISSING_DATA', value: null };
+const emptyIndicators: FinancialIndicatorsData = {
+  roe: missing,
+  roa: missing,
+  netProfitMargin: missing,
+  assetTurnover: missing,
+  financialLeverage: missing,
+};
 
 const percent = new Intl.NumberFormat('ja-JP', {
   style: 'percent',
@@ -56,7 +63,11 @@ function MetricValue({
   highlight?: boolean;
   disclosed?: boolean;
 }) {
-  if (metric.status !== 'AVAILABLE' || metric.value == null) {
+  if (
+    metric.status !== 'AVAILABLE' ||
+    metric.value == null ||
+    !Number.isFinite(metric.value)
+  ) {
     const text = metric.status === 'NOT_CALCULABLE' ? '算出不可' : 'データなし';
     return (
       <Typography
@@ -75,6 +86,8 @@ function MetricValue({
     );
   }
   const value = percent.format(metric.value);
+  // 銀行などの桁数が多い比率も、狭いカードで数値と%を一緒に読めるようにする。
+  const numberScale = Math.min(1, 7 / value.length);
   return (
     <Stack spacing={0.5} sx={{ minWidth: 0 }} aria-label={`${label}：${value}`}>
       <Typography
@@ -82,8 +95,8 @@ function MetricValue({
         color={highlight ? 'primary.main' : 'text.primary'}
         sx={{
           fontSize: highlight
-            ? 'clamp(14px, 5.6cqi, 28px)'
-            : 'clamp(12px, 4.9cqi, 25px)',
+            ? `clamp(12px, ${5.6 * numberScale}cqi, ${28 * numberScale}px)`
+            : `clamp(11px, ${4.9 * numberScale}cqi, ${25 * numberScale}px)`,
           fontWeight: highlight ? 800 : 600,
           lineHeight: 1.3,
           fontVariantNumeric: 'tabular-nums',
@@ -133,17 +146,22 @@ function Operator({ children }: { children: React.ReactNode }) {
 
 export function FinancialIndicators({
   indicators,
+  compact = false,
 }: {
-  indicators: Indicators;
+  indicators?: FinancialIndicatorsData | null;
+  compact?: boolean;
 }) {
+  // 拡張の永続化済みキャッシュには追加前のレスポンスが残ることがある。
+  const values = indicators ?? emptyIndicators;
   return (
     <Stack
       component="section"
       aria-label="ROE・ROA"
       spacing={5}
       sx={{
-        height: 400,
-        justifyContent: 'center',
+        height: compact ? 300 : 400,
+        justifyContent: compact ? 'flex-start' : 'center',
+        pt: compact ? 1 : 0,
         textAlign: 'center',
         containerType: 'inline-size',
       }}
@@ -217,10 +235,10 @@ export function FinancialIndicators({
             {key.toUpperCase()}
           </Typography>
           <MetricValue
-            metric={indicators[key]}
+            metric={values[key]}
             label={key.toUpperCase()}
             highlight
-            disclosed={key === 'roe' && indicators.roe.source === 'DISCLOSED'}
+            disclosed={key === 'roe' && values.roe.source === 'DISCLOSED'}
           />
           <Operator>=</Operator>
           {factors.map((factor, index) => (
@@ -241,7 +259,7 @@ export function FinancialIndicators({
                 </Typography>
               ) : (
                 <MetricValue
-                  metric={indicators[factor.key]}
+                  metric={values[factor.key]}
                   label={factor.lines.join('')}
                   unit={factor.unit}
                 />

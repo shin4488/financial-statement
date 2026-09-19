@@ -1,16 +1,14 @@
 import React from 'react';
 import { cleanup, render, screen, within } from '@testing-library/react';
-import type { FinancialReport } from '../api/types';
+import type { FinancialIndicatorsData } from './types';
 import { FinancialIndicators } from './FinancialIndicators';
 
-const available = (
-  value: number,
-): FinancialReport['financialIndicators']['roe'] => ({
+const available = (value: number): FinancialIndicatorsData['roe'] => ({
   value,
   status: 'AVAILABLE',
   source: 'CALCULATED',
 });
-const data: FinancialReport['financialIndicators'] = {
+const data: FinancialIndicatorsData = {
   roe: available(0.16),
   roa: available(0.064),
   netProfitMargin: available(0.08),
@@ -105,4 +103,57 @@ it('企業公表値で補完したROEだけに出所を示す', () => {
       '企業公表値',
     ),
   ).toBeNull();
+});
+
+it('指標のない旧キャッシュでも表示でき、新しい取得結果へ更新できる', () => {
+  const { rerender } = render(<FinancialIndicators />);
+  expect(screen.getAllByText('データなし')).toHaveLength(7);
+  rerender(<FinancialIndicators indicators={data} />);
+  expect(screen.getByLabelText('ROE：16.0%')).toBeTruthy();
+  expect(screen.queryByText('データなし')).toBeNull();
+});
+
+it('売上データがなくてもAPIが返したROE・ROAを表示する', () => {
+  const missing = { status: 'MISSING_DATA' as const, value: null };
+  render(
+    <FinancialIndicators
+      indicators={{ ...data, netProfitMargin: missing, assetTurnover: missing }}
+    />,
+  );
+  expect(screen.getByLabelText('ROE：16.0%')).toBeTruthy();
+  expect(screen.getByLabelText('ROA：6.4%')).toBeTruthy();
+  expect(screen.getAllByText('データなし')).toHaveLength(4);
+});
+
+it('企業公表ROEから欠損しているROAや分解要素を逆算しない', () => {
+  const missing = { status: 'MISSING_DATA' as const, value: null };
+  render(
+    <FinancialIndicators
+      indicators={{
+        ...data,
+        roe: { status: 'AVAILABLE', value: 0.372, source: 'DISCLOSED' },
+        roa: missing,
+        assetTurnover: missing,
+        financialLeverage: missing,
+      }}
+    />,
+  );
+  expect(screen.getByLabelText('ROE：37.2%')).toBeTruthy();
+  expect(screen.getByLabelText('ROA：データなし')).toBeTruthy();
+  expect(screen.getAllByText('企業公表値')).toHaveLength(1);
+  expect(screen.getAllByText('データなし')).toHaveLength(4);
+});
+
+it('有効扱いの値でもnullや非有限値を数値として表示しない', () => {
+  const { rerender } = render(<FinancialIndicators indicators={data} />);
+  [null, Number.NaN, Number.POSITIVE_INFINITY].forEach((value) => {
+    rerender(
+      <FinancialIndicators
+        indicators={{ ...data, roe: { status: 'AVAILABLE', value } }}
+      />,
+    );
+    expect(screen.getByLabelText('ROE：データなし')).toBeTruthy();
+    expect(screen.getByLabelText('ROA：6.4%')).toBeTruthy();
+    expect(screen.queryByText(/NaN|∞/)).toBeNull();
+  });
 });

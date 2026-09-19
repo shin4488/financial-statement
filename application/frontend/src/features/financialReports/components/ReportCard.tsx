@@ -4,7 +4,7 @@ import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
 import AppCarousel from './AppCarousel';
-import { FinancialIndicators } from './FinancialIndicators';
+import { FinancialIndicators } from '@/shared/financialIndicators';
 import { logClickEvent } from '@/plugins/firebase/analytics';
 import { StackedBarChart, WaterfallChart } from '@/shared/financialCharts';
 import type { FinancialReport } from '../api/types';
