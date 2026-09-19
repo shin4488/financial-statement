@@ -65,6 +65,20 @@
 
 日本基準は `JgaapOwnersEquity` が共通の取得式を持つ。株主資本は必須で、調整項目がない場合は株主資本と開示された新株予約権・株式引受権・非支配株主持分の合計が純資産合計と一致するときだけ株主資本を採用する。各タグの開示精度に由来する切捨て誤差のみ許容し、精度不明の差や説明できない欠損を0として扱わない。自己資本に権利・非支配持分を混ぜないための規則。静岡ガス `S100XTDX` の連結では、前期末の自己資本は118,112百万円、当期末は131,294百万円（純資産合計138,703百万円とは異なる）。
 
+### 企業公表ROE
+
+計算可否に関わらず、同じ有報の `CurrentYearDuration`（単体は `_NonConsolidatedMember`）から取得し、`financial_statements.disclosed_roe` に倍率の小数として保存する。金額科目のbigintには入れない。
+
+| 会計基準 | 標準タグ（`jpcrp_cor`） |
+|---|---|
+| 日本基準（IFRS企業の単体を含む） | `RateOfReturnOnEquitySummaryOfBusinessResults` |
+| IFRS | `RateOfReturnOnEquityIFRSSummaryOfBusinessResults` |
+| 米国基準 | `RateOfReturnOnEquityUSGAAPSummaryOfBusinessResults` |
+
+移行年度の併記を混同しないよう基準間のフォールバックは禁止。未開示・不正値はnull、0・負値は保持。抽出を確認した日時を `disclosed_roe_checked_at` に記録し、未移行と未開示を区別する。出典書類は関連reportのdocIDで追跡できる。
+
+ROEは計算値優先で、必要データ不足時のみ公表値を返す。`source` は計算値が `CALCULATED`、公表値が `DISCLOSED`。平均自己資本0以下の算出不可は補完しない。ROAや分解要素は公表ROEから逆算しない。シーラHD（S100YZFP）の公表37.2%は連結初年度のため期末自己資本を使うと注記されており、期首期末平均の計算値とは別物。
+
 ### 流動 / 非流動の区分（一般・分類のみ）
 
 銀行・保険と配列にはこの区分が存在しない。

@@ -69,6 +69,34 @@ RSpec.describe Ingestion::ReportIngester do
     end
   end
 
+  describe "企業公表ROEの保存" do
+    it "計算用科目とは別に小数を保存し、訂正・未開示への変更も反映する" do
+      facts = {
+        [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 100,
+        [ "jpcrp_cor:RateOfReturnOnEquitySummaryOfBusinessResults", "CurrentYearDuration_NonConsolidatedMember" ] => "0.1234567"
+      }
+      ingest("S0000001", annual_report_xml(facts: facts))
+      fs = Disclosure::FinancialStatement.sole
+      expect(fs.disclosed_roe).to eq 0.1234567.to_d
+      expect(fs.disclosed_roe_checked_at).not_to be_nil
+      facts[facts.keys.last] = "-0.02"
+      ingest("S0000001", annual_report_xml(facts: facts))
+      expect(fs.reload.disclosed_roe).to eq(-0.02.to_d)
+      ingest("S0000001", annual_report_xml)
+      expect(fs.reload.disclosed_roe).to be_nil
+      expect(fs.disclosed_roe_checked_at).not_to be_nil
+    end
+
+    it "財務factのない訂正書類では既存公表値を消さない" do
+      ingest("S0000001", annual_report_xml(facts: {
+        [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 100,
+        [ "jpcrp_cor:RateOfReturnOnEquitySummaryOfBusinessResults", "CurrentYearDuration_NonConsolidatedMember" ] => "0.123"
+      }))
+      ingest("S0000001", annual_report_xml(facts: {}))
+      expect(Disclosure::FinancialStatement.sole.disclosed_roe).to eq 0.123.to_d
+    end
+  end
+
   describe "primaryの財務諸表でbs.assetsが無いときの警告" do
     it "BSを抽出する形式では形式判定ミスの可能性として警告する" do
       expect(Sentry).to receive(:capture_message)

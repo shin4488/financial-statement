@@ -12,6 +12,10 @@ type FinancialIndicators {
 }
 
 type FinancialMetric {
+  """
+  値の出所。欠損・算出不可ではnull
+  """
+  source: FinancialMetricSource
   status: FinancialMetricStatus!
 
   """
@@ -20,9 +24,21 @@ type FinancialMetric {
   value: Float
 }
 
+enum FinancialMetricSource {
+  """
+  当サイトの定義による計算値
+  """
+  CALCULATED
+
+  """
+  同じ有報・会計基準・連結区分の企業公表値。計算条件は提出書類の注記による
+  """
+  DISCLOSED
+}
+
 enum FinancialMetricStatus {
   """
-  算出済み
+  計算値または企業公表値あり
   """
   AVAILABLE
 

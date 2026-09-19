@@ -20,7 +20,7 @@ export const FINANCIAL_REPORTS_QUERY = gql(`
       accountingStandard
       consolidationType
       financialIndicators {
-        roe { value status }
+        roe { value status source }
         roa { value status }
         netProfitMargin { value status }
         assetTurnover { value status }

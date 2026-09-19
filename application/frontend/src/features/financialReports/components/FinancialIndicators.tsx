@@ -1,10 +1,10 @@
 import React from 'react';
-import { Box, Chip, Stack, Typography } from '@mui/material';
+import { Box, Chip, Stack, Tooltip, Typography } from '@mui/material';
 import { amber, green, purple } from '@mui/material/colors';
 import type { FinancialReport } from '../api/types';
 
 type Indicators = FinancialReport['financialIndicators'];
-type Metric = Indicators['roe'];
+type Metric = Indicators['roa'];
 
 const percent = new Intl.NumberFormat('ja-JP', {
   style: 'percent',
@@ -18,7 +18,7 @@ const multiple = new Intl.NumberFormat('ja-JP', {
 
 // 見出しと2行の列幅を共用する。罫線・外枠を作らず、MUIのBoxで必要な整列だけを指定する。
 const columns =
-  '32px minmax(0, 1fr) 12px minmax(0, 1fr) 12px minmax(0, 1fr) 12px minmax(0, 1fr)';
+  'clamp(36px, 10cqi, 46px) minmax(0, 1.1fr) 10px minmax(0, 1fr) 10px minmax(0, 1fr) 10px minmax(0, 1fr)';
 const factors = [
   {
     key: 'netProfitMargin',
@@ -48,11 +48,13 @@ function MetricValue({
   label,
   unit,
   highlight = false,
+  disclosed = false,
 }: {
   metric: Metric;
   label: string;
   unit?: string;
   highlight?: boolean;
+  disclosed?: boolean;
 }) {
   if (metric.status !== 'AVAILABLE' || metric.value == null) {
     const text = metric.status === 'NOT_CALCULABLE' ? '算出不可' : 'データなし';
@@ -62,10 +64,10 @@ function MetricValue({
         variant="caption"
         color="text.secondary"
         sx={{
-          fontSize: 'clamp(10px, 3cqi, 11px)',
+          fontSize: 'clamp(11px, 3.3cqi, 13px)',
           letterSpacing: 0,
           pt: 0.5,
-          whiteSpace: 'nowrap',
+          overflowWrap: 'anywhere',
         }}
       >
         {text}
@@ -79,20 +81,35 @@ function MetricValue({
         title={value}
         color={highlight ? 'primary.main' : 'text.primary'}
         sx={{
-          fontSize: 'clamp(11px, 4cqi, 20px)',
-          fontWeight: highlight ? 600 : 400,
+          fontSize: highlight
+            ? 'clamp(14px, 5.6cqi, 28px)'
+            : 'clamp(12px, 4.9cqi, 25px)',
+          fontWeight: highlight ? 800 : 600,
+          lineHeight: 1.3,
           fontVariantNumeric: 'tabular-nums',
           overflowWrap: 'anywhere',
         }}
       >
         {value}
       </Typography>
+      {disclosed && (
+        <Tooltip title="有価証券報告書の企業公表値です。当サイトの期首・期末平均による計算値ではありません。計算条件は提出書類の注記によります。">
+          <Typography
+            component="span"
+            tabIndex={0}
+            variant="caption"
+            color="text.secondary"
+          >
+            企業公表値
+          </Typography>
+        </Tooltip>
+      )}
       {unit && (
         <Typography
           variant="caption"
           color="text.secondary"
           title={`${multiple.format(metric.value)}${unit}`}
-          sx={{ fontSize: 10, overflowWrap: 'anywhere' }}
+          sx={{ fontSize: 'clamp(11px, 3cqi, 13px)', overflowWrap: 'anywhere' }}
         >
           {multiple.format(metric.value)}
           {unit}
@@ -107,7 +124,7 @@ function Operator({ children }: { children: React.ReactNode }) {
     <Typography
       aria-hidden="true"
       color="text.secondary"
-      sx={{ fontSize: 14, pt: 0.25 }}
+      sx={{ fontSize: 16, pt: 0.5 }}
     >
       {children}
     </Typography>
@@ -123,7 +140,7 @@ export function FinancialIndicators({
     <Stack
       component="section"
       aria-label="ROE・ROA"
-      spacing={4}
+      spacing={5}
       sx={{
         height: 400,
         justifyContent: 'center',
@@ -147,8 +164,9 @@ export function FinancialIndicators({
                 label={factor.category}
                 size="small"
                 sx={{
-                  height: 22,
-                  fontSize: 11,
+                  height: 28,
+                  fontSize: 'clamp(12px, 3.8cqi, 16px)',
+                  fontWeight: 600,
                   borderRadius: 1,
                   bgcolor: factor.colors[50],
                   color: factor.colors[800],
@@ -159,9 +177,10 @@ export function FinancialIndicators({
                 variant="caption"
                 color="text.secondary"
                 sx={{
-                  fontSize: 'clamp(10px, 3cqi, 12px)',
-                  lineHeight: 1.6,
-                  whiteSpace: 'nowrap',
+                  fontSize: 'clamp(10px, 3.6cqi, 16px)',
+                  fontWeight: 500,
+                  lineHeight: 1.5,
+                  letterSpacing: 0,
                 }}
               >
                 {factor.lines[0]}
@@ -180,12 +199,17 @@ export function FinancialIndicators({
           sx={{
             display: 'grid',
             gridTemplateColumns: columns,
-            minHeight: 48,
+            minHeight: 64,
             alignItems: 'start',
           }}
         >
           <Typography
-            sx={{ fontSize: 13, fontWeight: 600, textAlign: 'left', pt: 0.25 }}
+            sx={{
+              fontSize: 'clamp(16px, 4.5cqi, 20px)',
+              fontWeight: 800,
+              textAlign: 'left',
+              pt: 0.25,
+            }}
           >
             {key.toUpperCase()}
           </Typography>
@@ -193,6 +217,7 @@ export function FinancialIndicators({
             metric={indicators[key]}
             label={key.toUpperCase()}
             highlight
+            disclosed={key === 'roe' && indicators.roe.source === 'DISCLOSED'}
           />
           <Operator>=</Operator>
           {factors.map((factor, index) => (

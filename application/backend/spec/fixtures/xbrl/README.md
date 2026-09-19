@@ -11,7 +11,7 @@ bundle exec rails runner '
      S100YDJC S100YIHR S100YC7N S100YE63 S100Y9T5 S100Y90D S100XTDX S100YANQ S100YI2V
      S100YJB4 S100Y0DB S100YD29 S100YCL0 S100YE7T S100SO41
      S100XCO8 S100XTLJ S100YDP3 S100YGH5 S100YJHA
-     S100YH8W S100YEGP S100YGFW S100YGOL S100YIW6 S100YGFN S100YZ8K S100YRHX S100YWE4].each do |doc_id|
+     S100YH8W S100YEGP S100YGFW S100YGOL S100YIW6 S100YGFN S100YZ8K S100YRHX S100YWE4 S100YZFP].each do |doc_id|
     path = client.download_xbrl(doc_id: doc_id, work_dir: dir)
     puts "#{doc_id}: #{path}"
     sleep 2
@@ -55,7 +55,7 @@ bundle exec rails runner '
 | docID | 企業 | 検証ポイント |
 |---|---|---|
 | S100XCO8 | ピクセラ | 損失・新株予約権、調整差額の省略 |
-| S100XTLJ | キヤノン | 連結は米国基準で未対応、単体は日本基準で算出 |
+| S100XTLJ | キヤノン | 連結の本表は米国基準で未対応（公表ROEは取得）、単体は日本基準で算出 |
 | S100YDP3 | りそなHD | 銀行、高いレバレッジ、単体の調整差額nil |
 | S100YGH5 | ソフトバンクG | IFRS、非支配持分と親会社帰属利益 |
 | S100YJHA | ユニチカ | 期首の自己資本がマイナスでも平均がプラスのケース |
@@ -65,7 +65,7 @@ bundle exec rails runner '
 | S100YGOL | 北海道ガス | 内訳合算と売上総額の丸め差 |
 | S100YIW6 | 北陸ガス | ガスの連結・単体売上 |
 
-- アサックスの初年度連結は期首残高がないため、開示ROEや単体の残高で代用しない。
+- アサックスの初年度連結は期首残高がないため、ROEだけ企業公表値で補完する。単体の残高を連結の期首に代用しない。
 - イオン単体の開示ROEは2.7%だが、このアプリの仕様（期首期末平均）では24,972 ÷ ((635,287 + 911,005) ÷ 2) = 3.2299…%。入力金額の一致と計算式を別途確認する。会社公表の比率に合わせて式を変えない。
 - 三菱商事単体の収益は本表が標準の `jppfs_cor:Revenue`、サマリが企業拡張タグ。標準の本表から取得し、独自タグのサマリ金額とも照合する。
 
@@ -76,3 +76,5 @@ bundle exec rails runner '
 `S100YRHX`（信金中央金庫）は、株主資本に相当する「会員勘定合計」が標準の `ShareholdersEquityShinkinBNK` で開示される例。連結・単体とも評価差額を加え、非支配持分を含めず期首・期末自己資本を取得することを検証する。
 
 `S100YWE4`（丸井グループ）は、日本基準の収益が標準の `jppfs_cor:Revenue` で開示される例。収益276,862百万円を使い、売上関連の指標を欠損にしないことを検証する。
+
+`S100YZFP`（シーラHD）は連結初年度の公表ROE37.2%を保存・補完する回帰例。前年単体と当年連結の残高を混ぜず、ROA・レバレッジの欠損を残す。

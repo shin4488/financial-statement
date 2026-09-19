@@ -8,7 +8,7 @@ RSpec.describe "財務指標の取込から公開APIまで" do
       financialReports(limit: $limit, offset: $offset) {
         id stockCode companyName fiscalYearStartDate fiscalYearEndDate accountingStandard consolidationType
         financialIndicators {
-          roe { value status } roa { value status } netProfitMargin { value status }
+          roe { value status source } roa { value status } netProfitMargin { value status }
           assetTurnover { value status } financialLeverage { value status }
         }
         balanceSheet { renderable note bars { label segments { key label amount signedAmount ratio colorRole tooltipLabel } } }
@@ -50,6 +50,21 @@ RSpec.describe "財務指標の取込から公開APIまで" do
     expect(indicators.values.map { |metric| metric["status"] }).to all(eq("AVAILABLE"))
   end
 
+  context "計算用金額と異なる公表ROEがある場合" do
+    let(:xml) do
+      super().sub("</xbrli:xbrl>", '<jpcrp_cor:RateOfReturnOnEquitySummaryOfBusinessResults contextRef="CurrentYearDuration">0.2</jpcrp_cor:RateOfReturnOnEquitySummaryOfBusinessResults></xbrli:xbrl>')
+    end
+
+    it "両方の入力を保存し、公開APIは計算値を優先する" do
+      ingest_report
+      expect(Disclosure::FinancialStatement.find_by!(is_primary: true).disclosed_roe).to eq 0.2.to_d
+      response = FinancialStatementSchema.execute(query, variables: { limit: 100, offset: 0 }).to_h
+      expect(response["errors"]).to be_nil
+      expect(response.dig("data", "financialReports", 0, "financialIndicators", "roe"))
+        .to eq("value" => 0.16, "status" => "AVAILABLE", "source" => "CALCULATED")
+    end
+  end
+
   it "指標追加前の保存データを再取込すると、同じカードIDの公開APIが欠損から計算値に変わる" do
     ingest_report
     # 旧取込は期首残高・自己資本を保存していなかった状態を再現する。
@@ -67,8 +82,24 @@ RSpec.describe "財務指標の取込から公開APIまで" do
     expect(after["errors"]).to be_nil
     card_after = after.dig("data", "financialReports", 0)
     expect(card_after["id"]).to eq(card_before["id"])
-    expect(card_after.dig("financialIndicators", "roe")).to eq("value" => 0.16, "status" => "AVAILABLE")
+    expect(card_after.dig("financialIndicators", "roe")).to eq("value" => 0.16, "status" => "AVAILABLE", "source" => "CALCULATED")
     expect(card_after.dig("financialIndicators", "roa")).to eq("value" => 0.064, "status" => "AVAILABLE")
+  end
+
+  it "期首がない企業の公表ROEを保存し、APIで出所を区別する" do
+    disclosed_xml = synthetic_xbrl_xml(dei: { has_consolidated: "true" }, facts: {
+      [ "jppfs_cor:Assets", "CurrentYearInstant" ] => 70_482_000_000,
+      [ "jpcrp_cor:RateOfReturnOnEquitySummaryOfBusinessResults", "CurrentYearDuration" ] => "0.372"
+    })
+    Dir.mktmpdir do |dir|
+      Ingestion::ReportIngester.new(client: FakeEdinetClient.new("S0000001" => disclosed_xml))
+                              .ingest(doc_id: "S0000001", work_dir: dir)
+    end
+    result = FinancialStatementSchema.execute(query, variables: { limit: 100, offset: 0 }).to_h
+    expect(result["errors"]).to be_nil
+    metrics = result.dig("data", "financialReports", 0, "financialIndicators")
+    expect(metrics["roe"]).to eq("value" => 0.372, "status" => "AVAILABLE", "source" => "DISCLOSED")
+    expect(metrics["roa"]["status"]).to eq "MISSING_DATA"
   end
 
   it "データ欠損と分母0以下を別の状態で返し、カード全体をエラーにしない" do
@@ -80,7 +111,7 @@ RSpec.describe "財務指標の取込から公開APIまで" do
     result = FinancialStatementSchema.execute(query, variables: { limit: 30, offset: 0 }).to_h
     expect(result["errors"]).to be_nil
     indicators = result.dig("data", "financialReports", 0, "financialIndicators")
-    expect(indicators["roe"]).to eq("value" => nil, "status" => "NOT_CALCULABLE")
+    expect(indicators["roe"]).to eq("value" => nil, "status" => "NOT_CALCULABLE", "source" => nil)
     expect(indicators["roa"]).to eq("value" => 0.064, "status" => "AVAILABLE")
     expect(indicators["netProfitMargin"]).to eq("value" => nil, "status" => "MISSING_DATA")
   end

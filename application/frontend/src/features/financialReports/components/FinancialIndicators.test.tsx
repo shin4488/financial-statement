@@ -8,6 +8,7 @@ const available = (
 ): FinancialReport['financialIndicators']['roe'] => ({
   value,
   status: 'AVAILABLE',
+  source: 'CALCULATED',
 });
 const data: FinancialReport['financialIndicators'] = {
   roe: available(0.16),
@@ -37,7 +38,11 @@ it('ROE・ROAと3つの分類、分解する数値・記号を表示する', () 
 });
 
 it('欠損は「データなし」、対象外のセルだけ「—」にし、記号は残す', () => {
-  const missing = { value: null, status: 'MISSING_DATA' as const };
+  const missing = {
+    value: null,
+    status: 'MISSING_DATA' as const,
+    source: null,
+  };
   render(
     <FinancialIndicators
       indicators={{
@@ -57,7 +62,11 @@ it('欠損は「データなし」、対象外のセルだけ「—」にし、�
 });
 
 it('算出不可を欠損と区別し、算出できるROAを残す', () => {
-  const invalid = { value: null, status: 'NOT_CALCULABLE' as const };
+  const invalid = {
+    value: null,
+    status: 'NOT_CALCULABLE' as const,
+    source: null,
+  };
   render(
     <FinancialIndicators
       indicators={{ ...data, roe: invalid, financialLeverage: invalid }}
@@ -77,4 +86,23 @@ it('ゼロ利益・赤字は欠損として表示しない', () => {
   expect(screen.getByLabelText('ROE：0.0%')).toBeTruthy();
   expect(screen.getByLabelText('ROA：-6.4%')).toBeTruthy();
   expect(screen.queryByText('データなし')).toBeNull();
+});
+
+it('企業公表値で補完したROEだけに出所を示す', () => {
+  render(
+    <FinancialIndicators
+      indicators={{
+        ...data,
+        roe: { value: 0.372, status: 'AVAILABLE', source: 'DISCLOSED' },
+      }}
+    />,
+  );
+  const roe = within(screen.getByRole('group', { name: 'ROE' }));
+  expect(roe.getByLabelText('ROE：37.2%')).toBeTruthy();
+  expect(roe.getByText('企業公表値')).toBeTruthy();
+  expect(
+    within(screen.getByRole('group', { name: 'ROA' })).queryByText(
+      '企業公表値',
+    ),
+  ).toBeNull();
 });

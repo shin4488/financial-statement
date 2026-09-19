@@ -54,7 +54,10 @@ RSpec.describe "財務指標の実有報サンプル照合" do
   def verify_statement(statement, doc_id)
     metrics = FinancialStatements::Indicators.build(statement)
     if statement.presentation_format == "unsupported"
-      expect(metrics.values.map(&:status)).to all(eq("missing_data"))
+      published = summary("RateOfReturnOnEquityUSGAAP", "CurrentYearDuration")
+      expect(statement.disclosed_roe).to eq published&.fetch(:value)
+      expect_metric(metrics[:roe], published&.fetch(:value))
+      expect(metrics.values_at(:roa, :net_profit_margin, :asset_turnover, :financial_leverage).map(&:status)).to all(eq("missing_data"))
       return
     end
     suffix = statement.consolidated? ? "" : "_NonConsolidatedMember"
@@ -101,8 +104,10 @@ RSpec.describe "財務指標の実有報サンプル照合" do
     end
     disclosed_roe = summary(ifrs ? "RateOfReturnOnEquityIFRS" : "RateOfReturnOnEquity", duration)
     if doc_id == "S100YI2V" && statement.consolidated?
-      # 初年度連結で期首残高がない。記載されたROEや単体の期首を代用しない。
-      expect(metrics.values_at(:roe, :roa, :financial_leverage).map(&:status)).to all(eq("missing_data"))
+      # 初年度連結のROEは企業公表値で補完する。他の指標の期首は捏造しない。
+      expect(metrics[:roe].value).to eq disclosed_roe[:value].to_f
+      expect(metrics[:roe].source).to eq "disclosed"
+      expect(metrics.values_at(:roa, :financial_leverage).map(&:status)).to all(eq("missing_data"))
     elsif doc_id == "S100YQ6Y" && !statement.consolidated?
       # イオン単体の開示値2.7%とは異なるが、本仕様は平均(635,287+911,005)/2百万を分母にする。
       expect(metrics[:roe].value).to be_within(1e-12).of(24_972.0 / 773_146)

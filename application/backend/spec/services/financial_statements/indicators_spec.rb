@@ -9,10 +9,11 @@ RSpec.describe FinancialStatements::Indicators do
       "bs.equity" => 900
     }
   end
+  let(:disclosed_roe) { nil }
   let(:consolidated) { true }
   subject(:indicators) do
     described_class.build(instance_double(Disclosure::FinancialStatement,
-                                         items_hash: items, consolidated?: consolidated))
+                                         items_hash: items, consolidated?: consolidated, disclosed_roe: disclosed_roe))
   end
 
   it "期首期末平均と親会社帰属利益を使い、丸め前の分解式が一致する" do
@@ -23,8 +24,50 @@ RSpec.describe FinancialStatements::Indicators do
       .to be_within(1e-12).of(indicators[:roe].value)
   end
 
+  context "企業公表値がある場合" do
+    let(:disclosed_roe) { 0.372.to_d }
+
+    it "計算できるときは公表値と異なっても計算値を優先する" do
+      expect(indicators[:roe].value).to eq 0.16
+      expect(indicators[:roe].source).to eq "calculated"
+    end
+
+    it "期首自己資本がないときは公表値を補完し、分解要素は捏造しない" do
+      items.delete("bs.equity_attributable_to_owners_begin")
+      expect(indicators[:roe].value).to eq 0.372
+      expect(indicators[:roe].source).to eq "disclosed"
+      expect(indicators[:financial_leverage].status).to eq "missing_data"
+      expect(indicators[:roa].value).to eq 0.064
+    end
+
+    it "利益が欠けても企業が開示したROEは取得できる" do
+      items.delete("pl.profit_attributable_to_owners")
+      expect(indicators[:roe].value).to eq 0.372
+      expect(indicators[:net_profit_margin].status).to eq "missing_data"
+    end
+
+    it "平均自己資本が負の場合は算出不可を公表値で隠さない" do
+      items["bs.equity_attributable_to_owners_begin"] = -700
+      items.delete("pl.profit_attributable_to_owners")
+      expect(indicators[:roe].status).to eq "not_calculable"
+      expect(indicators[:roe].source).to be_nil
+    end
+
+    [ 0, -0.2 ].each do |value|
+      context "公表値が#{value}" do
+        let(:disclosed_roe) { value.to_d }
+        it "ゼロ・負値も公表値のまま表示する" do
+          items.clear
+          expect(indicators[:roe].value).to eq value
+          expect(indicators[:roe].source).to eq "disclosed"
+        end
+      end
+    end
+  end
+
   context "単体" do
-    let(:consolidated) { false }
+    let(:disclosed_roe) { nil }
+  let(:consolidated) { false }
     it "親会社帰属利益ではなく当期純利益を使う" do
       expect(indicators[:roe].value).to eq 0.2
       expect(indicators[:roa].value).to eq 0.08

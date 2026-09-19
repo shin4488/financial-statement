@@ -140,7 +140,7 @@ RSpec.describe "指標用の期首・期末データの抽出" do
     # 飯野海運: 海運104,979百万円 + 不動産11,909百万円。総額は標準サマリにも開示される。
     expect(items["pl.revenue"]).to eq 116_888_000_000
     metrics = FinancialStatements::Indicators.build(instance_double(Disclosure::FinancialStatement,
-                                                                    items_hash: items, consolidated?: false))
+                                                                    items_hash: items, consolidated?: false, disclosed_roe: nil))
     expect(metrics[:net_profit_margin].value).to be_within(1e-12).of(12_756.0 / 116_888)
     expect(metrics[:asset_turnover].value).to be_within(1e-12).of(116_888.0 / ((228_116 + 243_418) / 2.0))
   end
@@ -154,7 +154,7 @@ RSpec.describe "指標用の期首・期末データの抽出" do
     })
     items = Ingestion::Extractors::JgaapGeneral.new(xbrl, "").extract
     metrics = FinancialStatements::Indicators.build(instance_double(Disclosure::FinancialStatement,
-                                                                    items_hash: items, consolidated?: true))
+                                                                    items_hash: items, consolidated?: true, disclosed_roe: nil))
     expect(metrics[:net_profit_margin].value).to eq 0.08
     expect(metrics[:asset_turnover].value).to eq 0.8
   end
@@ -163,7 +163,7 @@ RSpec.describe "指標用の期首・期末データの抽出" do
     items = Ingestion::Extractors::JgaapGeneral.new(load_xbrl_fixture("S100YWE4"), "").extract
     expect(items["pl.revenue"]).to eq 276_862_000_000
     metrics = FinancialStatements::Indicators.build(instance_double(Disclosure::FinancialStatement,
-                                                                    items_hash: items, consolidated?: true))
+                                                                    items_hash: items, consolidated?: true, disclosed_roe: nil))
     expect(metrics[:net_profit_margin].value).to be_within(1e-12).of(28_476.0 / 276_862)
     expect(metrics[:asset_turnover].value).to be_within(1e-12).of(276_862.0 / ((1_053_352 + 1_141_276) / 2.0))
   end
