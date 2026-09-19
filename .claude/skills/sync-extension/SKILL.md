@@ -1,6 +1,6 @@
 ---
 name: sync-extension
-description: フロントエンド（application/frontend）の変更をブラウザ拡張リポジトリ（financial-statement-chrome-extension）へ同期する手順。フロントエンドに変更を入れたとき・「拡張に反映して」のときに使用する。
+description: 共有チャート、GraphQL、colorRolesの契約を変更したとき、または依頼されたときにブラウザ拡張へ同期する。
 ---
 
 # ブラウザ拡張への同期
@@ -43,13 +43,13 @@ diff -r application/frontend/src/shared/financialCharts "$EXT/src/shared/financi
 3. 拡張側READMEに「## コピー元」節（コピー運用の説明）を復元する（コピーで消えるため。内容は拡張側のgit履歴を参照）
 4. 拡張側のprettierで整形する: `(cd "$EXT" && npx prettier --write "src/shared/financialCharts/**")`
 5. 下の「ローカルでの動作確認」を全て通す
-6. push → PR作成（マージはユーザーが行う）
+6. PR作成まで依頼されている場合はpushしてPRを作る。マージはユーザーが行う。
 
-## ローカルでの動作確認（批判的・網羅的に）
+## ローカルでの動作確認
 
 「コピーできた」「ビルドが通った」で済ませず、拡張の実挙動まで確認してから完了とする。
 
-1. **差分の全数確認**: `git diff` を1hunkずつ読み、意図した変更だけかを確認する。
+1. **差分の確認**: `git diff` で同期対象と許容する整形差分だけかを確認する。
    意図しないtsx差分が残っていたらコピー漏れかprettier整形漏れ
 2. **静的検証**: 拡張リポジトリで `yarn lint` / `yarn lint:type` / `yarn test` が全件通ること
 3. **ビルド**: `npx vite build --mode development`（ローカルAPI接続の開発ビルド）が通ること
