@@ -12,4 +12,4 @@ Web 版とブラウザ拡張が同じ表示を使うためのコンポーネン�
 
 コピー元は financial-statement の `application/frontend/src/shared/financialIndicators/`。変更はコピー元に入れ、ディレクトリ全体を拡張の `src/shared/financialIndicators/` に同期する。拡張側の Prettier 整形差分だけを許容する。
 
-拡張のポップアップでは `compact` を指定し、指標を上寄せにして高さを 300px にする。Web 版は既定の 400px を使う。
+Web・拡張ともに、指標を上寄せ・高さ300px・上余白8pxで表示する。

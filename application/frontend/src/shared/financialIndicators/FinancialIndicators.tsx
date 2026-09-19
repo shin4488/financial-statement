@@ -146,10 +146,8 @@ function Operator({ children }: { children: React.ReactNode }) {
 
 export function FinancialIndicators({
   indicators,
-  compact = false,
 }: {
   indicators?: FinancialIndicatorsData | null;
-  compact?: boolean;
 }) {
   // 拡張の永続化済みキャッシュには追加前のレスポンスが残ることがある。
   const values = indicators ?? emptyIndicators;
@@ -159,9 +157,9 @@ export function FinancialIndicators({
       aria-label="ROE・ROA"
       spacing={5}
       sx={{
-        height: compact ? 300 : 400,
-        justifyContent: compact ? 'flex-start' : 'center',
-        pt: compact ? 1 : 0,
+        height: 300,
+        justifyContent: 'flex-start',
+        pt: 1,
         textAlign: 'center',
         containerType: 'inline-size',
       }}
