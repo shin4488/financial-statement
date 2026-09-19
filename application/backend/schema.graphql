@@ -3,6 +3,40 @@ enum CashFlowSign {
   POSITIVE
 }
 
+type FinancialIndicators {
+  assetTurnover: FinancialMetric!
+  financialLeverage: FinancialMetric!
+  netProfitMargin: FinancialMetric!
+  roa: FinancialMetric!
+  roe: FinancialMetric!
+}
+
+type FinancialMetric {
+  status: FinancialMetricStatus!
+
+  """
+  倍率（0.16 = 16%）。表示直前まで丸めない
+  """
+  value: Float
+}
+
+enum FinancialMetricStatus {
+  """
+  算出済み
+  """
+  AVAILABLE
+
+  """
+  必要な金額・期首値がない
+  """
+  MISSING_DATA
+
+  """
+  分母が0以下などの理由で算出できない
+  """
+  NOT_CALCULABLE
+}
+
 type FinancialReport {
   """
   表示中の財務諸表の基準（バッジ表示用。描画分岐に使わないこと）
@@ -17,6 +51,7 @@ type FinancialReport {
   """
   consolidationType: String!
   filingDate: String
+  financialIndicators: FinancialIndicators!
   fiscalYearEndDate: String!
   fiscalYearStartDate: String!
   id: ID!

@@ -9,16 +9,18 @@ module FinancialStatements
     # （%w[] 内にはコメントを書けないため。この可読性はレジストリの本質的な価値なので崩さないこと）
     #
     # ifrs_summary（経営指標サマリのみで構成する形式）は各セクションの形式の列挙に含めず、
-    # ここに1回だけ記す: 保存するのは pl.revenue / pl.profit_before_tax / cf.* の7コードのみ
+    # PL・CFに加え、指標に必要な総資産・自己資本（期首/期末）・親会社帰属利益を保存する
 
     BS = [
       # ---- 全形式共通（jgaap_general / jgaap_bank / jgaap_insurance / ifrs_classified / ifrs_liquidity すべてが保存する）----
       "bs.assets",                        # 資産合計
+      "bs.assets_begin",                  # 同じ有報の前期末総資産（期首）
+      "bs.equity_attributable_to_owners", # 自己資本（日本基準）/ 親会社所有者帰属持分（IFRS）
+      "bs.equity_attributable_to_owners_begin", # 同じ有報の前期末自己資本（期首）
       "bs.liabilities",                   # 負債合計
       "bs.equity",                        # 資本合計（日本基準では純資産合計）
       "bs.cash_and_equivalents",          # 現金及び現金同等物（銀行は「現金預け金」、保険は「現金及び預貯金」）
       # ---- IFRSのみ（ifrs_classified / ifrs_liquidity が保存する）----
-      "bs.equity_attributable_to_owners", # 親会社の所有者に帰属する持分
       "bs.non_controlling_interests",     # 非支配持分
       # ---- 流動/非流動の分類がある形式のみ（jgaap_general / ifrs_classified が保存する）----
       "bs.current_assets",                # 流動資産

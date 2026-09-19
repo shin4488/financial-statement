@@ -19,6 +19,13 @@ export const FINANCIAL_REPORTS_QUERY = gql(`
       fiscalYearEndDate
       accountingStandard
       consolidationType
+      financialIndicators {
+        roe { value status }
+        roa { value status }
+        netProfitMargin { value status }
+        assetTurnover { value status }
+        financialLeverage { value status }
+      }
       balanceSheet {
         renderable
         note

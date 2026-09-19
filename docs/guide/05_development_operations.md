@@ -57,6 +57,16 @@ docker compose exec appserver bash -c 'cd /home/app/financialStatement && bundle
 - `0 failures` だけでなくpendingがないことを確認する。不足する入力は [フィクスチャの手順](../../application/backend/spec/fixtures/xbrl/README.md) に従って用意する。
 - ほかのspecはCIが実行する。このローカル専用範囲が未実施なら、CI成功だけで検証済みとは扱わない。
 
+### 指標用データの追加後の再取込
+
+ROE・ROAは期首総資産・期首自己資本などの追加科目を使う。既存レコードはDBマイグレーションだけでは埋まらず、不足した指標は「データなし」になる。必要な有報のdocIDを既存のタスクへ渡し、順次再取込する。
+
+```bash
+bundle exec rake 'ingestion:documents[S100XTDX S100YB5L]'
+```
+
+このタスクは有報全体を再取得して科目を入れ替える。既存の日次取込と同じ逐次・間隔付きの実行を使い、EDINETリクエストを並列化しない。期首が開示されていない有報は、再取込しても期末だけで代用しない。追加フィールドは既存クエリに対して後方互換だが、新しいWebクエリを配信する前にバックエンドを反映する。
+
 ## 本番環境の構成
 
 さくらVPS1台に全コンポーネントが同居する。開発環境（Docker）と違いコンテナは使わず、OS上に直接構築されている。

@@ -14,5 +14,6 @@ module Types
     field :balance_sheet, Types::Chart::StackChartType, null: false
     field :profit_loss, Types::Chart::StackChartType, null: false
     field :cash_flow, Types::Chart::WaterfallChartType, null: false
+    field :financial_indicators, Types::FinancialIndicatorsType, null: false
   end
 end

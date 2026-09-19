@@ -6,6 +6,7 @@ class Ingestion::Extractors::JgaapBank < Ingestion::Extractors::Base
     "bs.assets"               => "jppfs_cor:Assets",
     "bs.liabilities"          => "jppfs_cor:Liabilities",
     "bs.equity"               => "jppfs_cor:NetAssets",
+    "bs.equity_attributable_to_owners" => Ingestion::Extractors::JgaapOwnersEquity.new,
     "bs.loans"                => "jppfs_cor:LoansAndBillsDiscountedAssetsBNK",
     "bs.securities"           => "jppfs_cor:SecuritiesAssetsBNK",
     # BSの「現金預け金」とCFの「現金及び現金同等物」は銀行では別概念のため別タグ

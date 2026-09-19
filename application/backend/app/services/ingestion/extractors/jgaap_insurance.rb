@@ -8,6 +8,7 @@ class Ingestion::Extractors::JgaapInsurance < Ingestion::Extractors::Base
     "bs.assets"               => "jppfs_cor:Assets",
     "bs.liabilities"          => "jppfs_cor:Liabilities",
     "bs.equity"               => "jppfs_cor:NetAssets",
+    "bs.equity_attributable_to_owners" => Ingestion::Extractors::JgaapOwnersEquity.new,
     # 保険のBS「現金及び預貯金」。銀行の現金預け金と同様、CFの現金同等物とは別概念のため別タグ
     "bs.cash_and_equivalents" => "jppfs_cor:CashAndDepositsAssetsINS",
     "bs.securities"           => "jppfs_cor:SecuritiesAssetsINS",        # 有価証券（保険会社の資産の大半）

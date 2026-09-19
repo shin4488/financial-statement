@@ -77,12 +77,13 @@ RSpec.describe Ingestion::ReportIngester do
         facts: { [ "jppfs_cor:NetSales", "CurrentYearDuration_NonConsolidatedMember" ] => 100 }))
     end
 
-    it "BSを抽出しない形式（ifrs_summaryなど）では警告しない" do
+    it "ifrs_summaryで指標用の総資産を取得できれば警告しない" do
       expect(Sentry).not_to receive(:capture_message).with(/primary statement missing bs\.assets/, anything)
       # 詳細タグの無いIFRS有報（経営指標サマリのみ）→ ifrs_summary
       ingest("S0000001", synthetic_xbrl_xml(
         dei: { accounting_standard: "IFRS", has_consolidated: "true" },
-        facts: { [ "jpcrp_cor:RevenueIFRSSummaryOfBusinessResults", "CurrentYearDuration" ] => 100 }))
+        facts: { [ "jpcrp_cor:RevenueIFRSSummaryOfBusinessResults", "CurrentYearDuration" ] => 100,
+                 [ "jpcrp_cor:TotalAssetsIFRSSummaryOfBusinessResults", "CurrentYearInstant" ] => 200 }))
 
       expect(Disclosure::FinancialStatement.find_by(consolidation_type: :consolidated).presentation_format)
         .to eq "ifrs_summary"

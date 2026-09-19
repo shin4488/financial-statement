@@ -51,6 +51,7 @@ module Resolvers
           accounting_standard: fs.accounting_standard,
           consolidation_type: fs.consolidation_type,
           presentation_format: fs.presentation_format,
+          financial_indicators: FinancialStatements::Indicators.build(fs),
           **charts # balance_sheet: / profit_loss: / cash_flow: が展開される
         }
       end

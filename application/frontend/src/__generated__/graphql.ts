@@ -2,11 +2,21 @@
 /** Internal type. DO NOT USE DIRECTLY. */
 type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 /** Internal type. DO NOT USE DIRECTLY. */
-export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
+export type Incremental<T> =
+  | T
+  | {
+      [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never;
+    };
 import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
-export type CashFlowSign =
-  | 'NEGATIVE'
-  | 'POSITIVE';
+export type CashFlowSign = 'NEGATIVE' | 'POSITIVE';
+
+export type FinancialMetricStatus =
+  /** 算出済み */
+  | 'AVAILABLE'
+  /** 必要な金額・期首値がない */
+  | 'MISSING_DATA'
+  /** 分母が0以下などの理由で算出できない */
+  | 'NOT_CALCULABLE';
 
 export type FinancialReportsQueryVariables = Exact<{
   limit: number;
@@ -17,8 +27,515 @@ export type FinancialReportsQueryVariables = Exact<{
   financingCfSign?: CashFlowSign | null | undefined;
 }>;
 
+export type FinancialReportsQuery = {
+  financialReports: Array<{
+    id: string;
+    stockCode: string | null;
+    companyName: string | null;
+    fiscalYearStartDate: string;
+    fiscalYearEndDate: string;
+    accountingStandard: string;
+    consolidationType: string;
+    financialIndicators: {
+      roe: { value: number | null; status: FinancialMetricStatus };
+      roa: { value: number | null; status: FinancialMetricStatus };
+      netProfitMargin: { value: number | null; status: FinancialMetricStatus };
+      assetTurnover: { value: number | null; status: FinancialMetricStatus };
+      financialLeverage: {
+        value: number | null;
+        status: FinancialMetricStatus;
+      };
+    };
+    balanceSheet: {
+      renderable: boolean;
+      note: string | null;
+      bars: Array<{
+        label: string;
+        segments: Array<{
+          key: string;
+          label: string;
+          amount: number;
+          signedAmount: number;
+          ratio: number | null;
+          colorRole: string;
+          tooltipLabel: string | null;
+        }>;
+      }>;
+    };
+    profitLoss: {
+      renderable: boolean;
+      note: string | null;
+      bars: Array<{
+        label: string;
+        segments: Array<{
+          key: string;
+          label: string;
+          amount: number;
+          signedAmount: number;
+          ratio: number | null;
+          colorRole: string;
+          tooltipLabel: string | null;
+        }>;
+      }>;
+    };
+    cashFlow: {
+      renderable: boolean;
+      note: string | null;
+      steps: Array<{
+        key: string;
+        label: string;
+        amount: number;
+        kind: string;
+        colorRole: string;
+      }>;
+    };
+  }>;
+};
 
-export type FinancialReportsQuery = { financialReports: Array<{ id: string, stockCode: string | null, companyName: string | null, fiscalYearStartDate: string, fiscalYearEndDate: string, accountingStandard: string, consolidationType: string, balanceSheet: { renderable: boolean, note: string | null, bars: Array<{ label: string, segments: Array<{ key: string, label: string, amount: number, signedAmount: number, ratio: number | null, colorRole: string, tooltipLabel: string | null }> }> }, profitLoss: { renderable: boolean, note: string | null, bars: Array<{ label: string, segments: Array<{ key: string, label: string, amount: number, signedAmount: number, ratio: number | null, colorRole: string, tooltipLabel: string | null }> }> }, cashFlow: { renderable: boolean, note: string | null, steps: Array<{ key: string, label: string, amount: number, kind: string, colorRole: string }> } }> };
-
-
-export const FinancialReportsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"FinancialReports"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"limit"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"offset"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"stockCodes"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"operatingCfSign"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"CashFlowSign"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"investingCfSign"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"CashFlowSign"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"financingCfSign"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"CashFlowSign"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"financialReports"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"limit"}}},{"kind":"Argument","name":{"kind":"Name","value":"offset"},"value":{"kind":"Variable","name":{"kind":"Name","value":"offset"}}},{"kind":"Argument","name":{"kind":"Name","value":"stockCodes"},"value":{"kind":"Variable","name":{"kind":"Name","value":"stockCodes"}}},{"kind":"Argument","name":{"kind":"Name","value":"operatingCfSign"},"value":{"kind":"Variable","name":{"kind":"Name","value":"operatingCfSign"}}},{"kind":"Argument","name":{"kind":"Name","value":"investingCfSign"},"value":{"kind":"Variable","name":{"kind":"Name","value":"investingCfSign"}}},{"kind":"Argument","name":{"kind":"Name","value":"financingCfSign"},"value":{"kind":"Variable","name":{"kind":"Name","value":"financingCfSign"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"stockCode"}},{"kind":"Field","name":{"kind":"Name","value":"companyName"}},{"kind":"Field","name":{"kind":"Name","value":"fiscalYearStartDate"}},{"kind":"Field","name":{"kind":"Name","value":"fiscalYearEndDate"}},{"kind":"Field","name":{"kind":"Name","value":"accountingStandard"}},{"kind":"Field","name":{"kind":"Name","value":"consolidationType"}},{"kind":"Field","name":{"kind":"Name","value":"balanceSheet"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"renderable"}},{"kind":"Field","name":{"kind":"Name","value":"note"}},{"kind":"Field","name":{"kind":"Name","value":"bars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"segments"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"signedAmount"}},{"kind":"Field","name":{"kind":"Name","value":"ratio"}},{"kind":"Field","name":{"kind":"Name","value":"colorRole"}},{"kind":"Field","name":{"kind":"Name","value":"tooltipLabel"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"profitLoss"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"renderable"}},{"kind":"Field","name":{"kind":"Name","value":"note"}},{"kind":"Field","name":{"kind":"Name","value":"bars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"segments"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"signedAmount"}},{"kind":"Field","name":{"kind":"Name","value":"ratio"}},{"kind":"Field","name":{"kind":"Name","value":"colorRole"}},{"kind":"Field","name":{"kind":"Name","value":"tooltipLabel"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"cashFlow"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"renderable"}},{"kind":"Field","name":{"kind":"Name","value":"note"}},{"kind":"Field","name":{"kind":"Name","value":"steps"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"kind"}},{"kind":"Field","name":{"kind":"Name","value":"colorRole"}}]}}]}}]}}]}}]} as unknown as DocumentNode<FinancialReportsQuery, FinancialReportsQueryVariables>;
+export const FinancialReportsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'FinancialReports' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'limit' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'offset' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'stockCodes' },
+          },
+          type: {
+            kind: 'ListType',
+            type: {
+              kind: 'NonNullType',
+              type: {
+                kind: 'NamedType',
+                name: { kind: 'Name', value: 'String' },
+              },
+            },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'operatingCfSign' },
+          },
+          type: {
+            kind: 'NamedType',
+            name: { kind: 'Name', value: 'CashFlowSign' },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'investingCfSign' },
+          },
+          type: {
+            kind: 'NamedType',
+            name: { kind: 'Name', value: 'CashFlowSign' },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'financingCfSign' },
+          },
+          type: {
+            kind: 'NamedType',
+            name: { kind: 'Name', value: 'CashFlowSign' },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'financialReports' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'limit' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'limit' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'offset' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'offset' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'stockCodes' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'stockCodes' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'operatingCfSign' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'operatingCfSign' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'investingCfSign' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'investingCfSign' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'financingCfSign' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'financingCfSign' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'stockCode' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'companyName' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'fiscalYearStartDate' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'fiscalYearEndDate' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'accountingStandard' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'consolidationType' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'financialIndicators' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'roe' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'value' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'status' },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'roa' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'value' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'status' },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'netProfitMargin' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'value' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'status' },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'assetTurnover' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'value' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'status' },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'financialLeverage' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'value' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'status' },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'balanceSheet' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'renderable' },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'note' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'bars' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'label' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'segments' },
+                              selectionSet: {
+                                kind: 'SelectionSet',
+                                selections: [
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'key' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'label' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'amount' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: {
+                                      kind: 'Name',
+                                      value: 'signedAmount',
+                                    },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'ratio' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'colorRole' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: {
+                                      kind: 'Name',
+                                      value: 'tooltipLabel',
+                                    },
+                                  },
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'profitLoss' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'renderable' },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'note' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'bars' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'label' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'segments' },
+                              selectionSet: {
+                                kind: 'SelectionSet',
+                                selections: [
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'key' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'label' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'amount' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: {
+                                      kind: 'Name',
+                                      value: 'signedAmount',
+                                    },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'ratio' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'colorRole' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: {
+                                      kind: 'Name',
+                                      value: 'tooltipLabel',
+                                    },
+                                  },
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'cashFlow' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'renderable' },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'note' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'steps' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'key' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'label' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'amount' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'kind' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'colorRole' },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  FinancialReportsQuery,
+  FinancialReportsQueryVariables
+>;

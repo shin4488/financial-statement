@@ -6,6 +6,13 @@ module Ingestion
       CONSOLIDATED = "".freeze
       NON_CONSOLIDATED = "_NonConsolidatedMember".freeze
 
+      # 同じ有報・同じ連結区分の前期末を期首として使う。別の有報を検索して補完しない。
+      OPENING_ITEMS = {
+        "cf.cash_end" => "cf.cash_begin",
+        "bs.assets" => "bs.assets_begin",
+        "bs.equity_attributable_to_owners" => "bs.equity_attributable_to_owners_begin"
+      }.freeze
+
       # マッピング表の値の書き方（4記法）:
       #   "jppfs_cor:NetSales"                  … 単一タグ
       #   [ "…:A", "…:B" ]                     … フォールバック順のリスト（先に取れた方を採用）
@@ -61,7 +68,7 @@ module Ingestion
       # この形式が生成し得る科目コードの一覧
       def self.item_codes
         codes = self::INSTANT_MAPPING.keys + self::DURATION_MAPPING.keys
-        codes << "cf.cash_begin" if self::INSTANT_MAPPING.key?("cf.cash_end")
+        OPENING_ITEMS.each { |closing, opening| codes << opening if self::INSTANT_MAPPING.key?(closing) }
         codes
       end
 
@@ -82,11 +89,10 @@ module Ingestion
         self.class::DURATION_MAPPING.each do |code, spec|
           put(result, code, lookup(spec, "CurrentYearDuration#{@c}"))
         end
-        # CF期首残高 = 前期末時点の現金及び現金同等物。これは会計基準・業種によらない定義なので、
-        # 期末残高（cf.cash_end）と同じタグを前期末（Prior1YearInstant）コンテキストで引いて導出する。
-        # 各形式のマッピングには cf.cash_end だけ書けばよい
-        if (cash_end_spec = self.class::INSTANT_MAPPING["cf.cash_end"])
-          put(result, "cf.cash_begin", lookup(cash_end_spec, "Prior1YearInstant#{@c}"))
+        OPENING_ITEMS.each do |closing, opening|
+          if (spec = self.class::INSTANT_MAPPING[closing])
+            put(result, opening, lookup(spec, "Prior1YearInstant#{@c}"))
+          end
         end
         result
       end
