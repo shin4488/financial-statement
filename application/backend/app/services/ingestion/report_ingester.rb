@@ -120,11 +120,13 @@ module Ingestion
       def upsert_statement(report, ext, dei, doc_id)
         fs = Disclosure::FinancialStatement.find_or_initialize_by(
           report: report, consolidation_type: ext.consolidation_type)
-        # 科目が1つも取れない再取込は既存行を保持してスキップする。
+        # 当期科目が取れない再取込は既存行を保持してスキップする。
         # 財務factを含まない訂正有報（訂正箇所のみのXBRL）で、正しい科目と
         # 形式判定を空で上書きしないためのガード。空のまま新規作成するのは
         # 正常系（unsupported形式など）なのでスキップしない
-        if ext.items.empty? && fs.persisted? && fs.items.exists?
+        # 期首残高だけが取れる書類も、当期の財務諸表を置き換える根拠にはしない。
+        current_items = ext.items.except("bs.assets_begin", "bs.equity_attributable_to_owners_begin", "cf.cash_begin")
+        if current_items.empty? && fs.persisted? && fs.items.exists?
           Sentry.capture_message(
             "skip empty extraction for existing statement: #{doc_id} (#{ext.consolidation_type})",
             level: :warning)

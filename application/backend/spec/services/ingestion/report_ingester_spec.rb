@@ -67,6 +67,26 @@ RSpec.describe Ingestion::ReportIngester do
       expect(fs.items.pluck(:item_code, :amount)).to eq [ [ "bs.assets", 100 ] ]
       expect(fs.presentation_format).to eq "jgaap_general"
     end
+
+    it "期首残高だけの再取込では既存の当期科目・形式・公表ROEを保持する" do
+      ingest("S0000001", annual_report_xml(facts: {
+        [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 100,
+        [ "jpcrp_cor:RateOfReturnOnEquitySummaryOfBusinessResults", "CurrentYearDuration_NonConsolidatedMember" ] => "0.123"
+      }))
+      fs = Disclosure::FinancialStatement.sole
+      previous_attributes = fs.attributes
+      previous_items = fs.items.map(&:attributes)
+
+      ingest("S0000001", annual_report_xml(facts: {
+        [ "jppfs_cor:Assets", "Prior1YearInstant_NonConsolidatedMember" ] => 80,
+        [ "jppfs_cor:ShareholdersEquity", "Prior1YearInstant_NonConsolidatedMember" ] => 40,
+        [ "jppfs_cor:ValuationAndTranslationAdjustments", "Prior1YearInstant_NonConsolidatedMember" ] => 5,
+        [ "jppfs_cor:CashAndCashEquivalents", "Prior1YearInstant_NonConsolidatedMember" ] => 10
+      }))
+
+      expect(fs.reload.attributes).to eq previous_attributes
+      expect(fs.items.reload.map(&:attributes)).to eq previous_items
+    end
   end
 
   describe "企業公表ROEの保存" do
