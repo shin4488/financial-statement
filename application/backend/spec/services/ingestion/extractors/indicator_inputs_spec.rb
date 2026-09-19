@@ -130,9 +130,9 @@ RSpec.describe "指標用の期首・期末データの抽出" do
     expect(items["pl.revenue"]).to eq 155_516_000_000
   end
 
-  it "本表・サマリとも企業拡張タグの単体収益を、連結値で代用しない" do
+  it "サマリが企業拡張タグでも単体本表の標準収益を取り、連結値で代用しない" do
     items = Ingestion::Extractors::JgaapGeneral.new(load_xbrl_fixture("S100YB25"), "_NonConsolidatedMember").extract
-    expect(items["pl.revenue"]).to be_nil
+    expect(items["pl.revenue"]).to eq 1_802_498_000_000
   end
 
   it "一部事業が企業拡張タグでも標準サマリの全社売上で純利益率・回転率を求める" do
@@ -143,5 +143,28 @@ RSpec.describe "指標用の期首・期末データの抽出" do
                                                                     items_hash: items, consolidated?: false))
     expect(metrics[:net_profit_margin].value).to be_within(1e-12).of(12_756.0 / 116_888)
     expect(metrics[:asset_turnover].value).to be_within(1e-12).of(116_888.0 / ((228_116 + 243_418) / 2.0))
+  end
+
+  it "日本基準の収益がRevenueタグだけでも売上関連の指標を算出する" do
+    xbrl = synthetic_xbrl_document(facts: {
+      [ "jppfs_cor:Revenue", "CurrentYearDuration" ] => 1_000,
+      [ "jppfs_cor:ProfitLossAttributableToOwnersOfParent", "CurrentYearDuration" ] => 80,
+      [ "jppfs_cor:Assets", "Prior1YearInstant" ] => 1_000,
+      [ "jppfs_cor:Assets", "CurrentYearInstant" ] => 1_500
+    })
+    items = Ingestion::Extractors::JgaapGeneral.new(xbrl, "").extract
+    metrics = FinancialStatements::Indicators.build(instance_double(Disclosure::FinancialStatement,
+                                                                    items_hash: items, consolidated?: true))
+    expect(metrics[:net_profit_margin].value).to eq 0.08
+    expect(metrics[:asset_turnover].value).to eq 0.8
+  end
+
+  it "丸井グループの実XBRLの収益を取り、純利益率と回転率を算出する" do
+    items = Ingestion::Extractors::JgaapGeneral.new(load_xbrl_fixture("S100YWE4"), "").extract
+    expect(items["pl.revenue"]).to eq 276_862_000_000
+    metrics = FinancialStatements::Indicators.build(instance_double(Disclosure::FinancialStatement,
+                                                                    items_hash: items, consolidated?: true))
+    expect(metrics[:net_profit_margin].value).to be_within(1e-12).of(28_476.0 / 276_862)
+    expect(metrics[:asset_turnover].value).to be_within(1e-12).of(276_862.0 / ((1_053_352 + 1_141_276) / 2.0))
   end
 end

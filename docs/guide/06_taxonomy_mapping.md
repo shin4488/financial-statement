@@ -122,7 +122,7 @@
 | 5 | `jppfs_cor:OperatingRevenueCMD` | 営業収益（商品先物） |
 | 6 | `jppfs_cor:OperatingRevenueIVT` / `OperatingRevenueINV` | 営業収益（投資運用 / 投資業） |
 | 7 | `jppfs_cor:ShippingBusinessRevenueAndOtherOperatingRevenueWAT` | 海運業収益及びその他の営業収益（海運） |
-| 8 | 最大値 `max(OperatingRevenue1, NetSales + OperatingRevenue2)` | 一般事業会社の総額: 営業収益 と 売上高+営業収入 の大きい方（企業のタグ付けの揺れを吸収する。なぜ最大値かは[03章](03_data_flow.md)） |
+| 8 | 最大値 `max(OperatingRevenue1, NetSales + OperatingRevenue2)` → `jppfs_cor:Revenue` | 一般事業会社の総額: 営業収益 と 売上高+営業収入 の大きい方（企業のタグ付けの揺れを吸収する。なぜ最大値かは[03章](03_data_flow.md)）。これらがなければ標準の収益タグ（丸井グループ等） |
 | 9 | ガス事業売上高（`SalesFromGasBusinessGAS`、または `GasSalesGAS` + `ThirdPartyAccessRevenueGAS` + `RevenueFromInteroperatorSettlementGAS`）に `MiscellaneousOperatingRevenueGAS` + `RevenueForIncidentalBusinessesGAS` を加算 | ガス事業・雑収益・附帯事業を含む全社売上。合計と内訳が併記されるときは最大候補を採り、重複させない |
 | 10 | `jppfs_cor:ContractsCompletedRevOA` | 完成工事高 |
 | 11 | `jppfs_cor:NetSalesOfCompletedConstructionContractsCNS` | 完成工事高（建設業） |

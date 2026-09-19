@@ -45,6 +45,7 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
       # 内訳は総額を超えないので、最も包括的な値（最大）を採ればどのパターンでも総額になる
       max("jppfs_cor:OperatingRevenue1",                                # 営業収益
           sum("jppfs_cor:NetSales", "jppfs_cor:OperatingRevenue2")),    # 売上高 + 営業収入
+      "jppfs_cor:Revenue",                                            # 収益（丸井グループ等）
       # ガス事業売上高は全社売上ではない。雑収益・附帯事業収益も含める（各内訳を重複加算しない）。
       max(sum("jppfs_cor:SalesFromGasBusinessGAS",
               "jppfs_cor:MiscellaneousOperatingRevenueGAS",

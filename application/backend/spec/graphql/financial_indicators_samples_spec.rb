@@ -41,10 +41,10 @@ RSpec.describe "財務指標の実有報サンプル照合" do
     end
   end
 
-  def summary(name, context)
+  def summary(name, context, standard_only: true)
     node = @raw.find do |element|
       element.name == "#{name}SummaryOfBusinessResults" && element["contextRef"] == context &&
-        element.namespace&.href&.include?("/taxonomy/jpcrp/")
+        (!standard_only || element.namespace&.href&.include?("/taxonomy/jpcrp/"))
     end
     value = node && BigDecimal(node.text, exception: false)
     return nil unless value
@@ -76,7 +76,8 @@ RSpec.describe "財務指標の実有報サンプル照合" do
     average_assets = balances.sum / 2 if balances.none?(&:nil?)
     expect_metric(metrics[:roa], average_assets && profit / average_assets)
 
-    revenue_fact = %w[RevenueIFRS NetSales OperatingRevenue1 Revenues].filter_map { |name| summary(name, duration) }.first
+    # 照合側は企業拡張のサマリも読む（三菱商事単体: 本表Revenueは標準、サマリは独自タグ）。
+    revenue_fact = %w[RevenueIFRS NetSales OperatingRevenue1 Revenues].filter_map { |name| summary(name, duration, standard_only: false) }.first
     revenue = revenue_fact&.fetch(:value)
     # ガス等の内訳合算とサマリの総額は、切捨て単位の合計だけ差が出る。
     revenue_error = revenue && (items.rounding_errors.fetch("pl.revenue") + revenue_fact[:precision])
