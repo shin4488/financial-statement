@@ -1,8 +1,8 @@
 module Ingestion
   module Extractors
     class Base
-      # XBRLコンテキストIDのサフィックス。連結はサフィックスなし、単体は_NonConsolidatedMember
-      # （例: CurrentYearInstant / CurrentYearInstant_NonConsolidatedMember。全形式共通の規則）
+      # ReportingPeriodへの検索キー。原本のID名ではなく、期間と連結区分を指定する。
+      # 既存のマッピング・単体テストでも使えるようEDINETの標準名を共通キーにしている。
       CONSOLIDATED = "".freeze
       NON_CONSOLIDATED = "_NonConsolidatedMember".freeze
 

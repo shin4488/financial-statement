@@ -146,14 +146,16 @@ flowchart LR
 | `Assets` × `Prior1YearInstant` | 前期末・連結の資産合計 |
 | `Assets` × `CurrentYearInstant_NonConsolidatedMember` | 当期末・単体の資産合計 |
 
-コンテキストIDの読み方:
+EDINETの標準コンテキストIDの読み方:
 
 | コンテキストID | 意味 |
 |---|---|
 | `CurrentYearInstant` | 当期末時点（BSの残高に使う） |
 | `CurrentYearDuration` | 当期の期間（PL・CFの増減に使う） |
-| `Prior1YearInstant` | 前期末時点（CFの期首残高のみ） |
+| `Prior1YearInstant` | 前期末時点（CF・ROE/ROA用の期首残高） |
 | 上記 + `_NonConsolidatedMember` | 単体（サフィックスなしは連結） |
+
+実際の取込ではID名だけで当期を決めない。`Xbrl::Document` はXMLのfactとcontextを索引化し、`Xbrl::Context` は企業・日付・ディメンションを解析する。`Xbrl::ReportingPeriod` が連結／単体の対象期間を決めて、同じ意味のcontextから科目を選ぶ。IDが任意の名称でも同じ結果になり、標準名でも別年度や別企業の数値は使わない。連結・単体の期間差や重複候補の扱いは[06章の期首・期末残高](06_taxonomy_mapping.md#roe・roaの期首・期末残高)を参照。
 
 [01章](01_financial_knowledge.md)の「IFRS採用企業でも単体は日本基準」はタグ付けにも表れていて、単体財務諸表はIFRS適用企業でも `jppfs_cor` + `_NonConsolidatedMember` でタグ付けされる（実測6社すべて。[06章](06_taxonomy_mapping.md)）。このため単体は常に日本基準として処理する。
 

@@ -48,6 +48,35 @@ RSpec.describe Ingestion::ReportIngester do
   end
 
   describe "科目の永続化" do
+    it "context IDの命名を変えても同じ年度の三表・公表ROEを保存できる" do
+      [ "standard", "Prior3Year", "arbitrary" ].each_with_index do |naming, index|
+        suffix = "_NonConsolidatedMember"
+        xml = synthetic_xbrl_xml(facts: {
+          [ "jppfs_cor:Assets", "CurrentYearInstant#{suffix}" ] => 100 + index,
+          [ "jppfs_cor:Assets", "Prior1YearInstant#{suffix}" ] => 80,
+          [ "jppfs_cor:NetSales", "CurrentYearDuration#{suffix}" ] => 200,
+          [ "jppfs_cor:ProfitLoss", "CurrentYearDuration#{suffix}" ] => 20,
+          [ "jppfs_cor:CashAndCashEquivalents", "Prior1YearInstant#{suffix}" ] => 8,
+          [ "jppfs_cor:CashAndCashEquivalents", "CurrentYearInstant#{suffix}" ] => 10,
+          [ "jppfs_cor:NetCashProvidedByUsedInOperatingActivities", "CurrentYearDuration#{suffix}" ] => 2,
+          [ "jpcrp_cor:RateOfReturnOnEquitySummaryOfBusinessResults", "CurrentYearDuration#{suffix}" ] => "0.25"
+        })
+        if naming != "standard"
+          ids = [ "CurrentYearInstant#{suffix}", "Prior1YearInstant#{suffix}", "CurrentYearDuration#{suffix}" ]
+          ids.each_with_index do |id, i|
+            renamed = naming == "Prior3Year" ? id.sub("CurrentYear", "Prior3Year").sub("Prior1Year", "Prior4Year") : "context_#{i}"
+            xml = xml.gsub(id, renamed)
+          end
+        end
+        ingest("S0000001", xml)
+        fs = Disclosure::FinancialStatement.sole
+        expect(fs.items_hash).to include("bs.assets" => 100 + index, "bs.assets_begin" => 80,
+                                        "pl.revenue" => 200, "pl.profit" => 20,
+                                        "cf.cash_begin" => 8, "cf.cash_end" => 10, "cf.operating" => 2)
+        expect(fs.disclosed_roe).to eq "0.25".to_d
+      end
+    end
+
     it "再取込で科目は総入れ替えされ、開示されなくなった科目の行が残らない" do
       ingest("S0000001", annual_report_xml(
         facts: { [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 100,

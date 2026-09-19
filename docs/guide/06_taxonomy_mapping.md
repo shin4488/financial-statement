@@ -57,6 +57,14 @@
 
 `bs.assets_begin` は `bs.assets` と同じタグを `Prior1YearInstant` から取得する。自己資本の期末は `bs.equity_attributable_to_owners`、期首は同じ取得式を前期末に適用した `bs.equity_attributable_to_owners_begin`。単体ではどちらも `_NonConsolidatedMember` を付ける。別年度の有報の残高で補完しない。
 
+取込時は全書類を `Xbrl::ReportingPeriod` を通して読む。`CurrentYearInstant` / `CurrentYearDuration` / `Prior1YearInstant` はExtractor側の検索キーであり、原本の同名IDを無条件に参照するものではない。`Xbrl::Context` が全contextの企業識別子・期間・ディメンションを解析し、提出者と同じ企業・連結区分・実日付の候補を検索する。原本のIDは `PriorNYear` や任意の名称でもよい。
+
+当期末はDEIの年度終了日、当期開始日は区分ごとの `CurrentYearDuration` 宣言（企業・連結区分・終了日が一致する場合）の実日付を使い、宣言がなければDEIの年度開始日を使う。連結と単体の開始日が異なる組織再編でも損益期間を混ぜず、期首は各開始日の前日で検索する。これはEDINETの[当期連結期間の定義](https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/download/ESE140112.pdf)に基づく。QPSホールディングス `S100YYOW` とインテリックスホールディングス `S100YYT8` は、連結2025年6月1日〜2026年5月31日、単体2025年12月1日〜2026年5月31日であり、一律にDEIの開始日を使うと連結PL・CFを取得できなくなる。
+
+部門別・予測などの追加ディメンション、別企業、不正な日付は候補にしない。日付はEDINETの日付形式（YYYY-MM-DD）に限定し、未対応の日時を切り詰めて採用しない。意味が同じ複数contextに科目が分散していても読めるが、同一科目の値・精度・単位が食い違う候補は欠損にする。`Xbrl::Fact` が値・精度・単位を一体で保持し、形式判定・BS/PL/CF・公表ROEで同じ選択結果を使う。元文書の辞書は変更しない。
+
+クラサスケミカルの届出書 `S100Z0VF` は2025年1月1日〜12月31日の実績が `Prior1YearDuration` / `Prior1YearInstant` に格納され、期首は `Prior2YearInstant`。連結総資産191,166百万円・公表ROE9.3%、単体総資産157,557百万円・公表ROE5.4%を取得できる。連結の期首総資産は未開示のためROAは欠損のままとする。
+
 | 形式 | 自己資本の取得式 |
 |---|---|
 | 一般・銀行・保険 | `jppfs_cor:ShareholdersEquity`（なければ信金の会員勘定合計 `ShareholdersEquityShinkinBNK`）+ `ValuationAndTranslationAdjustments`（なければ `AccumulatedOtherComprehensiveIncome`） |
@@ -257,7 +265,7 @@ IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは
 
 投資活動のタグ名が日本基準は `Investment`、IFRSは `Investing` で異なる。CFは5科目そろわないとウォーターフォールが繋がらないため、1つでも欠けるとチャートは `renderable: false` になる。
 
-期首残高（`cf.cash_begin`）は個別のマッピングを持たない。期首残高=前期末残高という関係は全形式共通のため、Extractorの基底クラスが `cf.cash_end` と同じタグを前期末（`Prior1YearInstant`）コンテキストで引いて導出する。マッピング表（当期のコンテキスト固定）で表せない「別コンテキストの参照」は現在これだけ。
+期首残高（`cf.cash_begin`）は個別のマッピングを持たない。期首残高=前期末残高という関係は全形式共通のため、Extractorの基底クラスが `cf.cash_end` と同じタグを前期末（`Prior1YearInstant`）コンテキストで引いて導出する。同じ仕組みでROE・ROAに使う総資産・自己資本の期首残高も取得する。
 
 次の調整科目も保存する。現行の5点のチャートには使用しない。
 
