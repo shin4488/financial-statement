@@ -10,7 +10,7 @@ RSpec.describe Ingestion::DailyIngestionService do
 
   def stub_list(date, results)
     stub_request(:get, %r{documents\.json}).with(query: hash_including("date" => date.to_s))
-      .to_return(status: 200, body: { "results" => results }.to_json)
+      .to_return(status: 200, body: { "results" => results.map { |r| { "ordinanceCode" => "010" }.merge(r) } }.to_json)
   end
 
   def zip_with_xbrl(doc_id, xml)

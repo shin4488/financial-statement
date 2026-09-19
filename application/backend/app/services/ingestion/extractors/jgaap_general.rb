@@ -68,6 +68,9 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
           "jppfs_cor:OperatingRevenueOtherRWY"),                        #   + その他事業営業収益
       sum("jppfs_cor:OperatingRevenueOILTelecommunications",            # 電気通信: 電気通信事業営業収益
           "jppfs_cor:OperatingRevenueIncidentalELC"),                   #   + 附帯事業営業収益
+      # 海運の一部事業が企業拡張タグの場合、標準タグの内訳合算では全社売上にならない。
+      # 本表の総額がないときは、標準の経営指標サマリにある全社売上を合算より優先する。
+      "jpcrp_cor:NetSalesSummaryOfBusinessResults",
       sum("jppfs_cor:ShippingBusinessRevenueWAT",                       # 海運（単体）: 海運業収益
           "jppfs_cor:OtherBusinessRevenueWAT")                          #   + その他事業収益
     ],

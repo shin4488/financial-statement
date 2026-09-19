@@ -113,4 +113,14 @@ RSpec.describe "指標用の期首・期末データの抽出" do
     items = Ingestion::Extractors::JgaapGeneral.new(load_xbrl_fixture("S100YB25"), "_NonConsolidatedMember").extract
     expect(items["pl.revenue"]).to be_nil
   end
+
+  it "一部事業が企業拡張タグでも標準サマリの全社売上で純利益率・回転率を求める" do
+    items = Ingestion::Extractors::JgaapGeneral.new(load_xbrl_fixture("S100YGFN"), "_NonConsolidatedMember").extract
+    # 飯野海運: 海運104,979百万円 + 不動産11,909百万円。総額は標準サマリにも開示される。
+    expect(items["pl.revenue"]).to eq 116_888_000_000
+    metrics = FinancialStatements::Indicators.build(instance_double(Disclosure::FinancialStatement,
+                                                                    items_hash: items, consolidated?: false))
+    expect(metrics[:net_profit_margin].value).to be_within(1e-12).of(12_756.0 / 116_888)
+    expect(metrics[:asset_turnover].value).to be_within(1e-12).of(116_888.0 / ((228_116 + 243_418) / 2.0))
+  end
 end

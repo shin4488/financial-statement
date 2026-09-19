@@ -16,6 +16,9 @@ module Ingestion
 
       xbrl = Xbrl::Document.load(xbrl_path)
       dei = @dei_extractor.extract(xbrl)
+      # docIDを直接指定した取込でも対象外を除く。ファンドの提出者は上場企業の場合がある。
+      # 企業マスタや既存有報を触る前に、書類自身の証券コードとFundCodeDEIを確認する。
+      return if dei.fund_code.present? || dei.stock_code.blank?
       if dei.accounting_standard.nil?
         # 会計基準不明のまま取り込むと形式判定できないためスキップ。ただし黙殺すると
         # 「特定企業だけデータが無い」原因を追えなくなるため警告だけ残す

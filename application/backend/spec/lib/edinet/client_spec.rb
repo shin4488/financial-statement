@@ -7,7 +7,17 @@ RSpec.describe Edinet::Client do
   describe "#list_annual_reports" do
     def stub_list(results)
       stub_request(:get, %r{api\.edinet-fsa\.go\.jp/api/v2/documents\.json})
-        .to_return(status: 200, body: { "results" => results }.to_json)
+        .to_return(status: 200, body: { "results" => results.map { |r| { "ordinanceCode" => "010" }.merge(r) } }.to_json)
+    end
+
+    it "提出者の証券コードがあっても、特定有価証券の有報・ファンドは返さない" do
+      stub_list([
+        { "docID" => "S100YZ8K", "secCode" => "82530", "ordinanceCode" => "030", "fundCode" => "G15497", "docTypeCode" => "120" },
+        { "docID" => "S1000002", "secCode" => "82530", "ordinanceCode" => "030", "docTypeCode" => "130" },
+        { "docID" => "S1000003", "secCode" => "82530", "fundCode" => "G15497", "docTypeCode" => "120" },
+        { "docID" => "S1000004", "secCode" => "", "docTypeCode" => "120" }
+      ])
+      expect(client.list_annual_reports(date: Date.new(2026, 8, 28))).to be_empty
     end
 
     it "上場企業（証券コードあり）の有報・訂正有報だけを返す" do
