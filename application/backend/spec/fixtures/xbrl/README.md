@@ -11,7 +11,7 @@ bundle exec rails runner '
      S100YDJC S100YIHR S100YC7N S100YE63 S100Y9T5 S100Y90D S100XTDX S100YANQ S100YI2V
      S100YJB4 S100Y0DB S100YD29 S100YCL0 S100YE7T S100SO41
      S100XCO8 S100XTLJ S100YDP3 S100YGH5 S100YJHA
-     S100YH8W S100YEGP S100YGFW S100YGOL S100YIW6 S100YGFN S100YZ8K].each do |doc_id|
+     S100YH8W S100YEGP S100YGFW S100YGOL S100YIW6 S100YGFN S100YZ8K S100YRHX].each do |doc_id|
     path = client.download_xbrl(doc_id: doc_id, work_dir: dir)
     puts "#{doc_id}: #{path}"
     sleep 2
@@ -72,3 +72,5 @@ bundle exec rails runner '
 追加の回帰フィクスチャ `S100YGFN`（飯野海運単体）は、不動産事業の収益が企業拡張タグでも、標準サマリの全社売上116,888百万円で純利益率・回転率を算出することを検証する。海運事業だけの104,979百万円を全社売上にしない。
 
 `S100YZ8K` はクレディセゾンを提出者とする信託受益証券の有報。提出者の証券コードが一覧APIにあっても企業自身の財務ではないため、一覧取得とdocID直接取込の両方で除外し、企業マスタを変更しないことを検証する。
+
+`S100YRHX`（信金中央金庫）は、株主資本に相当する「会員勘定合計」が標準の `ShareholdersEquityShinkinBNK` で開示される例。連結・単体とも評価差額を加え、非支配持分を含めず期首・期末自己資本を取得することを検証する。

@@ -32,6 +32,27 @@ RSpec.describe "指標用の期首・期末データの抽出" do
     expect(items).not_to have_key("bs.equity_attributable_to_owners_begin")
   end
 
+  it "銀行の会員勘定合計も自己資本の基礎とし、残高0を欠損にしない" do
+    xbrl = synthetic_xbrl_document(facts: {
+      [ "jppfs_cor:ShareholdersEquityShinkinBNK", "Prior1YearInstant" ] => 300,
+      [ "jppfs_cor:ValuationAndTranslationAdjustments", "Prior1YearInstant" ] => -50,
+      [ "jppfs_cor:ShareholdersEquityShinkinBNK", "CurrentYearInstant" ] => 0,
+      [ "jppfs_cor:NetAssets", "CurrentYearInstant" ] => 0
+    })
+    expect(Ingestion::Extractors::JgaapBank.new(xbrl, "").extract).to include(
+      "bs.equity_attributable_to_owners_begin" => 250, "bs.equity_attributable_to_owners" => 0)
+  end
+
+  it "信金中央金庫の実XBRLで会員勘定と評価差額から連結・単体の自己資本を取る" do
+    xbrl = load_xbrl_fixture("S100YRHX")
+    expect(Ingestion::Extractors::JgaapBank.new(xbrl, "").extract).to include(
+      "bs.equity_attributable_to_owners_begin" => 1_498_222_000_000,
+      "bs.equity_attributable_to_owners" => 1_622_898_000_000)
+    expect(Ingestion::Extractors::JgaapBank.new(xbrl, "_NonConsolidatedMember").extract).to include(
+      "bs.equity_attributable_to_owners_begin" => 1_455_165_000_000,
+      "bs.equity_attributable_to_owners" => 1_581_127_000_000)
+  end
+
   it "その他の包括利益累計額のタグも評価・換算差額等と同じ位置で使う" do
     xbrl = synthetic_xbrl_document(facts: {
       [ "jppfs_cor:ShareholdersEquity", "CurrentYearInstant" ] => 100,

@@ -59,7 +59,7 @@
 
 | 形式 | 自己資本の取得式 |
 |---|---|
-| 一般・銀行・保険 | `jppfs_cor:ShareholdersEquity` + `ValuationAndTranslationAdjustments`（なければ `AccumulatedOtherComprehensiveIncome`） |
+| 一般・銀行・保険 | `jppfs_cor:ShareholdersEquity`（なければ信金の会員勘定合計 `ShareholdersEquityShinkinBNK`）+ `ValuationAndTranslationAdjustments`（なければ `AccumulatedOtherComprehensiveIncome`） |
 | 分類・配列 | `jpigp_cor:EquityAttributableToOwnersOfParentIFRS` |
 | サマリ | `jpcrp_cor:EquityAttributableToOwnersOfParentIFRSSummaryOfBusinessResults` |
 
