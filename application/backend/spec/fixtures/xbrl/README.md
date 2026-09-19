@@ -12,7 +12,7 @@ bundle exec rails runner '
      S100YJB4 S100Y0DB S100YD29 S100YCL0 S100YE7T S100SO41
      S100XCO8 S100XTLJ S100YDP3 S100YGH5 S100YJHA
      S100YH8W S100YEGP S100YGFW S100YGOL S100YIW6 S100YGFN S100YZ8K S100YRHX S100YWE4 S100YZFP
-     S100YS8T S100YSG1 S100YQR5 S100YR60 S100YXHA S100YTAL S100YTAR S100YRPF S100Z0VF].each do |doc_id|
+     S100YS8T S100YSG1 S100YQR5 S100YR60 S100YXHA S100YTAL S100YTAR S100YRPF S100Z0VF S100YYOW S100YYT8].each do |doc_id|
     path = client.download_xbrl(doc_id: doc_id, work_dir: dir)
     puts "#{doc_id}: #{path}"
     sleep 2
@@ -97,3 +97,5 @@ bundle exec rails runner '
 上表は数値の再現条件であり、各企業の内部の計算方法を断定するものではない。金額と差の根拠は [タグ対応表の実地調査](../../../../../docs/guide/06_taxonomy_mapping.md#公表roeと計算値の差の追加照合) を参照。
 
 `spec/graphql/missing_revenue_indicators_spec.rb` は三菱UFJ FG・かんぽ生命・スカイマーク（S100YRPF）・東京海上HDで、売上関連の欠損がROE・ROA・レバレッジに波及しないことをAPIまで検証する。経常収益の売上高への読み替えや企業拡張タグの無条件取得は行わない。
+
+`spec/graphql/reporting_period_indicators_spec.rb` の `S100YYOW`（QPSホールディングス）と `S100YYT8`（インテリックスホールディングス）は、連結2025年6月〜2026年5月と単体2025年12月〜2026年5月の期間差を検証する。DEIの単体開始日で連結PL・CF・公表ROEを欠損にしない。

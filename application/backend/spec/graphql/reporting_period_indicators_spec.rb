@@ -1,6 +1,23 @@
 require "rails_helper"
 
-RSpec.describe "CurrentYearコンテキストのない届出書の取込" do
+RSpec.describe "実書類の報告期間に基づく取込" do
+  {
+    "S100YYOW" => { revenue: 3_803_000_000, cash_begin: 11_833_000_000, roe: "0.0495" },
+    "S100YYT8" => { revenue: 58_471_441_000, cash_begin: 5_243_779_000, roe: "0.112" }
+  }.each do |doc_id, expected|
+    it "#{doc_id}の連結期間を単体のDEI開始日で切り詰めず、損益・CF・公表ROEを保存する" do
+      require_xbrl_fixture(doc_id)
+      Dir.mktmpdir do |dir|
+        Ingestion::ReportIngester.new(client: FixtureEdinetClient.new).ingest(doc_id: doc_id, work_dir: dir)
+      end
+      report = Disclosure::Report.find_by!(edinet_document_id: doc_id)
+      expect(report.fiscal_year_start_date.to_s).to eq "2025-12-01"
+      consolidated = report.primary_financial_statement
+      expect(consolidated.items_hash).to include("pl.revenue" => expected[:revenue], "cf.cash_begin" => expected[:cash_begin])
+      expect(consolidated.disclosed_roe).to eq expected[:roe].to_d
+    end
+  end
+
   it "S100Z0VFの実際の年度で連結・単体を保存し、再取込しても三表と公表ROEを保持する", :aggregate_failures do
     require_xbrl_fixture("S100Z0VF")
     Dir.mktmpdir do |dir|
