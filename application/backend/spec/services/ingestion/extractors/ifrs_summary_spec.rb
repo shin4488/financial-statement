@@ -7,8 +7,13 @@ RSpec.describe Ingestion::Extractors::IfrsSummary do
                           Ingestion::Extractors::Base::CONSOLIDATED).extract
     end
 
-    it "経営指標サマリからPLの骨格とCFの5点を抽出し、BSは抽出しない" do
+    it "経営指標サマリからPL・CFと指標用の利益・期首期末残高を抽出する" do
       expect(items).to eq(
+        "bs.assets" => 72_459_000_000,
+        "bs.assets_begin" => 71_409_000_000,
+        "bs.equity_attributable_to_owners" => 18_706_000_000,
+        "bs.equity_attributable_to_owners_begin" => 18_036_000_000,
+        "pl.profit_attributable_to_owners" => 1_321_000_000,
         "pl.revenue" => 119_281_000_000,
         "pl.profit_before_tax" => 3_688_000_000,
         "cf.operating" => 8_364_000_000,

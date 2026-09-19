@@ -38,7 +38,7 @@ class Charts::Builders::PlJgaapGeneral < Charts::Builders::StackBase
     # 費用科目が1つも取れない（=費用を開示しない持株会社の単体など）場合も、
     # 売上と営業利益で貸借が合うなら正常系として描く
     expenses = EXPENSE_STRUCTURES
-                 .map { |specs| specs.filter_map { |code, key, label, role, tooltip| (v = val(code)) && [ key, label, v, role, tooltip ] } }
+                 .map { |specs| expense_segments(specs) }
                  .find { |segs| within_tolerance?(revenue, segs.sum { |_, _, v, _, _| v } + op) }
     return unrenderable if expenses.nil?
 
@@ -54,5 +54,19 @@ class Charts::Builders::PlJgaapGeneral < Charts::Builders::StackBase
   end
 
   private
+    def expense_segments(specs)
+      segments = specs.filter_map { |code, key, label, role, tooltip| (v = val(code)) && [ key, label, v, role, tooltip ] }
+      other_gas_costs = %w[pl.gas_miscellaneous_expenses pl.gas_incidental_expenses].filter_map { |code| val(code) }
+      cost = segments.find { |key, *| key == "costOfSales" }
+      if cost && other_gas_costs.any?
+        # ガスの全社売上と範囲を揃える。小さな費用を別段にしてラベルを重ねず、
+        # 同じ費用色の「売上原価等」に集約し、含む費用名はツールチップで明示する。
+        cost[1] = "売上原価等"
+        cost[2] += other_gas_costs.sum
+        cost[4] = "売上原価・営業雑費用・附帯事業費用"
+      end
+      segments
+    end
+
     def unrenderable = Charts::StackChart.unrenderable(no_data_note("損益計算書"))
 end

@@ -38,8 +38,10 @@ module Edinet
       end
       results = JSON.parse(response.body)["results"] || []
       results.filter_map do |r|
-        # secCodeなし = 非上場（投資信託・組合等の提出物）。本アプリの対象外
-        next if r["secCode"].nil?
+        # 提出会社の証券コードが付いた信託受益証券の有報もある。
+        # 企業内容等開示府令の企業有報に限定し、ファンドの財務を提出会社に混ぜない。
+        next unless r["ordinanceCode"] == "010" && r["fundCode"].blank?
+        next if r["secCode"].blank?
         next unless [ ANNUAL_REPORT, AMENDED_ANNUAL_REPORT ].include?(r["docTypeCode"])
         DocumentMeta.new(doc_id: r["docID"], sec_code: r["secCode"], filer_name: r["filerName"])
       end

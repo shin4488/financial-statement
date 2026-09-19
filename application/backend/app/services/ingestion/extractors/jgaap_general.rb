@@ -16,6 +16,7 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
     "bs.non_current_liabilities"      => "jppfs_cor:NoncurrentLiabilities",
     "bs.liabilities"                  => "jppfs_cor:Liabilities",
     "bs.equity"                       => "jppfs_cor:NetAssets",
+    "bs.equity_attributable_to_owners" => Ingestion::Extractors::JgaapOwnersEquity.new,
     # 同じタグを2つの科目コードに保存する: 現金同等物はBSの科目としてもCFの期末残高としても
     # 消費される（消費先が違う）。縦持ちでは行が1つ増えるだけなので冗長保存を許容し、
     # Builder側が「どのコードを見ればよいか」で迷わないようにする
@@ -44,8 +45,16 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
       # 内訳は総額を超えないので、最も包括的な値（最大）を採ればどのパターンでも総額になる
       max("jppfs_cor:OperatingRevenue1",                                # 営業収益
           sum("jppfs_cor:NetSales", "jppfs_cor:OperatingRevenue2")),    # 売上高 + 営業収入
-      "jppfs_cor:SalesFromGasBusinessGAS",                              # ガス事業売上高（ガス。単体は売上高でなくこれで開示する）
-      "jppfs_cor:GasSalesGAS",                                          # ガス売上（ガス。ガス事業売上高の内訳だが、これしか開示しない単体がある）
+      "jppfs_cor:Revenue",                                            # 収益（丸井グループ等）
+      # ガス事業売上高は全社売上ではない。雑収益・附帯事業収益も含める（各内訳を重複加算しない）。
+      max(sum("jppfs_cor:SalesFromGasBusinessGAS",
+              "jppfs_cor:MiscellaneousOperatingRevenueGAS",
+              "jppfs_cor:RevenueForIncidentalBusinessesGAS"),
+          sum("jppfs_cor:GasSalesGAS",                                 # ガス事業合計がない場合は内訳を使う
+              "jppfs_cor:ThirdPartyAccessRevenueGAS",
+              "jppfs_cor:RevenueFromInteroperatorSettlementGAS",
+              "jppfs_cor:MiscellaneousOperatingRevenueGAS",
+              "jppfs_cor:RevenueForIncidentalBusinessesGAS")),
       "jppfs_cor:ContractsCompletedRevOA",                              # 完成工事高
       "jppfs_cor:NetSalesOfCompletedConstructionContractsCNS",          # 完成工事高（建設業）
       # 事業区分別にしか開示しない業種は区分の合算（存在する区分だけ足す。合計タグがある企業は上で先に取れる）
@@ -60,6 +69,9 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
           "jppfs_cor:OperatingRevenueOtherRWY"),                        #   + その他事業営業収益
       sum("jppfs_cor:OperatingRevenueOILTelecommunications",            # 電気通信: 電気通信事業営業収益
           "jppfs_cor:OperatingRevenueIncidentalELC"),                   #   + 附帯事業営業収益
+      # 海運の一部事業が企業拡張タグの場合、標準タグの内訳合算では全社売上にならない。
+      # 本表の総額がないときは、標準の経営指標サマリにある全社売上を合算より優先する。
+      "jpcrp_cor:NetSalesSummaryOfBusinessResults",
       sum("jppfs_cor:ShippingBusinessRevenueWAT",                       # 海運（単体）: 海運業収益
           "jppfs_cor:OtherBusinessRevenueWAT")                          #   + その他事業収益
     ],
@@ -93,7 +105,9 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
       "jppfs_cor:GeneralAndAdministrativeExpensesWAT",                  # 一般管理費（海運）
       # 一般管理費は本来販管費の内訳（ガスの供給販売費及び一般管理費の内訳にも現れる）なので合計系より後ろに置く。
       # 販売費を持たず一般管理費だけを開示する持株会社等の最終手段
-      "jppfs_cor:GeneralAndAdministrativeExpensesSGA"                   # 一般管理費
+      # 合計タグのないガス（北海道ガス等）は供給販売費+一般管理費。他業種は一般管理費のみ。
+      max(sum("jppfs_cor:SupplyAndSalesExpensesGAS", "jppfs_cor:GeneralAndAdministrativeExpensesGAS"),
+          sum("jppfs_cor:SupplyAndSalesExpensesGAS", "jppfs_cor:GeneralAndAdministrativeExpensesSGA"))
     ],
     # 金融費用（証券・商品先物）: 営業収益−金融費用=純営業収益、−販管費=営業利益 の骨格を持つ業種の費用科目
     "pl.financial_expenses" => "jppfs_cor:FinancialExpensesSEC",

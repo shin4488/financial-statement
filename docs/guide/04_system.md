@@ -97,7 +97,7 @@ flowchart LR
 | パス | 内容 |
 |---|---|
 | `index.tsx` / `App.tsx` | エントリポイント。MUIテーマ定義とルーティング（静的ページ4ルート + 残り全URL→一覧ページ） |
-| `features/financialReports/` | 一覧ページ本体（**Webアプリ固有**のコード）。カード・レイアウト・BS→PL→CFの自動切替カルーセルを含む |
+| `features/financialReports/` | 一覧ページ本体（**Webアプリ固有**のコード）。カード・レイアウト・BS→PL→CF→ROE・ROAの自動切替カルーセルを含む |
 | `features/siteLayout/` | 全ページ共通の骨組み: URL定義（`siteRoutes`）・フッター（`SiteFooter`）・静的ページ用シェル（`StaticPageLayout`）・ページ別meta切替（`usePageMeta`） |
 | `features/staticPages/` | 静的ページ4つの本文と、文章用の小部品（見出し・箇条書き・表）。読み方ページの説明用チャートデータもここ |
 | `shared/financialCharts/` | チャート描画キット（**Chrome拡張と共有**するコード） |
@@ -109,6 +109,8 @@ flowchart LR
 ディレクトリ分割の基準は機能ではなく「**Chrome拡張（別リポジトリ `financial-statement-chrome-extension`）と共有できるか否か**」。共有キット（`shared/financialCharts/`）はディレクトリごとコピーして共有するため依存の制限（`react`と`recharts`のみ・アプリ固有物に依存しない等）があり、それ以外は `features/` に置く。キットの規約の全文と展開手順はキット内 `README.md` が原本（コピー先のChrome拡張にも同じREADMEが入る）。
 
 ## 取込ジョブの信頼性
+
+一覧取得は企業内容等開示府令（`ordinanceCode: 010`）の有報・訂正有報に限定し、ファンドコードあり・証券コードなしの書類を除く。信託受益証券の有報には提出会社の証券コードが付くことがあるため、証券コードだけでは企業自身の有報と判定しない。docID直接指定の取込でも、DEIのファンドコードあり・証券コードなしは企業マスタを更新する前に除外する。
 
 取込がデータをどう変換するかは[03章](03_data_flow.md)。ここではバッチとしての動き方と、壊れたデータ・壊れた日から回復できる仕組みを扱う。
 

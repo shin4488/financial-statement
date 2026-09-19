@@ -16,6 +16,9 @@ module Ingestion
 
       xbrl = Xbrl::Document.load(xbrl_path)
       dei = @dei_extractor.extract(xbrl)
+      # docIDを直接指定した取込でも対象外を除く。ファンドの提出者は上場企業の場合がある。
+      # 企業マスタや既存有報を触る前に、書類自身の証券コードとFundCodeDEIを確認する。
+      return if dei.fund_code.present? || dei.stock_code.blank?
       if dei.accounting_standard.nil?
         # 会計基準不明のまま取り込むと形式判定できないためスキップ。ただし黙殺すると
         # 「特定企業だけデータが無い」原因を追えなくなるため警告だけ残す
@@ -41,7 +44,7 @@ module Ingestion
       FileUtils.rm_f(xbrl_path) if xbrl_path
     end
 
-    Extraction = Struct.new(:consolidation_type, :accounting_standard, :format, :items, keyword_init: true)
+    Extraction = Struct.new(:consolidation_type, :accounting_standard, :format, :items, :disclosed_roe, keyword_init: true)
     private_constant :Extraction
 
     private
@@ -63,7 +66,8 @@ module Ingestion
           extractor_class = FormatRegistry.extractor_for(format)
           items = extractor_class ? extractor_class.new(xbrl, suffix).extract : {}
           Extraction.new(consolidation_type: type, accounting_standard: standard,
-                         format: format, items: items)
+                         format: format, items: items,
+                         disclosed_roe: DisclosedRoeExtractor.extract(xbrl, accounting_standard: standard, consolidation: suffix))
         end
       end
 
@@ -129,6 +133,8 @@ module Ingestion
         fs.update!(
           accounting_standard: ext.accounting_standard,
           presentation_format: ext.format,
+          disclosed_roe: ext.disclosed_roe,
+          disclosed_roe_checked_at: Time.current,
           is_primary: primary?(ext, dei))
         replace_items(fs, ext.items)
         warn_missing_assets(fs, ext, doc_id)

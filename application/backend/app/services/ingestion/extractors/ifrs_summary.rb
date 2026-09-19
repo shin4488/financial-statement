@@ -2,14 +2,16 @@
 # jpigp_cor のfact自体が収録されていない）
 #
 # 財務諸表の値で唯一収録されている経営指標サマリ（jpcrp_cor）の標準タグから抽出する。
-# BSを抽出しない理由: サマリで実値が取れるのは資産合計と親会社所有者帰属持分だけで、
-# 負債合計は導出でしか作れない（非支配持分が混ざった値になる）ため、実値と確信できる科目に絞る
+# BSチャートに必要な内訳はないが、指標で使う総資産・親会社所有者帰属持分は取得できる。
 class Ingestion::Extractors::IfrsSummary < Ingestion::Extractors::Base
   INSTANT_MAPPING = {
+    "bs.assets" => "jpcrp_cor:TotalAssetsIFRSSummaryOfBusinessResults",
+    "bs.equity_attributable_to_owners" => "jpcrp_cor:EquityAttributableToOwnersOfParentIFRSSummaryOfBusinessResults",
     "cf.cash_end" => "jpcrp_cor:CashAndCashEquivalentsIFRSSummaryOfBusinessResults"
   }.freeze
 
   DURATION_MAPPING = {
+    "pl.profit_attributable_to_owners" => "jpcrp_cor:ProfitLossAttributableToOwnersOfParentIFRSSummaryOfBusinessResults",
     "pl.revenue"           => "jpcrp_cor:RevenueIFRSSummaryOfBusinessResults",
     "pl.profit_before_tax" => "jpcrp_cor:ProfitLossBeforeTaxIFRSSummaryOfBusinessResults",
     "cf.operating" => "jpcrp_cor:CashFlowsFromUsedInOperatingActivitiesIFRSSummaryOfBusinessResults",

@@ -100,10 +100,27 @@ RSpec.describe Ingestion::Extractors::JgaapGeneral do
                                "pl.sga" => 31_074_000_000, "pl.operating_profit" => 14_072_000_000)
     end
 
-    it "単体: 売上高はガス事業売上高（SalesFromGasBusinessGAS）で開示される" do
+    it "単体: ガス事業・雑収益・附帯事業を合算した全社売上を取得する" do
       items = extract("S100XTDX", non_consolidated)
-      expect(items).to include("pl.revenue" => 147_318_000_000, "pl.cost_of_sales" => 118_689_000_000,
+      expect(items).to include("pl.revenue" => 155_516_000_000, "pl.cost_of_sales" => 118_689_000_000,
                                "pl.sga" => 21_773_000_000, "pl.operating_profit" => 7_277_000_000)
+    end
+  end
+
+  %w[S100XTDX S100YH8W S100YEGP S100YGFW S100YGOL S100YIW6].each do |doc_id|
+    it "#{doc_id}のガス単体PLは全社売上と全費用が開示精度の範囲で一致して描画される" do
+      items = extract(doc_id, non_consolidated)
+      chart = Charts::Builders::PlJgaapGeneral.new(items).build
+      expect(chart.renderable).to be true
+      if items.key?("pl.gas_miscellaneous_expenses")
+        costs = chart.bars.first.segments.find { |segment| segment.key == "costOfSales" }
+        expect(costs.label).to eq "売上原価等"
+        expect(costs.tooltip_label).to eq "売上原価・営業雑費用・附帯事業費用"
+      end
+      debit, credit = chart.bars.map { |bar| bar.segments.sum(&:amount) }
+      error = items.rounding_errors.values_at("pl.revenue", "pl.cost_of_sales", "pl.sga", "pl.operating_profit",
+                                             "pl.gas_miscellaneous_expenses", "pl.gas_incidental_expenses").compact.sum
+      expect((debit - credit).abs).to be < error
     end
   end
 

@@ -34,6 +34,31 @@ namespace :ingestion do
     IngestionTasks.ingest_each(args.fetch(:doc_ids).split(/[,\s]+/))
   end
 
+  desc "ROE・ROA用の期首残高・自己資本が不足する既存有報を再取込する"
+  task reingest_indicators: :environment do
+    required_codes = %w[bs.assets_begin bs.equity_attributable_to_owners bs.equity_attributable_to_owners_begin]
+    complete_statement_ids = Disclosure::FinancialStatementItem
+                               .where(item_code: required_codes)
+                               .group(:financial_statement_id)
+                               .having("COUNT(DISTINCT item_code) = ?", required_codes.size)
+                               .select(:financial_statement_id)
+    target_statements = Disclosure::FinancialStatement.where(is_primary: true)
+                         .where.not(presentation_format: Ingestion::FormatRegistry::UNSUPPORTED)
+                         .where.not(id: complete_statement_ids)
+    doc_ids = Disclosure::Report.where(id: target_statements.select(:report_id))
+                                .order(:filing_date).pluck(:edinet_document_id)
+    puts "reingest #{doc_ids.size} documents"
+    IngestionTasks.ingest_each(doc_ids)
+  end
+
+  desc "企業公表ROEが未抽出の既存有報を再取込する（未開示も確認済みとして記録）"
+  task reingest_disclosed_roe: :environment do
+    report_ids = Disclosure::FinancialStatement.where(disclosed_roe_checked_at: nil).select(:report_id)
+    doc_ids = Disclosure::Report.where(id: report_ids).order(:filing_date).pluck(:edinet_document_id)
+    puts "reingest #{doc_ids.size} documents"
+    IngestionTasks.ingest_each(doc_ids)
+  end
+
   # ifrs_summary形式の追加前に取り込まれ、詳細タグの無い有報が ifrs_liquidity として
   # 保存されている既存データを取り直すためのタスク。対象を「primaryなのに資産合計が無い」に
   # 絞るのは、正しく ifrs_liquidity と判定された有報を再取込せず EDINETへのリクエストを
