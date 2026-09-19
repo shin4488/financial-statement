@@ -173,20 +173,23 @@ export function FinancialIndicators({
                   '& .MuiChip-label': { px: 0.75 },
                 }}
               />
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{
-                  fontSize: 'clamp(10px, 3.6cqi, 16px)',
-                  fontWeight: 500,
-                  lineHeight: 1.5,
-                  letterSpacing: 0,
-                }}
-              >
-                {factor.lines[0]}
-                <br />
-                {factor.lines[1]}
-              </Typography>
+              <Stack>
+                {factor.lines.map((line) => (
+                  <Typography
+                    key={line}
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{
+                      fontSize: 'clamp(10px, 3.6cqi, 16px)',
+                      fontWeight: 500,
+                      lineHeight: 1.5,
+                      letterSpacing: 0,
+                    }}
+                  >
+                    {line}
+                  </Typography>
+                ))}
+              </Stack>
             </Stack>
           </React.Fragment>
         ))}
