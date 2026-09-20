@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ApolloProvider, useQuery } from '@apollo/client';
 import { Grid } from '@mui/material';
@@ -13,6 +13,8 @@ import { financialReportsClient } from './apolloClient';
 import { parseCashFlowType, parseStockCodes } from './searchCriteria';
 import { ReportCard } from './components/ReportCard';
 import { ReportListLayout } from './components/ReportListLayout';
+import { trackEvent } from '@/plugins/firebase/analytics';
+import { searchAnalytics } from './analytics';
 
 // URLクエリ（例: /?stock-codes=7203,4502&cash-flow-type=healthy）→ GraphQL変数。
 // 検索条件をReduxでなくURLに持つ理由: 検索結果画面をURLで共有・ブックマークできる
@@ -34,11 +36,39 @@ function useQueryVariables() {
 
 function FinancialReportList() {
   const variables = useQueryVariables();
-  const { data, loading, fetchMore } = useQuery(FINANCIAL_REPORTS_QUERY, {
-    variables,
-    notifyOnNetworkStatusChange: true, // fetchMore中もloadingを反映させる
-  });
+  const [searchParams] = useSearchParams();
+  const { data, loading, error, fetchMore } = useQuery(
+    FINANCIAL_REPORTS_QUERY,
+    {
+      variables,
+      notifyOnNetworkStatusChange: true, // fetchMore中もloadingを反映させる
+    },
+  );
   const reports = data?.financialReports ?? [];
+  // StrictMode、追加読込、再レンダーで最初の検索結果を重複計測しない。
+  const resultTracked = useRef<{ key: string; complete: boolean }>();
+  useEffect(() => {
+    const key = JSON.stringify(variables);
+    if (resultTracked.current?.key !== key) {
+      resultTracked.current = { key, complete: false };
+    }
+    if (loading || resultTracked.current.complete || (!data && !error)) {
+      return;
+    }
+    resultTracked.current.complete = true;
+    trackEvent('report_result', {
+      ...searchAnalytics(searchParams),
+      result_status: error ? 'error' : reports.length ? 'success' : 'empty',
+      result_count: error ? 0 : reports.length,
+      unavailable_count: error
+        ? 0
+        : reports.filter((report) =>
+            [report.balanceSheet, report.profitLoss, report.cashFlow].some(
+              (chart) => !chart.renderable,
+            ),
+          ).length,
+    });
+  }, [data, error, loading, reports, searchParams, variables]);
   // 「件数がページサイズの倍数」だけで終端判定すると、総件数がちょうど倍数のとき
   // 空レスポンスを無限に取り続けるため、「ページサイズ未満のレスポンスを受けたら終端」を
   // 状態として持つ（件数フィールドをAPIに増やさず一覧APIをシンプルに保つ意図）
@@ -61,11 +91,18 @@ function FinancialReportList() {
           fetchMore({ variables: { ...variables, offset: reports.length } })
             .then((result) => {
               const fetched = result.data?.financialReports?.length ?? 0;
+              trackEvent('report_load_more', {
+                ...searchAnalytics(searchParams),
+                result_status: fetched ? 'success' : 'empty',
+                result_count: fetched,
+              });
               if (fetched < financialStatementOffsetUnit) {
                 setReachedEnd(true);
               }
             })
-            .catch(() => undefined); // 失敗時は終端扱いにせず、次のスクロールで再試行させる
+            .catch(() => {
+              trackEvent('report_load_more', { result_status: 'error' });
+            }); // 失敗時は終端扱いにせず、次のスクロールで再試行させる
         }}
         hasMore={hasMore}
         loader={<CircularProgress key="loader" style={{ marginBottom: 5 }} />}
@@ -84,7 +121,12 @@ function FinancialReportList() {
       {loading && reports.length === 0 && (
         <CircularProgress style={{ marginTop: 20 }} />
       )}
-      {!loading && reports.length === 0 && (
+      {!loading && error && (
+        <p role="alert">
+          財務データを取得できませんでした。時間をおいて再度お試しください。
+        </p>
+      )}
+      {!loading && !error && reports.length === 0 && (
         <p>条件に一致する企業がありません。</p>
       )}
     </>

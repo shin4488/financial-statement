@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
 import FinancialReportListPage from '@/features/financialReports/FinancialReportListPage';
@@ -7,7 +7,7 @@ import ContactPage from '@/features/staticPages/ContactPage';
 import GuidePage from '@/features/staticPages/GuidePage';
 import PrivacyPolicyPage from '@/features/staticPages/PrivacyPolicyPage';
 import { siteRoutes } from '@/features/siteLayout/siteRoutes';
-import { initializeAnalytics } from './plugins/firebase/analytics';
+import AnalyticsPageView from './plugins/firebase/AnalyticsPageView';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 
 const theme = createTheme({
@@ -28,14 +28,11 @@ const theme = createTheme({
 });
 
 export default function App() {
-  useEffect(() => {
-    initializeAnalytics();
-  }, []);
-
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <BrowserRouter>
+        <AnalyticsPageView />
         <Routes>
           {/* 静的ページ（サイト説明・規約系）。一覧ページは残りの全URLを受ける */}
           <Route path={siteRoutes.about} element={<AboutPage />} />

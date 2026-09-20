@@ -5,7 +5,7 @@ import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
 import AppCarousel from './AppCarousel';
 import { FinancialIndicators } from '@/shared/financialIndicators';
-import { logClickEvent } from '@/plugins/firebase/analytics';
+import { trackEvent } from '@/plugins/firebase/analytics';
 import { StackedBarChart, WaterfallChart } from '@/shared/financialCharts';
 import type { FinancialReport } from '../api/types';
 
@@ -61,21 +61,11 @@ export const ReportCard = React.memo(function ReportCard({
               // noreferrer: 検索条件を含むURLが遷移先に渡るのを防ぐ
               rel="noopener noreferrer"
               href={kabutanUrl}
+              onClick={() =>
+                trackEvent('outbound_click', { link_domain: KABUTAN_HOST })
+              }
             >
-              <span
-                onClick={() =>
-                  logClickEvent({
-                    content_type: 'url',
-                    link_domain: KABUTAN_HOST,
-                    link_url: kabutanUrl,
-                    custom_stock_code: report.stockCode ?? '',
-                    custom_title: report.companyName ?? '',
-                    custom_timespan: `${report.fiscalYearStartDate}-${report.fiscalYearEndDate}`,
-                  })
-                }
-              >
-                {report.companyName}
-              </span>
+              {report.companyName}
             </Link>
           </div>
         }
