@@ -325,20 +325,6 @@ export default function GuidePage() {
         </P>
       </Section>
 
-      <Section title="3表のつながり">
-        <Bullets>
-          <Bullet>
-            PLの利益は、配当などを除いてBSの利益剰余金に積み上がります。
-          </Bullet>
-          <Bullet>
-            CFの期末残高はBSの現金・預金と関係しますが、集計範囲は異なる場合があります。
-          </Bullet>
-          <Bullet>
-            利益が出ていても、売掛金や在庫が増えると現金が減ることがあります。PLと営業CFを見比べてください。
-          </Bullet>
-        </Bullets>
-      </Section>
-
       <Section title="会計基準・業種による表示の違い">
         <P>
           会計基準や業種によって、科目と利益の種類が変わります。カードの見出しで会計基準と連結・単体を確認できます（日本基準の表記は省略）。
