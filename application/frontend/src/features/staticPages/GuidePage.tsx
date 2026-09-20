@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Card,
@@ -12,12 +12,20 @@ import {
   TableHead,
   TableRow,
   Typography,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
-import { StackedBarChart, WaterfallChart } from '@/shared/financialCharts';
+import {
+  StackedBarChart,
+  WaterfallChart,
+  type StackChart,
+} from '@/shared/financialCharts';
 import { StaticPageLayout } from '@/features/siteLayout/StaticPageLayout';
 import { siteRoutes } from '@/features/siteLayout/siteRoutes';
 import { CashFlowTypeValue, cashFlowTypes } from '@/constants/values';
 import {
+  Definition,
+  DefinitionTable,
   Bullet,
   Bullets,
   InternalLink,
@@ -29,8 +37,10 @@ import {
 } from './pageParts';
 import {
   sampleBalanceSheet,
+  sampleNegativeEquity,
   sampleCashFlow,
   sampleProfitLoss,
+  sampleOperatingLoss,
 } from './guideSampleCharts';
 
 // 説明用チャートを一覧のカードと同じ枠（Card）で見せ、実物と同じ見た目で読み方を示す
@@ -46,11 +56,63 @@ function SampleChartCard({
       <CardHeader
         title={title}
         titleTypographyProps={{ variant: 'subtitle1' }}
-        subheader="説明用の架空データ（総資産・売上高がともに1,000億円の会社の例）。実際の画面と同じく、グラフに触れると金額が表示されます"
+        subheader="架空データの例。グラフに触れると金額を表示します。"
         subheaderTypographyProps={{ variant: 'caption' }}
       />
       <CardContent sx={{ textAlign: 'center' }}>{children}</CardContent>
     </Card>
+  );
+}
+
+function SwitchableChartExample({
+  title,
+  labels,
+  charts,
+}: {
+  title: string;
+  labels: [string, string];
+  charts: [StackChart, StackChart];
+}) {
+  const [showAlternative, setShowAlternative] = useState(false);
+
+  return (
+    <SampleChartCard title={title}>
+      <ToggleButtonGroup
+        value={showAlternative}
+        exclusive
+        onChange={(_, next: boolean | null) => {
+          if (next !== null) {
+            setShowAlternative(next);
+          }
+        }}
+        size="small"
+        aria-label={title}
+        sx={{ mb: 2 }}
+      >
+        <ToggleButton value={false}>{labels[0]}</ToggleButton>
+        <ToggleButton value={true}>{labels[1]}</ToggleButton>
+      </ToggleButtonGroup>
+      <StackedBarChart chart={charts[showAlternative ? 1 : 0]} height={320} />
+    </SampleChartCard>
+  );
+}
+
+function ProfitDescription({
+  name,
+  formula,
+}: {
+  name: string;
+  formula: string;
+}) {
+  return (
+    <>
+      <Typography component="p" variant="inherit" fontWeight="bold">
+        {name}
+      </Typography>
+      <Typography component="p" variant="inherit" color="text.secondary">
+        {formula}
+      </Typography>
+    </>
   );
 }
 
@@ -112,17 +174,11 @@ export default function GuidePage() {
   return (
     <StaticPageLayout
       title="財務三表の読み方"
-      description="貸借対照表（BS）・損益計算書（PL）・キャッシュフロー計算書（CF）の基本と、investeeのグラフ（積み上げ棒グラフ・ウォーターフォール）の見方、キャッシュフロー8パターンの意味を解説します。"
+      description="財務三表のグラフとROE・ROAの読み方、キャッシュフローの8パターン、企業の探し方を紹介します。"
       path={siteRoutes.guide}
     >
-      <P>
-        investeeは、上場企業が提出した有価証券報告書の財務三表を、比べやすいグラフに描き直して表示しています。このページでは、財務三表そのものの基本と、investeeのグラフの見方を説明します。会計の予備知識がなくても読めるように書いています。
-      </P>
-
       <Section title="財務三表とは">
-        <P>
-          企業の財政状態と経営成績を表す3種類の書類です。上場企業は法律に基づいて事業年度ごとにこれを開示しており、investeeはその開示データをそのまま使っています。
-        </P>
+        <P>企業の資産、利益、現金の動きをまとめた3種類の書類です。</P>
         <SimpleTable
           head={['表', '正式名称', '何を表すか', '性質']}
           rows={[
@@ -149,74 +205,28 @@ export default function GuidePage() {
       </Section>
 
       <Section title="貸借対照表（BS）の見方">
-        <P>
-          左側（借方）に資産、右側（貸方）に負債と純資産を並べたもので、
-          <strong>左右の合計は必ず一致します</strong>
-          （資産 = 負債 +
-          純資産）。investeeはこれを左右2本の積み上げ棒グラフで描きます。左右の高さが揃うこと自体が、データが正しく取れていることの確認にもなっています。
-        </P>
-        <SampleChartCard title="貸借対照表の表示例">
-          <StackedBarChart chart={sampleBalanceSheet} height={320} />
-        </SampleChartCard>
-        <Bullets>
-          <Bullet>
-            <strong>左のバー（借方）</strong>
-            は資産の内訳です。上から流動資産（1年以内に現金化されるもの）、有形固定資産（工場・店舗など）、無形固定資産（ソフトウェア・のれんなど）、投資その他の資産の順に積み上がります
-          </Bullet>
-          <Bullet>
-            <strong>右のバー（貸方）</strong>
-            は資金の調達源泉です。流動負債（1年以内に支払期限が来るもの）、固定負債（長期の借入など）、純資産（返す必要のない自己資本）の順です
-          </Bullet>
-          <Bullet>
-            セグメントの数値は総資産に対する構成比（%）です。実際の金額（百万円単位）はマウスオーバー、またはタップで表示されます
-          </Bullet>
-          <Bullet>
-            純資産の割合は、いわゆる自己資本比率にあたります。一般に高いほど借入への依存が小さく財務の安定性が高いと見なされますが、適正な水準は業種によって大きく異なります（銀行のように負債が大半を占めるのが普通の業種もあります）
-          </Bullet>
-          <Bullet>
-            流動資産と流動負債の大小は、短期の支払能力の目安になります
-          </Bullet>
-          <Bullet>
-            負債が資産を上回り純資産がマイナスになった状態を債務超過と呼びます。該当する企業では3本目のバー「債務超過」が現れ、マイナス分の大きさが分かるようにしています
-          </Bullet>
-          <Bullet>
-            借方と貸方の合計が1割を超えてずれているデータは、誤解を招くグラフを出すよりも表示しない方がよいと考え、チャートを表示せずその旨を示します
-          </Bullet>
-        </Bullets>
+        <P>左は資産、右は負債と純資産です。数値は総資産に対する割合です。</P>
+        <SwitchableChartExample
+          title="貸借対照表の表示例"
+          labels={['通常', '債務超過']}
+          charts={[sampleBalanceSheet, sampleNegativeEquity]}
+        />
       </Section>
 
       <Section title="損益計算書（PL）の見方">
         <P>
-          「売上 − 費用 =
-          利益」の構造です。売上を「何に使ったか（費用）」と「残った儲け（利益）」に分解して左右に並べると、BSと同じく左右の合計が一致するため、同じ積み上げ棒グラフ2本で描けます。
+          売上から費用を引くと利益が残ります。数値は売上高に対する割合で、営業利益の割合が営業利益率です。
         </P>
-        <SampleChartCard title="損益計算書の表示例">
-          <StackedBarChart chart={sampleProfitLoss} height={320} />
-        </SampleChartCard>
-        <Bullets>
-          <Bullet>
-            <strong>左のバー（借方）</strong>
-            は売上原価（商品・サービスを作るのにかかった費用）、販売費及び一般管理費（売る・管理するのにかかった費用）、営業利益（差し引きで残った本業の儲け）です
-          </Bullet>
-          <Bullet>
-            <strong>右のバー（貸方）</strong>
-            は売上高です。売上より費用が大きい（営業損失）場合は、損失が右側に積まれて高さが揃います
-          </Bullet>
-          <Bullet>
-            数値は売上高を100としたときの割合（%）です。営業利益の%がそのまま営業利益率、売上原価の%が原価率にあたります
-          </Bullet>
-          <Bullet>
-            原価率が高く販管費率が低い、あるいはその逆といった構成の違いは、業種やビジネスモデルの違いを表します。同業他社と並べて比べると特徴が見えやすくなります
-          </Bullet>
-          <Bullet>
-            investeeが表示する利益は本業の儲けを表す営業利益までです（IFRS採用企業は税引前利益、銀行は経常利益）。純利益などそれより下の段階は表示していません
-          </Bullet>
-        </Bullets>
+        <SwitchableChartExample
+          title="損益計算書の表示例"
+          labels={['黒字', '赤字']}
+          charts={[sampleProfitLoss, sampleOperatingLoss]}
+        />
       </Section>
 
       <Section title="キャッシュフロー計算書（CF）の見方">
         <P>
-          PLの利益は会計上の計算値で、現金の動きとは一致しません（掛け売り・減価償却などが差を生みます）。CFは現金の増減だけを3つの活動に分けて示すもので、investeeは期首の現金残高から期末残高までを階段状のウォーターフォールグラフで描きます。
+          現金の増減を示します。青系は増加、赤系は減少です。売上代金の入金時期などにより、PLの利益とは一致しません。
         </P>
         <SampleChartCard title="キャッシュフロー計算書の表示例">
           <WaterfallChart chart={sampleCashFlow} height={320} />
@@ -244,100 +254,110 @@ export default function GuidePage() {
             ],
           ]}
         />
-        <Bullets>
-          <Bullet>
-            「期首残」「期末残」は現金残高そのもの、間の3つはその期の増減です。増加は青系、減少は赤系で塗り分けています
-          </Bullet>
-          <Bullet>
-            増減のバーは直前の残高の高さから始まるので、現金がどこで増えてどこで減ったかを一目で追えます
-          </Bullet>
-          <Bullet>
-            期末残は開示された実際の残高を描いています。為替換算差額などがあるため「期首
-            + 3区分の合計」と厳密には一致しないことがあります
-          </Bullet>
-          <Bullet>
-            数値の単位は百万円です（BS・PLと違い、比率ではなく金額をそのまま描いています。百万円未満の小さな金額だけ千円単位で表示します）
-          </Bullet>
-        </Bullets>
-      </Section>
-
-      <Section title="ROE・ROAの見方">
         <P>
-          CFの次に、ROE（自己資本利益率）・ROA（総資産利益率）と、その内訳を表示します。
-          「収益性」は売上から利益を残す力、「効率性」は資産を使って売上を生む力、
-          「健全性」の欄は自己資本に対する総資産の大きさ（財務レバレッジ）を示します。
-          分類ラベルの色は項目の区別で、良し悪しの判定ではありません。
+          為替の影響などにより、3区分の増減だけでは期末残高と一致しない場合があります。
         </P>
-        <SimpleTable
-          head={['指標', 'このサイトの計算式']}
-          rows={[
-            ['ROE', '純利益 ÷ 平均自己資本 × 100（%）'],
-            ['ROA', '純利益 ÷ 平均総資産 × 100（%）'],
-            ['売上高純利益率', '純利益 ÷ 売上高 × 100（%）'],
-            ['総資産回転率', '売上高 ÷ 平均総資産（回）'],
-            ['財務レバレッジ', '平均総資産 ÷ 平均自己資本（倍）'],
-          ]}
-        />
-        <Bullets>
-          <Bullet>
-            純利益は、連結では親会社株主（所有者）に帰属する当期純利益、単体では当期純利益を使い、ROE・ROA・売上高純利益率で揃えています。
-            ROAには営業利益・経常利益などを使う定義もあるため、他のサイトと比べる場合は計算条件を確認してください。
-          </Bullet>
-          <Bullet>
-            総資産・自己資本は、同じ有報の期首（前期末）と期末の平均です。
-            自己資本は、日本基準では株主資本と評価・換算差額等の合計、IFRSでは親会社の所有者に帰属する持分を使います。
-            株式引受権・新株予約権・非支配株主持分などを含む純資産合計とは区別します。
-            会社公表の指標とは、分母の期間や計算条件によって数値が異なる場合があります。
-          </Bullet>
-          <Bullet>
-            ROE = 売上高純利益率 × 総資産回転率 × 財務レバレッジ、ROA =
-            売上高純利益率 × 総資産回転率に分解できます。
-            カードでは回転率・レバレッジも%で揃え、回・倍を併記します（80.0% =
-            0.80回、250.0% = 2.50倍）。 例えば8.0% × 0.80 × 2.50 =
-            16.0%です。表示の丸めにより、表示値を掛けた結果とは少しずれる場合があります。
-          </Bullet>
-          <Bullet>
-            必要な値がない場合は「データなし」、計算に使う分母が0以下の場合は「算出不可」と表示します。
-            期首がないときに期末だけで代用することはありません。売上高がなくても、必要な利益と残高があればROE・ROAは表示します。
-          </Bullet>
-          <Bullet>
-            ROEは当サイトの計算値を優先します。必要な金額・期首残高が不足する場合は、同じ有報・会計基準・連結区分の公表ROEで補完し、「企業公表値」と表示します。
-            公表値の計算条件は提出書類の注記によります。連結初年度に期末自己資本を使うなど、上の計算式と異なる場合があります。
-            公表ROEから不足する残高や分解要素を逆算せず、ROA・回転率・レバレッジは個別に計算します。平均自己資本が0以下の「算出不可」は補完しません。
-            銀行・保険の経常収益を売上高に置き換えることはしません。ROAに使わない財務レバレッジの欄だけ「—」とします。
-          </Bullet>
-          <Bullet>
-            赤字はマイナス、利益が0の場合は0.0%で表示します。会計期間の実績をそのまま使い、決算期変更などで1年に満たない期間でも年率換算はしません。
-            高いレバレッジが必ずしも健全という意味ではなく、ROE・ROAの水準も業種や期間を揃えて比較してください。
-          </Bullet>
-        </Bullets>
       </Section>
 
       <Section title="キャッシュフローの8パターン">
         <P>
-          営業・投資・財務CFの正負（↑/↓）の組合せは8通りあり、企業の状況を推し量る古典的な見方が知られています。investeeではこの8通りに名前を付け、一覧画面の「キャッシュフロー」で絞り込みに使えるようにしています。
+          営業・投資・財務CFのプラスとマイナスで8種類に分けています。一覧画面の「キャッシュフロー」で絞り込めます。
         </P>
         <CashFlowPatternTable />
         <P>
-          解釈はあくまで一般的な財務分析の見方です。創業期・成長期の企業が「勝負型」になるのは自然なことですし、成熟企業が「健全型」でも本業が縮小していることもあります。パターン単独で企業の良し悪しを判断せず、BS・PLや複数年の推移とあわせて見てください。
+          パターンだけで良し悪しは判断できません。BS・PLや過去の推移もあわせて確認してください。
         </P>
       </Section>
 
-      <Section title="3表のつながり">
-        <Bullets>
-          <Bullet>
-            PLの利益は、配当などで社外に出ていく分を除いて純資産（利益剰余金）として蓄積され、BSの右下を厚くしていきます
-          </Bullet>
-          <Bullet>CFの期末残高は、BSの現金及び預金にほぼ対応します</Bullet>
-          <Bullet>
-            「利益は出ているのに営業CFがマイナス」という組合せは、売掛金や在庫の増加で現金が回収できていないサインのことがあります。PLとCFを見比べる価値がここにあります
-          </Bullet>
-        </Bullets>
+      <Section title="ROE・ROAの見方">
+        <SimpleTable
+          head={['指標', 'このサイトの計算式', '説明']}
+          rows={[
+            [
+              'ROE',
+              '純利益 ÷ 平均自己資本 × 100（%）',
+              <React.Fragment key="roe-description">
+                <Typography component="p" variant="inherit" sx={{ mb: 1 }}>
+                  自己資本に対してどれだけ純利益を得たか
+                </Typography>
+                <Typography component="p" variant="inherit">
+                  売上高純利益率 × 総資産回転率 × 財務レバレッジ
+                </Typography>
+              </React.Fragment>,
+            ],
+            [
+              'ROA',
+              '純利益 ÷ 平均総資産 × 100（%）',
+              <React.Fragment key="roa-description">
+                <Typography component="p" variant="inherit" sx={{ mb: 1 }}>
+                  総資産に対してどれだけ純利益を得たか
+                </Typography>
+                <Typography component="p" variant="inherit">
+                  売上高純利益率 × 総資産回転率
+                </Typography>
+              </React.Fragment>,
+            ],
+            [
+              '売上高純利益率',
+              '純利益 ÷ 売上高 × 100（%）',
+              '収益性：売上からどれだけ純利益を残せたか',
+            ],
+            [
+              '総資産回転率',
+              '売上高 ÷ 平均総資産（回）',
+              '効率性：資産に対してどれだけ売上を生んだか',
+            ],
+            [
+              '財務レバレッジ',
+              '平均総資産 ÷ 平均自己資本（倍）',
+              <React.Fragment key="leverage-description">
+                <Typography component="p" variant="inherit" sx={{ mb: 1 }}>
+                  健全性：自己資本に対して総資産が何倍あるか
+                </Typography>
+                <Typography component="p" variant="inherit">
+                  レバレッジが高いほど健全という意味ではありません
+                </Typography>
+              </React.Fragment>,
+            ],
+          ]}
+        />
+        <P>
+          回転率・レバレッジも%で表示します（80% = 0.80回、250% =
+          2.50倍）。丸めのため、表示値の積とROE・ROAは少しずれる場合があります。
+        </P>
+        <SubSection title="計算条件">
+          <Bullets>
+            <Bullet>
+              残高は同じ有価証券報告書の期首・期末の平均を使います。期首がなければ、期末だけで代用しません。
+            </Bullet>
+            <Bullet>
+              連結の純利益は親会社株主に帰属する利益です。自己資本には非支配株主持分や新株予約権などを含めません。
+            </Bullet>
+            <Bullet>
+              1年未満の決算でも年率換算しません。他サイトとは利益の種類や計算期間が異なる場合があります。
+            </Bullet>
+            <Bullet>
+              売上高がなくても、利益と残高があればROE・ROAは計算できます。公表ROEからの逆算や、銀行・保険の経常収益による売上高の代用はしません。
+            </Bullet>
+          </Bullets>
+        </SubSection>
+        <SubSection title="データが足りないとき">
+          <DefinitionTable>
+            <Definition term="データなし">計算に必要な値が不足</Definition>
+            <Definition term="算出不可">分母が0以下</Definition>
+            <Definition term="企業公表値">
+              計算データが不足するため、同じ決算の書類に記載されたROEを表示
+            </Definition>
+            <Definition term="—">
+              ROAの計算に使わない財務レバレッジ欄
+            </Definition>
+          </DefinitionTable>
+        </SubSection>
       </Section>
 
       <Section title="会計基準・業種による表示の違い">
         <P>
-          財務諸表の作り方のルール（会計基準）と業種によって、科目の名前や利益の段階が変わります。investeeはカードの見出しに会計基準（日本基準以外のとき）と連結/単体を表示しています。
+          会計基準や業種によって、科目と利益の種類が変わります。カードの見出しで会計基準と連結・単体を確認できます（日本基準の表記は省略）。
         </P>
         <SimpleTable
           head={['形式', '対象', 'BSの科目', 'PLの利益', '表示']}
@@ -345,29 +365,45 @@ export default function GuidePage() {
             [
               '日本基準・一般事業会社',
               '製造・小売・ITなど大半の企業',
-              '流動/固定に区分',
-              '売上高 − 費用 → 営業利益',
+              '流動 / 固定に区分',
+              <ProfitDescription
+                key="operating"
+                name="営業利益"
+                formula="売上高 − 費用"
+              />,
               '対応',
             ],
             [
               '日本基準・銀行',
               '銀行',
               '貸出金・預金など業種固有の科目',
-              '経常収益 − 経常費用 → 経常利益',
+              <ProfitDescription
+                key="ordinary"
+                name="経常利益"
+                formula="経常収益 − 経常費用"
+              />,
               '対応',
             ],
             [
               '日本基準・保険',
               '生命保険・損害保険',
               '有価証券・保険契約準備金など業種固有の科目',
-              '経常収益 − 経常費用 → 経常利益',
+              <ProfitDescription
+                key="ordinary"
+                name="経常利益"
+                formula="経常収益 − 経常費用"
+              />,
               '対応',
             ],
             [
               'IFRS',
               'グローバル企業を中心に採用が増加',
-              '流動/非流動に区分、または流動性の高い順に配列。純資産は「資本」',
-              '売上収益 − 費用 → 税引前利益',
+              '流動 / 非流動に区分、または流動性の高い順に配列。純資産は「資本」',
+              <ProfitDescription
+                key="pretax"
+                name="税引前利益"
+                formula="売上収益 − 費用"
+              />,
               '対応（連結）',
             ],
             [
@@ -381,13 +417,11 @@ export default function GuidePage() {
         />
         <Bullets>
           <Bullet>
-            IFRS採用企業でも単体（親会社のみ）の財務諸表は日本基準で作成されます。investeeは子会社を含む企業グループ全体の数値である連結を優先し、連結を作成していない企業のみ単体を表示します
+            子会社を含む連結の財務諸表を優先し、連結がない企業は単体を表示します。
           </Bullet>
+          <Bullet>IFRS採用企業でも、単体の財務諸表は日本基準です。</Bullet>
           <Bullet>
-            IFRSでは営業利益の開示が任意で企業差が大きいため、企業間で比較できる利益の段階として税引前利益を使っています
-          </Bullet>
-          <Bullet>
-            2019年3月期より前のIFRSの有価証券報告書にはBSの詳細データが収録されていないため、BSは説明文になります（PL・CFは表示されます）
+            2019年3月期より前のIFRSの書類はBSの詳細データがなく、PL・CFのみ表示します。
           </Bullet>
         </Bullets>
       </Section>
@@ -396,36 +430,32 @@ export default function GuidePage() {
         <SubSection title="探す">
           <Bullets>
             <Bullet>
-              画面上部の「証券コードで検索」に4桁の証券コード（例:
-              7203、391A）を入力すると、その企業の全期分のカードに絞り込めます。複数入力すれば並べて比較できます
+              「証券コードで検索」に4桁のコード（例：7203、391A）を入力します。複数の企業を並べて比較できます。
             </Bullet>
+            <Bullet>「キャッシュフロー」で、8パターンから絞り込めます。</Bullet>
             <Bullet>
-              「キャッシュフロー」で上記8パターンを選ぶと、そのパターンに当てはまる企業だけを一覧できます
-            </Bullet>
-            <Bullet>
-              何も指定しなければ、有価証券報告書の提出日が新しい順に表示され、下にスクロールすると続きが自動で読み込まれます
+              指定がなければ提出日の新しい順に表示します。下へスクロールすると続きが読み込まれます。
             </Bullet>
           </Bullets>
         </SubSection>
         <SubSection title="見る">
           <Bullets>
             <Bullet>
-              各カードはBS → PL → CF →
-              ROE・ROAの順に切り替えられます。「自動切替」にチェックを入れると6秒ごとに自動で切り替わり、カードに触れている間は止まります
+              カードはBS → PL → CF →
+              ROE・ROAの順に切り替わります。「自動切替」は6秒間隔で、カードに触れている間は止まります。
             </Bullet>
             <Bullet>
-              カードの見出しは「証券コード :
-              会計期間（連結/単体）」です。企業名は有価証券報告書の提出時点の社名で、クリックすると株探の銘柄ページを開きます
+              企業名は書類提出時の社名で、クリックすると株探を開きます。
             </Bullet>
             <Bullet>
-              データは毎日更新され、前日にEDINETへ提出された有価証券報告書が翌朝には反映されます
+              前日にEDINETへ提出された有価証券報告書を、毎朝取り込みます。
             </Bullet>
           </Bullets>
         </SubSection>
       </Section>
 
       <Typography variant="body2" color="text.secondary" sx={{ mt: 4 }}>
-        このページの説明は一般的な財務分析の考え方をまとめたもので、特定の銘柄の売買を推奨するものではありません。データの出典・免責事項は
+        特定銘柄の売買を推奨するものではありません。出典・免責事項は
         <InternalLink to={siteRoutes.about}>このサイトについて</InternalLink>
         をご覧ください。
       </Typography>

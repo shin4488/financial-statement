@@ -46,6 +46,32 @@ export const sampleBalanceSheet: StackChart = {
   ],
 };
 
+// 資産1,000億円・負債1,200億円・純資産マイナス200億円。
+export const sampleNegativeEquity: StackChart = {
+  renderable: true,
+  note: null,
+  bars: [
+    sampleBalanceSheet.bars[0],
+    {
+      label: '貸方',
+      segments: [
+        seg('currentLiabilities', '流動負債', 700, 70, 'liability1'),
+        seg('fixedLiabilities', '固定負債', 500, 50, 'liability2'),
+      ],
+    },
+    {
+      label: '債務超過',
+      segments: [
+        { ...seg('spacer', '', 1000, 0, 'spacer'), ratio: null },
+        {
+          ...seg('equity', '純資産', 200, -20, 'equity'),
+          signedAmount: -200 * oku,
+        },
+      ],
+    },
+  ],
+};
+
 export const sampleProfitLoss: StackChart = {
   renderable: true,
   note: null,
@@ -61,6 +87,31 @@ export const sampleProfitLoss: StackChart = {
     {
       label: '貸方',
       segments: [seg('revenue', '売上', 1000, 100, 'revenue')],
+    },
+  ],
+};
+
+// 売上1,000億円に対して費用1,100億円。営業損失100億円を貸方へ積む。
+export const sampleOperatingLoss: StackChart = {
+  renderable: true,
+  note: null,
+  bars: [
+    {
+      label: '借方',
+      segments: [
+        seg('costOfSales', '売上原価', 800, 80, 'expense1'),
+        seg('sga', '販売一般管理費', 300, 30, 'expense2'),
+      ],
+    },
+    {
+      label: '貸方',
+      segments: [
+        seg('revenue', '売上', 1000, 100, 'revenue'),
+        {
+          ...seg('operatingLoss', '営業損失', 100, -10, 'loss'),
+          signedAmount: -100 * oku,
+        },
+      ],
     },
   ],
 };

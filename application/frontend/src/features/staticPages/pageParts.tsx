@@ -86,13 +86,13 @@ export function Bullet({ children }: { children: React.ReactNode }) {
 // 多列の表は狭い画面で1列が縦長に潰れるため、最小幅を確保して表の中だけ横スクロールさせる
 export const wideTableMinWidth = 600;
 
-// 見出し行つきの表。セルは文字列のみ（JSXを含む行は DefinitionTable を使う）
+// 見出し行つきの表。セルには文字列またはJSXを指定できる。
 export function SimpleTable({
   head,
   rows,
 }: {
   head: string[];
-  rows: string[][];
+  rows: React.ReactNode[][];
 }) {
   return (
     <TableContainer component={Paper} variant="outlined" sx={{ mb: 2 }}>
