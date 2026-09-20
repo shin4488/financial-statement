@@ -1,5 +1,6 @@
 require "net/http"
 require "json"
+require "digest"
 
 module Analytics
   # 公開API。計測先・イベント・値を固定し、任意のMPプロキシにしない。
@@ -42,7 +43,9 @@ module Analytics
       raise Invalid unless params.key?("engagement_time_msec") && params.key?("extension_version")
 
       @payload = {
-        client_id: input["client_id"],
+        # GA web streams require <number>.<number>; preserve a stable pseudonymous
+        # identifier without exposing the extension's stored UUID.
+        client_id: Digest::SHA256.digest(input["client_id"].downcase).unpack("N2").join("."),
         consent: { ad_user_data: "DENIED", ad_personalization: "DENIED" },
         events: [ { name: input["name"], params: params.merge("session_id" => input["session_id"], "analytics_version" => "2") } ]
       }
