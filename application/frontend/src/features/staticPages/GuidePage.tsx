@@ -97,6 +97,25 @@ function SwitchableChartExample({
   );
 }
 
+function ProfitDescription({
+  name,
+  formula,
+}: {
+  name: string;
+  formula: string;
+}) {
+  return (
+    <>
+      <Typography component="p" variant="inherit" fontWeight="bold">
+        {name}
+      </Typography>
+      <Typography component="p" variant="inherit" color="text.secondary">
+        {formula}
+      </Typography>
+    </>
+  );
+}
+
 // CFパターン8種の一般的な解釈。名前と矢印は一覧画面の絞り込みと同じ定数（cashFlowTypes）から
 // 取り、説明文だけをここで持つ（画面の選択肢と説明が食い違わないようにする）
 const cashFlowPatternNotes: Partial<Record<CashFlowTypeValue, string>> = {
@@ -207,7 +226,7 @@ export default function GuidePage() {
 
       <Section title="キャッシュフロー計算書（CF）の見方">
         <P>
-          現金が何によって増え、何によって減ったかを示します。売上代金の入金時期などにより、PLの利益とは一致しません。
+          現金の増減を示します。青系は増加、赤系は減少です。売上代金の入金時期などにより、PLの利益とは一致しません。
         </P>
         <SampleChartCard title="キャッシュフロー計算書の表示例">
           <WaterfallChart chart={sampleCashFlow} height={320} />
@@ -235,17 +254,19 @@ export default function GuidePage() {
             ],
           ]}
         />
-        <Bullets>
-          <Bullet>
-            期首残高から、営業・投資・財務の順に現金の増減を追います。青系は増加、赤系は減少です。
-          </Bullet>
-          <Bullet>
-            為替の影響などにより、3区分の増減だけでは期末残高と一致しない場合があります。
-          </Bullet>
-          <Bullet>
-            単位は百万円です。百万円未満の小さな金額は千円で表示します。
-          </Bullet>
-        </Bullets>
+        <P>
+          為替の影響などにより、3区分の増減だけでは期末残高と一致しない場合があります。
+        </P>
+      </Section>
+
+      <Section title="キャッシュフローの8パターン">
+        <P>
+          営業・投資・財務CFのプラスとマイナスで8種類に分けています。一覧画面の「キャッシュフロー」で絞り込めます。
+        </P>
+        <CashFlowPatternTable />
+        <P>
+          パターンだけで良し悪しは判断できません。BS・PLや過去の推移もあわせて確認してください。
+        </P>
       </Section>
 
       <Section title="ROE・ROAの見方">
@@ -315,6 +336,9 @@ export default function GuidePage() {
             <Bullet>
               1年未満の決算でも年率換算しません。他サイトとは利益の種類や計算期間が異なる場合があります。
             </Bullet>
+            <Bullet>
+              売上高がなくても、利益と残高があればROE・ROAは計算できます。公表ROEからの逆算や、銀行・保険の経常収益による売上高の代用はしません。
+            </Bullet>
           </Bullets>
         </SubSection>
         <SubSection title="データが足りないとき">
@@ -328,20 +352,7 @@ export default function GuidePage() {
               ROAの計算に使わない財務レバレッジ欄
             </Definition>
           </DefinitionTable>
-          <P>
-            売上高がなくても利益と残高があればROE・ROAは計算できます。公表ROEからの逆算や、銀行・保険の経常収益による売上高の代用はしません。
-          </P>
         </SubSection>
-      </Section>
-
-      <Section title="キャッシュフローの8パターン">
-        <P>
-          営業・投資・財務CFのプラスとマイナスで8種類に分けています。一覧画面の「キャッシュフロー」で絞り込めます。
-        </P>
-        <CashFlowPatternTable />
-        <P>
-          パターンだけで良し悪しは判断できません。BS・PLや過去の推移もあわせて確認してください。
-        </P>
       </Section>
 
       <Section title="会計基準・業種による表示の違い">
@@ -354,29 +365,45 @@ export default function GuidePage() {
             [
               '日本基準・一般事業会社',
               '製造・小売・ITなど大半の企業',
-              '流動/固定に区分',
-              '売上高 − 費用 → 営業利益',
+              '流動 / 固定に区分',
+              <ProfitDescription
+                key="operating"
+                name="営業利益"
+                formula="売上高 − 費用"
+              />,
               '対応',
             ],
             [
               '日本基準・銀行',
               '銀行',
               '貸出金・預金など業種固有の科目',
-              '経常収益 − 経常費用 → 経常利益',
+              <ProfitDescription
+                key="ordinary"
+                name="経常利益"
+                formula="経常収益 − 経常費用"
+              />,
               '対応',
             ],
             [
               '日本基準・保険',
               '生命保険・損害保険',
               '有価証券・保険契約準備金など業種固有の科目',
-              '経常収益 − 経常費用 → 経常利益',
+              <ProfitDescription
+                key="ordinary"
+                name="経常利益"
+                formula="経常収益 − 経常費用"
+              />,
               '対応',
             ],
             [
               'IFRS',
               'グローバル企業を中心に採用が増加',
-              '流動/非流動に区分、または流動性の高い順に配列。純資産は「資本」',
-              '売上収益 − 費用 → 税引前利益',
+              '流動 / 非流動に区分、または流動性の高い順に配列。純資産は「資本」',
+              <ProfitDescription
+                key="pretax"
+                name="税引前利益"
+                formula="売上収益 − 費用"
+              />,
               '対応（連結）',
             ],
             [
@@ -418,7 +445,7 @@ export default function GuidePage() {
               ROE・ROAの順に切り替わります。「自動切替」は6秒間隔で、カードに触れている間は止まります。
             </Bullet>
             <Bullet>
-              見出しに証券コード・会計期間・連結／単体を表示します。企業名は書類提出時の社名で、クリックすると株探を開きます。
+              企業名は書類提出時の社名で、クリックすると株探を開きます。
             </Bullet>
             <Bullet>
               前日にEDINETへ提出された有価証券報告書を、毎朝取り込みます。
