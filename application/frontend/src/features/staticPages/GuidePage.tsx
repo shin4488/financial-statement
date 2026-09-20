@@ -15,7 +15,11 @@ import {
   ToggleButton,
   ToggleButtonGroup,
 } from '@mui/material';
-import { StackedBarChart, WaterfallChart } from '@/shared/financialCharts';
+import {
+  StackedBarChart,
+  WaterfallChart,
+  type StackChart,
+} from '@/shared/financialCharts';
 import { StaticPageLayout } from '@/features/siteLayout/StaticPageLayout';
 import { siteRoutes } from '@/features/siteLayout/siteRoutes';
 import { CashFlowTypeValue, cashFlowTypes } from '@/constants/values';
@@ -33,6 +37,7 @@ import {
 } from './pageParts';
 import {
   sampleBalanceSheet,
+  sampleNegativeEquity,
   sampleCashFlow,
   sampleProfitLoss,
   sampleOperatingLoss,
@@ -59,30 +64,35 @@ function SampleChartCard({
   );
 }
 
-function ProfitLossExample() {
-  const [showLoss, setShowLoss] = useState(false);
+function SwitchableChartExample({
+  title,
+  labels,
+  charts,
+}: {
+  title: string;
+  labels: [string, string];
+  charts: [StackChart, StackChart];
+}) {
+  const [showAlternative, setShowAlternative] = useState(false);
 
   return (
-    <SampleChartCard title="損益計算書の表示例">
+    <SampleChartCard title={title}>
       <ToggleButtonGroup
-        value={showLoss}
+        value={showAlternative}
         exclusive
         onChange={(_, next: boolean | null) => {
           if (next !== null) {
-            setShowLoss(next);
+            setShowAlternative(next);
           }
         }}
         size="small"
-        aria-label="損益計算書の表示例"
+        aria-label={title}
         sx={{ mb: 2 }}
       >
-        <ToggleButton value={false}>黒字</ToggleButton>
-        <ToggleButton value={true}>赤字</ToggleButton>
+        <ToggleButton value={false}>{labels[0]}</ToggleButton>
+        <ToggleButton value={true}>{labels[1]}</ToggleButton>
       </ToggleButtonGroup>
-      <StackedBarChart
-        chart={showLoss ? sampleOperatingLoss : sampleProfitLoss}
-        height={320}
-      />
+      <StackedBarChart chart={charts[showAlternative ? 1 : 0]} height={320} />
     </SampleChartCard>
   );
 }
@@ -176,28 +186,23 @@ export default function GuidePage() {
       </Section>
 
       <Section title="貸借対照表（BS）の見方">
-        <P>
-          左は資産、右は負債と純資産です。<strong>資産 = 負債 + 純資産</strong>
-          なので、左右の合計は一致します。
-        </P>
-        <SampleChartCard title="貸借対照表の表示例">
-          <StackedBarChart chart={sampleBalanceSheet} height={320} />
-        </SampleChartCard>
-        <Bullets>
-          <Bullet>
-            数値は総資産に対する割合です。グラフに触れると金額が表示されます。
-          </Bullet>
-          <Bullet>
-            純資産がマイナスの場合は、3本目の棒「債務超過」で示します。
-          </Bullet>
-        </Bullets>
+        <P>左は資産、右は負債と純資産です。数値は総資産に対する割合です。</P>
+        <SwitchableChartExample
+          title="貸借対照表の表示例"
+          labels={['通常', '債務超過']}
+          charts={[sampleBalanceSheet, sampleNegativeEquity]}
+        />
       </Section>
 
       <Section title="損益計算書（PL）の見方">
         <P>
           売上から費用を引くと利益が残ります。数値は売上高に対する割合で、営業利益の割合が営業利益率です。
         </P>
-        <ProfitLossExample />
+        <SwitchableChartExample
+          title="損益計算書の表示例"
+          labels={['黒字', '赤字']}
+          charts={[sampleProfitLoss, sampleOperatingLoss]}
+        />
       </Section>
 
       <Section title="キャッシュフロー計算書（CF）の見方">

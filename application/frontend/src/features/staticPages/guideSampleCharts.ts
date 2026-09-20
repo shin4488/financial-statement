@@ -46,6 +46,32 @@ export const sampleBalanceSheet: StackChart = {
   ],
 };
 
+// 資産1,000億円・負債1,200億円・純資産マイナス200億円。
+export const sampleNegativeEquity: StackChart = {
+  renderable: true,
+  note: null,
+  bars: [
+    sampleBalanceSheet.bars[0],
+    {
+      label: '貸方',
+      segments: [
+        seg('currentLiabilities', '流動負債', 700, 70, 'liability1'),
+        seg('fixedLiabilities', '固定負債', 500, 50, 'liability2'),
+      ],
+    },
+    {
+      label: '債務超過',
+      segments: [
+        { ...seg('spacer', '', 1000, 0, 'spacer'), ratio: null },
+        {
+          ...seg('equity', '純資産', 200, -20, 'equity'),
+          signedAmount: -200 * oku,
+        },
+      ],
+    },
+  ],
+};
+
 export const sampleProfitLoss: StackChart = {
   renderable: true,
   note: null,
@@ -82,7 +108,7 @@ export const sampleOperatingLoss: StackChart = {
       segments: [
         seg('revenue', '売上', 1000, 100, 'revenue'),
         {
-          ...seg('operatingLoss', '営業損失', 100, 10, 'loss'),
+          ...seg('operatingLoss', '営業損失', 100, -10, 'loss'),
           signedAmount: -100 * oku,
         },
       ],
