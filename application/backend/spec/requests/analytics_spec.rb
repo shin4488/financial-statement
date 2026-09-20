@@ -19,6 +19,8 @@ RSpec.describe "Extension analytics", type: :request do
     stub = stub_request(:post, endpoint).with do |req|
       body = JSON.parse(req.body)
       expect(body.keys).to contain_exactly("client_id", "consent", "events")
+      expect(body["client_id"]).to match(/\A\d+\.\d+\z/)
+      expect(body["client_id"]).not_to eq(payload[:client_id])
       expect(body["events"][0]).to eq({ "name" => "report_result", "params" => {
         "result_status" => "success", "result_count" => 2, "site_domain_name" => "kabutan.jp",
         "extension_version" => "1.4.0", "engagement_time_msec" => 120,
@@ -30,6 +32,15 @@ RSpec.describe "Extension analytics", type: :request do
     post "/analytics/extension", params: payload, as: :json
     expect(response).to have_http_status(:no_content)
     expect(stub).to have_been_requested.once
+  end
+
+  it "keeps the GA client identifier stable across sessions and UUID casing" do
+    clients = []
+    stub_request(:post, endpoint).with { |req| clients << JSON.parse(req.body)["client_id"]; true }.to_return(status: 204)
+    post "/analytics/extension", params: payload, as: :json
+    post "/analytics/extension", params: payload.merge(client_id: payload[:client_id].upcase, session_id: payload[:session_id] + 1), as: :json
+    expect(clients.size).to eq(2)
+    expect(clients.uniq.size).to eq(1)
   end
 
   it "rejects arbitrary events, destinations, identifiers, and personal data without forwarding" do
