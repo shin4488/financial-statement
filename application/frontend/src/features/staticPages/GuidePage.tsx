@@ -254,12 +254,26 @@ export default function GuidePage() {
             [
               'ROE',
               '純利益 ÷ 平均自己資本 × 100（%）',
-              '自己資本に対してどれだけ純利益を得たか。売上高純利益率 × 総資産回転率 × 財務レバレッジ',
+              <React.Fragment key="roe-description">
+                <Typography component="p" variant="inherit" sx={{ mb: 1 }}>
+                  自己資本に対してどれだけ純利益を得たか
+                </Typography>
+                <Typography component="p" variant="inherit">
+                  売上高純利益率 × 総資産回転率 × 財務レバレッジ
+                </Typography>
+              </React.Fragment>,
             ],
             [
               'ROA',
               '純利益 ÷ 平均総資産 × 100（%）',
-              '総資産に対してどれだけ純利益を得たか。売上高純利益率 × 総資産回転率',
+              <React.Fragment key="roa-description">
+                <Typography component="p" variant="inherit" sx={{ mb: 1 }}>
+                  総資産に対してどれだけ純利益を得たか
+                </Typography>
+                <Typography component="p" variant="inherit">
+                  売上高純利益率 × 総資産回転率
+                </Typography>
+              </React.Fragment>,
             ],
             [
               '売上高純利益率',
