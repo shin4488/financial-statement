@@ -137,3 +137,7 @@ financial-statement/
 ├── docs/                    # 会計基準別の変換仕様や運用設計ドキュメント
 └── docker-compose.yml       # 開発環境コンテナ定義
 ```
+
+## 利用状況の分析
+
+GA4のイベント定義・改善判断・計測中継の運用は [計測ガイド](docs/analytics/README.md) を参照してください。

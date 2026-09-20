@@ -38,6 +38,8 @@ import {
   cashFlowTypes,
 } from '@/constants/values';
 import { SiteFooter } from '@/features/siteLayout/SiteFooter';
+import { trackEvent } from '@/plugins/firebase/analytics';
+import { searchAnalytics } from '../analytics';
 import { siteRoutes } from '@/features/siteLayout/siteRoutes';
 import {
   parseCashFlowType,
@@ -68,6 +70,9 @@ export function ReportListLayout({ children }: { children: React.ReactNode }) {
       next.set('cash-flow-type', cfType);
     }
     const query = next.toString();
+    if (query !== searchParams.toString()) {
+      trackEvent('search_submit', searchAnalytics(next));
+    }
     navigate(query ? `/?${query}` : '/');
   };
 
@@ -123,6 +128,11 @@ export function ReportListLayout({ children }: { children: React.ReactNode }) {
                       <Checkbox
                         checked={isAutoPlay}
                         onChange={(event) => {
+                          trackEvent('analysis_interaction', {
+                            interaction_type: event.target.checked
+                              ? 'autoplay_on'
+                              : 'autoplay_off',
+                          });
                           dispatch(changeAutoPlayStatus(event.target.checked));
                           localStorage.setItem(
                             autoPlayStatusLocalStorageKey,
