@@ -288,12 +288,19 @@ export default function GuidePage() {
             [
               '財務レバレッジ',
               '平均総資産 ÷ 平均自己資本（倍）',
-              '健全性：自己資本に対して総資産が何倍あるか。レバレッジが高いほど健全という意味ではありません。',
+              <React.Fragment key="leverage-description">
+                <Typography component="p" variant="inherit" sx={{ mb: 1 }}>
+                  健全性：自己資本に対して総資産が何倍あるか
+                </Typography>
+                <Typography component="p" variant="inherit">
+                  レバレッジが高いほど健全という意味ではありません
+                </Typography>
+              </React.Fragment>,
             ],
           ]}
         />
         <P>
-          カードでは回転率・レバレッジも%で表示します（80% = 0.80回、250% =
+          回転率・レバレッジも%で表示します（80% = 0.80回、250% =
           2.50倍）。丸めのため、表示値の積とROE・ROAは少しずれる場合があります。
         </P>
         <SubSection title="計算条件">
