@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Card,
@@ -12,6 +12,8 @@ import {
   TableHead,
   TableRow,
   Typography,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import { StackedBarChart, WaterfallChart } from '@/shared/financialCharts';
 import { StaticPageLayout } from '@/features/siteLayout/StaticPageLayout';
@@ -33,6 +35,7 @@ import {
   sampleBalanceSheet,
   sampleCashFlow,
   sampleProfitLoss,
+  sampleOperatingLoss,
 } from './guideSampleCharts';
 
 // 説明用チャートを一覧のカードと同じ枠（Card）で見せ、実物と同じ見た目で読み方を示す
@@ -48,11 +51,39 @@ function SampleChartCard({
       <CardHeader
         title={title}
         titleTypographyProps={{ variant: 'subtitle1' }}
-        subheader="説明用の架空データ（総資産・売上高がともに1,000億円の会社の例）。実際の画面と同じく、グラフに触れると金額が表示されます"
+        subheader="架空データの例。グラフに触れると金額を表示します。"
         subheaderTypographyProps={{ variant: 'caption' }}
       />
       <CardContent sx={{ textAlign: 'center' }}>{children}</CardContent>
     </Card>
+  );
+}
+
+function ProfitLossExample() {
+  const [showLoss, setShowLoss] = useState(false);
+
+  return (
+    <SampleChartCard title="損益計算書の表示例">
+      <ToggleButtonGroup
+        value={showLoss}
+        exclusive
+        onChange={(_, next: boolean | null) => {
+          if (next !== null) {
+            setShowLoss(next);
+          }
+        }}
+        size="small"
+        aria-label="損益計算書の表示例"
+        sx={{ mb: 2 }}
+      >
+        <ToggleButton value={false}>黒字</ToggleButton>
+        <ToggleButton value={true}>赤字</ToggleButton>
+      </ToggleButtonGroup>
+      <StackedBarChart
+        chart={showLoss ? sampleOperatingLoss : sampleProfitLoss}
+        height={320}
+      />
+    </SampleChartCard>
   );
 }
 
@@ -117,10 +148,6 @@ export default function GuidePage() {
       description="財務三表のグラフとROE・ROAの読み方、キャッシュフローの8パターン、企業の探し方を紹介します。"
       path={siteRoutes.guide}
     >
-      <P>
-        財務三表のグラフとROE・ROAで、企業の資産・利益・お金の流れを確認できます。
-      </P>
-
       <Section title="財務三表とは">
         <P>企業の資産、利益、現金の動きをまとめた3種類の書類です。</P>
         <SimpleTable
@@ -158,17 +185,7 @@ export default function GuidePage() {
         </SampleChartCard>
         <Bullets>
           <Bullet>
-            <strong>左の棒：</strong>
-            現金・在庫・設備など、持っている資産の内訳です。
-          </Bullet>
-          <Bullet>
-            <strong>右の棒：</strong>借入などの負債と、純資産の内訳です。
-          </Bullet>
-          <Bullet>
             数値は総資産に対する割合です。グラフに触れると金額が表示されます。
-          </Bullet>
-          <Bullet>
-            純資産の割合や、流動資産と流動負債のバランスを同業他社と比べてみてください。
           </Bullet>
           <Bullet>
             純資産がマイナスの場合は、3本目の棒「債務超過」で示します。
@@ -178,30 +195,9 @@ export default function GuidePage() {
 
       <Section title="損益計算書（PL）の見方">
         <P>
-          売上から費用を引くと利益が残ります。グラフでは、売上とその内訳を左右に並べています。
+          売上から費用を引くと利益が残ります。数値は売上高に対する割合で、営業利益の割合が営業利益率です。
         </P>
-        <SampleChartCard title="損益計算書の表示例">
-          <StackedBarChart chart={sampleProfitLoss} height={320} />
-        </SampleChartCard>
-        <Bullets>
-          <Bullet>
-            <strong>左の棒：</strong>
-            売上原価、販売費及び一般管理費、営業利益です。
-          </Bullet>
-          <Bullet>
-            <strong>右の棒：</strong>
-            売上高です。営業赤字の場合は損失も右側に表示します。
-          </Bullet>
-          <Bullet>
-            数値は売上高に対する割合です。営業利益の割合が営業利益率にあたります。
-          </Bullet>
-          <Bullet>
-            同業他社と比べると、費用のかかり方や利益の残り方の違いが分かります。
-          </Bullet>
-          <Bullet>
-            PLグラフの利益は、日本基準の一般企業では営業利益、銀行・保険では経常利益、IFRSでは税引前利益です。
-          </Bullet>
-        </Bullets>
+        <ProfitLossExample />
       </Section>
 
       <Section title="キャッシュフロー計算書（CF）の見方">
@@ -312,7 +308,7 @@ export default function GuidePage() {
               連結の純利益は親会社株主に帰属する利益です。自己資本には非支配株主持分や新株予約権などを含めません。
             </Bullet>
             <Bullet>
-              赤字はマイナスで表示し、1年未満の決算でも年率換算しません。他サイトとは利益の種類や計算期間が異なる場合があります。
+              1年未満の決算でも年率換算しません。他サイトとは利益の種類や計算期間が異なる場合があります。
             </Bullet>
           </Bullets>
         </SubSection>
@@ -321,15 +317,12 @@ export default function GuidePage() {
             <Definition term="データなし">計算に必要な値が不足</Definition>
             <Definition term="算出不可">分母が0以下</Definition>
             <Definition term="企業公表値">
-              計算データが不足するため、書類に記載されたROEを表示
+              計算データが不足するため、同じ決算の書類に記載されたROEを表示
             </Definition>
             <Definition term="—">
               ROAの計算に使わない財務レバレッジ欄
             </Definition>
           </DefinitionTable>
-          <P>
-            ROEを計算するデータが足りないときは、同じ決算の企業公表値を表示します。平均自己資本が0以下のときは「算出不可」です。
-          </P>
           <P>
             売上高がなくても利益と残高があればROE・ROAは計算できます。公表ROEからの逆算や、銀行・保険の経常収益による売上高の代用はしません。
           </P>

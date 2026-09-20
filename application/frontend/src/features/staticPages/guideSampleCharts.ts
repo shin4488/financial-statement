@@ -65,6 +65,31 @@ export const sampleProfitLoss: StackChart = {
   ],
 };
 
+// 売上1,000億円に対して費用1,100億円。営業損失100億円を貸方へ積む。
+export const sampleOperatingLoss: StackChart = {
+  renderable: true,
+  note: null,
+  bars: [
+    {
+      label: '借方',
+      segments: [
+        seg('costOfSales', '売上原価', 800, 80, 'expense1'),
+        seg('sga', '販売一般管理費', 300, 30, 'expense2'),
+      ],
+    },
+    {
+      label: '貸方',
+      segments: [
+        seg('revenue', '売上', 1000, 100, 'revenue'),
+        {
+          ...seg('operatingLoss', '営業損失', 100, 10, 'loss'),
+          signedAmount: -100 * oku,
+        },
+      ],
+    },
+  ],
+};
+
 // 期首100億 → 営業+30億 → 投資-20億 → 財務-10億 → 期末100億
 export const sampleCashFlow: WaterfallChartData = {
   renderable: true,
