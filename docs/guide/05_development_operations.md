@@ -18,17 +18,36 @@
 
 スキーマの変更はバックエンド・フロントエンド双方に波及するため、次の順で追随させる。
 
+<a id="sequence-codegen"></a>
+
 ```mermaid
-flowchart LR
-    A["バックエンドで<br>スキーマ変更"] --> B["rake graphql:dump_schema<br>→ schema.graphql をコミット"]
-    B --> C["フロントで npm run compile<br>→ __generated__/ をコミット"]
-    C --> D["クエリ上限に収まるか確認<br>（max_complexity / max_depth）"]
+sequenceDiagram
+    actor D as 開発者
+    participant B as Railsの型定義
+    participant S as schema.graphql
+    participant G as graphql-codegen
+    participant T as TypeScript生成型
+    D->>B: GraphQLの型を変更
+    D->>B: スキーマを書き出す
+    B->>S: SDLを更新
+    D->>G: npm run compile
+    G->>S: コミット対象のスキーマを読む
+    G->>G: フロントのクエリ定義と照合
+    G->>T: クエリと結果の型を生成
+    Note over D,T: スキーマと生成型を検証し、同じ変更に含める
 ```
 
-- `npm run compile` はコミット済みの `schema.graphql` を参照するため、バックエンドの起動は不要（[04章](04_system.md)）
-- クエリ上限の値と意図は[04章](04_system.md)を参照
-- スキーマの書き出し忘れ・型生成の取り込み忘れはCIが差分検知する（`schema.graphql` が変わるとfrontend CIも起動し、型生成のズレを検知できる）
-- Claude Code / Codex での編集時は、共通プラグインから `.claude/hooks/post-edit.sh` を呼び、既存の整形・検査（backend: rubocop -A / frontend: eslint --fix → prettier → tsc --noEmit）を実行する。残った指摘はエージェントに返す。導入・依存ツールは [開発ガイド](../../CLAUDE.md) を参照
+| 確認すること | 内容 |
+|---|---|
+| 実行コマンド | backendで`bundle exec rake graphql:dump_schema`、frontendで`npm run compile`を実行する |
+| 生成元 | コミット済みの`application/backend/schema.graphql`とフロントのクエリ定義。バックエンドの起動は不要 |
+| 型の対応 | 金額の`Money`はTypeScriptの`number`に対応付ける |
+| 変更の反映 | 開発中のwatchはクエリ変更に追従する。スキーマと生成型を同じ変更に含め、CIで生成差分がないことを確認する |
+| APIの上限 | Web・Chrome拡張のクエリが複雑度・深さの上限内に収まるか実行して確認する。上限の設計は[04章](04_system.md#公開apiとしての防御) |
+
+これは開発時の型生成であり、[実行時のAPI通信](03_data_flow.md#sequence-display)とは別の処理。
+
+Claude Code / Codexでの編集時は、共通プラグインから`.claude/hooks/post-edit.sh`を呼び、既存の整形・検査（backend: rubocop -A / frontend: eslint --fix → prettier → tsc --noEmit）を実行する。残った指摘はエージェントに返す。導入・依存ツールは[開発ガイド](../../CLAUDE.md)を参照。
 
 ### ブランチ・PR運用
 
@@ -104,30 +123,56 @@ flowchart TB
 
 ## デプロイ
 
-CI/CDはなく、**ローカルの作業ツリーをrsyncでVPSへ転送して再起動する**方式。
+自動デプロイはなく、**ローカルの作業ツリーをrsyncでVPSへ転送して再起動する**方式。
 
 ```mermaid
-flowchart LR
-    Check["事前チェック<br>mainが最新・<br>作業ツリーがクリーン"] --> BE["バックエンド転送<br>→ 依存更新・マイグレーション<br>→ puma再起動・起動確認"]
-    BE --> FE["フロントエンド<br>ローカルでビルド<br>→ build/ のみ転送"]
-    FE --> Verify["反映確認<br>API応答・トップページ200・<br>バンドルハッシュ一致"]
+sequenceDiagram
+    actor D as 作業者
+    participant L as ローカルのmain
+    participant B as 本番バックエンド / DB
+    participant J as 本番Sidekiq
+    participant F as 本番フロントエンド
+    participant G as GitHub Release
+    D->>L: マージ済みSHA・検証結果・差分なしを確認
+    opt バックエンドを更新
+        D->>B: DBをバックアップし、読めることを確認
+        L->>B: コードを転送、依存更新・マイグレーション
+        D->>B: Pumaを再起動して正常応答を確認
+        opt 取込コード・依存が変わる
+            D->>J: 権限のある対話端末で再起動
+            J-->>D: activeを確認
+        end
+    end
+    opt フロントエンドを更新
+        L->>F: 本番ビルドを転送
+    end
+    D->>B: 公開APIと必要なデータを確認
+    D->>F: 画面表示と配信ファイルを確認
+    opt リリース公開も依頼されている
+        D->>G: 確認したSHAのタグ・Releaseを公開
+        G-->>D: 公開URLとタグの参照先
+    end
 ```
+
+データの再取込が必要なら[指標用データの追加後の再取込](#指標用データの追加後の再取込)も行う。再起動後の日次処理は[04章](04_system.md#sequence-daily)、公開APIの経路は[03章③](03_data_flow.md#sequence-display)につながる。
 
 - **rsyncは未コミットの変更もそのまま本番に載せてしまう**。だから最初に作業ツリーがクリーンであることを確認する
 - 順序は必ず**バックエンド → フロントエンド**（フロントが新しいAPIに依存し得るため）
-- Sidekiq再起動が必要な変更（ジョブやgemの追加）はsudoを要するため非対話SSHでは完結できず、対話端末での操作が必要になる
+- Sidekiq再起動が必要な変更（ジョブが読む取込コードやgemなど）はsudoを要するため非対話SSHでは完結できず、対話端末での操作が必要になる
 - 過去に「非対話SSHで再起動スクリプトを実行してAPIが数分停止する」事故があり、対話モード強制（`bash -ic`）や `RAILS_ENV=production` の明示など、再発防止の決まりが手順書（`.claude/skills/deploy/`）に記録されている
 
 ## 日次バッチの監視とリカバリ
 
-[04章](04_system.md)のとおり自動リトライはなく、**冪等な再実行が唯一のリカバリ手段**。異常はSentry通知で気づき、対応する再実行コマンドを打つ、が基本形になる。
+Sentry通知とログから失敗した日付・書類を特定し、原因を確認して必要な分だけ再実行する。日次処理の流れは[04章](04_system.md#sequence-daily)を参照。
 
 | Sentry通知（ログメッセージ） | 意味 | リカバリ |
 |---|---|---|
-| `list failed <日付>`（`EDINET documents.json failed` も同種） | その日の書類一覧の取得自体に失敗（1日分が丸ごと未取込） | **必ず再実行**: `rake 'ingestion:backfill[日付,日付]'` |
+| `list failed <日付>`（`EDINET documents.json failed` も同種） | その日の書類一覧の取得自体に失敗（1日分が丸ごと未取込） | 原因解消後に `rake 'ingestion:backfill[日付,日付]'` |
 | `ingest failed <docID>` | 特定の書類の取込に失敗 | `rake 'ingestion:documents[docID]'` |
 | `accounting standard unknown` | 未知の会計基準（取込対象外としてスキップ済み） | 対応不要。頻発するなら形式対応を検討 |
 | `primary statement missing bs.assets` | 取り込めたが主要科目が欠けている | Extractor・形式判定を修正して再取込 |
+
+**注意が必要な組合せ：**連結廃止を示す訂正書類に当期の財務数値がない場合、旧連結行の削除と単体の既存データ保持が重なり、一覧から書類が消えることがある。Sentryの警告だけでなく表示対象も確認する。再取込しても原本の内容が同じなら解消するとは限らない。
 
 形式対応を広げた後にまとめて取り直す再取込タスク:
 
@@ -136,7 +181,7 @@ flowchart LR
 | 新しい業種・形式に対応した | `rake 'ingestion:reingest_unsupported[提出日from,提出日to]'` | `unsupported` を含む有報だけ（全期間のバックフィルよりEDINETへのリクエストが桁違いに少ない） |
 | 詳細タグ義務化前のIFRS有報が `ifrs_liquidity` のまま残っている | `rake ingestion:reingest_ifrs_summary` | 「primaryなのに資産合計が無い」有報をDBから自動特定（移行完了後は0件になり、再実行しても何もしない） |
 
-どの再取込も1件ずつ1秒間隔・失敗は隔離（日次と同じ方針）。取込コードを変えたデプロイでは、日次ジョブ側（sidekiq）の再起動も忘れないこと（[deployスキル](../../.claude/skills/deploy/SKILL.md)の2-b）。
+再取込も[04章の日次処理](04_system.md#sequence-daily)と同じ逐次実行を使う。取込コード変更時の再起動は[デプロイ](#デプロイ)の手順に従う。
 
 日々の健全性確認は `.claude/skills/investee-daily-check/` のスクリプト1本にまとまっており、次を一度に確認できる。
 

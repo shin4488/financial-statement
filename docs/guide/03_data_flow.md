@@ -47,6 +47,104 @@ flowchart TB
 
 以降の節が、この図の変換を1段ずつ追う。XBRLの読み方 → 取込（タグ → 科目コード）→ 保存（テーブルの1行）→ チャート組み立てとGraphQL API（応答の形）→ 描画（画面）の順。
 
+### 処理を追うための3つの図
+
+[① 原本取得・対象確認](#sequence-source) → [② 科目抽出・保存](#sequence-save) → **DB** → [③ 検索・表示](#sequence-display)。①②は取込時、③は閲覧時に動く。画面を開くたびにEDINETへ取りに行くわけではない。
+
+<a id="sequence-source"></a>
+
+#### ① 原本取得・対象確認
+
+HTTP応答だけでなく本文のエラーも確認する。起動・失敗時の継続は[04章の日次シーケンス](04_system.md#sequence-daily)を参照。対象と確認できた原本を②へ渡す。
+
+```mermaid
+sequenceDiagram
+    participant I as ReportIngester
+    participant E as EDINET API
+    participant X as XBRLの読取
+    participant D as DB
+    I->>E: 書類IDで原本を取得
+    E-->>I: ZIP またはエラー応答
+    break 取得失敗
+        I-->>I: 呼出元へ例外を返す
+    end
+    break 本文なし
+        I-->>I: 更新せず終了
+    end
+    I->>X: 企業・会計期間・会計基準を読む
+    X-->>I: 原本と識別情報
+    alt ファンドの書類
+        I->>D: 同じ書類IDの保存済みデータを比較対象から外す
+        Note over I,D: 科目は残し、企業情報は更新しない。②へは進まない
+    else 企業の書類
+        opt 証券コードが空欄
+            I->>D: 書類ID・企業コード・会計期間を照合
+            D-->>I: 一致する保存済み書類があるか
+        end
+        I->>I: 識別情報を検証し、一覧の証券コードとも照合
+        Note over I: 対象と確認できた場合だけ②へ
+    end
+```
+
+<a id="sequence-save"></a>
+
+#### ② 科目抽出・保存
+
+①の原本を企業・期間・連結区分で読み分ける。保存した科目と企業公表ROEが、③の入力になる。
+
+```mermaid
+sequenceDiagram
+    participant I as ReportIngester
+    participant X as ReportingPeriod / Extractor
+    participant D as DB
+    Note over I,X: ①で確認した原本と識別情報
+    I->>X: 会計基準・開示形式ごとに科目と公表ROEを抽出
+    X->>X: 企業・実日付・連結区分・通貨を照合
+    opt 日本基準CFの期首現金を通常取得できない
+        X->>X: 原本の候補を当期増減・調整額・期末額で照合
+        Note over X: 一意で金額が整合する原本の期首額だけ使う
+    end
+    X-->>I: 科目・金額・開示精度・公表ROE
+    Note over I,D: 1有報の保存は1トランザクション。失敗時は巻き戻す
+    I->>D: 企業と会計期間をキーに書類を作成・更新
+    I->>D: 今回なくなった連結区分を削除
+    loop 連結 / 単体ごと
+        alt 当期科目が取れず、既存の科目がある
+            I->>I: その財務諸表の科目・形式・公表ROEを保持
+        else 保存できる抽出結果
+            I->>D: 科目を入れ替え、形式・公表ROE・表示対象を保存
+        end
+    end
+    Note over D: ③はこの保存済みデータを参照する
+```
+
+照合で候補が決まらない科目は欠損のままにし、他の取得できた科目は保存する。CFの補完をROE・ROAの期首残高には流用しない。タグと補完条件の詳細は[06章](06_taxonomy_mapping.md)を参照。
+
+<a id="sequence-display"></a>
+
+#### ③ 検索・表示
+
+②の保存後、利用者の検索に応じて動く。APIは読み取り専用で、チャートと指標をそれぞれ組み立てる。
+
+```mermaid
+sequenceDiagram
+    participant U as Web / 拡張機能
+    participant A as GraphQL
+    participant D as DB
+    participant B as Builder / Indicators
+    U->>A: 証券コード・CF条件・取得範囲で問い合わせ
+    A->>A: 入力とクエリの上限を検証
+    A->>D: 表示対象の財務諸表を検索
+    Note over D: ②で保存した科目と公表ROE。連結優先
+    D-->>A: 書類と財務諸表
+    A->>B: 必要なチャート・指標を組み立て
+    B-->>A: 数値と表示可否、指標の状態・出典
+    A-->>U: 要求された項目をJSONで返す
+    U->>U: グラフ・指標、または表示できない理由を描画
+```
+
+検索条件の変更・追加読込は[04章の一覧画面](04_system.md#sequence-search)、利用状況の計測は[計測のシーケンス](../analytics/README.md#sequence-analytics)を参照。
+
 ### なぜ変換を挟むのか
 
 やりたいことは「有報の数字をグラフにする」だけだが、[01章](01_financial_knowledge.md)で見たとおり、同じ「資産合計」でも会計基準によってXBRLのタグ名が違う。
@@ -57,7 +155,7 @@ flowchart TB
 トヨタ（日本基準）      jppfs_cor:Assets      ← 銀行と同じタグ
 ```
 
-タグ名だけでなく、財務諸表の構造そのものも変わる。この「会計基準 × 開示様式」の組合せを、このシステムでは**形式**と呼ぶ（[02章](02_product.md)で見た7種類）。
+タグ名だけでなく、財務諸表の構造そのものも変わる。この「会計基準 × 開示様式」の組合せを、このシステムでは**形式**と呼ぶ（対応表は[06章](06_taxonomy_mapping.md)）。
 
 | | 一般事業会社 | 銀行 | IFRS |
 |---|---|---|---|
@@ -493,12 +591,13 @@ BSも同様に、固定資産は「有形・無形・投資その他の3分類�
 - 利益は連結で `pl.profit_attributable_to_owners`、単体で `pl.profit` に統一する。連結の値が欠けても全体利益へ置き換えない。
 - 総資産・自己資本は同じ有報の期首期末平均。自己資本は純資産合計と区別する。取得式は[06章](06_taxonomy_mapping.md#roe・roaの期首・期末残高)。
 - 各指標を独立に計算するため、売上高が欠けてもROE・ROAは算出できる。銀行・保険の経常収益を売上高として使わない。
-- APIは5指標それぞれを `{ value, status }` で返す。`value` は倍率（0.16 = 16%）で中間丸めなし。`status` は `AVAILABLE` / `MISSING_DATA` / `NOT_CALCULABLE`。必要な値・期首値が欠けたら欠損、分母0以下は算出不可、赤字・利益0は数値として返す。
+- APIは5指標それぞれを `{ value, status, source }` で返す。`value` は倍率（0.16 = 16%）で中間丸めなし。`status` は `AVAILABLE` / `MISSING_DATA` / `NOT_CALCULABLE`。必要な値・期首値が欠けたら欠損、分母0以下は算出不可、赤字・利益0は数値として返す。
+- 企業公表ROEは計算できる場合も保存する。計算データが不足するときだけ補完し、`source: DISCLOSED` を返す。平均自己資本が0以下と分かる場合は補完しない。通常の計算値は `source: CALCULATED`。
 - ROAのレバレッジ欄は計算対象外のため画面で「—」を表示する。欠損は「データなし」、算出不可は「算出不可」。記号は欠損時も表示し、詳細な定義は `/guide` に集約する。
 
 ## GraphQL API
 
-GraphQLはフロントエンドとの間の問い合わせ言語で、RESTのようにURLごとに決まった形のデータを返すのではなく、**クライアントが「必要な項目」を宣言し、サーバがその形で返す**。サーバは「何をどんな型で問い合わせできるか」を**スキーマ**として定義し、スキーマ自体もAPIで取得できる（イントロスペクション。フロントの型生成が使う。[04章](04_system.md)）。
+GraphQLはフロントエンドとの間の問い合わせ言語で、RESTのようにURLごとに決まった形のデータを返すのではなく、**クライアントが「必要な項目」を宣言し、サーバがその形で返す**。サーバは「何をどんな型で問い合わせできるか」を**スキーマ**として定義し、スキーマ自体もAPIで取得できる（イントロスペクション）。フロントの型生成には、書き出してコミットしたスキーマを使う（[05章](05_development_operations.md#sequence-codegen)）。
 
 エンドポイントは `POST /graphql` の1本、クエリも `financialReports` の1フィールドだけ。検索で有報を絞り、前節のチャート構造をそのままJSONで返す。
 
