@@ -27,6 +27,8 @@ module Xbrl
       # 先に全factをハッシュ化して以降の検索をO(1)にする
       @facts = {}
       @contexts = {}
+      units = doc.root.element_children.select { |el| el.name == "unit" && el.namespace&.href == Context::INSTANCE_NS }
+                 .to_h { |el| [ el["id"], unit_measure(el) ] }
       doc.root.element_children.each do |el|
         if el.name == "context" && el.namespace&.href == Context::INSTANCE_NS
           @contexts[el["id"]] = Context.new(el)
@@ -41,8 +43,10 @@ module Xbrl
         # 同じ要素*同じコンテキストのfactは本表と注記で重複出現することがある。
         # 値は同一のはずだが、万一異なっても文書の先頭側（本表側）を採用する
         key = [ prefix, el.name, ctx ]
-        next if @facts.key?(key)
-        @facts[key] = Fact.new(value: el.text&.strip, decimals: el["decimals"], unit: el["unitRef"])
+        fact = Fact.new(value: el.text&.strip, decimals: el["decimals"], unit: units[el["unitRef"]] || el["unitRef"])
+        # 円表示の金額には開示された円換算値を使う。外貨が先に現れても円を優先する。
+        next if @facts.key?(key) && !(fact.unit == Fact::JPY && @facts[key].unit != Fact::JPY)
+        @facts[key] = fact
       end
     end
 
@@ -59,5 +63,14 @@ module Xbrl
     def money(qname, context) = fact(qname, context)&.money
     def text(qname, context) = fact(qname, context)&.value
     def rounding_error(qname, context) = fact(qname, context)&.rounding_error
+
+    private
+      def unit_measure(element)
+        measure = element.at_xpath("./i:measure", Context::XML_NS)
+        return unless measure && element.element_children.one?
+        prefix, name = measure.text.strip.split(":")
+        uri = measure.namespaces["xmlns:#{prefix}"]
+        "{#{uri}}#{name}" if uri && name
+      end
   end
 end

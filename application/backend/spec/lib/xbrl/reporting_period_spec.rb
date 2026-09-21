@@ -239,3 +239,58 @@ RSpec.describe "XBRLの実日付による対象期間の照合" do
     expect(period.money("jppfs_cor:Assets", "CurrentYearInstant")).to eq 100
   end
 end
+
+RSpec.describe "CFの期首額の照合はBSの期首検索を緩めない" do
+  def extraction(opening_date: "2023-12-31", opening_cash: 100, entity: "E00001", alias_ids: false, competing: false)
+    xml = <<~XML
+      <i:xbrl xmlns:i="http://www.xbrl.org/2003/instance" xmlns:c="http://www.xbrl.org/2003/iso4217"
+       xmlns:jppfs_cor="http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2025-11-01/jppfs_cor">
+      <i:unit id="yen"><i:measure>c:JPY</i:measure></i:unit>
+    XML
+    { "FilingDateInstant" => [ "2026-03-01" ], "CurrentYearInstant" => [ "2025-12-31" ],
+      "CurrentYearDuration" => [ "2025-01-01", "2025-12-31" ], "Prior1YearInstant" => [ opening_date ] }.each do |id, dates|
+      period = dates.one? ? "<i:instant>#{dates.first}</i:instant>" :
+        "<i:startDate>#{dates.first}</i:startDate><i:endDate>#{dates.last}</i:endDate>"
+      owner = id == "Prior1YearInstant" ? entity : "E00001"
+      xml += "<i:context id='#{id}'><i:entity><i:identifier scheme='urn:test'>#{owner}</i:identifier></i:entity><i:period>#{period}</i:period></i:context>"
+    end
+    { [ "CashAndCashEquivalents", "Prior1YearInstant" ] => opening_cash,
+      [ "CashAndCashEquivalents", "CurrentYearInstant" ] => 120,
+      [ "NetIncreaseDecreaseInCashAndCashEquivalents", "CurrentYearDuration" ] => 20,
+      [ "Assets", "Prior1YearInstant" ] => 500,
+      [ "Assets", "CurrentYearInstant" ] => 600 }.each do |(tag, ctx), amount|
+      xml += "<jppfs_cor:#{tag} contextRef='#{ctx}' unitRef='yen' decimals='INF'>#{amount}</jppfs_cor:#{tag}>"
+    end
+    if competing
+      xml += <<~XML
+        <i:context id="AnotherOpening"><i:entity><i:identifier scheme="urn:test">E00001</i:identifier></i:entity><i:period><i:instant>2022-12-31</i:instant></i:period></i:context>
+        <jppfs_cor:CashAndCashEquivalents contextRef="AnotherOpening" unitRef="yen" decimals="-1">101</jppfs_cor:CashAndCashEquivalents>
+      XML
+    end
+    xml = xml.gsub("Prior1YearInstant", "OpeningCash").gsub("CurrentYearDuration", "CurrentPeriod") if alias_ids
+    period = Xbrl::Document.new(Nokogiri::XML(xml + "</i:xbrl>"))
+      .for_reporting_period(start_date: "2025-01-01", end_date: "2025-12-31")
+    Ingestion::Extractors::JgaapGeneral.new(period, "").extract
+  end
+
+  it "期首日付が誤っていても現金の増減が一致すればCFだけ補完する" do
+    result = extraction
+    expect(result).to include("cf.cash_begin" => 100, "cf.cash_end" => 120)
+    expect(result).not_to have_key("bs.assets_begin")
+    expect(result).not_to have_key("bs.equity_attributable_to_owners_begin")
+  end
+
+  it "一致しない金額・別企業・当期末以降の値は使わない" do
+    expect(extraction(opening_cash: 90)).not_to have_key("cf.cash_begin")
+    expect(extraction(entity: "E99999")).not_to have_key("cf.cash_begin")
+    expect(extraction(opening_date: "2025-12-31")).not_to have_key("cf.cash_begin")
+  end
+
+  it "当期・期首のcontextが任意のIDでも同じ結果を返す" do
+    expect(extraction(alias_ids: true)).to include("cf.cash_begin" => 100)
+  end
+
+  it "開示精度の範囲で複数候補が成立するときは推測で選ばない" do
+    expect(extraction(competing: true)).not_to have_key("cf.cash_begin")
+  end
+end

@@ -18,7 +18,15 @@ module Ingestion
       dei = @dei_extractor.extract(xbrl)
       # docIDを直接指定した取込でも対象外を除く。ファンドの提出者は上場企業の場合がある。
       # 企業マスタや既存有報を触る前に、書類自身の証券コードとFundCodeDEIを確認する。
-      return if dei.fund_code.present? || dei.stock_code.blank?
+      if dei.fund_code.present?
+        # 過去に誤って企業の財務として保存したファンドも表示対象から外す。
+        # 科目と書類は監査・復旧のため残す。
+        Disclosure::Report.find_by(edinet_document_id: doc_id)&.financial_statements&.each do |statement|
+          statement.update!(is_primary: false) if statement.is_primary?
+        end
+        return
+      end
+      return if dei.stock_code.blank? && !restore_known_stock_code(dei, doc_id)
       if dei.accounting_standard.nil?
         # 会計基準不明のまま取り込むと形式判定できないためスキップ。ただし黙殺すると
         # 「特定企業だけデータが無い」原因を追えなくなるため警告だけ残す
@@ -32,7 +40,7 @@ module Ingestion
         Sentry.capture_message("invalid edinet code in DEI: #{doc_id} (#{dei.edinet_code.inspect})", level: :error)
         return
       end
-      if expected_sec_code && dei.stock_code.present? && dei.stock_code != expected_sec_code
+      if expected_sec_code && dei.stock_code != expected_sec_code
         Sentry.capture_message(
           "sec code mismatch: #{doc_id} (list=#{expected_sec_code} dei=#{dei.stock_code})", level: :error)
         return
@@ -49,6 +57,19 @@ module Ingestion
     private_constant :Extraction
 
     private
+
+      # 上場前・上場廃止後の有報は証券コードが空でも財務数値を含む。
+      # 新規の紐付けは行わず、既存書類・企業・会計期間がすべて一致する再取込だけ認める。
+      def restore_known_stock_code(dei, doc_id)
+        report = Disclosure::Report.includes(:company).find_by(edinet_document_id: doc_id)
+        return unless report && report.company.edinet_code == dei.edinet_code
+        return unless report.fiscal_year_start_date.to_s == dei.fiscal_year_start_date &&
+                      report.fiscal_year_end_date.to_s == dei.fiscal_year_end_date
+        dei.stock_code = report.company.stock_code
+        # 上場廃止後は企業マスタも空欄になり得る。証券コードを推測せず、
+        # 上で照合した既存書類として取り込む。
+        true
+      end
 
       def build_statements(xbrl, dei)
         specs = []

@@ -25,6 +25,19 @@ RSpec.describe Xbrl::Document do
   end
 
   describe "#money" do
+    it "外貨と円が併記される金額は、出現順やunitのIDによらず円を使う" do
+      units = <<~XML
+        <xbrli:unit xmlns:currency="http://www.xbrl.org/2003/iso4217" id="yen"><xbrli:measure>currency:JPY</xbrli:measure></xbrli:unit>
+        <xbrli:unit xmlns:currency="http://www.xbrl.org/2003/iso4217" id="dollar"><xbrli:measure>currency:USD</xbrli:measure></xbrli:unit>
+      XML
+      facts = [ '<jppfs_cor:Assets contextRef="CurrentYearInstant" unitRef="dollar">100</jppfs_cor:Assets>',
+                '<jppfs_cor:Assets contextRef="CurrentYearInstant" unitRef="yen">15000</jppfs_cor:Assets>' ]
+      [ facts, facts.reverse ].each do |order|
+        expect(document_from(xbrl(units + order.join)).money("jppfs_cor:Assets", "CurrentYearInstant")).to eq 15_000
+      end
+      expect(document_from(xbrl(units + facts.first)).money("jppfs_cor:Assets", "CurrentYearInstant")).to be_nil
+    end
+
     it "qnameとコンテキストで金額を引ける。名前空間URIのバージョン年度が違っても同じqnameで引ける" do
       aggregate_failures do
         [ "2025-11-01", "2019-11-01" ].each do |version|

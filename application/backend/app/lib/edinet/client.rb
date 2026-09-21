@@ -2,6 +2,16 @@
 # レート制限（リクエスト過多で403）のため同期・逐次実行が前提（並列化しない）
 module Edinet
   class Client
+    # HTTP 200でも、本文のmetadata.statusで取得失敗が返ることがある。
+    # APIキーを含むURLや応答本文を例外に載せない。
+    class ApiError < StandardError
+      attr_reader :status
+
+      def initialize(status)
+        @status = status.to_s
+        super("EDINET API failed: #{@status}")
+      end
+    end
     # API仕様書記載の公式ホスト。閲覧サイト側ホスト（disclosure.edinet-fsa.go.jp）の
     # /api/v2 互換パスは廃止されエラー画面（HTML）を返すため使わない
     BASE = "https://api.edinet-fsa.go.jp/api/v2".freeze
@@ -36,7 +46,9 @@ module Edinet
       unless response.is_a?(Net::HTTPSuccess)
         raise "EDINET documents.json failed: #{response.code} #{response.message} (date=#{date})"
       end
-      results = JSON.parse(response.body)["results"] || []
+      body = JSON.parse(response.body)
+      check_api_status!(body)
+      results = body["results"] || []
       results.filter_map do |r|
         # 提出会社の証券コードが付いた信託受益証券の有報もある。
         # 企業内容等開示府令の企業有報に限定し、ファンドの財務を提出会社に混ぜない。
@@ -72,6 +84,17 @@ module Edinet
         if File.size(zip_path) > MAX_ZIP_SIZE
           raise "EDINET zip too large: #{doc_id} (> #{MAX_ZIP_SIZE} bytes)"
         end
+        # 取得不能の書類はZIPではなく小さなJSON応答になる。
+        # これをZip::Errorにせず、404や認証・制限エラーを区別して呼び出し元へ返す。
+        if File.size(zip_path) <= 64 * 1024
+          body = File.read(zip_path)
+          check_api_status!(JSON.parse(body)) if body.lstrip.start_with?("{")
+        end
+      end
+
+      def check_api_status!(body)
+        status = body.dig("metadata", "status")
+        raise ApiError, status unless status.nil? || status.to_s == "200"
       end
 
       def extract_public_doc_xbrl(doc_id, zip_path, work_dir)

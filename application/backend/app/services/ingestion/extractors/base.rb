@@ -94,6 +94,12 @@ module Ingestion
             put(result, opening, lookup(spec, "Prior1YearInstant#{@c}"))
           end
         end
+        if !result.key?("cf.cash_begin") && result.key?("cf.cash_end") && @xbrl.respond_to?(:reconciled_opening_cash)
+          if (fact = @xbrl.reconciled_opening_cash(consolidation: @c, closing_amount: result["cf.cash_end"]))
+            result["cf.cash_begin"] = fact.money
+            result.rounding_errors["cf.cash_begin"] = fact.rounding_error
+          end
+        end
         result
       end
 
