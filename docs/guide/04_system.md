@@ -110,25 +110,41 @@ flowchart LR
 
 ## 取込ジョブの信頼性
 
-一覧取得は企業内容等開示府令（`ordinanceCode: 010`）の有報・訂正有報に限定し、ファンドコードあり・証券コードなしの書類を除く。信託受益証券の有報には提出会社の証券コードが付くことがあるため、証券コードだけでは企業自身の有報と判定しない。docID直接指定の取込でも、DEIのファンドコードあり・証券コードなしは企業マスタを更新する前に除外する。
+一覧取得は企業内容等開示府令（`ordinanceCode: 010`）の有報・訂正有報に限定し、ファンドコードあり・証券コードなしの書類を除く。信託受益証券の有報には提出会社の証券コードが付くことがあるため、証券コードだけでは企業自身の有報と判定しない。docID直接指定でもファンドは企業マスタの更新前に除外し、誤登録済みなら科目を残して表示対象から外す。証券コード空欄の再取込は、保存済み書類と企業・期間まで一致する場合に限る。
 
 取込がデータをどう変換するかは[03章](03_data_flow.md)。ここではバッチとしての動き方と、壊れたデータ・壊れた日から回復できる仕組みを扱う。
 
+<a id="sequence-daily"></a>
+
 ```mermaid
 sequenceDiagram
-    participant Cron as sidekiq-cron（毎日2:00）
-    participant Svc as 取込サービス
-    participant Edinet as EDINET API
-    participant DB as PostgreSQL
-
-    Cron->>Svc: 日次ジョブ起動（対象は前日提出分）
-    Svc->>Edinet: 書類一覧を取得（有報・訂正有報のみ）
-    loop 書類ごと（逐次・1秒間隔）
-        Svc->>Edinet: XBRLをダウンロード
-        Svc->>Svc: パース → 検証 → 形式判定 → 科目抽出
-        Svc->>DB: 保存（1有報 = 1トランザクション）
+    participant J as Sidekiq / 日次ジョブ
+    participant S as DailyIngestionService
+    participant E as EDINET API
+    participant I as ReportIngester
+    participant M as ログ / Sentry
+    J->>S: 前日提出分の取込を開始
+    S->>E: 日付ごとの書類一覧を取得
+    alt 一覧を取得できない
+        S->>M: 日付と失敗を記録
+        Note over S: この日は未取込。対象期間の次の日へ進む
+    else 一覧を取得できた
+        loop 対象書類を1件ずつ（間隔を空ける）
+            S->>I: 書類IDと一覧の証券コードを渡す
+            Note over I: 03章① 原本取得・対象確認 → ② 科目抽出・保存
+            alt 例外が発生
+                I-->>S: 失敗
+                S->>M: 書類IDと失敗を記録
+            else 例外なし
+                I-->>S: 保存、または対象外・数値なしで終了
+                S->>M: 処理の終了を記録
+            end
+        end
     end
+    S-->>J: 終了（失敗分の自動再試行はしない）
 ```
+
+書類ごとの処理は[03章①②](03_data_flow.md#sequence-source)、通知後の対応は[05章のリカバリ](05_development_operations.md#日次バッチの監視とリカバリ)へ続く。処理終了のログだけでは、科目が更新されたとは限らない。
 
 深夜2:00に実行するのは、当日分の提出が出そろうのを待つため（対象は前日提出分）。
 
@@ -157,7 +173,7 @@ sequenceDiagram
 
 | 防御 | 目的 |
 |---|---|
-| 科目が空で既存データがあるならスキップ | 財務データを含まない訂正有報が、正しいデータを空で潰さない |
+| 当期科目が取れず既存データがあるなら、その財務諸表を保持 | 財務データを含まない訂正有報が、正しいデータを空で潰さない |
 | 科目は削除→一括挿入で総入れ替え | 訂正で消えた科目は消える必要がある（[03章](03_data_flow.md)の「行がない=開示なし」を保つ） |
 | 連結がなくなった有報では旧連結行を削除 | 連結廃止時に古い表示用データが残らない |
 
@@ -180,14 +196,31 @@ sequenceDiagram
 
 チャートの描画そのものは[03章](03_data_flow.md)。ここでは検索からカード一覧までのページの動きを扱う。
 
+<a id="sequence-search"></a>
+
 ```mermaid
-flowchart LR
-    URL["URLクエリ<br>stock-codes / cash-flow-type"] --> Vars["GraphQL変数へ変換"]
-    Vars --> Apollo["Apollo Clientで<br>financialReportsを取得"]
-    Apollo --> Grid["カードのグリッド描画"]
-    Grid --> Scroll["末尾に近づいたら<br>offsetをずらして追加取得"]
-    Scroll --> Apollo
+sequenceDiagram
+    actor U as 利用者
+    participant P as 一覧画面 / URL
+    participant C as Apollo Client
+    participant A as GraphQL
+    U->>P: 証券コード・CF条件を変更
+    P->>P: URLへ反映し、検索条件を読み取る
+    P->>C: 検索条件と先頭からの取得を指定
+    C->>A: financialReports
+    Note over A: 03章③ DB検索・チャートと指標の組み立て
+    A-->>C: カードのデータ
+    C-->>P: 条件ごとの結果を保持して表示
+    opt 一覧の続きが必要
+        U->>P: 末尾近くへスクロール
+        P->>C: 同じ条件で次の取得位置を指定
+        C->>A: financialReports
+        A-->>C: 続きのデータ
+        C-->>P: 取得位置に合わせて一覧へ追加
+    end
 ```
+
+API内部は[03章③](03_data_flow.md#sequence-display)。検索条件を変えると別の一覧として扱い、以前の条件の追加読込結果と混ぜない。
 
 ### 具体例: URLがそのままクエリになる
 
@@ -225,7 +258,7 @@ GraphQL変数:  { limit: 30, offset: 0,
 見出しの形式・基準バッジ・カルーセル・株探リンクといった見た目の仕様は[02章](02_product.md)が正。ここでは実装面の注意だけ挙げる。
 
 - 外部リンクには `rel="noopener noreferrer"` を明示する（MUIのLinkは自動付与しない。referrer遮断は検索条件つきURLの外部漏洩防止も兼ねる）
-- 企業名クリックなどはFirebase Analyticsへイベント送信される（Firebase設定値はソースにハードコード。クライアント公開前提の識別子で秘密情報ではない）
+- 検索結果・手動操作などを計測する。自由入力や証券コードは送信しない。Webの直接送信と拡張機能のサーバ中継の違いは[計測のシーケンス](../analytics/README.md#sequence-analytics)を参照
 
 ## 静的ページ・SEO・計測
 
@@ -240,12 +273,26 @@ GraphQL変数:  { limit: 30, offset: 0,
 
 ## GraphQL型生成（graphql-codegen）
 
+<a id="sequence-codegen"></a>
+
 ```mermaid
-flowchart LR
-    Schema["backendのschema.graphql<br>（コミット済みSDL）"] -->|npm run compile| Gen["src/__generated__/"]
-    Query["src内のクエリ定義"] --> Gen
-    Gen --> Type["クエリ結果の<br>TypeScript型"]
+sequenceDiagram
+    actor D as 開発者
+    participant B as Railsの型定義
+    participant S as schema.graphql
+    participant G as graphql-codegen
+    participant T as TypeScript生成型
+    D->>B: GraphQLの型を変更
+    D->>B: スキーマを書き出す
+    B->>S: SDLを更新
+    D->>G: npm run compile
+    G->>S: コミット対象のスキーマを読む
+    G->>G: フロントのクエリ定義と照合
+    G->>T: クエリと結果の型を生成
+    Note over D,T: スキーマと生成型を検証し、同じ変更に含める
 ```
+
+これは開発時の処理で、[03章③の実行時のAPI通信](03_data_flow.md#sequence-display)とは別。操作手順は[05章](05_development_operations.md#graphqlスキーマを変えたときの連鎖手順)を参照。
 
 | 決まり | 内容 |
 |---|---|
@@ -263,7 +310,7 @@ flowchart LR
 | 検証コマンド | `npx tsc --noEmit` / `yarn test` / eslint / prettier / `yarn build`（`application/frontend/README.md` が正） |
 | CI | 導入済み（`.github/workflows/frontend-ci.yml`。検証コマンド一式 + テスト + 型生成の差分検知 + build） |
 | テストコード | ロジックを持つ純粋関数（チャートの行列変換・金額表示・色解決・検索条件パース）に仕様ベースのユニットテストあり。コンポーネント描画のテストは無い |
-| GraphQLエラー時の画面表示 | 未実装（エラー時も0件時と同じ「条件に一致する企業がありません。」が表示される） |
+| GraphQLエラー時の画面表示 | 取得エラーと検索結果0件を区別し、エラー時は再試行を案内する |
 
 ---
 

@@ -104,18 +104,42 @@ flowchart TB
 
 ## デプロイ
 
-CI/CDはなく、**ローカルの作業ツリーをrsyncでVPSへ転送して再起動する**方式。
+自動デプロイはなく、**ローカルの作業ツリーをrsyncでVPSへ転送して再起動する**方式。
 
 ```mermaid
-flowchart LR
-    Check["事前チェック<br>mainが最新・<br>作業ツリーがクリーン"] --> BE["バックエンド転送<br>→ 依存更新・マイグレーション<br>→ puma再起動・起動確認"]
-    BE --> FE["フロントエンド<br>ローカルでビルド<br>→ build/ のみ転送"]
-    FE --> Verify["反映確認<br>API応答・トップページ200・<br>バンドルハッシュ一致"]
+sequenceDiagram
+    actor D as 作業者
+    participant L as ローカルのmain
+    participant B as 本番バックエンド / DB
+    participant J as 本番Sidekiq
+    participant F as 本番フロントエンド
+    participant G as GitHub Release
+    D->>L: マージ済みSHA・検証結果・差分なしを確認
+    opt バックエンドを更新
+        D->>B: DBをバックアップし、読めることを確認
+        L->>B: コードを転送、依存更新・マイグレーション
+        D->>B: Pumaを再起動して正常応答を確認
+        opt 取込コード・依存が変わる
+            D->>J: 権限のある対話端末で再起動
+            J-->>D: activeを確認
+        end
+    end
+    opt フロントエンドを更新
+        L->>F: 本番ビルドを転送
+    end
+    D->>B: 公開APIと必要なデータを確認
+    D->>F: 画面表示と配信ファイルを確認
+    opt リリース公開も依頼されている
+        D->>G: 確認したSHAのタグ・Releaseを公開
+        G-->>D: 公開URLとタグの参照先
+    end
 ```
+
+データの再取込が必要なら[指標用データの追加後の再取込](#指標用データの追加後の再取込)も行う。再起動後の日次処理は[04章](04_system.md#sequence-daily)、公開APIの経路は[03章③](03_data_flow.md#sequence-display)につながる。
 
 - **rsyncは未コミットの変更もそのまま本番に載せてしまう**。だから最初に作業ツリーがクリーンであることを確認する
 - 順序は必ず**バックエンド → フロントエンド**（フロントが新しいAPIに依存し得るため）
-- Sidekiq再起動が必要な変更（ジョブやgemの追加）はsudoを要するため非対話SSHでは完結できず、対話端末での操作が必要になる
+- Sidekiq再起動が必要な変更（ジョブが読む取込コードやgemなど）はsudoを要するため非対話SSHでは完結できず、対話端末での操作が必要になる
 - 過去に「非対話SSHで再起動スクリプトを実行してAPIが数分停止する」事故があり、対話モード強制（`bash -ic`）や `RAILS_ENV=production` の明示など、再発防止の決まりが手順書（`.claude/skills/deploy/`）に記録されている
 
 ## 日次バッチの監視とリカバリ

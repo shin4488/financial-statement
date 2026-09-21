@@ -40,6 +40,57 @@ GA4 Web プロパティ: `407300014`（測定 ID `G-ZCJ8NTQ6KY`）。
 本番ビルドかつ `investee.info` のみ送信。ローカル・previewは本番データを汚さない。
 自由入力・検索内容・証券コード・query/hashは送らない。GA4の拡張計測は手動page_viewや独自クリックとの重複を避ける設定にする。
 
+<a id="sequence-analytics"></a>
+
+## 計測の流れ
+
+[財務データの表示](../guide/03_data_flow.md#sequence-display)や利用者の操作をきっかけに送信する。計測の失敗で財務表示を止めない。Webと拡張では送信経路・集計先が異なる。
+
+### Web：ブラウザから送信
+
+```mermaid
+sequenceDiagram
+    participant P as Web画面
+    participant A as 計測処理
+    participant G as Web用GA4
+    P->>A: 検索結果の確定・手動操作など
+    A->>A: 本番環境か確認し、許可した項目だけ作る
+    opt 計測が有効
+        A->>G: SDKでイベントを送信
+    end
+    Note over P,G: 検索内容・証券コード・URLのquery/hashは送らない
+```
+
+### 拡張機能：サーバで検証して中継
+
+```mermaid
+sequenceDiagram
+    participant P as 拡張ポップアップ
+    participant A as investeeの計測API
+    participant G as 拡張用GA4
+    P->>A: 許可されたイベントと識別子を送信
+    A->>A: 本文サイズ・イベント・値を検証
+    alt 入力が不正
+        A-->>P: 400 / 413 / 415
+    else 入力が有効
+        A->>A: 識別子を変換し、サーバの送信設定を使う
+        alt 送信設定がない
+            A-->>P: 503
+        else 送信設定がある
+            A->>G: 固定の送信先へ転送
+            alt 正常応答
+                G-->>A: 受信
+                A-->>P: 204
+            else 通信失敗・異常応答
+                A-->>P: 503（自動再試行なし）
+            end
+        end
+    end
+    Note over P,G: 204は集計完了の保証ではない。確認方法は下記
+```
+
+設定と送信内容の制約は次節、受信・集計の確認は[検証と反映時差](#検証と反映時差)を参照。
+
 ## 拡張機能の計測中継
 
 `POST /api/analytics/extension`（Rails側は `/analytics/extension`）で、固定のGA4送信先へ転送する。新しい拡張を公開する前にこのAPIをデプロイする。
