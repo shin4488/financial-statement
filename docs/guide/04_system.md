@@ -30,7 +30,7 @@
 | `database/` / `cache/` | PostgreSQL / RedisのDocker設定 |
 | `docs/` | ドキュメント（このガイド・改善バックログ） |
 | `docker-compose.yml` | 開発環境の全体起動 |
-| `.github/workflows/` | CI（backend-ci / frontend-ci。変更のあった側だけ本体ジョブを実行） |
+| `.github/workflows/` | CIのワークフロー |
 | `.claude/skills/` | 定型作業の手順書（デプロイ・日次確認・PR運用・リリース・Rubyバージョンアップ・ブラウザ拡張への同期） |
 
 ### 開発環境（Docker Compose）
@@ -148,17 +148,7 @@ sequenceDiagram
 
 書類ごとの処理は[03章①②](03_data_flow.md#sequence-source)、通知後の対応は[05章のリカバリ](05_development_operations.md#日次バッチの監視とリカバリ)へ続く。処理終了のログだけでは、科目が更新されたとは限らない。
 
-### 実行と復旧の方針
-
-| 方針 | 理由・注意点 |
-|---|---|
-| 書類を逐次処理し、取得の間隔を空ける | EDINETへのリクエスト集中を避ける。並列化しない |
-| 失敗を日付・書類単位で記録する | 他の書類の取込を続けつつ、再実行する対象を特定する |
-| 失敗分は原因確認後に再実行する | 自動再試行はしない。取得不能・認証・利用制限を区別する。手順は[05章](05_development_operations.md#日次バッチの監視とリカバリ) |
-
-保存時のトランザクション、空の抽出結果による上書き防止、科目・連結区分の入れ替えは[03章②](03_data_flow.md#sequence-save)にまとめている。
-
-**注意が必要な組合せ：**連結廃止を示す訂正書類に当期の財務数値がない場合、旧連結行の削除と単体の既存データ保持が重なり、一覧から書類が消えることがある。Sentryの警告だけでなく表示対象も確認する。再取込しても原本の内容が同じなら解消するとは限らない。
+EDINETへのリクエスト集中を避けるため、書類は間隔を空けて逐次処理する。保存時のトランザクションや既存データの保持は[03章②](03_data_flow.md#sequence-save)を参照。
 
 ## 公開APIとしての防御
 
@@ -169,7 +159,7 @@ sequenceDiagram
 | 入力量の上限 | `limit` 1〜100、`stockCodes` 最大100件、クエリ複雑度400・深さ20まで |
 | `limit` 連動のコスト計算 | ライブラリ既定は引数を見ず `limit:1` と `limit:100` が同コストになるため、`limit` に比例した値（`limit / 2`）を複雑度に加算する |
 
-フィールドを増やすときは、Web・Chrome拡張が使うクエリを実行して上限内に収まるか確認する。本番ではさらにnginxのレート制限がかかる（[05章](05_development_operations.md)）。
+本番のnginxのレート制限は[05章の本番構成](05_development_operations.md#本番環境の構成)、API変更時の検証は[同章の開発手順](05_development_operations.md#sequence-codegen)を参照。
 
 ## 一覧画面の実装
 
@@ -230,35 +220,6 @@ APIの接続先は相対パス`/api/graphql`。nginxがRailsへ中継するた�
 | 広告 | Google AdSenseのスクリプトを読み込み |
 | 利用状況の計測 | 検索結果・手動操作などを送信する。自由入力や証券コードは送らない。Webと拡張の送信経路は[計測のシーケンス](../analytics/README.md#sequence-analytics)を参照 |
 | 改善案 | 企業別URL・動的sitemapなどは [docs/improvements.md](../improvements.md) にバックログあり |
-
-## GraphQL型生成（graphql-codegen）
-
-<a id="sequence-codegen"></a>
-
-```mermaid
-sequenceDiagram
-    actor D as 開発者
-    participant B as Railsの型定義
-    participant S as schema.graphql
-    participant G as graphql-codegen
-    participant T as TypeScript生成型
-    D->>B: GraphQLの型を変更
-    D->>B: スキーマを書き出す
-    B->>S: SDLを更新
-    D->>G: npm run compile
-    G->>S: コミット対象のスキーマを読む
-    G->>G: フロントのクエリ定義と照合
-    G->>T: クエリと結果の型を生成
-    Note over D,T: スキーマと生成型を検証し、同じ変更に含める
-```
-
-これは開発時の処理で、[03章③の実行時のAPI通信](03_data_flow.md#sequence-display)とは別。操作手順は[05章](05_development_operations.md#graphqlスキーマを変えたときの連鎖手順)を参照。
-
-型生成はコミット済みの`schema.graphql`を読むため、バックエンドの起動は不要。`Money`はTypeScriptの`number`に対応付ける。開発中のwatchはクエリ変更に追従し、CIはスキーマ・生成型の取り込み漏れを差分で検出する。
-
-## 検証の入口
-
-検証コマンドは[バックエンドREADME](../../application/backend/README.md)・[フロントエンドREADME](../../application/frontend/README.md)、ローカル専用の実XBRL検証とCIの実行条件は[05章](05_development_operations.md#backend変更時のローカル検証)を参照。
 
 ---
 
