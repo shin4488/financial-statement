@@ -6,16 +6,20 @@ module Xbrl
 
     def initialize(document, contexts:, start_date:, end_date:)
       @document = document
+      @contexts = contexts
       @candidates = {}
       @facts = {}
+      @beginnings = {}
       beginning = Context.date(start_date)
       ending = Context.date(end_date)
       entity = contexts["FilingDateInstant"]&.entity
       return unless beginning && ending && beginning <= ending && entity
+      @entity = entity
 
       index = contexts.group_by { |_, context| [ context.entity, context.period, context.consolidation ] }
       CONSOLIDATIONS.each do |suffix, consolidation|
         start = statement_start(contexts["CurrentYearDuration#{suffix}"], entity, consolidation, ending) || beginning
+        @beginnings[suffix] = start
         periods = { "CurrentYearInstant" => [ ending ], "CurrentYearDuration" => [ start, ending ],
                     "Prior1YearInstant" => [ start - 1 ] }
         periods.each do |name, period|
@@ -27,6 +31,30 @@ module Xbrl
     def money(qname, context) = fact(qname, context)&.money
     def text(qname, context) = fact(qname, context)&.value
     def rounding_error(qname, context) = fact(qname, context)&.rounding_error
+
+    # CFだけは当期の増減額で原本の期首現金を裏付けられる。
+    # 日付照合を緩めず、総資産・自己資本の期首検索とは別経路にする。
+    def reconciled_opening_cash(consolidation:, closing_amount:)
+      beginning = @beginnings[consolidation]
+      return unless beginning
+      balance_tag = "jppfs_cor:CashAndCashEquivalents"
+      closing = fact(balance_tag, "CurrentYearInstant#{consolidation}")
+      return unless closing && closing.money == closing_amount
+      duration = "CurrentYearDuration#{consolidation}"
+      change = fact("jppfs_cor:NetIncreaseDecreaseInCashAndCashEquivalents", duration)
+      adjustments = %w[IncreaseInCashAndCashEquivalentsFromNewlyConsolidatedSubsidiaryCCE
+                       IncreaseDecreaseInCashAndCashEquivalentsResultingFromChangeOfScopeOfConsolidationCCE]
+                      .filter_map { |name| fact("jppfs_cor:#{name}", duration) }
+      # 任意のIDでも企業・区分を照合する。数年前の残高を無条件には使わず、
+      # CFの式を満たす候補が一意のときだけ採用する。
+      matches = @contexts.filter_map do |id, context|
+        next unless context.entity == @entity && context.consolidation == CONSOLIDATIONS[consolidation]
+        next unless context.period&.size == 1 && context.period.first < beginning
+        opening = @document.fact(balance_tag, id)
+        CashFlowOpeningBalance.reconcile(opening: opening, closing: closing, change: change, adjustments: adjustments)
+      end.uniq
+      matches.first if matches.one?
+    end
 
     private
       # EDINETの当期期間の宣言を区分ごとに検証する。持株会社の設立等では

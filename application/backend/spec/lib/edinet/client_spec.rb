@@ -37,6 +37,40 @@ RSpec.describe Edinet::Client do
       expect { client.list_annual_reports(date: Date.new(2026, 6, 20)) }
         .to raise_error(/EDINET documents\.json failed: 403/)
     end
+
+    it "HTTP 200のAPIエラーを空の提出一覧として扱わない" do
+      stub_request(:get, %r{documents\.json}).to_return(status: 200,
+        body: { metadata: { status: "403", message: "Forbidden" } }.to_json)
+      expect { client.list_annual_reports(date: Date.new(2026, 6, 20)) }
+        .to raise_error(Edinet::Client::ApiError) { |error| expect(error.status).to eq "403" }
+    end
+  end
+
+  # EDINET API仕様書 3-3の401/429はmetadataではなく、直下のStatusCodeに数値を返す。
+  [ { "StatusCode" => 401, "message" => "Access denied due to invalid subscription key." },
+    { "StatusCode" => 429, "message" => "Too Many Requests" } ].each do |body|
+    it "公式形式の#{body['StatusCode']}を一覧0件として扱わない" do
+      stub_request(:get, %r{documents\.json}).to_return(status: 200, body: body.to_json)
+      expect { client.list_annual_reports(date: Date.new(2026, 6, 20)) }
+        .to raise_error(Edinet::Client::ApiError) { |error|
+          expect(error.status).to eq body["StatusCode"].to_s
+          expect(error.message).to eq "EDINET API failed: #{body['StatusCode']}"
+        }
+      expect(a_request(:get, %r{documents\.json})).to have_been_made.once
+    end
+
+    it "公式形式の#{body['StatusCode']}をZIPとして扱わず、一時ファイルを残さない" do
+      stub_request(:get, %r{documents/S1000001}).to_return(status: 200, body: body.to_json)
+      Dir.mktmpdir do |work_dir|
+        expect { client.download_xbrl(doc_id: "S1000001", work_dir: work_dir) }
+          .to raise_error(Edinet::Client::ApiError) { |error|
+            expect(error.status).to eq body["StatusCode"].to_s
+            expect(error.message).to eq "EDINET API failed: #{body['StatusCode']}"
+          }
+        expect(Dir.children(work_dir)).to be_empty
+      end
+      expect(a_request(:get, %r{documents/S1000001})).to have_been_made.once
+    end
   end
 
   describe "#download_xbrl" do
@@ -78,6 +112,21 @@ RSpec.describe Edinet::Client do
       Dir.mktmpdir do |work_dir|
         expect { client.download_xbrl(doc_id: "S100YB5x", work_dir: work_dir) }
           .to raise_error(ArgumentError, /invalid docID/)
+      end
+    end
+
+    %w[404 403 429 500].each do |status|
+      it "HTTP 200内のAPI #{status}を識別し、応答本文を例外へ含めず一時ファイルを残さない" do
+        stub_download("S1000001", { metadata: { status: status, message: "private response" } }.to_json)
+        Dir.mktmpdir do |work_dir|
+          expect { client.download_xbrl(doc_id: "S1000001", work_dir: work_dir) }
+            .to raise_error(Edinet::Client::ApiError) { |error|
+              expect(error.status).to eq status
+              expect(error.message).to eq "EDINET API failed: #{status}"
+            }
+          expect(Dir.children(work_dir)).to be_empty
+        end
+        expect(a_request(:get, %r{documents/S1000001})).to have_been_made.once
       end
     end
   end

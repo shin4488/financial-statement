@@ -192,6 +192,56 @@ RSpec.describe Ingestion::ReportIngester do
   end
 
   describe "取り込まない書類" do
+    it "証券コードが空でも既存書類・企業・期間が一致する再取込は可能" do
+      ingest("S0000001", annual_report_xml)
+      company = Disclosure::Company.sole
+      ingest("S0000001", synthetic_xbrl_xml(dei: { stock_code: "" }, facts: {
+        [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 200
+      }))
+      expect(Disclosure::FinancialStatement.sole.items_hash["bs.assets"]).to eq 200
+      expect(company.reload.stock_code).to eq "45020"
+    end
+
+    it "企業マスタにも証券コードがない既存書類は、コードを推測せず再取込する" do
+      ingest("S0000001", annual_report_xml)
+      company = Disclosure::Company.sole
+      company.update!(stock_code: "")
+      ingest("S0000001", synthetic_xbrl_xml(dei: { stock_code: "" }, facts: {
+        [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 200
+      }))
+      expect(Disclosure::FinancialStatement.sole.items_hash["bs.assets"]).to eq 200
+      expect(company.reload.stock_code).to eq ""
+      expect(Disclosure::Company.count).to eq 1
+    end
+
+    it "既存書類でも一覧APIの証券コードを照合できなければ更新しない" do
+      ingest("S0000001", annual_report_xml)
+      Disclosure::Company.sole.update!(stock_code: "")
+      expect(Sentry).to receive(:capture_message).with(/sec code mismatch/, level: :error)
+      ingest("S0000001", synthetic_xbrl_xml(dei: { stock_code: "" }), expected_sec_code: "45020")
+      expect(Disclosure::FinancialStatement.sole.items_hash["bs.assets"]).to eq 100
+    end
+
+    it "証券コード欠損時、企業や会計期間が違う書類を既存有報に紐付けない" do
+      ingest("S0000001", annual_report_xml)
+      [ { edinet_code: "E99999" }, { fiscal_year_end_date: "2025-03-31" } ].each do |mismatch|
+        ingest("S0000001", synthetic_xbrl_xml(dei: mismatch.merge(stock_code: "")))
+      end
+      expect(Disclosure::Report.count).to eq 1
+      expect(Disclosure::FinancialStatement.sole.items_hash["bs.assets"]).to eq 100
+    end
+
+    it "過去に誤登録したファンドは企業比較から外し、保存済み科目と企業を保持する" do
+      ingest("S0000001", annual_report_xml)
+      fs = Disclosure::FinancialStatement.sole
+      items = fs.items.map(&:attributes)
+      company = fs.report.company.attributes
+      ingest("S0000001", synthetic_xbrl_xml(facts: { [ "jpdei_cor:FundCodeDEI", "FilingDateInstant" ] => "G15497" }))
+      expect(fs.reload.is_primary).to be false
+      expect(fs.items.reload.map(&:attributes)).to eq items
+      expect(fs.report.company.reload.attributes).to eq company
+    end
+
     [ nil, "82530" ].each do |expected_sec_code|
       it "実際の信託受益証券を提出会社の有報として保存せず、企業マスタも変えない（一覧照合: #{expected_sec_code || 'なし'}）" do
         company = Disclosure::Company.create!(edinet_code: "E03041", stock_code: "82530", name_ja: "株式会社クレディセゾン")
