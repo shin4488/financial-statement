@@ -46,6 +46,33 @@ RSpec.describe Edinet::Client do
     end
   end
 
+  # EDINET API仕様書 3-3の401/429はmetadataではなく、直下のStatusCodeに数値を返す。
+  [ { "StatusCode" => 401, "message" => "Access denied due to invalid subscription key." },
+    { "StatusCode" => 429, "message" => "Too Many Requests" } ].each do |body|
+    it "公式形式の#{body['StatusCode']}を一覧0件として扱わない" do
+      stub_request(:get, %r{documents\.json}).to_return(status: 200, body: body.to_json)
+      expect { client.list_annual_reports(date: Date.new(2026, 6, 20)) }
+        .to raise_error(Edinet::Client::ApiError) { |error|
+          expect(error.status).to eq body["StatusCode"].to_s
+          expect(error.message).to eq "EDINET API failed: #{body['StatusCode']}"
+        }
+      expect(a_request(:get, %r{documents\.json})).to have_been_made.once
+    end
+
+    it "公式形式の#{body['StatusCode']}をZIPとして扱わず、一時ファイルを残さない" do
+      stub_request(:get, %r{documents/S1000001}).to_return(status: 200, body: body.to_json)
+      Dir.mktmpdir do |work_dir|
+        expect { client.download_xbrl(doc_id: "S1000001", work_dir: work_dir) }
+          .to raise_error(Edinet::Client::ApiError) { |error|
+            expect(error.status).to eq body["StatusCode"].to_s
+            expect(error.message).to eq "EDINET API failed: #{body['StatusCode']}"
+          }
+        expect(Dir.children(work_dir)).to be_empty
+      end
+      expect(a_request(:get, %r{documents/S1000001})).to have_been_made.once
+    end
+  end
+
   describe "#download_xbrl" do
     def zip_body(entries)
       Zip::OutputStream.write_buffer do |zip|

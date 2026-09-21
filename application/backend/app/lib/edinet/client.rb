@@ -2,7 +2,7 @@
 # レート制限（リクエスト過多で403）のため同期・逐次実行が前提（並列化しない）
 module Edinet
   class Client
-    # HTTP 200でも、本文のmetadata.statusで取得失敗が返ることがある。
+    # HTTP 200でも、本文のmetadata.status / StatusCodeで取得失敗が返ることがある。
     # APIキーを含むURLや応答本文を例外に載せない。
     class ApiError < StandardError
       attr_reader :status
@@ -93,7 +93,8 @@ module Edinet
       end
 
       def check_api_status!(body)
-        status = body.dig("metadata", "status")
+        # 仕様書3-3: 401/429はStatusCode、400/404/500はmetadata.status。
+        status = body["StatusCode"] || body.dig("metadata", "status")
         raise ApiError, status unless status.nil? || status.to_s == "200"
       end
 
