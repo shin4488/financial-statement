@@ -58,7 +58,7 @@ diff -r application/frontend/src/shared/financialIndicators "$EXT/src/shared/fin
 4. **実挙動**: このリポジトリで `docker compose up`（API: `localhost:20000`）を起動し、
    開発ビルドの成果物をブラウザに読み込んでポップアップの表示を確認する
    （ポップアップは `chrome-extension://<拡張ID>/popup/popup.html` をタブとして開いても検証できる。
-   ブランド版 Chrome は `--load-extension` を無視するため Chrome for Testing を使う。詳細は拡張リポジトリの CLAUDE.md）
+   ブランド版 Chrome は `--load-extension` を無視するため Chrome for Testing を使う。詳細は拡張リポジトリの AGENTS.md）
 5. **描画の突き合わせ**: チャートに関わる変更では「表示された」で終わらせず、
    同一銘柄を本番（investee.info）と見比べてラベル・色・値・並び順を突き合わせる。
    退行が疑われたら件数・座標などの数値で判定する
@@ -67,4 +67,4 @@ diff -r application/frontend/src/shared/financialIndicators "$EXT/src/shared/fin
 
 - **`colorRoles.ts`**: バックエンドの enum との契約点。role 追加はバックエンド / Web フロント / 拡張の 3 点同時変更
 - **GraphQL クエリ・スキーマの変更**: 拡張はクエリを `.graphql` ファイルで持ち、codegen は**本番 introspection**（investee.info）を参照する。バックエンドの変更が本番デプロイされてから拡張側で `yarn compile` する（順序が逆だと生成が失敗するか、公開済み拡張が壊れる）
-- リリースの順序制約・E2E のヒントは拡張リポジトリの CLAUDE.md を参照
+- リリースの順序制約・E2E のヒントは拡張リポジトリの AGENTS.md を参照
