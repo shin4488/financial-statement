@@ -150,9 +150,5 @@ APIの接続先は相対パス`/api/graphql`。nginxがRailsへ中継するた�
 | title・description・OGP・JSON-LD | `public/index.html` に静的記述（一覧ページの値）。静的ページは表示中だけ `usePageMeta` が title / description / canonical を差し替え、離れたら `index.html` の値に戻す。OGP・JSON-LDは初期HTMLの値を使う |
 | robots.txt / sitemap.xml / ads.txt | 全許可 / トップ + 静的ページ4URL / AdSenseの販売者情報 |
 | 広告 | Google AdSenseのスクリプトを読み込み |
-| 利用状況の計測 | 検索結果・手動操作などを送信する。自由入力や証券コードは送らない。Webと拡張の送信経路は[計測のシーケンス](../analytics/README.md#sequence-analytics)を参照 |
+| 利用状況の計測 | 検索結果・手動操作などを送信する。自由入力や証券コードは送らない。 |
 | 改善案 | 企業別URL・動的sitemapなどは [docs/improvements.md](../improvements.md) にバックログあり |
-
----
-
-次章: [05. 開発と運用](05_development_operations.md)
