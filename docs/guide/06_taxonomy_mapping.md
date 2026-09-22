@@ -1,30 +1,27 @@
 # 06. XBRLタグ対応表と実地調査
 
-【資料】前半は「このタグはどの科目コードになり、どのグラフで使われるか」を引く対応表、後半（「実地調査の記録」以降）はその根拠になった実測記録。XBRLタグを扱う作業のときは、**前半の触る表（BS / PL / CF）の節だけ**開けばよい。
-
-- 後半の実測記録（調査対象の企業・docID・検証用の実測値）は、対応の理由を確かめたいときだけ開けばよい。タグ対応を変えるときは表とセットで更新する
+原本のタグと保存する科目コードの対応をまとめる。後半には、取得方法の確認に使った書類と数値を残す。
 
 | 節 | 内容 |
 |---|---|
 | [凡例](#凡例) | 形式の略記と業種接尾辞の一覧 |
 | [BS（貸借対照表）](#bs貸借対照表) | 共通4科目・流動/非流動の区分・形式固有の内訳 |
-| [PL（損益計算書）](#pl損益計算書) | 共通科目・トップライン・費用と利益のフォールバック |
+| [PL（損益計算書）](#pl損益計算書) | 共通科目・売上と費用の取得順序 |
 | [CF（キャッシュ・フロー計算書）](#cfキャッシュフロー計算書) | CF5科目とサマリ（ifrs_summary）のタグ |
-| [複数タグの合算の対象](#複数タグの合算の対象) | `sum(...)` で合算している科目の一覧 |
 | [実地調査の記録](#実地調査の記録) | 根拠の実測: 調査対象8社・発見と実装への反映・検証用の実測値・業種別の実測・3年分の全数検証 |
 
 ## 凡例
 
 | 略記 | 形式 | 対象 |
 |---|---|---|
-| 一般 | `jgaap_general` | 日本基準・一般事業会社（建設・鉄道・電気・ガス・海運・電気通信・証券・特定金融・商品先物・投資業など、業種別の勘定科目を持つが骨格が同じ業種を含む） |
+| 一般 | `jgaap_general` | 日本基準・一般事業会社（建設・鉄道・電気・ガス・海運・電気通信・証券・特定金融・商品先物・投資業など、業種別の勘定科目を持つが構成が同じ業種を含む） |
 | 銀行 | `jgaap_bank` | 日本基準・銀行 |
 | 保険 | `jgaap_insurance` | 日本基準・保険（生保・損保） |
 | 分類 | `ifrs_classified` | IFRS・流動/非流動分類BS（様式511000） |
 | 配列 | `ifrs_liquidity` | IFRS・流動性配列BS（様式512000） |
 | サマリ | `ifrs_summary` | IFRS・詳細タグなし（2019年3月期より前の有報。経営指標サマリ `jpcrp_cor:*IFRSSummaryOfBusinessResults` のみで構成） |
 
-「使うBuilder」列が「—」の科目はチャートでは未使用（保存のみ）。
+「表示に使う形式」は、取得した科目をチャートで使う形式を示す。「—」はチャートでは使わず、保存する科目。
 
 業種別の勘定科目のタグは、標準タグ名に業種の接尾辞が付く（`OperatingRevenueELE`=電気の営業収益、`OperatingExpensesRWY`=鉄道の営業費）。接尾辞は業種DEIコードと同じ（一覧はEDINETタクソノミの勘定科目リスト `1f_AccountList.xlsx` の業種別シート）。
 
@@ -41,13 +38,13 @@
 
 ### 全形式で共通して取る科目
 
-この4科目は本表の詳細タグがある形式（サマリ以外）ならどれでも取得できる。形式をまたぐ検索・表示はこの4科目を前提にできる（サマリの総資産・自己資本は後述「サマリのタグ」から取得する）。
+本表の詳細タグがある形式で使う共通科目。サマリ形式は経営指標用のタグから取得する。
 
-| 科目コード | 日本語 | 一般 / 銀行 | 分類 / 配列 | 使うBuilder |
+| 科目コード | 日本語 | 一般 / 銀行 | 分類 / 配列 | 表示に使う形式 |
 |---|---|---|---|---|
 | `bs.assets` | 資産合計 | `jppfs_cor:Assets` | `jpigp_cor:AssetsIFRS` | 銀行・保険・分類・配列 |
 | `bs.liabilities` | 負債合計 | `jppfs_cor:Liabilities` | `jpigp_cor:LiabilitiesIFRS` | 銀行・保険・配列 |
-| `bs.equity` | 資本（純資産）合計 | `jppfs_cor:NetAssets` | `jpigp_cor:EquityIFRS` | BS全Builder |
+| `bs.equity` | 資本（純資産）合計 | `jppfs_cor:NetAssets` | `jpigp_cor:EquityIFRS` | 全BS形式 |
 | `bs.cash_and_equivalents` | 現金及び現金同等物 | 一般 `jppfs_cor:CashAndCashEquivalents`<br>銀行 `jppfs_cor:CashAndDueFromBanksAssetsBNK`<br>保険 `jppfs_cor:CashAndDepositsAssetsINS` | `jpigp_cor:CashAndCashEquivalentsIFRS` | 銀行・保険・配列 |
 
 銀行・保険の `bs.cash_and_equivalents` だけタグが違うのは、BSの「現金預け金」「現金及び預貯金」とCFの「現金及び現金同等物」が金融機関では別概念のため。値が一致する銀行もあるが混同しないこと。
@@ -96,20 +93,20 @@
 
 銀行・保険と配列にはこの区分が存在しない。
 
-| 科目コード | 日本語 | 一般 | 分類 | 使うBuilder |
+| 科目コード | 日本語 | 一般 | 分類 | 表示に使う形式 |
 |---|---|---|---|---|
 | `bs.current_assets` | 流動資産 | `jppfs_cor:CurrentAssets` | `jpigp_cor:CurrentAssetsIFRS` | 一般・分類 |
 | `bs.non_current_assets` | 非流動（固定）資産 | `jppfs_cor:NoncurrentAssets` | `jpigp_cor:NonCurrentAssetsIFRS` | 分類 |
 | `bs.current_liabilities` | 流動負債 | `jppfs_cor:CurrentLiabilities` | `TotalCurrentLiabilitiesIFRS`<br>→ `CurrentLiabilitiesIFRS` | 一般・分類 |
 | `bs.non_current_liabilities` | 非流動（固定）負債 | `jppfs_cor:NoncurrentLiabilities` | `NonCurrentLabilitiesIFRS`<br>→ `NonCurrentLiabilitiesIFRS` | 一般・分類 |
 
-`NonCurrentLabilities` は綴りが誤っているように見えるが、金融庁のタクソノミ側のタイポがそのまま公式要素名になっている（後述「実地調査の記録」で確認済み）。将来修正される可能性があるので、正しい綴りもフォールバックに入れてある。
+`NonCurrentLabilities` は綴りが誤っているように見えるが、金融庁のタクソノミ側のタイポがそのまま公式要素名になっている。将来修正される可能性があるので、正しい綴りもフォールバックに入れてある。
 
-一般の固定資産は「有形固定資産・無形固定資産・投資その他の資産」の3分類（次表）で描くが、電気・鉄道・電気通信の単体など業種別様式では固定資産を事業用資産（電気事業固定資産・鉄道事業固定資産など）で区分し、有形/無形の標準タグを持たない（投資その他の資産だけ標準タグで取れる）。BuilderはこのときBSを `bs.non_current_assets`（固定資産合計）の1段で描く。
+電気・鉄道・電気通信の単体などでは、固定資産を事業別に区分するため、有形・無形の標準タグがない場合がある。
 
 ### 形式固有の内訳科目
 
-| 科目コード | 日本語 | 形式 | XBRLタグ | 使うBuilder |
+| 科目コード | 日本語 | 形式 | XBRLタグ | 表示に使う形式 |
 |---|---|---|---|---|
 | `bs.tangible_fixed_assets` | 有形固定資産 | 一般 | `jppfs_cor:PropertyPlantAndEquipment` | 一般 |
 | `bs.intangible_fixed_assets` | 無形固定資産 | 一般 | `jppfs_cor:IntangibleAssets` | 一般 |
@@ -119,7 +116,7 @@
 | `bs.deposits` | 預金 | 銀行 | `jppfs_cor:DepositsLiabilitiesBNK` | 銀行 |
 | `bs.policy_reserves` | 保険契約準備金 | 保険 | `jppfs_cor:ReserveForInsurance` `PolicyLiabilitiesLiabilitiesINS` | 保険 |
 | `bs.property_plant_and_equipment` | 有形固定資産 | 分類 | `jpigp_cor:PropertyPlantAndEquipmentIFRS` | — |
-| `bs.goodwill_and_intangibles` | のれん及び無形資産 | 分類 | 下記の合算処理 | — |
+| `bs.goodwill_and_intangibles` | のれん及び無形資産 | 分類 | `jpigp_cor:GoodwillAndIntangibleAssetsIFRS` → なければ `GoodwillIFRS` + `IntangibleAssetsIFRS` | — |
 | `bs.equity_attributable_to_owners` | 自己資本 / 親会社所有者帰属持分 | 全対応形式 | 上記「ROE・ROAの期首・期末残高」参照 | 指標 |
 | `bs.non_controlling_interests` | 非支配持分 | 分類・配列 | `jpigp_cor:NonControllingInterestsIFRS` | — |
 
@@ -127,16 +124,16 @@
 
 ### 全形式で共通
 
-| 科目コード | 日本語 | 一般・銀行・保険 | 分類・配列 | 使うBuilder |
+| 科目コード | 日本語 | 一般・銀行・保険 | 分類・配列 | 表示に使う形式 |
 |---|---|---|---|---|
 | `pl.profit_before_tax` | 税引前利益 | `jppfs_cor:IncomeBefore` `IncomeTaxes` | `jpigp_cor:ProfitLossBeforeTaxIFRS` | IFRS |
 | `pl.income_tax` | 法人税等 | `jppfs_cor:IncomeTaxes` | `jpigp_cor:IncomeTaxExpenseIFRS` | — |
 | `pl.profit` | 当期純利益 | `jppfs_cor:ProfitLoss` | `jpigp_cor:ProfitLossIFRS` | — |
 | `pl.profit_` `attributable_to_owners` | 親会社帰属当期純利益 | `jppfs_cor:ProfitLoss` `AttributableToOwnersOfParent` | `jpigp_cor:ProfitLoss` `AttributableToOwnersOfParentIFRS` | — |
 
-### トップライン（売上・収益）
+### 売上・収益
 
-企業によって科目名が揺れるため、フォールバックリストで順に引く（先に取れた方を採用）。
+企業によって科目名が異なるため、表の上から順に探し、最初に取得できた値を採用する。
 
 **一般** — `pl.revenue`
 
@@ -158,7 +155,7 @@
 | 14 | `jpcrp_cor:NetSalesSummaryOfBusinessResults` | 本表の総額がなく、一部事業が企業拡張タグでも標準サマリから全社売上を取得（飯野海運等） |
 | 15 | 合算 `ShippingBusinessRevenueWAT` + `OtherBusinessRevenueWAT` | 海運（単体）: 海運業収益 + その他事業収益。標準サマリの全社売上もない場合 |
 
-業種固有の営業収益（1〜7）を一般の総額（8）より先に置くのは、商品先物取引業のように商品売上高（`NetSales`）が営業収益の内訳になる業種があるため（業種の接尾辞が付くタグはその業種の有報にしか現れないので、業種をまたぐ順序に意味はなく、同一業種内の「合計タグ → 区分の合算」の順序だけが効く）。
+業種固有の総額を優先する。商品先物取引業などでは、`NetSales` が営業収益の一部を指すため。
 
 **分類・配列** — `pl.revenue`
 
@@ -169,7 +166,7 @@
 | 3 | `jpigp_cor:NetSalesIFRS` | 売上高 |
 | 4 | `jpcrp_cor:RevenueIFRS` `SummaryOfBusinessResults` | 経営指標サマリ（本表ではない） |
 
-最後の1つだけ本表ではなく経営指標サマリから取っている。本表の収益が企業拡張タグしか無い企業（NTTなど）でも取得できるようにする最終フォールバックで、値は本表と一致することを実測で確認済み（後述「実地調査の記録」）。順番を最後にしているのは、本表のタグの方が一次情報だから。
+本表から取得できない場合に限り、経営指標サマリを使う。本表の収益が企業独自のタグでしか開示されない企業にも対応するため。
 
 **銀行・保険** — 売上高という概念が無いため `pl.revenue` は保存しない。
 
@@ -179,11 +176,11 @@
 | `pl.ordinary_expenses` | `jppfs_cor:OrdinaryExpensesBNK` | `jppfs_cor:OperatingExpensesINS` | 経常費用 |
 | `pl.ordinary_profit` | `jppfs_cor:OrdinaryIncome` | `jppfs_cor:OrdinaryIncome` | 経常利益 |
 
-`OrdinaryIncomeBNK` が経常収益、サフィックスなしの `OrdinaryIncome` が経常利益で、名前が似ているのに意味が違う。保険はさらに紛らわしく、経常収益のタグ名が `OperatingIncomeINS`（一般形式の営業利益 `OperatingIncome` と同系の名前）。取り違えると桁が大きく狂う。
+`OrdinaryIncomeBNK` は経常収益、`OrdinaryIncome` は経常利益。末尾の業種名の有無で意味が変わるため、取り違えない。
 
 ### 費用・利益の中間段階
 
-| 科目コード | 日本語 | 一般 | 分類・配列 | 使うBuilder |
+| 科目コード | 日本語 | 一般 | 分類・配列 | 表示に使う形式 |
 |---|---|---|---|---|
 | `pl.cost_of_sales` | 売上原価 | フォールバック11件（下記） | `jpigp_cor:CostOfSalesIFRS` | 一般・IFRS |
 | `pl.financial_expenses` | 金融費用 | `jppfs_cor:FinancialExpensesSEC`（証券。営業収益−金融費用=純営業収益） | 存在しない | 一般 |
@@ -245,7 +242,7 @@ IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは
 
 ### 追加保存する損益科目
 
-以下は取得・保存のみで、現在のチャートの計算には使用しない。
+IFRSの追加科目は保存のみ。ガスの2科目は全社の費用を表すため、PLの「売上原価等」に含める。
 
 | 科目コード | タグ名（IFRSはjpigp_cor、ガスはjppfs_cor） | 内容 |
 |---|---|---|
@@ -270,7 +267,7 @@ IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは
 
 投資活動のタグ名が日本基準は `Investment`、IFRSは `Investing` で異なる。CFは5科目そろわないとウォーターフォールが繋がらないため、1つでも欠けるとチャートは `renderable: false` になる。
 
-期首残高（`cf.cash_begin`）は個別のマッピングを持たない。期首残高=前期末残高という関係は全形式共通のため、Extractorの基底クラスが `cf.cash_end` と同じタグを前期末（`Prior1YearInstant`）コンテキストで引いて導出する。同じ仕組みでROE・ROAに使う総資産・自己資本の期首残高も取得する。
+期首残高は、期末残高と同じタグで対象日を当期開始日の前日に変えて取得する。
 
 日本基準で期首現金の日付が一致しない場合は、同じ企業・連結区分の過去の現金残高を、当期の `NetIncreaseDecreaseInCashAndCashEquivalents` と連結範囲変更の調整額で照合する。`期首 + 増減 + 調整 = 期末` が開示精度の範囲内で成立する候補が一意に決まる場合だけ、その開示額をCFの期首に使う。候補のcontext IDには依存せず、精度不明・通貨不一致・候補競合時は補完しない。総資産・自己資本の期首検索には適用しない。
 
@@ -300,28 +297,9 @@ IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは
 | `cf.financing` | `CashFlowsFromUsedIn` `FinancingActivitiesIFRS` `SummaryOfBusinessResults` |
 | `cf.cash_end` / `cf.cash_begin` | `CashAndCashEquivalentsIFRS` `SummaryOfBusinessResults`（期首は `Prior1YearInstant`） |
 
-## 複数タグの合算の対象
-
-合計タグを持たず内訳だけを開示する科目は、合算記法 `sum(...)`で1つの科目コードにしている。現在の合算対象は次のとおり。
-
-| 科目 | 形式 | 合算の内容 |
-|---|---|---|
-| のれん及び無形資産 | 分類 | `GoodwillAndIntangibleAssetsIFRS`（合算タグ。三菱商事）→ 無ければ `GoodwillIFRS` + `IntangibleAssetsIFRS`（別掲。武田） |
-| 営業収益・営業費 | 一般（鉄道単体） | 鉄道事業 + 関連事業 + 兼業 + 不動産事業 + … の事業区分別タグ（企業により区分の組合せが違う） |
-| 営業収益・営業費用 | 一般（電気通信） | 電気通信事業 + 附帯事業 |
-| 営業収益・費用 | 一般（海運単体） | 海運業 + その他事業 |
-| 売上高 + 営業収入 | 一般 | 総額タグを付けない企業の総額（`max` の内側。トップラインの表の8） |
-
-```ruby
-"bs.goodwill_and_intangibles" => [ "jpigp_cor:GoodwillAndIntangibleAssetsIFRS",
-                                   sum("jpigp_cor:GoodwillIFRS", "jpigp_cor:IntangibleAssetsIFRS") ]
-```
-
----
-
 ## 実地調査の記録
 
-ここから後ろは、タグ対応と形式判定の根拠になった実測記録。EDINET API v2で実際に有報XBRLを取得し、全factをダンプして確認した。タクソノミの公式資料だけでは分からない実態が実装判断を左右するため、実物での確認記録を残している。構成は、初期実装時の基本8社・4形式 → 業種別対応で追加した実測 → 3年分の全数検証の順。
+EDINETから取得した原本で、タグの有無と数値を確認した記録。調査時点の結果であり、現在の収録件数ではない。
 
 ### 調査対象（基本8社・4形式）
 
@@ -337,8 +315,7 @@ IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは
 | インスペック | 6656 | S100YR8L | Japan GAAP | —（単体のみ。単体はCTE） | jgaap_general |
 
 - いずれも2026年提出の有報（楽天のみ2025/12期、イオンは2026/2期、インスペックは2026/4期、他は2026/3期）
-- イオン・インスペックは売上原価フォールバック対応（営業収益型・当期製品製造原価型）のために後から追加した実測
-- 東京海上HDは2026/3期からIFRSへ移行済みだった（当初は日本基準・保険業のサンプルとして選定）。日本基準・保険業は後述の業種別対応でかんぽ生命等を実測した
+- 東京海上HDは2026/3期からIFRS。日本基準の保険業は、かんぽ生命などで確認した
 
 ### 実測での発見と実装への反映
 
@@ -347,10 +324,10 @@ IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは
 | 楽天のfactダンプで `CurrentAssetsIFRS` の出現が0件（512000様式のツリー自体に流動/非流動の要素がない） | IFRSの2様式は「タグの実在」で判定する |
 | IFRS企業の単体財務諸表は6社すべて `jppfs_cor` + `_NonConsolidatedMember` でタグ付け | 単体は常に日本基準として処理 |
 | NTT: 本表の収益が企業拡張タグ `jpcrp030000-asr_E04430-000:OperatingRevenuesIFRS`（営業収益14.41兆円）のみ。経営指標サマリの標準タグは本表と完全一致 | サマリタグを収益フォールバックの最後に置く（前半のPLの表） |
-| 東京海上: 保険収益が拡張タグ `InsuranceRevenueIFRS`（7.69兆円）のみで、経営指標サマリの標準タグも存在しない | 標準タグだけでは取れない企業が実在する → 「PLは表示不可」を正常系にする |
+| 東京海上: 保険収益が拡張タグ `InsuranceRevenueIFRS`（7.69兆円）のみで、経営指標サマリの標準タグも存在しない | PLに表示できない理由を示し、他の表は表示する |
 | CFの3区分と現金同等物は全形式で取得可能（タグ名が基準別に異なるのみ） | CFチャートを全形式共通のBuilderにできる |
 | 銀行BSに流動/固定の区分がなく、合計だけは汎用タグ（`jppfs_cor:Assets` 等）で取れる | 銀行BSは主要科目+残差で描く |
-| 2019年3月期より前のIFRS有報（S100SO41ほか）は `jpigp_cor` のfact自体が収録されていない（詳細タグ付けは2019年3月31日以後終了事業年度から義務化）。財務諸表の値は経営指標サマリ `jpcrp_cor:*IFRSSummaryOfBusinessResults` のみ | 資産合計タグも無いIFRS書類はサマリだけで構成する `ifrs_summary` に落とす。BSはサマリに負債の実値が無いため描かず説明文にする |
+| 2019年3月期より前のIFRS有報（S100SO41ほか）は `jpigp_cor` のfact自体が収録されていない（詳細タグ付けは2019年3月31日以後終了事業年度から義務化）。財務諸表の値は経営指標サマリ `jpcrp_cor:*IFRSSummaryOfBusinessResults` のみ | 資産合計タグも無いIFRS書類はサマリだけで構成する `ifrs_summary` として扱う。BSはサマリに負債の実値が無いため描かず説明文にする |
 
 ### 金融庁 IFRSタクソノミ要素リスト（1g_IFRS_ElementList.xlsx）からの知見
 
@@ -386,7 +363,7 @@ ifrs_summaryの検証用（クリエイト・レストランツHD S100SO41、201
 
 ### 業種別対応の実測（本番の直近1年で `unsupported` だった業種）
 
-本番DBで直近1年（2025-08〜2026-08提出）に `unsupported` 判定だった436財務諸表の業種内訳は、建設 279 / 証券 26 / 海運 20 / 鉄道 18 / 電気 18 / 電気通信 18 / ガス 17 / 特定金融 9 / 保険 9 / 商品先物 5 / 複数コード 8 / 投資業・投資運用 2 / 米国基準 7 だった。業種ごとに代表企業の有報XBRLを取得（計77件）して前半の対応表を作り、最後に対象261有報すべてを新実装に通して確認した（結果: 主対象235件のうち225件がBS/PL/CFすべて描画可。残りは米国基準6件、収益・費用が企業拡張タグにしか無い証券2社と投資運用1社のPL、貯金が拡張タグの日本郵政のBS）。実測に使った主な有報:
+2025年8月〜2026年8月提出分の未対応436財務諸表を調査し、代表77書類の原本でタグを確認した。対象261有報を検証した結果、表示対象235件のうち225件でBS・PL・CFすべてを表示できた。残りは米国基準6件と、必要科目が企業独自のタグだけで開示された書類だった。
 
 | 業種（DEI） | 企業 / docID | 連結 | 単体 | 実測での発見 → 実装 |
 |---|---|---|---|---|
@@ -398,7 +375,7 @@ ifrs_summaryの検証用（クリエイト・レストランツHD S100SO41、201
 | 海運 wat | 日本郵船 S100YBT6<br>商船三井 S100YI2T<br>川崎汽船 S100YC6B<br>玉井商船 S100Y90D | 一般 | 一般 | 大手連結は標準タグ。単体・小規模は海運業収益/費用 + その他事業収益/費用の2区分（合計は `OperatingRevenue1` を持つ企業と持たない企業がある）、一般管理費は `GeneralAndAdministrativeExpensesWAT` → 合算 + フォールバック |
 | 証券 sec | 大和証券G S100YCMP<br>いちよし S100YANQ<br>松井 S100YFPS<br>岡三G S100YDTC | 一般 | 一般 | 営業収益 `OperatingRevenueSEC` − 金融費用 `FinancialExpensesSEC` = 純営業収益、− 販管費（標準タグ）= 営業利益 → 金融費用を新科目 `pl.financial_expenses` に。BSは流動/固定の3分類あり。大和証券Gは売上原価が企業拡張タグのためPLのみ描けない |
 | 特定金融 spf | アコム S100YBXA<br>アサックス S100YI2V<br>三菱HCキャピタル S100YF4V（単体） | 一般 | 一般 | 消費者金融は営業収益 `OperatingRevenueSPF` − 営業費用 `OperatingExpensesSPF` の一括型。アサックスは営業費用の内訳として売上原価（標準タグ）を併記 → 内訳では貸借が合わず一括で描く。リース会社の単体は売上高・売上原価・販管費の標準タグ |
-| 商品先物 cmd | 小林洋行 S100YJB4<br>豊トラスティ証券 S100YJ8P<br>unbanked S100YNMZ | 一般 | 一般 | 小林洋行のみ商品先物の様式（営業収益 `OperatingRevenueCMD`（`OperatingRevenue1` にも同値）− 売上原価 = 営業総利益 − 営業費用 `OperatingExpensesCMD` = 営業利益）→ PLの費用構成「原価+営業費用」。単体は `NetSales`（商品売上高）が営業収益の内訳 → 営業収益系を売上高より先に引く。他2社は証券様式・標準タグ |
+| 商品先物 cmd | 小林洋行 S100YJB4<br>豊トラスティ証券 S100YJ8P<br>unbanked S100YNMZ | 一般 | 一般 | 小林洋行のみ商品先物の様式（営業収益 `OperatingRevenueCMD`（`OperatingRevenue1` にも同値）− 売上原価 = 営業総利益 − 営業費用 `OperatingExpensesCMD` = 営業利益）→ PLの費用構成「原価+営業費用」。単体は `NetSales`（商品売上高）が営業収益の内訳 → 営業収益系を売上高より優先する。他2社は証券様式・標準タグ |
 | 投資運用 ivt / 投資業 inv | スパークス S100Y7MV<br>Mマート S100Y0DB | 一般 | 一般 | スパークスは営業費用が企業拡張タグのみでPLは描けない（BS/CFは描ける）。Mマートは `OperatingRevenue1` − 汎用の `OperatingExpenses` |
 | 保険 ins | かんぽ生命 S100YD29<br>第一ライフG S100YC7A<br>T&D S100Y9UP<br>ソニーFG S100YCL0<br>SBIインシュアランス S100YDWS<br>アニコム S100YFY1<br>ライフネット S100YC7R（単体） | 保険 | 保険 or 一般 | 経常収益 `OperatingIncomeINS` − 経常費用 `OperatingExpensesINS` = 経常利益。BSは有価証券・貸付金・現金及び預貯金 + 保険契約準備金。ソニーFG単体は業種コードinsだが流動/固定のある一般様式 → 流動資産タグの実在で一般に戻す |
 | 複数コード | 日本郵政 S100YE7T（bnk,ins）<br>日本インシュレーション S100YG71（cte,cns）<br>広島電鉄 S100YI48（cte,cns）<br>飯野海運 S100YGFN（cte,wat）<br>オウケイウェイヴ S100WS3E（cte,sec,cmd） | — | — | 先頭のコードを主たる業種として判定。日本郵政は銀行様式のPL（`OrdinaryIncomeBNK`）だが貯金が企業拡張タグのためBSは描けない。広島電鉄の単体は鉄道様式（`OperatingRevenueTotalRWY`） |
@@ -406,7 +383,7 @@ ifrs_summaryの検証用（クリエイト・レストランツHD S100SO41、201
 
 ### 3年分の全数検証（本番の直近3年）
 
-本番の直近3年（2023-08〜2026-08提出、有報11,662件）のうち、`unsupported` を含む有報811件（財務諸表1,499件）**すべて**と、対応済み有報から形式別に無作為抽出した200件（財務諸表427件）の計1,926財務諸表を、新実装の 形式判定→Extractor→Builder に通して確認した。
+2023年8月〜2026年8月提出の有報11,662件のうち、`unsupported` を含む有報811件（財務諸表1,499件）すべてと、対応済み有報から形式別に無作為抽出した200件（財務諸表427件）の計1,926財務諸表を、形式判定・科目抽出・チャート作成 に通して確認した。
 
 | 観点 | 方法 | 結果 |
 |---|---|---|
@@ -446,9 +423,9 @@ ifrs_summaryの検証用（クリエイト・レストランツHD S100SO41、201
 
 プレミアアンチエイジングの利益は471百万円、平均自己資本は(6,123 + 6,597) / 2 = 6,360百万円。利益の端数を百万円未満、自己資本を構成する株主資本と評価差額の端数をそれぞれ百万円未満と仮定すると、比率の範囲は約7.40333〜7.42138%。公表7.42%と矛盾しない。公表比率の表示単位だけで比較すると、入力金額の精度による違いを誤って異常扱いする。
 
-**再現できることと計算方法の確定は別**。上の期末残高・切捨て・金額端数の扱いは数値からの推定で、今回の有報本文にはそれを確定できる計算式・注記を見つけられなかった。企業側の未丸め金額はXBRLから復元できない。取込値と当サイトの式は一致しているため、公表値に合わせた企業別の式変更は行わない。計算可能な場合の優先順位は「企業公表ROE」節のとおり。
+表の条件は、数値から推定したもの。原本で計算式や注記を確認できたわけではないため、公表値に合わせて企業別に計算式を変えることはしない。
 
-期首期末平均を使う仕様の参照: [JPX 自己資本当期純利益率](https://www.jpx.co.jp/glossary/sa/549.html)。有報ごとの利益・残高・公表値は `spec/graphql/disclosed_roe_differences_spec.rb` の実XBRL回帰テストで保持する。
+期首期末平均の定義: [JPX 自己資本当期純利益率](https://www.jpx.co.jp/glossary/sa/549.html)。有報ごとの利益・残高・公表値は `spec/graphql/disclosed_roe_differences_spec.rb` の実XBRL回帰テストで保持する。
 
 ### 売上関連指標の欠損の追加照合
 

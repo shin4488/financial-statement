@@ -15,13 +15,13 @@ GA4 Web プロパティ: `407300014`（測定 ID `G-ZCJ8NTQ6KY`）。
 | どこで止まるか | report_load_more の結果、デバイス別のキーイベント率 | 追加読込失敗やスマートフォンだけの低下を再現して確認 |
 | 外部へ調査を続けているか | outbound_click | 企業名リンクの認知・関連情報への導線 |
 
-これらは原因の断定ではなく調査の入口。イベント数の単純な割算を、同じ利用者が順番に進んだファネル率として扱わない。経路はGA4のファネル探索で同一セッション・順序を指定する。
+各イベントの件数を割るだけでは、同じ利用者が検索から操作まで進んだ割合は分からない。操作の順序を調べるときは、GA4のファネル探索で同一セッション・順序を指定する。
 
-## 計測の契約
+## Webのイベント定義
 
-| イベント | 発火条件 | 主なパラメータ |
+| イベント | 記録するタイミング | 主なパラメータ |
 | --- | --- | --- |
-| page_view | 初回とページ分類の変更。検索クエリ変更・StrictMode再実行では増やさない | 正規化したpage_location / page_title |
+| page_view | 初回とページ分類の変更。検索クエリ変更・画面処理の再実行では増やさない | 正規化したpage_location / page_title |
 | search_submit | 利用者が検索条件を変更した時 | search_mode、stock_count |
 | report_result | 検索結果が確定した時。追加読込では増やさない | result_status、result_count、unavailable_count、search_mode |
 | report_load_more | 追加読込が完了・失敗した時 | result_status、result_count |
@@ -32,12 +32,12 @@ GA4 Web プロパティ: `407300014`（測定 ID `G-ZCJ8NTQ6KY`）。
 `search_mode`: browse / stock / cash_flow / combined。
 `chart_type`: bs / pl / cf / indicators。
 `unavailable_count` は「3表のうち1つ以上が表示不可のレポート数」であり、通信失敗数ではない。
-`analytics_version=2` は新しい計測契約。過去のclickや旧イベントと直接増減比較しない。
+`analytics_version=2` が現在の定義。過去のclickや旧イベントと直接増減比較しない。
 
 キーイベントは `analysis_interaction`（セッションごとに1回、金額なし）。自動再生や単なる表示を成果として数えない。
 カスタム定義はイベントスコープで「表示結果=result_status」「検索方法=search_mode」「分析操作=interaction_type」「グラフの種類=chart_type」。数値パラメータを集計する場合はGA4のカスタム指標に登録する。
 
-本番ビルドかつ `investee.info` のみ送信。ローカル・previewは本番データを汚さない。
+本番ビルドを `investee.info` で表示したときだけ送信する。
 自由入力・検索内容・証券コード・query/hashは送らない。GA4の拡張計測は手動page_viewや独自クリックとの重複を避ける設定にする。
 
 <a id="sequence-analytics"></a>
@@ -58,7 +58,6 @@ sequenceDiagram
     opt 計測が有効
         A->>G: SDKでイベントを送信
     end
-    Note over P,G: 検索内容・証券コード・URLのquery/hashは送らない
 ```
 
 ### 拡張機能：サーバで検証して中継
@@ -86,7 +85,6 @@ sequenceDiagram
             end
         end
     end
-    Note over P,G: 204は集計完了の保証ではない
 ```
 
 ## 拡張機能の設定と計測の確認
