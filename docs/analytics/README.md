@@ -1,21 +1,21 @@
-# investee の利用状況と改善判断
+# investeeの利用状況を確認する
 
 GA4 Web プロパティ: `407300014`（測定 ID `G-ZCJ8NTQ6KY`）。
-拡張機能は別プロパティ `463560127`。両者のユーザー数を足しても実人数にはならない。
+拡張機能は別プロパティ `463560127`。同じ人が両方を使う場合があるため、ユーザー数は合算しない。
 
-## 週に一度見る順序
+## 週に一度の確認
 
-同じ長さの期間（まず過去28日とその前の28日）で比較する。少数の利用では率が大きく動くため、必ずユーザー数・イベント数を併記する。
+過去28日間とその前の28日間など、同じ長さの期間で比較する。利用が少ないと割合が大きく変わるため、ユーザー数・イベント数も確認する。
 
 | 確認すること | 見るもの | 次に調べる改善候補 |
 | --- | --- | --- |
 | 利用されているか | アクティブユーザー、新規・リピーター、流入元 | 流入減なら検索流入・拡張からの導線、再訪減なら更新頻度・使い勝手 |
 | 目的の企業へ到達できるか | search_submit と report_result、検索方法別の表示結果 | empty が多ければ対象企業・入力案内・データ収録、error が多ければAPIの稼働状況 |
-| 分析に使われているか | analysis_interaction のユーザー数、グラフの種類 | 表示成功に対して操作が少なければグラフの説明・ナビゲーション・初期表示 |
+| グラフが操作されているか | analysis_interaction のユーザー数、グラフの種類 | 表示成功に対して操作が少なければグラフの説明・切替ボタン・初期表示 |
 | どこで止まるか | report_load_more の結果、デバイス別のキーイベント率 | 追加読込失敗やスマートフォンだけの低下を再現して確認 |
-| 外部へ調査を続けているか | outbound_click | 企業名リンクの認知・関連情報への導線 |
+| 関連情報へ移動しているか | outbound_click | 企業名がリンクだと分かるか、関連情報へ進みやすいか |
 
-各イベントの件数を割るだけでは、同じ利用者が検索から操作まで進んだ割合は分からない。操作の順序を調べるときは、GA4のファネル探索で同一セッション・順序を指定する。
+イベント件数の比率だけでは、検索した人がグラフ操作まで進んだ割合は分からない。検索から操作までの流れは、GA4のファネル探索で同一セッション内の順序を指定して確認する。
 
 ## Webのイベント定義
 
@@ -28,17 +28,23 @@ GA4 Web プロパティ: `407300014`（測定 ID `G-ZCJ8NTQ6KY`）。
 | analysis_interaction | 手動グラフ切替、自動切替設定の変更 | interaction_type、chart_type |
 | outbound_click | 企業名から株探へ移動 | link_domain |
 
-`result_status`: success / empty / error。
-`search_mode`: browse / stock / cash_flow / combined。
-`chart_type`: bs / pl / cf / indicators。
-`unavailable_count` は「3表のうち1つ以上が表示不可のレポート数」であり、通信失敗数ではない。
-`analytics_version=2` が現在の定義。過去のclickや旧イベントと直接増減比較しない。
+| パラメータ | 値・意味 |
+|---|---|
+| `result_status` | `success`：表示成功、`empty`：0件、`error`：取得失敗 |
+| `search_mode` | `browse`：条件なし、`stock`：証券コード、`cash_flow`：CFパターン、`combined`：両方 |
+| `chart_type` | `bs`：貸借対照表、`pl`：損益計算書、`cf`：キャッシュフロー計算書、`indicators`：財務指標 |
+| `unavailable_count` | 3表のうち1つ以上が表示できないレポート数。通信失敗数ではない |
 
-キーイベントは `analysis_interaction`（セッションごとに1回、金額なし）。自動再生や単なる表示を成果として数えない。
-カスタム定義はイベントスコープで「表示結果=result_status」「検索方法=search_mode」「分析操作=interaction_type」「グラフの種類=chart_type」。数値パラメータを集計する場合はGA4のカスタム指標に登録する。
+この定義は `analytics_version=2`。過去のclickや旧イベントとは集計条件が異なるため、件数の増減を直接比較しない。
+
+### GA4の集計設定
+
+- キーイベント：`analysis_interaction`。セッションごとに1回、金額なしで集計する。自動切替や画面を表示しただけでは数えない。
+- カスタム定義：イベントスコープで「表示結果=result_status」「検索方法=search_mode」「分析操作=interaction_type」「グラフの種類=chart_type」を登録する。
+- 数値パラメータ：集計するものをカスタム指標に登録する。
 
 本番ビルドを `investee.info` で表示したときだけ送信する。
-自由入力・検索内容・証券コード・query/hashは送らない。GA4の拡張計測は手動page_viewや独自クリックとの重複を避ける設定にする。
+検索内容・証券コードなどの自由入力や、URLのクエリ・ハッシュは送らない。GA4の拡張計測は、このイベント一覧と二重に記録されないよう設定する。
 
 <a id="sequence-analytics"></a>
 
@@ -96,10 +102,15 @@ sequenceDiagram
 | `EXTENSION_GA_MEASUREMENT_ID` | 拡張用データストリームの測定ID |
 | `EXTENSION_GA_API_SECRET` | 同ストリームのMeasurement Protocol API secret。ブラウザ用変数や配布物には含めない |
 
-公開後は手動操作し、GA4リアルタイムでイベントとパラメータを確認する。拡張のHTTP 204は集計成功を保証しないため、送信内容の検証にはMeasurement Protocolのdebugエンドポイントを使う（検証リクエスト自体は集計されない）。
+確認には次の2つを使う。HTTP 204が返っても、GA4で集計されたとは限らない。
+
+| 確認すること | 方法 |
+|---|---|
+| 送信内容が正しいか | Measurement Protocolのdebugエンドポイントで検証する。検証リクエスト自体は集計されない |
+| 操作が記録されるか | 公開後に拡張機能を操作し、GA4リアルタイムでイベントとパラメータを確認する |
 
 通常レポートや新しいカスタム定義の反映には24〜48時間かかる場合があり、過去分も補完されない。公開直後の0件だけで障害と判断しない。
 
-拡張はWeb SDKと計測方法が異なる。地域・端末・流入・新規／再訪をWebと同じ精度で解釈せず、サイト名・表示結果・操作・バージョンと総ユーザー数を中心に見る。
+拡張はWebと計測方法が異なるため、地域・端末・流入元・新規／再訪は同じ精度で比較できない。サイト名・表示結果・操作・バージョンと総ユーザー数を中心に確認する。
 
 公式仕様: [Measurement Protocol](https://developers.google.com/analytics/devguides/collection/protocol/ga4/reference)、[イベントの検証](https://developers.google.com/analytics/devguides/collection/protocol/ga4/validating-events)。
