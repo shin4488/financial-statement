@@ -15,7 +15,7 @@ EDINETの財務データを可視化する。Rails API: `application/backend/`�
 
 - 起動は `docker compose up`。バックエンドの単体実行は `.ruby-version` 指定のRubyと `bundle exec` を使い、DBはDockerで用意する。
 - backend変更時は、コミット・PR前に[ローカル検証](docs/guide/05_development_operations.md#backend変更時のローカル検証)の実XBRLフィクスチャspecをpendingなしで通す。CI成功では代替できない。
-- frontend変更時は、同README・`package.json` に従いlint・型・テスト・ビルドを確認する。
+- frontend変更時は、[frontend README](application/frontend/README.md)・同ディレクトリの `package.json` に従いlint・型・テスト・ビルドを確認する。
 - GraphQL変更時はschemaと生成型を更新・コミットする。
 - CIのskipを実行済みと扱わない。
 - backendとfrontendの両方を変更する場合は同じPRにまとめる。マージはユーザーが行い、デプロイはbackend → frontendの順。
@@ -24,8 +24,8 @@ EDINETの財務データを可視化する。Rails API: `application/backend/`�
 ## 作業の進め方
 
 - `.agents/skills` → `.claude/skills` は相対リンク。本文を重複して読まず、リンク先を編集する。
-- 対象箇所から調べ、必要な資料・skillsだけを読む。
-- 不明点は質問して解消してから、その判断に依存する作業に進む。すでに決まっている事項は再確認しない。
-- 文書の言語を保ち、日本語は日本人に、英語は英語圏の読者に自然に伝わる表現にする。
-- 必須検証は適用条件に従って実行し、同じ差分・依存・設定・実行条件で得た結果は再利用する。問題を修正し、結果と未確認の範囲を簡潔に報告する。
-- このファイルには継続して必要な規約だけを残し、進捗・設定値・他の資料やskillsの手順を複製しない。
+- 関連箇所・資料・skillsに絞って読み、根拠が足りなければ調査範囲を広げる。
+- 判断に必要な不明点は既存資料で確認し、解消できなければ依存する作業の前に質問する。合意済み事項は再確認しない。
+- 文書の言語を保ち、読み手に自然な表現にする。
+- 該当する必須検証を行い、問題を修正する。差分・依存・設定・実行条件が同じなら結果を再利用し、結果と未確認事項を簡潔に報告する。
+- 継続する規約と参照先だけを残し、進捗・設定値・他の資料やskillsの手順は複製しない。
