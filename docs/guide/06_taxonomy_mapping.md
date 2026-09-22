@@ -55,15 +55,23 @@
 
 ### ROE・ROAの期首・期末残高
 
-`bs.assets_begin` は `bs.assets` と同じタグを `Prior1YearInstant` から取得する。自己資本の期末は `bs.equity_attributable_to_owners`、期首は同じ取得式を前期末に適用した `bs.equity_attributable_to_owners_begin`。単体ではどちらも `_NonConsolidatedMember` を付ける。別年度の有報の残高で補完しない。
+同じ書類の、同じ企業・連結区分の残高を使う。別年度の有報や期末残高で期首を補わない。
 
-取込時は全書類を `Xbrl::ReportingPeriod` を通して読む。`CurrentYearInstant` / `CurrentYearDuration` / `Prior1YearInstant` はExtractor側の検索キーであり、原本の同名IDを無条件に参照するものではない。`Xbrl::Context` が全contextの企業識別子・期間・ディメンションを解析し、提出者と同じ企業・連結区分・実日付の候補を検索する。原本のIDは `PriorNYear` や任意の名称でもよい。
+| 残高 | 期末の科目コード | 期首の科目コード |
+|---|---|---|
+| 総資産 | `bs.assets` | `bs.assets_begin` |
+| 自己資本 | `bs.equity_attributable_to_owners` | `bs.equity_attributable_to_owners_begin` |
 
-当期末はDEIの年度終了日、当期開始日は区分ごとの `CurrentYearDuration` 宣言（企業・連結区分・終了日が一致する場合）の実日付を使い、宣言がなければDEIの年度開始日を使う。連結と単体の開始日が異なる組織再編でも損益期間を混ぜず、期首は各開始日の前日で検索する。これはEDINETの[当期連結期間の定義](https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/download/ESE140112.pdf)に基づく。QPSホールディングス `S100YYOW` とインテリックスホールディングス `S100YYT8` は、連結2025年6月1日〜2026年5月31日、単体2025年12月1日〜2026年5月31日であり、一律にDEIの開始日を使うと連結PL・CFを取得できなくなる。
+期首・期末とも同じタグ・取得式を使い、対象日を変えて読む。
 
-部門別・予測などの追加ディメンション、別企業、不正な日付は候補にしない。日付はEDINETの日付形式（YYYY-MM-DD）に限定し、未対応の日時を切り詰めて採用しない。意味が同じ複数contextに科目が分散していても読めるが、同一科目の値・精度・単位が食い違う候補は欠損にする。`Xbrl::Fact` が値・精度・単位を一体で保持し、形式判定・BS/PL/CF・公表ROEで同じ選択結果を使う。元文書の辞書は変更しない。
+| 対象日・条件 | 選び方 |
+|---|---|
+| 期末 | DEIに記載された年度終了日 |
+| 期首 | 連結・単体それぞれの当期開始日の前日。該当する期間宣言がなければ、DEIの年度開始日の前日 |
+| 原本の照合 | contextの名前ではなく、企業・実日付・連結区分で照合する。部門別・予測などは除外する |
+| 候補が複数ある場合 | 同じ科目の値・精度・単位が食い違えば欠損とする |
 
-クラサスケミカルの届出書 `S100Z0VF` は2025年1月1日〜12月31日の実績が `Prior1YearDuration` / `Prior1YearInstant` に格納され、期首は `Prior2YearInstant`。連結総資産191,166百万円・公表ROE9.3%、単体総資産157,557百万円・公表ROE5.4%を取得できる。連結の期首総資産は未開示のためROAは欠損のままとする。
+`CurrentYearInstant` / `Prior1YearInstant` は検索用の名前であり、原本の同名contextをそのまま使うわけではない。連結と単体で開始日が異なる場合もある。
 
 | 形式 | 自己資本の取得式 |
 |---|---|
@@ -71,7 +79,7 @@
 | 分類・配列 | `jpigp_cor:EquityAttributableToOwnersOfParentIFRS` |
 | サマリ | `jpcrp_cor:EquityAttributableToOwnersOfParentIFRSSummaryOfBusinessResults` |
 
-日本基準は `JgaapOwnersEquity` が共通の取得式を持つ。株主資本は必須で、調整項目がない場合は株主資本と開示された新株予約権・株式引受権・非支配株主持分の合計が純資産合計と一致するときだけ株主資本を採用する。各タグの開示精度に由来する切捨て誤差のみ許容し、精度不明の差や説明できない欠損を0として扱わない。自己資本に権利・非支配持分を混ぜないための規則。静岡ガス `S100XTDX` の連結では、前期末の自己資本は118,112百万円、当期末は131,294百万円（純資産合計138,703百万円とは異なる）。
+日本基準の自己資本は株主資本を必須とする。調整項目が未開示なら、株主資本に新株予約権・株式引受権・非支配株主持分を加えた額が純資産合計と一致する場合だけ、株主資本を採用する。開示精度による端数差は許容するが、説明できない欠損を0にはしない。
 
 ### 企業公表ROE
 
@@ -84,8 +92,6 @@
 | 米国基準 | `RateOfReturnOnEquityUSGAAPSummaryOfBusinessResults` |
 
 移行年度の併記を混同しないよう基準間のフォールバックは禁止。未開示・不正値はnull、0・負値は保持。抽出を確認した日時を `disclosed_roe_checked_at` に記録し、未移行と未開示を区別する。出典書類は関連reportのdocIDで追跡できる。
-
-ROEは計算値優先で、必要データ不足時のみ公表値を返す。`source` は計算値が `CALCULATED`、公表値が `DISCLOSED`。平均自己資本0以下の算出不可は補完しない。ROAや分解要素は公表ROEから逆算しない。シーラHD（S100YZFP）の公表37.2%は連結初年度のため期末自己資本を使うと注記されており、期首期末平均の計算値とは別物。
 
 ### 流動 / 非流動の区分（一般・分類のみ）
 
