@@ -18,14 +18,10 @@ const nonJgaapBadge: Record<string, string> = {
   us_gaap: '米国基準',
 };
 
-// リンク先URLとアナリティクスのlink_domainを同じ値から導出する
 const KABUTAN_HOST = 'kabutan.jp';
 
-// React.memoで包む理由: 無限スクロールで次の30件を読み込むと一覧全体が再レンダリングされ、
-// 画面に表示済みの（何も変わっていない）カードまでチャート3枚ごと描き直されて重い。
-// React.memoは「propsが前回と同じなら再レンダリングをスキップする」仕組みで、
-// ここではApolloキャッシュが変更のないreportを前回と同一のオブジェクト参照で返すため、
-// 表示済みカードは「propsが同じ」と判定されて描き直しがスキップされる
+// 無限スクロールで追加取得するたびに、表示済みカードのチャートまで描き直すのを避ける。
+// Apolloキャッシュが未変更のreportの参照を保つため、memoで既存カードの再描画を省ける。
 export const ReportCard = React.memo(function ReportCard({
   report,
 }: {
