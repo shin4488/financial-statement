@@ -249,9 +249,9 @@ IFRSの追加科目は保存のみ。ガスの2科目は全社の費用を表す
 | `pl.other_operating_income` | `OtherOperatingIncomeIFRS` → `OtherIncomeIFRS` | その他収益 |
 | `pl.other_operating_expenses` | `OtherOperatingExpensesIFRS` → `OtherExpensesIFRS` | その他費用 |
 | `pl.other_income_expenses_net` | `OtherIncomeExpensesNetIFRS` | その他損益の開示純額 |
-| `pl.research_and_development` | `ResearchAndDevelopmentExpenditureRecognizedAsExpenseDuringPeriodIFRS` | 研究開発費（他の費用と重複する場合がある） |
+| `pl.research_and_development` | `ResearchAndDevelopmentExpenditure RecognizedAsExpenseDuringPeriodIFRS` | 研究開発費（他の費用と重複する場合がある） |
 | `pl.finance_income` / `pl.finance_costs` | `FinanceIncomeIFRS` / `FinanceCostsIFRS` | 金融収益／金融費用 |
-| `pl.equity_method_profit` | `ShareOfProfitLossOfInvestmentsAccountedForUsingEquityMethodIFRS` | 持分法損益（符号を保持） |
+| `pl.equity_method_profit` | `ShareOfProfitLossOfInvestments AccountedForUsingEquityMethodIFRS` | 持分法損益（符号を保持） |
 | `pl.gas_miscellaneous_expenses` | `OperatingMiscellaneousExpensesGAS` | ガス雑営業費用 |
 | `pl.gas_incidental_expenses` | `ExpensesForIncidentalBusinessesGAS` | ガス附帯事業費用 |
 
@@ -277,9 +277,9 @@ IFRSの追加科目は保存のみ。ガスの2科目は全社の費用を表す
 
 | 科目コード | 一般・銀行・保険（jppfs_cor） | 分類・配列（jpigp_cor） |
 |---|---|---|
-| `cf.exchange_effect` | `EffectOfExchangeRateChangeOnCashAndCashEquivalents` | `EffectOfExchangeRateChangesOnCashAndCashEquivalentsIFRS` |
-| `cf.new_consolidation` | `IncreaseInCashAndCashEquivalentsFromNewlyConsolidatedSubsidiaryCCE` | — |
-| `cf.consolidation_change` | `IncreaseDecreaseInCashAndCashEquivalentsResultingFromChangeOfScopeOfConsolidationCCE` | — |
+| `cf.exchange_effect` | `EffectOfExchangeRateChangeOnCashAndCashEquivalents` | `EffectOfExchangeRateChanges OnCashAndCashEquivalentsIFRS` |
+| `cf.new_consolidation` | `IncreaseInCashAndCashEquivalents FromNewlyConsolidatedSubsidiaryCCE` | — |
+| `cf.consolidation_change` | `IncreaseDecreaseInCashAndCashEquivalents ResultingFromChangeOfScopeOfConsolidationCCE` | — |
 
 ### サマリ（ifrs_summary）のタグ
 
