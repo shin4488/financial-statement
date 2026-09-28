@@ -13,6 +13,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { colorByRole } from '@/shared/financialCharts';
 import type { FinancialReport } from '../api/types';
 
 type Trend = FinancialReport['freeCashFlowTrend'];
@@ -199,10 +200,10 @@ export function FreeCashFlowChart({ trend }: { trend: Trend }) {
                       point.amount == null
                         ? 'transparent'
                         : point.amount < 0
-                        ? '#E48586'
+                        ? colorByRole.cashDecrease
                         : point.year === rows[rows.length - 1].year
-                        ? '#576CBC'
-                        : '#5A96E3'
+                        ? colorByRole.asset2
+                        : colorByRole.cashIncrease
                     }
                   />
                 ))}
