@@ -1,7 +1,7 @@
 import React from 'react';
 import { cleanup, render, screen } from '@testing-library/react';
 import type { FinancialReport } from '../api/types';
-import { amountLabel, FreeCashFlowChart } from './FreeCashFlowChart';
+import { amountLabel, FreeCashFlowChart } from '@/shared/financialCharts';
 
 type Trend = FinancialReport['freeCashFlowTrend'];
 

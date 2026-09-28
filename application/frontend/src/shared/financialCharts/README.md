@@ -1,7 +1,8 @@
 # financialCharts — 共有チャートキット
 
-`financialReports` GraphQL APIが返すチャート構造（StackChart / WaterfallChart）を
-そのまま描画する汎用コンポーネント群。**科目・会計基準・表示形式の知識を一切持たない**。
+`financialReports` GraphQL APIが返すチャート構造（StackChart / WaterfallChart / FreeCashFlowTrend）を
+そのまま描画する汎用コンポーネント群。BS・PL・CFでは科目や会計基準を解釈せず、
+フリーCFもAPIが返した各年の値を描画する。
 
 ## 共有の前提（このディレクトリの規約）
 
@@ -31,6 +32,7 @@ Webフロントとブラウザ拡張（financial-statement-chrome-extension）�
 - `renderable: false` は正常系（未対応形式・データ欠落）。`note` を代替表示する
 - StackChartの `Segment` は `amount` が描画高さ（常に0以上）、`signedAmount` が実値（ツールチップ用）。
   WaterfallChartの `WaterfallStep.amount` は符号付きの実値（増減の向きそのものが情報のため）
+- FreeCashFlowTrendの金額は円で受け取り、カードには百万円単位で表示する。欠損年は `amount: null` として区別する
 - BS・PLの金額は `formatAmount`（百万円単位・百万円未満切捨て。百万円未満の値は千円単位）で表示する。CFはグラフ外に「百万円」を置き、`formatAmountInMillions` でバー上の数値とツールチップを百万円単位に揃える。APIの金額は円のまま
 - `colorRole` は意味ベースの色の役割名。新しいroleが増えたときだけ `colorRoles.ts` に1行追加する。
   ウォーターフォールもAPIが `WaterfallStep.colorRole`（cashIncrease / cashDecrease）で指定する。

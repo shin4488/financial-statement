@@ -41,3 +41,18 @@ export interface WaterfallChart {
   note?: string | null;
   steps: WaterfallStep[];
 }
+
+export interface FreeCashFlowPoint {
+  year: number;
+  fiscalYearStartDate?: string | null;
+  fiscalYearEndDate?: string | null;
+  operatingCf?: number | null;
+  investingCf?: number | null;
+  amount?: number | null;
+}
+
+export interface FreeCashFlowTrend {
+  renderable: boolean;
+  note?: string | null;
+  points: FreeCashFlowPoint[];
+}

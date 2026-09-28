@@ -4,10 +4,13 @@ import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
 import AppCarousel from './AppCarousel';
-import { FreeCashFlowChart } from './FreeCashFlowChart';
 import { FinancialIndicators } from '@/shared/financialIndicators';
 import { trackEvent } from '@/plugins/firebase/analytics';
-import { StackedBarChart, WaterfallChart } from '@/shared/financialCharts';
+import {
+  FreeCashFlowChart,
+  StackedBarChart,
+  WaterfallChart,
+} from '@/shared/financialCharts';
 import type { FinancialReport } from '../api/types';
 
 // 会計基準は日本基準以外のみサブヘッダに表示する（判断材料として意味を持つのは

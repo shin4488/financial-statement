@@ -472,7 +472,7 @@ query {
 
 ## 描画: チャート構造 → recharts → 画面
 
-BS・PL・CFの描画には、Chrome拡張と共通の `shared/financialCharts/` を使う。APIが指定した順序で項目を並べ、数値に応じた高さと色で描く。
+BS・PL・CF・フリーCFの描画には、Chrome拡張との共有元である `shared/financialCharts/` を使う。APIが指定した順序で項目を並べ、数値に応じた高さと色で描く。
 
 ### 積み上げ棒（`StackedBarChart`）
 
