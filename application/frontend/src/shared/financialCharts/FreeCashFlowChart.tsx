@@ -18,42 +18,12 @@ type Point = FreeCashFlowTrend['points'][number];
 type Row = Point & { amountMillions: number | null; periodLabel: string };
 
 const MILLION = 1_000_000;
+const CHART_HEIGHT = 305;
+const COMPACT_TOP_MARGIN = 75;
+const CHART_BOTTOM = 275;
 const exactNumber = new Intl.NumberFormat('ja-JP', {
   maximumFractionDigits: 6,
 });
-
-function useCompactLabels(): boolean {
-  const [compact, setCompact] = React.useState(
-    () =>
-      typeof window !== 'undefined' &&
-      typeof window.matchMedia === 'function' &&
-      window.matchMedia('(max-width:600px)').matches,
-  );
-  React.useEffect(() => {
-    if (
-      typeof window === 'undefined' ||
-      typeof window.matchMedia !== 'function'
-    ) {
-      return;
-    }
-    const media = window.matchMedia('(max-width:600px)');
-    const update = () => setCompact(media.matches);
-    if (media.addEventListener) {
-      media.addEventListener('change', update);
-    } else {
-      media.addListener(update);
-    }
-    update();
-    return () => {
-      if (media.removeEventListener) {
-        media.removeEventListener('change', update);
-      } else {
-        media.removeListener(update);
-      }
-    };
-  }, []);
-  return compact;
-}
 
 export function periodTickFontSize(
   labels: string[],
@@ -102,41 +72,92 @@ type ValueLabelProps = {
   value?: number | null;
   index?: number;
   compact?: boolean;
-  amounts?: (number | null | undefined)[];
+  compactPositions?: { x: number; y: number }[];
 };
 
 function ValueLabel(props: ValueLabelProps) {
-  const { x, y, width, height, value, index, compact, amounts } = props;
+  const { x, y, width, height, value, index, compact, compactPositions } =
+    props;
   if (x == null || y == null || width == null || value == null) {
     return null;
   }
   const labelY = value < 0 && height != null ? y + height - 7 : y - 7;
-  // 狭いカードでは隣接する数値が重なるため、同じ符号の連続分を交互にずらす。
-  let adjacentCount = 0;
-  if (compact && index != null && amounts) {
-    for (let previous = index - 1; previous >= 0; previous--) {
-      const previousAmount = amounts[previous];
-      if (
-        previousAmount == null ||
-        Math.sign(previousAmount) !== Math.sign(value)
-      ) {
-        break;
-      }
-      adjacentCount++;
-    }
-  }
-  const stagger = adjacentCount % 2 === 1 ? (value < 0 ? 20 : 32) : 0;
+  const label = amountLabel(value);
+  const compactPosition =
+    compact && index != null ? compactPositions?.[index] : null;
   return (
     <text
-      x={x + width / 2}
-      y={compact ? Math.max(19, labelY - stagger) : labelY}
+      x={compactPosition?.x ?? x + width / 2}
+      y={compactPosition?.y ?? labelY}
       textAnchor="middle"
       fontSize={16}
       fill={value < 0 ? colorByRole.cashDecrease : colorByRole.cashIncrease}
     >
-      {amountLabel(value)}
+      {label}
     </text>
   );
+}
+
+function estimateAmountWidth(label: string): number {
+  return [...label].reduce(
+    (width, char) => width + (char === ',' || char === '.' ? 5 : 9),
+    0,
+  );
+}
+
+export function compactAmountPositions(
+  amounts: (number | null)[],
+  domain: [number, number],
+  chartWidth: number,
+): { x: number; y: number }[] {
+  if (chartWidth <= 0 || amounts.length === 0) {
+    return [];
+  }
+  const slotWidth = (chartWidth - 8) / amounts.length;
+  const plotHeight = CHART_BOTTOM - COMPACT_TOP_MARGIN;
+  const span = domain[1] - domain[0];
+  const zeroY = COMPACT_TOP_MARGIN + (domain[1] / span) * plotHeight;
+  const placed: { x: number; y: number; width: number; height: number }[] = [];
+
+  // 欠損年の「データなし」は基準線の上に固定されるため、その場所も空ける。
+  amounts.forEach((amount, index) => {
+    if (amount == null) {
+      placed.push({
+        x: 4 + (index + 0.5) * slotWidth,
+        y: zeroY - 7,
+        width: 51,
+        height: 12,
+      });
+    }
+  });
+
+  return amounts.map((amount, index) => {
+    if (amount == null) {
+      return { x: 0, y: 0 };
+    }
+    const width = estimateAmountWidth(amountLabel(amount));
+    const center = 4 + (index + 0.5) * slotWidth;
+    const x = Math.min(
+      chartWidth - width / 2 - 2,
+      Math.max(width / 2 + 2, center),
+    );
+    const desiredY =
+      zeroY - (amount > 0 ? (amount / MILLION / span) * plotHeight : 0) - 7;
+    let y = Math.max(19, desiredY);
+    while (
+      y >= 19 &&
+      placed.some(
+        (other) =>
+          Math.abs(x - other.x) < (width + other.width) / 2 + 2 &&
+          Math.abs(y - other.y) < (19 + other.height) / 2 + 0.5,
+      )
+    ) {
+      y -= 20;
+    }
+    y = Math.max(19, y);
+    placed.push({ x, y, width, height: 19 });
+    return { x, y };
+  });
 }
 
 function PointTooltip({
@@ -177,8 +198,8 @@ function PointTooltip({
 }
 
 export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
-  const compactLabels = useCompactLabels();
   const [chartWidth, setChartWidth] = React.useState(0);
+  const compactLabels = chartWidth > 0 && chartWidth < 470;
   const rows: Row[] = trend.points.map((point) => ({
     ...point,
     amountMillions: point.amount == null ? null : point.amount / MILLION,
@@ -186,7 +207,6 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
       ? `${point.year}/${Number(point.fiscalYearEndDate.slice(5, 7))}`
       : String(point.year),
   }));
-  const labelAmounts = rows.map((point) => point.amount);
   const tickFontSize = periodTickFontSize(
     rows.map((point) => point.periodLabel),
     chartWidth,
@@ -200,6 +220,11 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
     maximum === 0 && minimum === 0
       ? [0, 1]
       : [-paddedBound(-minimum), paddedBound(maximum)];
+  const compactPositions = compactAmountPositions(
+    rows.map((point) => point.amount ?? null),
+    domain,
+    chartWidth,
+  );
   const accessibleSummary = rows
     .map(
       (point) =>
@@ -243,13 +268,13 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
           <div style={{ marginTop: 8 }}>
             <ResponsiveContainer
               width="100%"
-              height={305}
+              height={CHART_HEIGHT}
               onResize={(width) => setChartWidth(width)}
             >
               <BarChart
                 data={rows}
                 margin={{
-                  top: compactLabels ? 45 : 25,
+                  top: compactLabels ? COMPACT_TOP_MARGIN : 25,
                   right: 4,
                   bottom: 0,
                   left: 4,
@@ -291,7 +316,7 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
                     content={
                       <ValueLabel
                         compact={compactLabels}
-                        amounts={labelAmounts}
+                        compactPositions={compactPositions}
                       />
                     }
                   />
