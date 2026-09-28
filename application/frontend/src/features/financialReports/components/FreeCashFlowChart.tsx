@@ -54,13 +54,7 @@ function ValueLabel(props: unknown) {
   return (
     <text
       x={x + width / 2}
-      y={
-        value < 0
-          ? height != null && Math.abs(height) < 28
-            ? y + height - 7
-            : y + 15
-          : y - 7
-      }
+      y={value < 0 && height != null ? y + height - 7 : y - 7}
       textAnchor="middle"
       fontSize={11}
       fill="#333"
