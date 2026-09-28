@@ -4,7 +4,6 @@ import {
   BarChart,
   Cell,
   LabelList,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
@@ -67,6 +66,29 @@ export function WaterfallChart({
   width = '90%',
   height = 400,
 }: WaterfallChartProps) {
+  const chartElement = React.useRef<HTMLDivElement>(null);
+  const [chartSize, setChartSize] = React.useState({ width: 0, height: 0 });
+
+  React.useLayoutEffect(() => {
+    const element = chartElement.current;
+    if (!chart.renderable || !element) {
+      return;
+    }
+    const updateSize = () => {
+      const nextWidth = element.clientWidth;
+      const nextHeight = element.clientHeight;
+      setChartSize((current) =>
+        current.width === nextWidth && current.height === nextHeight
+          ? current
+          : { width: nextWidth, height: nextHeight },
+      );
+    };
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(element);
+    updateSize();
+    return () => observer.disconnect();
+  }, [chart.renderable]);
+
   if (!chart.renderable) {
     // カルーセル内でチャートと差し替わるため、サイズを揃えてスライド切替時のレイアウト跳ねを防ぐ
     return <ChartUnavailable note={chart.note} width={width} height={height} />;
@@ -81,11 +103,13 @@ export function WaterfallChart({
       <div style={{ fontSize: 12, lineHeight: '20px', textAlign: 'left' }}>
         百万円
       </div>
-      <div style={{ flex: 1, minHeight: 0 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          {/* 最大値の金額ラベルがSVGの上端で切れないよう余白を確保する */}
+      <div ref={chartElement} style={{ flex: 1, minHeight: 0 }}>
+        {/* 非表示のカルーセル項目は0×0になるため、実寸があるときだけ描画する。上端には金額ラベルの余白を確保する */}
+        {chartSize.width > 0 && chartSize.height > 0 && (
           <BarChart
             data={rows}
+            width={chartSize.width}
+            height={chartSize.height}
             margin={{ top: 28, right: 5, bottom: 5, left: 5 }}
           >
             <XAxis dataKey="name" />
@@ -148,7 +172,7 @@ export function WaterfallChart({
               ))}
             </Bar>
           </BarChart>
-        </ResponsiveContainer>
+        )}
       </div>
     </div>
   );
