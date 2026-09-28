@@ -31,7 +31,7 @@ Webフロントとブラウザ拡張（financial-statement-chrome-extension）�
 - `renderable: false` は正常系（未対応形式・データ欠落）。`note` を代替表示する
 - StackChartの `Segment` は `amount` が描画高さ（常に0以上）、`signedAmount` が実値（ツールチップ用）。
   WaterfallChartの `WaterfallStep.amount` は符号付きの実値（増減の向きそのものが情報のため）
-- 金額の表示は `formatAmount`（百万円単位・百万円未満切捨て。百万円未満の値は千円単位）に統一する。APIの金額は円のまま
+- BS・PLの金額は `formatAmount`（百万円単位・百万円未満切捨て。百万円未満の値は千円単位）で表示する。CFはグラフ外に「百万円」を置き、`formatAmountInMillions` でバー上の数値とツールチップを百万円単位に揃える。APIの金額は円のまま
 - `colorRole` は意味ベースの色の役割名。新しいroleが増えたときだけ `colorRoles.ts` に1行追加する。
   ウォーターフォールもAPIが `WaterfallStep.colorRole`（cashIncrease / cashDecrease）で指定する。
   フィールドを取得しない古い呼び出し元では符号から同じroleを補う（後方互換）
