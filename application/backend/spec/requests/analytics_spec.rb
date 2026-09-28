@@ -43,6 +43,19 @@ RSpec.describe "Extension analytics", type: :request do
     expect(clients.uniq.size).to eq(1)
   end
 
+  it "accepts free cash flow navigation without allowing arbitrary chart types" do
+    stub = stub_request(:post, endpoint).to_return(status: 204)
+    params = payload[:params].merge(interaction_type: "chart_navigation", chart_type: "fcf")
+
+    post "/analytics/extension", params: payload.merge(name: "analysis_interaction", params: params), as: :json
+    expect(response).to have_http_status(:no_content)
+    expect(stub).to have_been_requested.once
+
+    post "/analytics/extension", params: payload.merge(name: "analysis_interaction", params: params.merge(chart_type: "unknown")), as: :json
+    expect(response).to have_http_status(:bad_request)
+    expect(stub).to have_been_requested.once
+  end
+
   it "rejects arbitrary events, destinations, identifiers, and personal data without forwarding" do
     invalid = [
       payload.merge(name: "purchase"), payload.merge(client_id: "person@example.com"),

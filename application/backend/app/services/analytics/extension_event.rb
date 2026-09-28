@@ -15,7 +15,7 @@ module Analytics
       "site_domain_name" => DOMAINS,
       "result_status" => %w[success empty error],
       "interaction_type" => %w[chart_navigation autoplay_on autoplay_off],
-      "chart_type" => %w[bs pl cf indicators],
+      "chart_type" => %w[bs pl cf fcf indicators],
       "link_domain" => %w[kabutan.jp investee.info]
     }.freeze
     NUMBERS = { "result_count" => 0..1000, "unavailable_count" => 0..1000, "engagement_time_msec" => 1..3_600_000 }.freeze
