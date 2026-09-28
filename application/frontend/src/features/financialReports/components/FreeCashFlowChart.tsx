@@ -192,14 +192,16 @@ export function FreeCashFlowChart({ trend }: { trend: Trend }) {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            component="div"
-            sx={{ lineHeight: 1.2 }}
-          >
-            {trend.note ?? 'フリーキャッシュフロー＝営業CF＋投資CF'}
-          </Typography>
+          {trend.note && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              component="div"
+              sx={{ lineHeight: 1.2 }}
+            >
+              {trend.note}
+            </Typography>
+          )}
         </>
       ) : (
         <Box

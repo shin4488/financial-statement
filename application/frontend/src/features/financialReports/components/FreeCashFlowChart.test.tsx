@@ -52,9 +52,6 @@ it('一部の年が欠けても他の年を残し、欠損を0円と区別する
   render(<FreeCashFlowChart trend={trend} />);
 
   expect(
-    screen.getByText('フリーキャッシュフロー＝営業CF＋投資CF'),
-  ).toBeTruthy();
-  expect(
     screen.getByRole('region', { name: /2023年：データなし/ }),
   ).toBeTruthy();
   expect(screen.queryByText('過去5年のデータがありません')).toBeNull();
