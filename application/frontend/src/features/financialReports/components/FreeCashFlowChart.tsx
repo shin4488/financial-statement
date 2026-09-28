@@ -134,10 +134,7 @@ export function FreeCashFlowChart({ trend }: { trend: Trend }) {
       sx={{ height: 400, width: '100%', textAlign: 'left' }}
     >
       <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.4 }}>
-        フリーキャッシュフロー
-      </Typography>
-      <Typography variant="caption" color="text.secondary">
-        過去5年の推移
+        フリーキャッシュフロー（過去5年）
       </Typography>
       {trend.renderable ? (
         <>
