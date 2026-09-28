@@ -201,8 +201,6 @@ export function FreeCashFlowChart({ trend }: { trend: Trend }) {
                         ? 'transparent'
                         : point.amount < 0
                         ? colorByRole.cashDecrease
-                        : point.year === rows[rows.length - 1].year
-                        ? colorByRole.asset2
                         : colorByRole.cashIncrease
                     }
                   />
