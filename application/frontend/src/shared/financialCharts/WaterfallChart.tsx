@@ -83,7 +83,11 @@ export function WaterfallChart({
       </div>
       <div style={{ flex: 1, minHeight: 0 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={rows}>
+          {/* 最大値の金額ラベルがSVGの上端で切れないよう余白を確保する */}
+          <BarChart
+            data={rows}
+            margin={{ top: 28, right: 5, bottom: 5, left: 5 }}
+          >
             <XAxis dataKey="name" />
             {/* domain自動: 累積が負になるケースで0より下も描画させる */}
             <YAxis hide domain={['auto', 'auto']} />
