@@ -3,7 +3,6 @@ import { Box, Typography } from '@mui/material';
 import {
   Bar,
   BarChart,
-  CartesianGrid,
   Cell,
   LabelList,
   ReferenceDot,
@@ -133,7 +132,7 @@ export function FreeCashFlowChart({ trend }: { trend: Trend }) {
     <Box
       component="section"
       aria-label={`フリーキャッシュフローの過去5年の推移。${accessibleSummary}`}
-      sx={{ height: 400, width: '90%', mx: 'auto', textAlign: 'left' }}
+      sx={{ height: 400, width: '100%', textAlign: 'left' }}
     >
       <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.4 }}>
         フリーキャッシュフロー
@@ -149,25 +148,14 @@ export function FreeCashFlowChart({ trend }: { trend: Trend }) {
           <ResponsiveContainer width="100%" height={305}>
             <BarChart
               data={rows}
-              margin={{ top: 25, right: 12, bottom: 0, left: 0 }}
+              margin={{ top: 25, right: 4, bottom: 0, left: 4 }}
             >
-              <CartesianGrid
-                stroke="#e4e9f0"
-                strokeDasharray="3 3"
-                vertical={false}
-              />
               <XAxis
                 dataKey="periodLabel"
                 tickLine={false}
                 tick={{ fontSize: 10 }}
               />
-              <YAxis
-                width={70}
-                tick={{ fontSize: 10 }}
-                tickFormatter={(value: number) => exactNumber.format(value)}
-                domain={domain}
-                ticks={Array.from(new Set([domain[0], 0, domain[1]]))}
-              />
+              <YAxis hide width={0} domain={domain} />
               <ReferenceLine y={0} stroke="#8f9bad" />
               {rows
                 .filter((point) => point.amount == null)
@@ -178,7 +166,7 @@ export function FreeCashFlowChart({ trend }: { trend: Trend }) {
                     y={0}
                     r={0}
                     label={{
-                      value: missingYears.length <= 2 ? 'データなし' : '—',
+                      value: '—',
                       position: 'top',
                       fill: '#687587',
                       fontSize: 10,
