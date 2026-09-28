@@ -33,10 +33,28 @@ RSpec.describe FinancialStatements::FreeCashFlowTrends do
     expect(trend.points[4].fiscal_year_end_date).to eq "2025-03-31"
   end
 
-  it "過年度の連結と単体を混ぜず、全期間欠損なら表示不可にする" do
-    current = statement(2025)
+  it "連結・単体が切り替わっても各年の主たる財務諸表を表示し、区分を明記する" do
+    current = statement(2025, operating: 30_000_000, investing: -10_000_000)
     statement(2024, operating: 80_000_000, investing: 20_000_000,
              consolidation_type: :non_consolidated)
+    statement(2023, operating: 40_000_000, investing: -10_000_000,
+             consolidation_type: :non_consolidated)
+    statement(2022, operating: 50_000_000, investing: -20_000_000)
+
+    trend = described_class.build([ current ]).fetch(current.id)
+
+    expect(trend.renderable).to be true
+    expect(trend.points.map(&:amount)).to eq [ nil, 30_000_000, 30_000_000, 100_000_000, 20_000_000 ]
+    expect(trend.note).to eq "連結区分：2022年 連結 → 2023～2024年 単体 → 2025年 連結"
+  end
+
+  it "過年度の副次的な財務諸表は使わず、主たる財務諸表にCFがなければ欠損とする" do
+    current = statement(2025)
+    earlier = statement(2024, operating: 80_000_000,
+                        consolidation_type: :non_consolidated)
+    create(:disclosure_financial_statement, report: earlier,
+           consolidation_type: :consolidated, is_primary: false,
+           items_hash: { "cf.operating" => 80_000_000, "cf.investing" => 20_000_000 })
 
     trend = described_class.build([ current ]).fetch(current.id)
 

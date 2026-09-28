@@ -51,7 +51,9 @@ it('一部の年が欠けても他の年を残し、欠損を0円と区別する
 
   render(<FreeCashFlowChart trend={trend} />);
 
-  expect(screen.getByText('2023年：データなし')).toBeTruthy();
+  expect(
+    screen.getByText('フリーキャッシュフロー＝営業CF＋投資CF'),
+  ).toBeTruthy();
   expect(
     screen.getByRole('region', { name: /2023年：データなし/ }),
   ).toBeTruthy();
@@ -76,4 +78,20 @@ it('全期間欠損時は説明を一文だけ表示する', () => {
   expect(screen.getByText('過去5年のデータがありません')).toBeTruthy();
   expect(screen.queryByText(/営業CF・投資CFを確認できない/)).toBeNull();
   expect(screen.queryByText('2023年：データなし')).toBeNull();
+});
+
+it('連結と単体が混在する場合は切替の注記を表示する', () => {
+  render(
+    <FreeCashFlowChart
+      trend={{
+        renderable: true,
+        note: '連結区分：2021～2024年 単体 → 2025年 連結',
+        points,
+      }}
+    />,
+  );
+
+  expect(
+    screen.getByText('連結区分：2021～2024年 単体 → 2025年 連結'),
+  ).toBeTruthy();
 });

@@ -41,10 +41,11 @@ function paddedBound(value: number): number {
 }
 
 function ValueLabel(props: unknown) {
-  const { x, y, width, value } = props as {
+  const { x, y, width, height, value } = props as {
     x?: number;
     y?: number;
     width?: number;
+    height?: number;
     value?: number | null;
   };
   if (x == null || y == null || width == null || value == null) {
@@ -53,7 +54,13 @@ function ValueLabel(props: unknown) {
   return (
     <text
       x={x + width / 2}
-      y={value < 0 ? y + 15 : y - 7}
+      y={
+        value < 0
+          ? height != null && Math.abs(height) < 28
+            ? y + height - 7
+            : y + 15
+          : y - 7
+      }
       textAnchor="middle"
       fontSize={11}
       fill="#333"
@@ -107,9 +114,6 @@ export function FreeCashFlowChart({ trend }: { trend: Trend }) {
       ? `${point.year}/${Number(point.fiscalYearEndDate.slice(5, 7))}`
       : String(point.year),
   }));
-  const missingYears = rows
-    .filter((point) => point.amount == null)
-    .map((point) => point.year);
   const values = rows.flatMap((point) =>
     point.amountMillions == null ? [] : [point.amountMillions],
   );
@@ -166,7 +170,7 @@ export function FreeCashFlowChart({ trend }: { trend: Trend }) {
                     y={0}
                     r={0}
                     label={{
-                      value: '—',
+                      value: 'データなし',
                       position: 'top',
                       fill: '#687587',
                       fontSize: 10,
@@ -202,9 +206,7 @@ export function FreeCashFlowChart({ trend }: { trend: Trend }) {
             component="div"
             sx={{ lineHeight: 1.2 }}
           >
-            {missingYears.length
-              ? `${missingYears.join('・')}年：データなし`
-              : 'フリーキャッシュフロー＝営業CF＋投資CF'}
+            {trend.note ?? 'フリーキャッシュフロー＝営業CF＋投資CF'}
           </Typography>
         </>
       ) : (
