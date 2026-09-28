@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useMediaQuery } from '@mui/material';
 import {
   Bar,
   BarChart,
@@ -40,23 +40,44 @@ function paddedBound(value: number): number {
   return Math.ceil((value * 1.15) / step) * step;
 }
 
-function ValueLabel(props: unknown) {
-  const { x, y, width, height, value } = props as {
-    x?: number;
-    y?: number;
-    width?: number;
-    height?: number;
-    value?: number | null;
-  };
+type ValueLabelProps = {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  value?: number | null;
+  index?: number;
+  compact?: boolean;
+  amounts?: (number | null)[];
+};
+
+function ValueLabel(props: ValueLabelProps) {
+  const { x, y, width, height, value, index, compact, amounts } = props;
   if (x == null || y == null || width == null || value == null) {
     return null;
   }
+  const labelY = value < 0 && height != null ? y + height - 7 : y - 7;
+  // 狭いカードでは隣接する数値が重なるため、同じ符号の連続分を交互にずらす。
+  let adjacentCount = 0;
+  if (compact && index != null && amounts) {
+    for (let previous = index - 1; previous >= 0; previous--) {
+      const previousAmount = amounts[previous];
+      if (
+        previousAmount == null ||
+        Math.sign(previousAmount) !== Math.sign(value)
+      ) {
+        break;
+      }
+      adjacentCount++;
+    }
+  }
+  const stagger = adjacentCount % 2 === 1 ? (value < 0 ? 20 : 32) : 0;
   return (
     <text
       x={x + width / 2}
-      y={value < 0 && height != null ? y + height - 7 : y - 7}
+      y={compact ? Math.max(19, labelY - stagger) : labelY}
       textAnchor="middle"
-      fontSize={11}
+      fontSize={16}
       fill="#333"
     >
       {amountLabel(value)}
@@ -102,6 +123,7 @@ function PointTooltip({
 }
 
 export function FreeCashFlowChart({ trend }: { trend: Trend }) {
+  const compactLabels = useMediaQuery('(max-width:600px)');
   const rows: Row[] = trend.points.map((point) => ({
     ...point,
     amountMillions: point.amount == null ? null : point.amount / MILLION,
@@ -109,6 +131,7 @@ export function FreeCashFlowChart({ trend }: { trend: Trend }) {
       ? `${point.year}/${Number(point.fiscalYearEndDate.slice(5, 7))}`
       : String(point.year),
   }));
+  const labelAmounts = rows.map((point) => point.amount);
   const values = rows.flatMap((point) =>
     point.amountMillions == null ? [] : [point.amountMillions],
   );
@@ -144,7 +167,12 @@ export function FreeCashFlowChart({ trend }: { trend: Trend }) {
           <ResponsiveContainer width="100%" height={305}>
             <BarChart
               data={rows}
-              margin={{ top: 25, right: 4, bottom: 0, left: 4 }}
+              margin={{
+                top: compactLabels ? 45 : 25,
+                right: 4,
+                bottom: 0,
+                left: 4,
+              }}
             >
               <XAxis
                 dataKey="periodLabel"
@@ -176,7 +204,15 @@ export function FreeCashFlowChart({ trend }: { trend: Trend }) {
                 minPointSize={3}
                 isAnimationActive={false}
               >
-                <LabelList dataKey="amount" content={<ValueLabel />} />
+                <LabelList
+                  dataKey="amount"
+                  content={
+                    <ValueLabel
+                      compact={compactLabels}
+                      amounts={labelAmounts}
+                    />
+                  }
+                />
                 {rows.map((point) => (
                   <Cell
                     key={point.year}
