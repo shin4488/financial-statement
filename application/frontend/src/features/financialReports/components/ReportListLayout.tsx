@@ -86,7 +86,7 @@ export function ReportListLayout({ children }: { children: React.ReactNode }) {
       title={
         <List dense disablePadding>
           <ListItem disablePadding dense>
-            <ListItemText primary="カードはBS → PL → CF → ROE・ROAの順に切り替わります（BS・PLは構成比%、CFは円）。" />
+            <ListItemText primary="カードはBS → PL → CF → フリーキャッシュフロー → ROE・ROAの順に切り替わります（BS・PLは構成比%、CFは円、フリーキャッシュフローは百万円）。" />
           </ListItem>
           <ListItem disablePadding dense>
             <ListItemText

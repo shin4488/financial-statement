@@ -259,6 +259,12 @@ export default function GuidePage() {
         </P>
       </Section>
 
+      <Section title="フリーキャッシュフローの見方">
+        <P>
+          当サイトでは、営業CFと投資CFの合計をフリーキャッシュフローとして表示します。カードでは対象期を含む過去5年の推移を百万円単位の縦棒で示し、マイナスの年は0より下に表示します。計算に必要な値が欠けた年は0円とせず「データなし」と表示します。
+        </P>
+      </Section>
+
       <Section title="キャッシュフローの8パターン">
         <P>
           営業・投資・財務CFのプラスとマイナスで8種類に分けています。一覧画面の「キャッシュフロー」で絞り込めます。
@@ -441,7 +447,7 @@ export default function GuidePage() {
         <SubSection title="見る">
           <Bullets>
             <Bullet>
-              カードはBS → PL → CF →
+              カードはBS → PL → CF → フリーキャッシュフロー →
               ROE・ROAの順に切り替わります。「自動切替」は6秒間隔で、カードに触れている間は止まります。
             </Bullet>
             <Bullet>

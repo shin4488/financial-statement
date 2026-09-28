@@ -14,6 +14,7 @@ RSpec.describe "financialReports query" do
         balanceSheet { renderable note bars { label segments { key label amount signedAmount ratio colorRole } } }
         profitLoss { renderable note bars { label segments { key amount signedAmount } } }
         cashFlow { renderable steps { key label amount kind colorRole } }
+        freeCashFlowTrend { renderable note points { year operatingCf investingCf amount } }
       }
     }
   GRAPHQL
@@ -61,6 +62,12 @@ RSpec.describe "financialReports query" do
     expect(cf_steps.size).to eq 5
     # 投資CFは負のためcashDecrease（色の決定はバックエンドの契約）
     expect(cf_steps.find { |s| s["key"] == "investing" }["colorRole"]).to eq "cashDecrease"
+    trend = report["freeCashFlowTrend"]
+    expect(trend["renderable"]).to be true
+    expect(trend["points"].last).to include("year" => 2026,
+                                           "operatingCf" => 1_041_431_000_000,
+                                           "investingCf" => -369_141_000_000,
+                                           "amount" => 672_290_000_000)
   end
 
   it "CF符号フィルタの引数が効く" do

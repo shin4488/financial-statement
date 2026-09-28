@@ -4,6 +4,7 @@ import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
 import AppCarousel from './AppCarousel';
+import { FreeCashFlowChart } from './FreeCashFlowChart';
 import { FinancialIndicators } from '@/shared/financialIndicators';
 import { trackEvent } from '@/plugins/firebase/analytics';
 import { StackedBarChart, WaterfallChart } from '@/shared/financialCharts';
@@ -76,6 +77,7 @@ export const ReportCard = React.memo(function ReportCard({
           <StackedBarChart chart={report.balanceSheet} />
           <StackedBarChart chart={report.profitLoss} />
           <WaterfallChart chart={report.cashFlow} />
+          <FreeCashFlowChart trend={report.freeCashFlowTrend} />
           <FinancialIndicators indicators={report.financialIndicators} />
         </AppCarousel>
       </CardContent>

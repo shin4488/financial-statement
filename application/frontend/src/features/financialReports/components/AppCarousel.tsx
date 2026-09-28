@@ -33,6 +33,7 @@ export default function AppCarousel({
             'bs',
             'pl',
             'cf',
+            'fcf',
             'indicators',
           ];
           trackEvent('analysis_interaction', {
