@@ -78,7 +78,7 @@ function ValueLabel(props: ValueLabelProps) {
       y={compact ? Math.max(19, labelY - stagger) : labelY}
       textAnchor="middle"
       fontSize={16}
-      fill="#333"
+      fill={value < 0 ? colorByRole.cashDecrease : colorByRole.cashIncrease}
     >
       {amountLabel(value)}
     </text>
@@ -117,7 +117,7 @@ function PointTooltip({
       </div>
       <div>営業CF：{exactAmount(point.operatingCf)}</div>
       <div>投資CF：{exactAmount(point.investingCf)}</div>
-      <strong>フリーキャッシュフロー：{exactAmount(point.amount)}</strong>
+      <strong>フリーCF：{exactAmount(point.amount)}</strong>
     </div>
   );
 }
@@ -157,7 +157,7 @@ export function FreeCashFlowChart({ trend }: { trend: Trend }) {
       sx={{ height: 400, width: '100%', textAlign: 'left' }}
     >
       <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.4 }}>
-        フリーキャッシュフロー（過去5年）
+        フリーCF（過去5年）
       </Typography>
       {trend.renderable ? (
         <>

@@ -261,7 +261,7 @@ export default function GuidePage() {
 
       <Section title="フリーキャッシュフローの見方">
         <P>
-          フリーキャッシュフロー＝営業CF＋投資CF。カードには対象期を含む5年分を百万円単位で表示し、算出できない年は「データなし」と示します。
+          フリーキャッシュフロー（フリーCF）＝営業CF＋投資CF。カードには対象期を含む5年分を百万円単位で表示し、算出できない年は「データなし」と示します。
         </P>
       </Section>
 
@@ -447,7 +447,7 @@ export default function GuidePage() {
         <SubSection title="見る">
           <Bullets>
             <Bullet>
-              カードはBS → PL → CF → フリーキャッシュフロー →
+              カードはBS → PL → CF → フリーCF →
               ROE・ROAの順に切り替わります。「自動切替」は6秒間隔で、カードに触れている間は止まります。
             </Bullet>
             <Bullet>
