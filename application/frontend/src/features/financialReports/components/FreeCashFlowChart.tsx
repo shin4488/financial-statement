@@ -87,6 +87,7 @@ function PointTooltip({
         background: '#fff',
         border: '1px solid #ccc',
         padding: 10,
+        fontSize: 16,
         textAlign: 'left',
       }}
     >
