@@ -225,7 +225,7 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
           style={{
             margin: 0,
             fontSize: 16,
-            fontWeight: 700,
+            fontWeight: 400,
             lineHeight: 1.4,
             color: '#666',
           }}
