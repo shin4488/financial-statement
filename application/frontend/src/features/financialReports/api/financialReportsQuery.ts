@@ -47,6 +47,11 @@ export const FINANCIAL_REPORTS_QUERY = gql(`
         note
         steps { key label amount kind colorRole }
       }
+      freeCashFlowTrend {
+        renderable
+        note
+        points { year fiscalYearStartDate fiscalYearEndDate operatingCf investingCf amount }
+      }
     }
   }
 `);

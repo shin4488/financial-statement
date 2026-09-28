@@ -64,11 +64,12 @@ yarn build
 src/
   features/financialReports/     # 一覧ページ（Webアプリ固有）
     FinancialReportListPage.tsx  #   URLクエリ → GraphQL変数・無限スクロール
-    components/                  #   カード・レイアウト（AppBar/検索/フッター）・BS→PL→CF→ROE・ROAの自動切替カルーセル
+    components/                  #   カード・レイアウト（AppBar/検索/フッター）・BS→PL→CF→FCF→ROE・ROAの自動切替カルーセル
     api/                         #   クエリ定義と型
   shared/financialCharts/        # 汎用チャートキット（Chrome拡張と共有可能）
     StackedBarChart.tsx          #   BS・PL（積み上げ棒）
     WaterfallChart.tsx           #   CF（ウォーターフォール）
+    FreeCashFlowChart.tsx        #   フリーCF（過去5年）
     colorRoles.ts                #   役割→色の対応（バックエンドのenumと同時に変更する契約）
   shared/financialIndicators/   # ROE・ROAの共有表示（Web・拡張）
   plugins/firebase/              # アナリティクス

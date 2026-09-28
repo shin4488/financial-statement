@@ -33,7 +33,7 @@ export type ProductParams = {
   unavailable_count?: number;
   stock_count?: number;
   interaction_type?: 'chart_navigation' | 'autoplay_on' | 'autoplay_off';
-  chart_type?: 'bs' | 'pl' | 'cf' | 'indicators';
+  chart_type?: 'bs' | 'pl' | 'cf' | 'fcf' | 'indicators';
   link_domain?: 'kabutan.jp';
 };
 

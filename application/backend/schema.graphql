@@ -70,6 +70,7 @@ type FinancialReport {
   financialIndicators: FinancialIndicators!
   fiscalYearEndDate: String!
   fiscalYearStartDate: String!
+  freeCashFlowTrend: FreeCashFlowTrend!
   id: ID!
   presentationFormat: String!
   profitLoss: StackChart!
@@ -78,6 +79,28 @@ type FinancialReport {
   4桁（EDINETの5桁から末尾0を落として返す）
   """
   stockCode: String
+}
+
+type FreeCashFlowPoint {
+  """
+  営業CF＋投資CF。欠損時はnull
+  """
+  amount: Money
+  fiscalYearEndDate: String
+  fiscalYearStartDate: String
+  investingCf: Money
+  operatingCf: Money
+
+  """
+  決算期末の暦年
+  """
+  year: Int!
+}
+
+type FreeCashFlowTrend {
+  note: String
+  points: [FreeCashFlowPoint!]!
+  renderable: Boolean!
 }
 
 """

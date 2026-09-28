@@ -6,7 +6,11 @@ import CardContent from '@mui/material/CardContent';
 import AppCarousel from './AppCarousel';
 import { FinancialIndicators } from '@/shared/financialIndicators';
 import { trackEvent } from '@/plugins/firebase/analytics';
-import { StackedBarChart, WaterfallChart } from '@/shared/financialCharts';
+import {
+  FreeCashFlowChart,
+  StackedBarChart,
+  WaterfallChart,
+} from '@/shared/financialCharts';
 import type { FinancialReport } from '../api/types';
 
 // 会計基準は日本基準以外のみサブヘッダに表示する（判断材料として意味を持つのは
@@ -76,6 +80,7 @@ export const ReportCard = React.memo(function ReportCard({
           <StackedBarChart chart={report.balanceSheet} />
           <StackedBarChart chart={report.profitLoss} />
           <WaterfallChart chart={report.cashFlow} />
+          <FreeCashFlowChart trend={report.freeCashFlowTrend} />
           <FinancialIndicators indicators={report.financialIndicators} />
         </AppCarousel>
       </CardContent>

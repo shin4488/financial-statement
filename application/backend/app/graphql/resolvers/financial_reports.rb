@@ -10,6 +10,7 @@ module Resolvers
     # コストは「エイリアス数 * (固定コスト + 件数比例分)」の形になるため、
     # child_complexityで固定コスト分を、limitの項で件数比例分を負担させる
     complexity ->(_ctx, args, child_complexity) { child_complexity + args[:limit] / 2 }
+    extras [ :lookahead ]
 
     argument :limit, Integer, required: true,
              validates: { numericality: { greater_than: 0, less_than_or_equal_to: 100 } }
@@ -23,11 +24,12 @@ module Resolvers
     argument :financing_cf_sign, Types::CashFlowSignType, required: false
 
     def resolve(limit:, offset:, stock_codes: nil,
-                operating_cf_sign: nil, investing_cf_sign: nil, financing_cf_sign: nil)
+                operating_cf_sign: nil, investing_cf_sign: nil, financing_cf_sign: nil, lookahead:)
       reports = Disclosure::SearchQuery.new.call(
         limit: limit, offset: offset, stock_codes: stock_codes,
         cf_signs: { operating: operating_cf_sign, investing: investing_cf_sign, financing: financing_cf_sign })
-      reports.map { |report| present(report) }
+      trends = lookahead.selects?(:free_cash_flow_trend) ? FinancialStatements::FreeCashFlowTrends.build(reports) : {}
+      reports.map { |report| present(report, trends[report.id]) }
     end
 
     private
@@ -36,7 +38,7 @@ module Resolvers
       # この混在で追加の変換層なしにフィールドが引ける。
       # 専用のPresenterクラスにしない理由: 整形がこのメソッド1つに収まる薄さであり、
       # 科目・形式の知識は既にBuilder側に隔離されているため
-      def present(report)
+      def present(report, free_cash_flow_trend)
         fs = report.primary_financial_statement
         charts = Charts::BuilderRegistry.build_all(fs)
         {
@@ -52,6 +54,7 @@ module Resolvers
           consolidation_type: fs.consolidation_type,
           presentation_format: fs.presentation_format,
           financial_indicators: FinancialStatements::Indicators.build(fs),
+          free_cash_flow_trend: free_cash_flow_trend,
           **charts # balance_sheet: / profit_loss: / cash_flow: が展開される
         }
       end

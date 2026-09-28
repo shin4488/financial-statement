@@ -4,14 +4,13 @@ import {
   BarChart,
   Cell,
   LabelList,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts';
 import { ChartUnavailable } from './ChartUnavailable';
 import { colorForRole, tooltipBackgroundColor } from './colorRoles';
-import { formatAmount } from './formatAmount';
+import { formatAmountInMillions } from './formatAmount';
 import type {
   WaterfallChart as WaterfallChartData,
   WaterfallStep,
@@ -67,6 +66,29 @@ export function WaterfallChart({
   width = '90%',
   height = 400,
 }: WaterfallChartProps) {
+  const chartElement = React.useRef<HTMLDivElement>(null);
+  const [chartSize, setChartSize] = React.useState({ width: 0, height: 0 });
+
+  React.useLayoutEffect(() => {
+    const element = chartElement.current;
+    if (!chart.renderable || !element) {
+      return;
+    }
+    const updateSize = () => {
+      const nextWidth = element.clientWidth;
+      const nextHeight = element.clientHeight;
+      setChartSize((current) =>
+        current.width === nextWidth && current.height === nextHeight
+          ? current
+          : { width: nextWidth, height: nextHeight },
+      );
+    };
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(element);
+    updateSize();
+    return () => observer.disconnect();
+  }, [chart.renderable]);
+
   if (!chart.renderable) {
     // カルーセル内でチャートと差し替わるため、サイズを揃えてスライド切替時のレイアウト跳ねを防ぐ
     return <ChartUnavailable note={chart.note} width={width} height={height} />;
@@ -74,66 +96,84 @@ export function WaterfallChart({
   const rows = toWaterfallRows(chart.steps);
 
   return (
-    <ResponsiveContainer
+    <div
       className="bar-container"
-      width={width}
-      height={height}
+      style={{ width, height, display: 'flex', flexDirection: 'column' }}
     >
-      <BarChart data={rows}>
-        <XAxis dataKey="name" />
-        {/* domain自動: 累積が負になるケースで0より下も描画させる */}
-        <YAxis hide domain={['auto', 'auto']} />
-        <Tooltip
-          cursor={false}
-          wrapperStyle={{
-            backgroundColor: tooltipBackgroundColor,
-            opacity: '0.8',
-            padding: '10px',
-          }}
-          content={(props: unknown) => {
-            const p = props as {
-              active?: boolean;
-              label?: string;
-              payload?: { dataKey?: string; payload?: Row }[];
-            };
-            if (!p.active || !p.payload) {
-              return null;
-            }
-            // 色付き部分（span）のペイロードを選ぶ。配列の並びはBarの宣言順に依存するため、
-            // 位置でなくdataKeyで引く
-            const row = p.payload.find((e) => e.dataKey === 'span')?.payload;
-            if (!row) {
-              return null;
-            }
-            return <div>{`${p.label}: ${formatAmount(row.value)}`}</div>;
-          }}
-        />
-        <Bar
-          dataKey="base"
-          stackId="w"
-          fill="transparent"
-          isAnimationActive={false}
-        />
-        <Bar dataKey="span" stackId="w" isAnimationActive={false}>
-          {/* バー上のラベルもツールチップと同じformatAmount表記で出す。円のままだと桁が多く重なって読めない */}
-          <LabelList
-            dataKey="value"
-            position="top"
-            formatter={(value: number) => formatAmount(value)}
-          />
-          {rows.map((row) => (
-            <Cell
-              key={row.step.key}
-              // colorRoleが無いのは古いAPI・クエリ（コピー先の拡張やサンプルデータ）から来た場合。
-              // その間も同じ見た目になるよう符号から同じroleを補う
-              fill={colorForRole(
-                row.step.colorRole ??
-                  (row.value < 0 ? 'cashDecrease' : 'cashIncrease'),
-              )}
+      <div style={{ fontSize: 12, lineHeight: '20px', textAlign: 'left' }}>
+        百万円
+      </div>
+      <div ref={chartElement} style={{ flex: 1, minHeight: 0 }}>
+        {/* 非表示のカルーセル項目は0×0になるため、実寸があるときだけ描画する。上端には金額ラベルの余白を確保する */}
+        {chartSize.width > 0 && chartSize.height > 0 && (
+          <BarChart
+            data={rows}
+            width={chartSize.width}
+            height={chartSize.height}
+            margin={{ top: 28, right: 5, bottom: 5, left: 5 }}
+          >
+            <XAxis dataKey="name" />
+            {/* domain自動: 累積が負になるケースで0より下も描画させる */}
+            <YAxis hide domain={['auto', 'auto']} />
+            <Tooltip
+              cursor={false}
+              wrapperStyle={{
+                backgroundColor: tooltipBackgroundColor,
+                opacity: '0.8',
+                padding: '10px',
+              }}
+              content={(props: unknown) => {
+                const p = props as {
+                  active?: boolean;
+                  label?: string;
+                  payload?: { dataKey?: string; payload?: Row }[];
+                };
+                if (!p.active || !p.payload) {
+                  return null;
+                }
+                // 色付き部分（span）のペイロードを選ぶ。配列の並びはBarの宣言順に依存するため、
+                // 位置でなくdataKeyで引く
+                const row = p.payload.find(
+                  (e) => e.dataKey === 'span',
+                )?.payload;
+                if (!row) {
+                  return null;
+                }
+                return (
+                  <div>{`${p.label}: ${formatAmountInMillions(
+                    row.value,
+                  )}百万円`}</div>
+                );
+              }}
             />
-          ))}
-        </Bar>
-      </BarChart>
-    </ResponsiveContainer>
+            <Bar
+              dataKey="base"
+              stackId="w"
+              fill="transparent"
+              isAnimationActive={false}
+            />
+            <Bar dataKey="span" stackId="w" isAnimationActive={false}>
+              {/* 単位はグラフ外に表示し、バー上には百万円単位の数値だけを出す */}
+              <LabelList
+                dataKey="value"
+                position="top"
+                formatter={(value: number) => formatAmountInMillions(value)}
+              />
+              {rows.map((row) => (
+                <Cell
+                  key={row.step.key}
+                  // colorRoleが無いのは古いAPI・クエリ（コピー先の拡張やサンプルデータ）から来た場合。
+                  // その間も同じ見た目になるよう符号から同じroleを補う
+                  fill={colorForRole(
+                    row.step.colorRole ??
+                      (row.value < 0 ? 'cashDecrease' : 'cashIncrease'),
+                  )}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        )}
+      </div>
+    </div>
   );
 }
