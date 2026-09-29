@@ -108,7 +108,8 @@ module Edinet
           next if entry.nil?
           raise "zip entry too large: #{doc_id} (#{entry.size} bytes)" if entry.size > MAX_ENTRY_SIZE
           xbrl_path = File.join(work_dir, "#{doc_id}.xbrl")
-          zip.extract(entry, xbrl_path) { true } # ブロックtrue = 既存ファイルは上書き（リトライ時）
+          # rubyzip 3.x は展開先を destination_directory からの相対パスで指定する。
+          zip.extract(entry, "#{doc_id}.xbrl", destination_directory: work_dir) { true } # ブロックtrue = 既存ファイルは上書き（リトライ時）
         end
         xbrl_path
       end
