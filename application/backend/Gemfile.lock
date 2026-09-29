@@ -285,7 +285,7 @@ GEM
       rubocop-performance (>= 1.24)
       rubocop-rails (>= 2.30)
     ruby-progressbar (1.13.0)
-    rubyzip (2.3.2)
+    rubyzip (3.4.1)
     sass-rails (6.0.0)
       sassc-rails (~> 2.1, >= 2.1.1)
     sassc (2.4.0)
@@ -362,7 +362,7 @@ DEPENDENCIES
   rails (~> 7.2.0, >= 7.2.3.2)
   rspec-rails (~> 6.1)
   rubocop-rails-omakase
-  rubyzip
+  rubyzip (~> 3.4.1)
   sass-rails
   sentry-rails
   sentry-ruby
