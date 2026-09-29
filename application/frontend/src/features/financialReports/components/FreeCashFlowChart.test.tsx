@@ -31,9 +31,9 @@ afterEach(() => {
 });
 
 it('金額をカード共通の百万円単位で表示し、100万円未満も0と誤表示しない', () => {
-  expect(amountLabel(12_000_000)).toBe('+12');
+  expect(amountLabel(12_000_000)).toBe('12');
   expect(amountLabel(-4_000_000)).toBe('-4');
-  expect(amountLabel(500_000)).toBe('+0.5');
+  expect(amountLabel(500_000)).toBe('0.5');
   expect(amountLabel(-1_000)).toBe('-0.001');
   expect(amountLabel(0)).toBe('0');
 });
@@ -54,6 +54,7 @@ it('一部の年が欠けても他の年を残し、欠損を0円と区別する
   expect(
     screen.getByRole('region', { name: /2023年：データなし/ }),
   ).toBeTruthy();
+  expect(screen.getByRole('region', { name: /2025年：12百万円/ })).toBeTruthy();
   expect(screen.queryByText('過去5年のデータがありません')).toBeNull();
 });
 

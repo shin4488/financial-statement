@@ -4,6 +4,14 @@ import {
   periodTickFontSize,
 } from './FreeCashFlowChart';
 
+describe('フリーCFの金額表記', () => {
+  it('プラスは符号なし、マイナスだけ符号を付ける', () => {
+    expect(amountLabel(12_000_000)).toBe('12');
+    expect(amountLabel(-12_000_000)).toBe('-12');
+    expect(amountLabel(0)).toBe('0');
+  });
+});
+
 describe('フリーCFの年/月ラベル', () => {
   it('短い月は16pxで表示し、狭い画面の12月は5年分が収まる大きさにする', () => {
     const june = ['2022/6', '2023/6', '2024/6', '2025/6', '2026/6'];

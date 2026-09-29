@@ -49,7 +49,7 @@ export function periodTickFontSize(
 }
 
 export function amountLabel(yen: number): string {
-  return `${yen > 0 ? '+' : ''}${exactNumber.format(yen / MILLION)}`;
+  return exactNumber.format(yen / MILLION);
 }
 
 function exactAmount(yen: number): string {
@@ -183,7 +183,7 @@ function PointTooltip({
         background: '#fff',
         border: '1px solid #ccc',
         padding: 10,
-        fontSize: 16,
+        fontSize: 14,
         textAlign: 'left',
       }}
     >
