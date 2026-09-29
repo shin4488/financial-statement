@@ -97,6 +97,7 @@ export function StackedBarChart({
           wrapperStyle={{
             backgroundColor: tooltipBackgroundColor,
             textAlign: 'left',
+            fontSize: 14,
           }}
           // 標準のツールチップにしない理由: formatterで[null, null]を返しても
           // 空の行（約8px）が残るため、非表示role（spacer）を行ごと描かない
