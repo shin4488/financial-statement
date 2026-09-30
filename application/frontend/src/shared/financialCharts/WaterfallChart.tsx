@@ -1,4 +1,5 @@
 import React from 'react';
+import { Box, Stack, Typography } from '@mui/material';
 import {
   Bar,
   BarChart,
@@ -96,14 +97,18 @@ export function WaterfallChart({
   const rows = toWaterfallRows(chart.steps);
 
   return (
-    <div
-      className="bar-container"
-      style={{ width, height, display: 'flex', flexDirection: 'column' }}
-    >
-      <div style={{ fontSize: 12, lineHeight: '20px', textAlign: 'left' }}>
+    <Stack width={width} height={height} m="auto">
+      <Typography
+        letterSpacing="inherit"
+        fontFamily="inherit"
+        component="div"
+        fontSize={12}
+        lineHeight="20px"
+        textAlign="left"
+      >
         百万円
-      </div>
-      <div ref={chartElement} style={{ flex: 1, minHeight: 0 }}>
+      </Typography>
+      <Box ref={chartElement} flex={1} minHeight={0}>
         {/* 非表示のカルーセル項目は0×0になるため、実寸があるときだけ描画する。上端には金額ラベルの余白を確保する */}
         {chartSize.width > 0 && chartSize.height > 0 && (
           <BarChart
@@ -174,7 +179,7 @@ export function WaterfallChart({
             </Bar>
           </BarChart>
         )}
-      </div>
-    </div>
+      </Box>
+    </Stack>
   );
 }

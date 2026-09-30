@@ -1,4 +1,5 @@
 import React from 'react';
+import { Box, Stack, Typography } from '@mui/material';
 import {
   Bar,
   BarChart,
@@ -178,14 +179,12 @@ function PointTooltip({
     return null;
   }
   return (
-    <div
-      style={{
-        background: '#fff',
-        border: '1px solid #ccc',
-        padding: 10,
-        fontSize: 14,
-        textAlign: 'left',
-      }}
+    <Box
+      bgcolor="#fff"
+      border="1px solid #ccc"
+      p="10px"
+      fontSize={14}
+      textAlign="left"
     >
       <div>
         {point.fiscalYearStartDate} ～ {point.fiscalYearEndDate}
@@ -193,7 +192,7 @@ function PointTooltip({
       <div>営業CF：{exactAmount(point.operatingCf)}</div>
       <div>投資CF：{exactAmount(point.investingCf)}</div>
       <strong>フリーCF：{exactAmount(point.amount)}</strong>
-    </div>
+    </Box>
   );
 }
 
@@ -235,37 +234,43 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
     .join('、');
 
   return (
-    <section
+    <Box
+      component="section"
       aria-label={`フリーキャッシュフローの過去5年の推移。${accessibleSummary}`}
-      style={{
-        height: 400,
-        width: '100%',
-        textAlign: 'left',
-        fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
-        color: 'rgba(0, 0, 0, 0.87)',
-      }}
+      height={400}
+      width="100%"
+      textAlign="left"
+      fontFamily="Roboto, Helvetica, Arial, sans-serif"
+      color="rgba(0, 0, 0, 0.87)"
     >
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-        <h6
-          style={{
-            margin: 0,
-            fontSize: 16,
-            fontWeight: 400,
-            lineHeight: 1.4,
-            color: '#666',
-          }}
+      <Stack direction="row" alignItems="baseline" gap={1}>
+        <Typography
+          letterSpacing="inherit"
+          fontFamily="inherit"
+          component="h6"
+          fontSize={16}
+          fontWeight={400}
+          lineHeight={1.4}
+          color="#666"
         >
           フリーCF（過去5年）
-        </h6>
+        </Typography>
         {trend.renderable && (
-          <span style={{ fontSize: 12, lineHeight: 1.66, color: '#666' }}>
+          <Typography
+            letterSpacing="inherit"
+            fontFamily="inherit"
+            component="span"
+            fontSize={12}
+            lineHeight={1.66}
+            color="#666"
+          >
             百万円
-          </span>
+          </Typography>
         )}
-      </div>
+      </Stack>
       {trend.renderable ? (
         <>
-          <div style={{ marginTop: 8 }}>
+          <Box mt={1}>
             <ResponsiveContainer
               width="100%"
               height={CHART_HEIGHT}
@@ -335,39 +340,34 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-          </div>
+          </Box>
           {trend.note && (
-            <div
-              style={{
-                color: 'rgba(0, 0, 0, 0.6)',
-                fontSize: 12,
-                lineHeight: 1.2,
-              }}
+            <Typography
+              letterSpacing="inherit"
+              fontFamily="inherit"
+              component="div"
+              color="rgba(0, 0, 0, 0.6)"
+              fontSize={12}
+              lineHeight={1.2}
             >
               {trend.note}
-            </div>
+            </Typography>
           )}
         </>
       ) : (
-        <div
-          style={{
-            height: 335,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <span
-            style={{
-              color: 'rgba(0, 0, 0, 0.6)',
-              fontSize: 16,
-              lineHeight: 1.5,
-            }}
+        <Stack height={335} alignItems="center" justifyContent="center">
+          <Typography
+            letterSpacing="inherit"
+            fontFamily="inherit"
+            component="span"
+            color="rgba(0, 0, 0, 0.6)"
+            fontSize={16}
+            lineHeight={1.5}
           >
             {trend.note ?? '過去5年のデータがありません'}
-          </span>
-        </div>
+          </Typography>
+        </Stack>
       )}
-    </section>
+    </Box>
   );
 }

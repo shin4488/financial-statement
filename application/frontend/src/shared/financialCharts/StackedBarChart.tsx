@@ -1,4 +1,5 @@
 import React from 'react';
+import { Box } from '@mui/material';
 import {
   Bar,
   BarChart,
@@ -83,91 +84,87 @@ export function StackedBarChart({
   const { rows, columns } = toStackRows(chart);
 
   return (
-    <ResponsiveContainer
-      className="bar-container"
-      width={width}
-      height={height}
-    >
-      <BarChart data={rows}>
-        {/* Y軸反転: 積み上げを「上から下」に描く（BSの「上=流動・下=純資産」の慣習を保つ）。
+    <Box width={width} height={height} m="auto">
+      <ResponsiveContainer
+        width="100%"
+        height={typeof height === 'number' ? height : '100%'}
+      >
+        <BarChart data={rows}>
+          {/* Y軸反転: 積み上げを「上から下」に描く（BSの「上=流動・下=純資産」の慣習を保つ）。
             domainのdataMaxで最も高いバーに全バーの縮尺を合わせる */}
-        <YAxis reversed hide domain={[0, 'dataMax']} />
-        <Tooltip
-          cursor={false}
-          wrapperStyle={{
-            backgroundColor: tooltipBackgroundColor,
-            textAlign: 'left',
-            fontSize: 14,
-          }}
-          // 標準のツールチップにしない理由: formatterで[null, null]を返しても
-          // 空の行（約8px）が残るため、非表示role（spacer）を行ごと描かない
-          content={(props: unknown) => {
-            const p = props as {
-              active?: boolean;
-              payload?: { dataKey?: unknown; color?: string; payload?: Row }[];
-            };
-            const payload = p.payload ?? [];
-            const row = payload[0]?.payload;
-            if (!p.active || !row) {
-              return null;
-            }
-            const entries = payload.filter((entry) => {
-              const s = row.__segments[String(entry.dataKey)];
-              return s !== undefined && !hiddenRoles.has(s.colorRole);
-            });
-            if (entries.length === 0) {
-              return null;
-            }
-            // 見た目はrechartsの標準ツールチップに合わせる（白地・グレー枠・行間4px・系列色の文字）
-            return (
-              <div
-                style={{
-                  margin: 0,
-                  padding: 10,
-                  backgroundColor: '#fff',
-                  border: '1px solid #ccc',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {entries.map((entry) => {
-                  const s: Segment = row.__segments[String(entry.dataKey)];
-                  return (
-                    <div
-                      key={s.key}
-                      style={{
-                        color: entry.color,
-                        paddingTop: 4,
-                        paddingBottom: 4,
-                      }}
-                    >
-                      {/* 表示はsignedAmount: 債務超過の純資産や損失は負で見せる */}
-                      {`${s.tooltipLabel ?? s.label} : ${formatAmount(
-                        s.signedAmount,
-                      )}`}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          }}
-        />
-        {columns.map(({ key, label, colorRole }) => (
-          <Bar
-            key={key}
-            dataKey={key}
-            stackId="a"
-            fill={colorForRole(colorRole)}
-            isAnimationActive={false}
-          >
-            <LabelList
-              dataKey={`${key}Ratio`}
-              fill={stackLabelColor}
-              position="center"
-              formatter={(value: number) => `${label}: ${value}%`}
-            />
-          </Bar>
-        ))}
-      </BarChart>
-    </ResponsiveContainer>
+          <YAxis reversed hide domain={[0, 'dataMax']} />
+          <Tooltip
+            cursor={false}
+            wrapperStyle={{
+              backgroundColor: tooltipBackgroundColor,
+              textAlign: 'left',
+              fontSize: 14,
+            }}
+            // 標準のツールチップにしない理由: formatterで[null, null]を返しても
+            // 空の行（約8px）が残るため、非表示role（spacer）を行ごと描かない
+            content={(props: unknown) => {
+              const p = props as {
+                active?: boolean;
+                payload?: {
+                  dataKey?: unknown;
+                  color?: string;
+                  payload?: Row;
+                }[];
+              };
+              const payload = p.payload ?? [];
+              const row = payload[0]?.payload;
+              if (!p.active || !row) {
+                return null;
+              }
+              const entries = payload.filter((entry) => {
+                const s = row.__segments[String(entry.dataKey)];
+                return s !== undefined && !hiddenRoles.has(s.colorRole);
+              });
+              if (entries.length === 0) {
+                return null;
+              }
+              // 見た目はrechartsの標準ツールチップに合わせる（白地・グレー枠・行間4px・系列色の文字）
+              return (
+                <Box
+                  m={0}
+                  p="10px"
+                  bgcolor="#fff"
+                  border="1px solid #ccc"
+                  whiteSpace="nowrap"
+                >
+                  {entries.map((entry) => {
+                    const s: Segment = row.__segments[String(entry.dataKey)];
+                    return (
+                      <Box key={s.key} color={entry.color} py="4px">
+                        {/* 表示はsignedAmount: 債務超過の純資産や損失は負で見せる */}
+                        {`${s.tooltipLabel ?? s.label} : ${formatAmount(
+                          s.signedAmount,
+                        )}`}
+                      </Box>
+                    );
+                  })}
+                </Box>
+              );
+            }}
+          />
+          {columns.map(({ key, label, colorRole }) => (
+            <Bar
+              key={key}
+              dataKey={key}
+              stackId="a"
+              fill={colorForRole(colorRole)}
+              isAnimationActive={false}
+            >
+              <LabelList
+                dataKey={`${key}Ratio`}
+                fill={stackLabelColor}
+                position="center"
+                formatter={(value: number) => `${label}: ${value}%`}
+              />
+            </Bar>
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+    </Box>
   );
 }

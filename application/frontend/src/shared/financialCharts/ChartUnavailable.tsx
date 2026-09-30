@@ -1,4 +1,5 @@
 import React from 'react';
+import { Box } from '@mui/material';
 
 // 「表示不可」は正常系（未対応の会計基準・業種、科目の欠落）。
 // エラーバウンダリではなくデータとして描く。noteはバックエンドが形式判定の文脈を
@@ -15,8 +16,8 @@ export function ChartUnavailable({
   height?: string | number;
 }) {
   return (
-    <div style={{ width, height, textAlign: 'left' }}>
+    <Box width={width} height={height} textAlign="left">
       {note ?? 'データがない、または表示対応していないデータです。'}
-    </div>
+    </Box>
   );
 }

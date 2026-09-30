@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from '@mui/material';
+import { Link, Box } from '@mui/material';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
@@ -52,7 +52,7 @@ export const ReportCard = React.memo(function ReportCard({
     <Card>
       <CardHeader
         title={
-          <div className="financial-statement-card-header">
+          <Box textAlign="left">
             <Link
               title={`${report.companyName}（株探）`}
               underline="none"
@@ -67,12 +67,12 @@ export const ReportCard = React.memo(function ReportCard({
             >
               {report.companyName}
             </Link>
-          </div>
+          </Box>
         }
         subheader={
-          <div className="financial-statement-card-header">
+          <Box textAlign="left">
             {`${report.stockCode} : ${report.fiscalYearStartDate} - ${report.fiscalYearEndDate}${subheaderSuffix}`}
-          </div>
+          </Box>
         }
       />
       <CardContent>

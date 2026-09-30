@@ -105,7 +105,7 @@ function FinancialReportList() {
             }); // 失敗時は終端扱いにせず、次のスクロールで再試行させる
         }}
         hasMore={hasMore}
-        loader={<CircularProgress key="loader" style={{ marginBottom: 5 }} />}
+        loader={<CircularProgress key="loader" sx={{ mb: '5px' }} />}
       >
         <Grid container spacing={2} padding={1}>
           {reports.map((report) => (
@@ -118,9 +118,7 @@ function FinancialReportList() {
       {/* reports.length === 0 の条件を付ける理由: fetchMore中（追加読込）は
           InfiniteScrollのloaderが表示されるため、全面スピナーは
           初回読込と検索条件切替（結果が空になる間）だけに限定する */}
-      {loading && reports.length === 0 && (
-        <CircularProgress style={{ marginTop: 20 }} />
-      )}
+      {loading && reports.length === 0 && <CircularProgress sx={{ mt: 2.5 }} />}
       {!loading && error && (
         <p role="alert">
           財務データを取得できませんでした。時間をおいて再度お試しください。

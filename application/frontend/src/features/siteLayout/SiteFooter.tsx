@@ -18,8 +18,9 @@ export function SiteFooter() {
       position="fixed"
       bgcolor="white"
       zIndex="10"
-      style={{ opacity: 0.7, bottom: 0 }}
       sx={{
+        opacity: 0.7,
+        bottom: 0,
         display: 'flex',
         alignItems: 'center',
         whiteSpace: 'nowrap',
