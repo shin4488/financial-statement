@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { Box } from '@mui/material';
 import {
   Bar,
   BarChart,
+  Label,
   LabelList,
   ResponsiveContainer,
   Tooltip,
@@ -17,6 +18,39 @@ import {
 import { ChartUnavailable } from './ChartUnavailable';
 import { formatAmount } from './formatAmount';
 import type { StackChart, Segment } from './types';
+
+function FittingStackLabel(props: React.ComponentProps<typeof Label>) {
+  const group = useRef<SVGGElement>(null);
+  const [fits, setFits] = useState(false);
+
+  useLayoutEffect(() => {
+    const box = props.viewBox;
+    if (
+      !group.current ||
+      !box ||
+      !('width' in box) ||
+      !('height' in box) ||
+      typeof box.width !== 'number' ||
+      typeof box.height !== 'number'
+    ) {
+      setFits(false);
+      return;
+    }
+    // Rechartsの折り返し・フォントを維持し、実際の文字領域と区画の寸法を比べる。
+    // hiddenでもSVGのgetBBoxは計測できる。上下左右に2pxずつ余裕を残す。
+    const text = group.current.getBBox();
+    setFits(
+      text.width + 4 <= Math.abs(box.width) &&
+        text.height + 4 <= Math.abs(box.height),
+    );
+  }, [props]);
+
+  return (
+    <g ref={group} visibility={fits ? 'visible' : 'hidden'} aria-hidden={!fits}>
+      <Label {...props} content={undefined} />
+    </g>
+  );
+}
 
 // rechartsは「行の配列 * 固定dataKey」を要求するが、こちらは「バーごとに異なるセグメント列」を
 // 描きたい。そこで行 = バー、列 = 全バーのセグメントkeyの和集合、に変換する。
@@ -140,6 +174,7 @@ export function StackedBarChart({
                         {`${s.tooltipLabel ?? s.label} : ${formatAmount(
                           s.signedAmount,
                         )}`}
+                        {s.ratio != null && ` (${s.ratio}%)`}
                       </Box>
                     );
                   })}
@@ -160,6 +195,7 @@ export function StackedBarChart({
                 fill={stackLabelColor}
                 position="center"
                 formatter={(value: number) => `${label}: ${value}%`}
+                content={<FittingStackLabel />}
               />
             </Bar>
           ))}
