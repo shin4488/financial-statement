@@ -26,6 +26,7 @@ module.exports = {
     sourceType: 'module',
   },
   plugins: ['@typescript-eslint', 'react'],
+  settings: { react: { version: 'detect' } },
   ignorePatterns: ['src/__generated__/**'],
   rules: {
     'no-console': 'warn',

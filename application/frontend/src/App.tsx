@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import './App.css';
 import FinancialReportListPage from '@/features/financialReports/FinancialReportListPage';
 import AboutPage from '@/features/staticPages/AboutPage';
 import ContactPage from '@/features/staticPages/ContactPage';
