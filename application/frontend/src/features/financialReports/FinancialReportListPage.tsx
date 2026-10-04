@@ -137,9 +137,7 @@ export default function FinancialReportListPage() {
   return (
     <ApolloProvider client={financialReportsClient}>
       <ReportListLayout>
-        <div className="App">
-          <FinancialReportList />
-        </div>
+        <FinancialReportList />
       </ReportListLayout>
     </ApolloProvider>
   );

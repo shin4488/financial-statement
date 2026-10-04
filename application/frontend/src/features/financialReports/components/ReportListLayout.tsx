@@ -217,7 +217,7 @@ export function ReportListLayout({ children }: { children: React.ReactNode }) {
             </Grid>
           </Box>
 
-          <Box sx={{ display: { xs: 'flex' } }}>{infoTooltip}</Box>
+          <Box display="flex">{infoTooltip}</Box>
         </Toolbar>
       </AppBar>
 

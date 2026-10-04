@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, Box } from '@mui/material';
+import { Link } from '@mui/material';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
@@ -52,28 +52,22 @@ export const ReportCard = React.memo(function ReportCard({
     <Card>
       <CardHeader
         title={
-          <Box textAlign="left">
-            <Link
-              title={`${report.companyName}（株探）`}
-              underline="none"
-              target="_blank"
-              // MUIのLinkはrelを自動付与しないため明示する。
-              // noreferrer: 検索条件を含むURLが遷移先に渡るのを防ぐ
-              rel="noopener noreferrer"
-              href={kabutanUrl}
-              onClick={() =>
-                trackEvent('outbound_click', { link_domain: KABUTAN_HOST })
-              }
-            >
-              {report.companyName}
-            </Link>
-          </Box>
+          <Link
+            title={`${report.companyName}（株探）`}
+            underline="none"
+            target="_blank"
+            // MUIのLinkはrelを自動付与しないため明示する。
+            // noreferrer: 検索条件を含むURLが遷移先に渡るのを防ぐ
+            rel="noopener noreferrer"
+            href={kabutanUrl}
+            onClick={() =>
+              trackEvent('outbound_click', { link_domain: KABUTAN_HOST })
+            }
+          >
+            {report.companyName}
+          </Link>
         }
-        subheader={
-          <Box textAlign="left">
-            {`${report.stockCode} : ${report.fiscalYearStartDate} - ${report.fiscalYearEndDate}${subheaderSuffix}`}
-          </Box>
-        }
+        subheader={`${report.stockCode} : ${report.fiscalYearStartDate} - ${report.fiscalYearEndDate}${subheaderSuffix}`}
       />
       <CardContent>
         <AppCarousel>
