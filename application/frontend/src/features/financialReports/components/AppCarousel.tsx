@@ -4,6 +4,9 @@ import Carousel from 'react-material-ui-carousel';
 import { RootState } from '@/store/store';
 import { trackEvent, ProductParams } from '@/plugins/firebase/analytics';
 
+// ナビボタンはカルーセル下端の帯に置かれる。インジケータ行を同じ高さにしないと、ボタンが行からスライド側へはみ出し、幅の狭い画面ではチャートの下端に重なる
+const navRowHeight = 40;
+
 // カルーセルの操作感（6秒の自動切替・スライド・常時ナビ表示）を全カードで統一するラッパー。
 // 自動切替のON/OFFだけ画面共通の状態（Redux）を参照する
 export default function AppCarousel({
@@ -43,6 +46,15 @@ export default function AppCarousel({
         }
         manualNavigation.current = false;
       }}
+      indicatorContainerProps={{
+        style: {
+          marginTop: 0,
+          height: navRowHeight,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+      }}
       indicatorIconButtonProps={indicatorProps}
       autoPlay={isAutoPlay}
       swipe={false}
@@ -52,7 +64,7 @@ export default function AppCarousel({
       duration={100}
       navButtonsAlwaysVisible
       navButtonsWrapperProps={{
-        style: { top: 'auto', bottom: 0, height: 40 },
+        style: { top: 'auto', bottom: 0, height: navRowHeight },
       }}
       navButtonsProps={buttonProps}
     >
