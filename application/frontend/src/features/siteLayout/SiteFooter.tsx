@@ -16,7 +16,7 @@ export function SiteFooter() {
     <Box
       component="footer"
       position="fixed"
-      bgcolor="white"
+      bgcolor="background.paper"
       zIndex="10"
       sx={{
         opacity: 0.7,
@@ -84,8 +84,7 @@ function SiteLinksMenu() {
         onClick={(event: React.MouseEvent<HTMLElement>) =>
           setAnchor(event.currentTarget)
         }
-        // component="button" はブラウザ既定のボタン書体になるため、周囲の文字に揃える
-        sx={{ font: 'inherit', display: 'inline-flex', alignItems: 'center' }}
+        sx={{ display: 'inline-flex', alignItems: 'center' }}
       >
         サイト情報
         <ArrowDropUpIcon fontSize="small" />
