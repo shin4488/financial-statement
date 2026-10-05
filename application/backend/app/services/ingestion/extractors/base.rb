@@ -26,6 +26,10 @@ module Ingestion
       #   max("…:A", sum("…:B", "…:C"))        … 最大値。同じ科目の総額候補が複数併記され、どれが総額かが
       #                                           企業のタグ付けで揺れる場合（売上高と営業収益）に、内訳は総額を
       #                                           超えないことを根拠に「最も包括的な値」を採る。要素にはタグかsumを置ける
+      #   filer_ext(/…SummaryOfBusinessResults\z/)
+      #                                       … 企業拡張タグのうち、要素名が正規表現に合うもの。要素名が会社ごとに違う科目を、
+      #                                           名前を一覧にせず形で探す。合う要素の金額か精度が食い違うときは、
+      #                                           どれが目的の科目か決められないため取らない。フォールバックの最後に置く
       #
       # 各記法は「XBRLとコンテキストを受けて金額かnilを返す」evaluateを持つ値オブジェクト。
       # 記法を増やすときはStructを1つ足せばよく、評価側（lookup）や各Extractorには手が入らない
@@ -68,8 +72,21 @@ module Ingestion
         end
       end
 
+      FilerExtension = Struct.new(:pattern) do
+        def evaluate(xbrl, context) = (qname = match(xbrl, context)) && xbrl.money(qname, context)
+        def rounding_error(xbrl, context) = (qname = match(xbrl, context)) && xbrl.rounding_error(qname, context)
+
+        private
+          def match(xbrl, context)
+            qnames = xbrl.element_names("filer_ext").grep(pattern).map { |name| "filer_ext:#{name}" }
+                         .reject { |qname| xbrl.money(qname, context).nil? }
+            qnames.first if qnames.map { |qname| [ xbrl.money(qname, context), xbrl.rounding_error(qname, context) ] }.uniq.one?
+          end
+      end
+
       def self.sum(*qnames, distinct_amounts: false) = Sum.new(qnames.map { |qname| Tag.new(qname) }, distinct_amounts)
       def self.max(*entries) = Max.new(entries.map { |entry| wrap(entry) })
+      def self.filer_ext(pattern) = FilerExtension.new(pattern)
       # マッピング表では単一タグを裸の文字列で書けるようにしているため、評価前にTagへ揃える
       def self.wrap(entry) = entry.is_a?(String) ? Tag.new(entry) : entry
 
