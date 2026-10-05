@@ -12,7 +12,8 @@ RSpec.describe Ingestion::Extractors::Base do
         "cf.cash_end" => "t:Cash"
       }.freeze)
       const_set(:DURATION_MAPPING, {
-        "pl.revenue" => [ "t:IndustryTotal", max("t:OperatingRevenue", sum("t:NetSales", "t:OperatingIncome2")) ],
+        "pl.revenue" => [ "t:IndustryTotal", max("t:OperatingRevenue", sum("t:NetSales", "t:OperatingIncome2")),
+                          "jpcrp_cor:NetSalesSummaryOfBusinessResults", "filer_ext:BusinessRevenues" ],
         "pl.sga" => sum("t:Selling", "t:Administrative", distinct_amounts: true),
         "pl.summary_revenue" => [ "t:SummaryRevenue", filer_ext(/RevenueSummaryOfBusinessResults\z/) ]
       }.freeze)
@@ -110,6 +111,35 @@ RSpec.describe Ingestion::Extractors::Base do
                 [ "filer_ext:OperatingRevenueSummaryOfBusinessResults", context ] => 251 }
       names = %w[BusinessRevenueSummaryOfBusinessResults OperatingRevenueSummaryOfBusinessResults]
       expect(extract_with(facts, filer_names: names)).not_to have_key("pl.summary_revenue")
+    end
+  end
+
+  describe "経営指標の要約の売上と合わない売上の差し替え" do
+    let(:context) { "CurrentYearDuration" }
+    # 売上高が製品売上高だけで、合計の事業収益は企業拡張タグに付いている書類
+    let(:facts) { { [ "t:NetSales", context ] => 107, [ "t:SummaryRevenue", context ] => 615 } }
+
+    it "売上の取得候補のうち要約の売上と一致するものを売上にし、その精度を使う" do
+      errors = { [ "filer_ext:BusinessRevenues", context ] => 1.to_d }
+      amounts = extract_with(facts.merge([ "filer_ext:BusinessRevenues", context ] => 615), errors: errors)
+      expect(amounts["pl.revenue"]).to eq 615
+      expect(amounts.rounding_errors["pl.revenue"]).to eq 1
+    end
+
+    it "要約と一致する候補がなければ売上を変えない" do
+      expect(extract_with(facts.merge([ "filer_ext:BusinessRevenues", context ] => 508))["pl.revenue"]).to eq 107
+    end
+
+    it "経営指標の要約のタグは照合の相手なので、要約と同じ金額でも売上にしない" do
+      amounts = extract_with(facts.merge([ "jpcrp_cor:NetSalesSummaryOfBusinessResults", context ] => 615))
+      expect(amounts["pl.revenue"]).to eq 107
+    end
+
+    it "売上が要約の売上と端数の範囲で一致していれば、要約と同じ金額の候補があっても変えない" do
+      facts = { [ "t:IndustryTotal", context ] => 614, [ "t:SummaryRevenue", context ] => 615,
+                [ "filer_ext:BusinessRevenues", context ] => 615 }
+      errors = { [ "t:IndustryTotal", context ] => 1.to_d, [ "t:SummaryRevenue", context ] => 1.to_d }
+      expect(extract_with(facts, errors: errors)["pl.revenue"]).to eq 614
     end
   end
 

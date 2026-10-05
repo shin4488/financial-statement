@@ -26,6 +26,7 @@ module Ingestion
       #   max("…:A", sum("…:B", "…:C"))        … 最大値。同じ科目の総額候補が複数併記され、どれが総額かが
       #                                           企業のタグ付けで揺れる場合（売上高と営業収益）に、内訳は総額を
       #                                           超えないことを根拠に「最も包括的な値」を採る。要素にはタグかsumを置ける
+      #   "filer_ext:BusinessRevenues"          … 企業拡張タグのうち、原本で意味を確かめた要素名。フォールバックの最後に置く
       #   filer_ext(/…SummaryOfBusinessResults\z/)
       #                                       … 企業拡張タグのうち、要素名が正規表現に合うもの。要素名が会社ごとに違う科目を、
       #                                           名前を一覧にせず形で探す。合う要素の金額か精度が食い違うときは、
@@ -125,10 +126,32 @@ module Ingestion
             result.rounding_errors["cf.cash_begin"] = fact.rounding_error
           end
         end
+        replace_unverified_revenue(result)
         result
       end
 
       private
+        # 売上のタグに、合計ではなく内訳だけが付いた書類がある（標準タグの売上高が製品売上高だけで、
+        # 合計の事業収益は企業拡張タグに付けるなど）。売上が経営指標の要約の売上と合わないときは、
+        # 売上の取得候補のうち要約と一致するものを売上にする。どれも合わなければ、取込の照合で警告する。
+        # 要約のタグ（jpcrp_cor）は照合の相手なので候補にしない。要約の値そのものを売上にすると、照合の意味がなくなるため
+        def replace_unverified_revenue(result)
+          spec = self.class::DURATION_MAPPING["pl.revenue"]
+          return unless spec && FinancialStatements::RevenueVerification.status(result) == :mismatched
+          context = "CurrentYearDuration#{@c}"
+          entries(spec).each do |entry|
+            next if entry.is_a?(String) && entry.start_with?("jpcrp_cor:")
+            candidate = self.class.wrap(entry)
+            value = candidate.evaluate(@xbrl, context)
+            next if value.nil?
+            error = candidate.rounding_error(@xbrl, context)
+            next unless FinancialStatements::RevenueVerification.verified?(result, value, error)
+            result["pl.revenue"] = value
+            result.rounding_errors["pl.revenue"] = error
+            return
+          end
+        end
+
         def put(result, code, value)
           unless value.nil?
             result[code] = value
@@ -136,12 +159,9 @@ module Ingestion
           end
         end
 
-        # マッピング表の1エントリ（上記4記法のいずれか）を評価する。
-        # 単一の記法も「要素1つのフォールバックリスト」に揃えて同じ経路で扱う
-        # （Array()を使わないのはStructがto_aで展開されてしまうため）
+        # マッピング表の1エントリ（上記の記法のいずれか）を評価する
         def lookup(spec, context)
-          entries = spec.is_a?(Array) ? spec : [ spec ]
-          entries.each do |entry|
+          entries(spec).each do |entry|
             wrapped = self.class.wrap(entry)
             value = wrapped.evaluate(@xbrl, context)
             next if value.nil?
@@ -150,6 +170,10 @@ module Ingestion
           end
           nil
         end
+
+        # 単一の記法も「要素1つのフォールバックリスト」に揃えて同じ経路で扱う
+        # （Array()を使わないのはStructがto_aで展開されてしまうため）
+        def entries(spec) = spec.is_a?(Array) ? spec : [ spec ]
     end
   end
 end

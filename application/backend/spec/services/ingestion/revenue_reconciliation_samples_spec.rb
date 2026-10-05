@@ -1,7 +1,7 @@
 require "rails_helper"
 
 # 売上と経営指標の要約の売上の照合を、実XBRLの取込（公開API）で確かめる。
-# 照合の結果は保存する値を変えず、合わないものだけを警告で知らせる
+# 売上が要約と合わないときは要約と一致する売上の取得候補に差し替え、それでも合わないものだけを警告で知らせる
 RSpec.describe "売上と経営指標の要約の照合（実XBRL）" do
   let(:warnings) { [] }
 
@@ -15,24 +15,20 @@ RSpec.describe "売上と経営指標の要約の照合（実XBRL）" do
     Disclosure::FinancialStatement.find_by!(is_primary: true).items_hash
   end
 
-  it "スリー・ディー・マトリックス 2017年4月期: 売上が製品売上高だけで、企業拡張タグの要約の事業収益と合わないため警告する" do
+  it "スリー・ディー・マトリックス 2017年4月期: 売上高が製品売上高だけのため、要約の事業収益と一致する事業収益に差し替え、警告しない" do
     items = ingest("S100B9WP")
     aggregate_failures do
-      expect(items["pl.revenue"]).to eq 107_127_000
+      expect(items["pl.revenue"]).to eq 615_852_000
       expect(items["pl.summary_revenue"]).to eq 615_852_000
-      expect(warnings).to eq [ [
-        "revenue does not match summary of business results",
-        { level: :warning, extra: { doc_id: "S100B9WP", consolidation_type: "consolidated", presentation_format: "jgaap_general",
-                                    amounts: { "pl.revenue" => 107_127_000, "pl.summary_revenue" => 615_852_000 } } }
-      ] ]
+      expect(warnings).to be_empty
     end
   end
 
-  it "ミニストップ 2026年2月期: 要約に営業総収入があるのに売上が取れないため警告する" do
+  it "ミニストップ 2026年2月期: 売上を営業総収入で取り、要約の営業総収入と一致するため警告しない" do
     items = ingest("S100Y4UH")
     aggregate_failures do
-      expect(items).not_to have_key("pl.revenue")
-      expect(warnings.map(&:first)).to eq [ "revenue missing although summary of business results has revenue" ]
+      expect(items["pl.revenue"]).to eq 91_788_000_000
+      expect(warnings).to be_empty
     end
   end
 
