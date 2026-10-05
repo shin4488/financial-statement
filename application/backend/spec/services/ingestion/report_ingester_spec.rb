@@ -221,6 +221,32 @@ RSpec.describe Ingestion::ReportIngester do
     end
   end
 
+  describe "日本基準のPLの照合の警告" do
+    let(:context) { "CurrentYearDuration_NonConsolidatedMember" }
+    let(:assets) { { [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 1_000 } }
+
+    before { allow(Sentry).to receive(:capture_message) }
+
+    it "費用のタグの組み合わせが売上と一致せず、1割以内のずれで描くときは、照合に使った金額を付けて警告する" do
+      ingest("S0000001", annual_report_xml(facts: assets.merge(
+        [ "jppfs_cor:NetSales", context ] => 1_000, [ "jppfs_cor:CostOfSales", context ] => 600,
+        [ "jppfs_cor:SellingGeneralAndAdministrativeExpenses", context ] => 250, [ "jppfs_cor:OperatingIncome", context ] => 100)))
+
+      expect(Sentry).to have_received(:capture_message).with(
+        "profit and loss chart does not reconcile with revenue", level: :warning,
+        extra: { doc_id: "S0000001", consolidation_type: "non_consolidated", presentation_format: "jgaap_general",
+                 amounts: { "pl.revenue" => 1_000, "pl.cost_of_sales" => 600, "pl.sga" => 250, "pl.operating_profit" => 100 } })
+    end
+
+    it "費用のタグの組み合わせが売上と一致すれば警告しない" do
+      ingest("S0000001", annual_report_xml(facts: assets.merge(
+        [ "jppfs_cor:NetSales", context ] => 1_000, [ "jppfs_cor:CostOfSales", context ] => 600,
+        [ "jppfs_cor:SellingGeneralAndAdministrativeExpenses", context ] => 300, [ "jppfs_cor:OperatingIncome", context ] => 100)))
+
+      expect(Sentry).not_to have_received(:capture_message)
+    end
+  end
+
   describe "連結廃止の再取込" do
     it "取込に現れなくなった連結行が削除され、is_primaryの重複が残らない" do
       ingest("S0000001", synthetic_xbrl_xml(

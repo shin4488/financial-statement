@@ -14,6 +14,10 @@ module Charts
         @items = items # {item_code => amount} (Disclosure::FinancialStatement#items_hash)
       end
 
+      # 描くグラフが、保存した科目どうしの式を端数の範囲で満たさないときの、式に使った金額（{科目コード => 金額}）。
+      # 取込のときの照合（Ingestion::Reconciliation）がSentryへの警告に使う。式どおりに描くか、描かないときはnil
+      def mismatch = nil
+
       private
         def val(code) = @items[code]
 

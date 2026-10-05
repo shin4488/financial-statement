@@ -15,17 +15,19 @@ RSpec.describe Ingestion::Extractors::Base do
         "pl.revenue" => [ "t:IndustryTotal", max("t:OperatingRevenue", sum("t:NetSales", "t:OperatingIncome2")),
                           "jpcrp_cor:NetSalesSummaryOfBusinessResults", "filer_ext:BusinessRevenues" ],
         "pl.sga" => sum("t:Selling", "t:Administrative", distinct_amounts: true),
-        "pl.summary_revenue" => [ "t:SummaryRevenue", filer_ext(/RevenueSummaryOfBusinessResults\z/) ]
+        "pl.summary_revenue" => [ "t:SummaryRevenue", filer_ext(/RevenueSummaryOfBusinessResults\z/) ],
+        "pl.operating_profit" => "t:OperatingIncome"
       }.freeze)
     end
   end
 
-  # facts: { [qname, context] => 値 } のスタブ
-  def extract_with(facts, errors: {}, filer_names: [])
+  # facts: { [qname, context] => 値 } のスタブ。blanks: 値が空（表では「－」）のタグの [qname, context]
+  def extract_with(facts, errors: {}, filer_names: [], blanks: [])
     xbrl = instance_double(Xbrl::Document)
     allow(xbrl).to receive(:element_names).with("filer_ext").and_return(Set.new(filer_names))
     allow(xbrl).to receive(:rounding_error) { |qname, ctx| errors[[ qname, ctx ]] }
     allow(xbrl).to receive(:money) { |qname, ctx| facts[[ qname, ctx ]] }
+    allow(xbrl).to receive(:text) { |qname, ctx| blanks.include?([ qname, ctx ]) ? "" : facts[[ qname, ctx ]]&.to_s }
     extractor_class.new(xbrl, "").extract
   end
 
@@ -140,6 +142,42 @@ RSpec.describe Ingestion::Extractors::Base do
                 [ "filer_ext:BusinessRevenues", context ] => 615 }
       errors = { [ "t:IndustryTotal", context ] => 1.to_d, [ "t:SummaryRevenue", context ] => 1.to_d }
       expect(extract_with(facts, errors: errors)["pl.revenue"]).to eq 614
+    end
+  end
+
+  describe "売上0（売上の行が「－」）" do
+    let(:context) { "CurrentYearDuration" }
+    let(:operating_loss) { { [ "t:OperatingIncome", context ] => -4_271 } }
+
+    it "本表の売上の行と要約の売上がどちらも空なら、売上0と確かめられたとして両方に0を保存する" do
+      amounts = extract_with(operating_loss, blanks: [ [ "t:NetSales", context ], [ "t:SummaryRevenue", context ] ])
+      aggregate_failures do
+        expect(amounts.values_at("pl.revenue", "pl.summary_revenue")).to eq [ 0, 0 ]
+        expect(amounts.rounding_errors.values_at("pl.revenue", "pl.summary_revenue")).to eq [ 0, 0 ]
+      end
+    end
+
+    it "要約の売上の行がなければ、売上が一覧にない要素名で開示されているおそれがあるため保存しない" do
+      expect(extract_with(operating_loss, blanks: [ [ "t:NetSales", context ] ])).not_to have_key("pl.revenue")
+    end
+
+    it "要約に売上の値があれば保存しない" do
+      amounts = extract_with(operating_loss.merge([ "t:SummaryRevenue", context ] => 615), blanks: [ [ "t:NetSales", context ] ])
+      expect(amounts).not_to have_key("pl.revenue")
+    end
+
+    it "要約の売上だけが空なら保存しない" do
+      expect(extract_with(operating_loss, blanks: [ [ "t:SummaryRevenue", context ] ])).not_to have_key("pl.revenue")
+    end
+
+    it "要約のタグ（jpcrp_cor）が売上の取得候補にあっても、本表の売上の行とはみなさない" do
+      blanks = [ [ "jpcrp_cor:NetSalesSummaryOfBusinessResults", context ], [ "t:SummaryRevenue", context ] ]
+      expect(extract_with(operating_loss, blanks: blanks)).not_to have_key("pl.revenue")
+    end
+
+    it "損益の値がなければ（連結初年度で連結の損益計算書を作っていない書類など）、売上の行が空でも保存しない" do
+      blanks = [ [ "t:NetSales", context ], [ "t:SummaryRevenue", context ], [ "t:OperatingIncome", context ] ]
+      expect(extract_with({}, blanks: blanks)).not_to have_key("pl.revenue")
     end
   end
 
