@@ -41,10 +41,12 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
       # 一般事業会社の総額。営業収益（OperatingRevenue1）と 売上高+営業収入（NetSales+OperatingRevenue2）は
       # 制度上は 営業収益 = 売上高 + 営業収入 だが、どれをどう付けるかは企業で揺れる:
       #   営業収益を総額に付ける小売（3タグとも） / 総額タグを付けず売上高と営業収入だけ付ける小売 /
-      #   売上高を総額とし営業収益を一部の事業にだけ付ける会社 / 営業収入だけを開示する持株会社の単体
+      #   売上高を総額とし営業収益を一部の事業にだけ付ける会社 / 営業収入だけを開示する持株会社の単体 /
+      #   売上高と営業収入の両方に同じ総額を付ける会社（足すと売上が2倍になるため、同じ金額なら1回だけ数える）
       # 内訳は総額を超えないので、最も包括的な値（最大）を採ればどのパターンでも総額になる
       max("jppfs_cor:OperatingRevenue1",                                # 営業収益
-          sum("jppfs_cor:NetSales", "jppfs_cor:OperatingRevenue2")),    # 売上高 + 営業収入
+          sum("jppfs_cor:NetSales", "jppfs_cor:OperatingRevenue2",      # 売上高 + 営業収入
+              distinct_amounts: true)),
       "jppfs_cor:Revenue",                                            # 収益（丸井グループ等）
       # ガス事業売上高は全社売上ではない。雑収益・附帯事業収益も含める（各内訳を重複加算しない）。
       max(sum("jppfs_cor:SalesFromGasBusinessGAS",

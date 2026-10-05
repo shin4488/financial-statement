@@ -13,13 +13,16 @@ module Ingestion
         "bs.equity_attributable_to_owners" => "bs.equity_attributable_to_owners_begin"
       }.freeze
 
-      # マッピング表の値の書き方（4記法）:
+      # マッピング表の値の書き方:
       #   "jppfs_cor:NetSales"                  … 単一タグ
       #   [ "…:A", "…:B" ]                     … フォールバック順のリスト（先に取れた方を採用）
       #   sum("…:A", "…:B")                     … 合算。合計タグを持たず事業区分ごとに分けて開示する業種
       #                                           （鉄道・海運・電気通信の営業収益など）のために、
       #                                           存在するタグだけを足した値を1つの科目にする。
       #                                           リストの要素にも置ける（例: [ "…:Total", sum("…:A", "…:B") ]）
+      #   sum("…:A", "…:B", distinct_amounts: true)
+      #                                       … 合算。ただし同じ金額のタグは1回だけ数える。内訳として足すタグに、
+      #                                           会社によっては同じ総額を重ねて付けることがある場合に使う
       #   max("…:A", sum("…:B", "…:C"))        … 最大値。同じ科目の総額候補が複数併記され、どれが総額かが
       #                                           企業のタグ付けで揺れる場合（売上高と営業収益）に、内訳は総額を
       #                                           超えないことを根拠に「最も包括的な値」を採る。要素にはタグかsumを置ける
@@ -32,10 +35,9 @@ module Ingestion
         def rounding_error(xbrl, context) = xbrl.rounding_error(qname, context)
       end
 
-      Sum = Struct.new(:tags) do
+      Sum = Struct.new(:tags, :distinct_amounts) do
         def rounding_error(xbrl, context)
-          errors = tags.select { |tag| !tag.evaluate(xbrl, context).nil? }
-                       .map { |tag| tag.rounding_error(xbrl, context) }
+          errors = counted_tags(xbrl, context).map { |tag| tag.rounding_error(xbrl, context) }
           errors.sum if errors.any? && errors.none?(&:nil?)
         end
 
@@ -43,9 +45,15 @@ module Ingestion
         # 部分集合でも合算するのは、事業区分の開示有無が企業ごとに違うため
         # （例: 鉄道事業のみの会社と、鉄道+不動産の会社が同じ表で引ける）
         def evaluate(xbrl, context)
-          values = tags.filter_map { |tag| tag.evaluate(xbrl, context) }
+          values = counted_tags(xbrl, context).map { |tag| tag.evaluate(xbrl, context) }
           values.sum if values.any?
         end
+
+        private
+          def counted_tags(xbrl, context)
+            present = tags.reject { |tag| tag.evaluate(xbrl, context).nil? }
+            distinct_amounts ? present.uniq { |tag| tag.evaluate(xbrl, context) } : present
+          end
       end
 
       Max = Struct.new(:entries) do
@@ -60,7 +68,7 @@ module Ingestion
         end
       end
 
-      def self.sum(*qnames) = Sum.new(qnames.map { |qname| Tag.new(qname) })
+      def self.sum(*qnames, distinct_amounts: false) = Sum.new(qnames.map { |qname| Tag.new(qname) }, distinct_amounts)
       def self.max(*entries) = Max.new(entries.map { |entry| wrap(entry) })
       # マッピング表では単一タグを裸の文字列で書けるようにしているため、評価前にTagへ揃える
       def self.wrap(entry) = entry.is_a?(String) ? Tag.new(entry) : entry
