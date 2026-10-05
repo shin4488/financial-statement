@@ -15,7 +15,7 @@ RSpec.describe "売上と経営指標の要約の照合（実XBRL）" do
     Disclosure::FinancialStatement.find_by!(is_primary: true).items_hash
   end
 
-  it "スリー・ディー・マトリックス 2017年12月期: 売上が製品売上高だけで、企業拡張タグの要約の事業収益と合わないため警告する" do
+  it "スリー・ディー・マトリックス 2017年4月期: 売上が製品売上高だけで、企業拡張タグの要約の事業収益と合わないため警告する" do
     items = ingest("S100B9WP")
     aggregate_failures do
       expect(items["pl.revenue"]).to eq 107_127_000

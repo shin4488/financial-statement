@@ -18,7 +18,7 @@ RSpec.describe FinancialStatements::RevenueVerification do
   end
 
   it "売上が内訳だけで要約の売上と合わなければ、一致しないとする" do
-    # スリー・ディー・マトリックス 2017年12月期: 製品売上高107,127千円と、要約の事業収益615,852千円
+    # スリー・ディー・マトリックス 2017年4月期: 製品売上高107,127千円と、要約の事業収益615,852千円
     expect(status("pl.revenue" => [ 107_127_000, 1_000 ], "pl.summary_revenue" => [ 615_852_000, 1_000 ]))
       .to eq :mismatched
   end
