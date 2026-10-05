@@ -82,6 +82,56 @@ RSpec.describe Xbrl::Document do
     end
   end
 
+  describe "企業拡張タグ" do
+    def filer_xbrl(body)
+      <<~XML
+        <?xml version="1.0" encoding="UTF-8"?>
+        <xbrli:xbrl xmlns:xbrli="http://www.xbrl.org/2003/instance"
+          xmlns:jppfs_cor="http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2025-11-01/jppfs_cor"
+          xmlns:jpcrp_cor="http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp/2025-11-01/jpcrp_cor"
+          xmlns:asr="http://disclosure.edinet-fsa.go.jp/jpcrp030000/asr/001/E00001-000/2026-03-31/01/2026-06-20"
+          xmlns:srs="http://disclosure.edinet-fsa.go.jp/jpcrp040000/asr/001/E00002-000/2015-12-31/01/2016-03-28">
+        #{body}
+        </xbrli:xbrl>
+      XML
+    end
+
+    it "提出者の名前空間の要素は filer_ext の接頭辞で引け、同名の標準タグとは区別する" do
+      doc = document_from(filer_xbrl(<<~BODY))
+        <asr:Assets contextRef="CurrentYearInstant">999</asr:Assets>
+        <jppfs_cor:Assets contextRef="CurrentYearInstant">100</jppfs_cor:Assets>
+      BODY
+      aggregate_failures do
+        expect(doc.money("filer_ext:Assets", "CurrentYearInstant")).to eq 999
+        expect(doc.money("jppfs_cor:Assets", "CurrentYearInstant")).to eq 100
+      end
+    end
+
+    it "有報以外の様式（届出書のjpcrp040000など）の企業拡張タグも読む" do
+      doc = document_from(filer_xbrl(%(<srs:BusinessRevenues contextRef="CurrentYearDuration">500</srs:BusinessRevenues>)))
+      expect(doc.money("filer_ext:BusinessRevenues", "CurrentYearDuration")).to eq 500
+    end
+
+    it "標準タクソノミのjpcrp_corの要素は企業拡張タグとして扱わない" do
+      doc = document_from(filer_xbrl(
+        %(<jpcrp_cor:NetSalesSummaryOfBusinessResults contextRef="CurrentYearDuration">700</jpcrp_cor:NetSalesSummaryOfBusinessResults>)))
+      aggregate_failures do
+        expect(doc.money("jpcrp_cor:NetSalesSummaryOfBusinessResults", "CurrentYearDuration")).to eq 700
+        expect(doc.money("filer_ext:NetSalesSummaryOfBusinessResults", "CurrentYearDuration")).to be_nil
+        expect(doc.element_names("filer_ext")).to be_empty
+      end
+    end
+
+    it "接頭辞ごとに要素名の一覧を返す" do
+      doc = document_from(filer_xbrl(<<~BODY))
+        <asr:BusinessRevenueSummaryOfBusinessResults contextRef="CurrentYearDuration">615</asr:BusinessRevenueSummaryOfBusinessResults>
+        <asr:BusinessRevenues contextRef="CurrentYearDuration">615</asr:BusinessRevenues>
+        <jppfs_cor:NetSales contextRef="CurrentYearDuration">107</jppfs_cor:NetSales>
+      BODY
+      expect(doc.element_names("filer_ext")).to contain_exactly("BusinessRevenueSummaryOfBusinessResults", "BusinessRevenues")
+    end
+  end
+
   describe "#text" do
     it "値を文字列のまま返し、contextRefのない要素（unit定義など）は対象にしない" do
       doc = document_from(xbrl(<<~BODY))

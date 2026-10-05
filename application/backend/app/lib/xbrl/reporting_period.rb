@@ -28,6 +28,7 @@ module Xbrl
       end
     end
 
+    def element_names(prefix) = @document.element_names(prefix)
     def money(qname, context) = fact(qname, context)&.money
     def text(qname, context) = fact(qname, context)&.value
     def rounding_error(qname, context) = fact(qname, context)&.rounding_error

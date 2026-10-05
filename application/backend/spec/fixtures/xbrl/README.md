@@ -13,7 +13,7 @@ bundle exec rails runner '
      S100XCO8 S100XTLJ S100YDP3 S100YGH5 S100YJHA
      S100YH8W S100YEGP S100YGFW S100YGOL S100YIW6 S100YGFN S100YZ8K S100YRHX S100YWE4 S100YZFP
      S100YS8T S100YSG1 S100YQR5 S100YR60 S100YXHA S100YTAL S100YTAR S100YRPF S100Z0VF S100YYOW S100YYT8
-     S100YK5Y S100XVWE S100VZJC S100G4YH].each do |doc_id|
+     S100YK5Y S100XVWE S100VZJC S100G4YH S100B9WP S100O4KK S100Y4UH].each do |doc_id|
     path = client.download_xbrl(doc_id: doc_id, work_dir: dir)
     puts "#{doc_id}: #{path}"
     sleep 2
@@ -111,3 +111,13 @@ bundle exec rails runner '
 | S100XVWE | KDDI | IFRSの営業費用が売上原価＋販管費の合計。営業費用を積まず、差額は収益側に110億円 |
 | S100VZJC | 住友理工 | IFRSの営業費用が売上原価＋販管費の合計で、符号が逆。営業費用を積まない |
 | S100G4YH | ディー・エヌ・エー | IFRSの費用が負の値。収益−売上原価の絶対値が売上総利益と端数の範囲で一致するため、正の値で描く |
+
+## 売上と経営指標の要約の照合
+
+`spec/services/ingestion/revenue_reconciliation_samples_spec.rb` は、取込で売上と経営指標の要約の売上を照合し、合わないものだけを警告することを検証する。上の表の大運・イオン・KDDI・クリエイト・レストランツHD・丸井グループも、一致して警告しない例として使う。
+
+| docID | 企業 | 検証ポイント |
+|---|---|---|
+| S100B9WP | スリー・ディー・マトリックス | 2017年4月期。売上高が製品売上高107,127千円だけで、要約の事業収益615,852千円は企業拡張タグ。不一致として警告する |
+| S100O4KK | ベルク | 売上は売上高＋営業収入300,267百万円で、要約は売上高297,019百万円だけ。営業収入を除くと一致するため警告しない |
+| S100Y4UH | ミニストップ | 連結は要約に営業総収入91,788百万円があるのに売上が取れず、警告する。単体は要約の売上高・営業収入・営業総収入のうち最大の営業総収入で照合する |

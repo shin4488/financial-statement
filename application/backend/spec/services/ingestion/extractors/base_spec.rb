@@ -13,14 +13,16 @@ RSpec.describe Ingestion::Extractors::Base do
       }.freeze)
       const_set(:DURATION_MAPPING, {
         "pl.revenue" => [ "t:IndustryTotal", max("t:OperatingRevenue", sum("t:NetSales", "t:OperatingIncome2")) ],
-        "pl.sga" => sum("t:Selling", "t:Administrative", distinct_amounts: true)
+        "pl.sga" => sum("t:Selling", "t:Administrative", distinct_amounts: true),
+        "pl.summary_revenue" => [ "t:SummaryRevenue", filer_ext(/RevenueSummaryOfBusinessResults\z/) ]
       }.freeze)
     end
   end
 
   # facts: { [qname, context] => 値 } のスタブ
-  def extract_with(facts, errors: {})
+  def extract_with(facts, errors: {}, filer_names: [])
     xbrl = instance_double(Xbrl::Document)
+    allow(xbrl).to receive(:element_names).with("filer_ext").and_return(Set.new(filer_names))
     allow(xbrl).to receive(:rounding_error) { |qname, ctx| errors[[ qname, ctx ]] }
     allow(xbrl).to receive(:money) { |qname, ctx| facts[[ qname, ctx ]] }
     extractor_class.new(xbrl, "").extract
@@ -76,6 +78,38 @@ RSpec.describe Ingestion::Extractors::Base do
     it "金額が違えば合算する" do
       facts = { [ "t:Selling", "CurrentYearDuration" ] => 500, [ "t:Administrative", "CurrentYearDuration" ] => 300 }
       expect(extract_with(facts)["pl.sga"]).to eq 800
+    end
+  end
+
+  describe "要素名の形で探す企業拡張タグ" do
+    let(:context) { "CurrentYearDuration" }
+
+    it "前の候補がなければ、要素名の形が合う企業拡張タグの金額と精度を使う" do
+      facts = { [ "filer_ext:BusinessRevenueSummaryOfBusinessResults", context ] => 615,
+                [ "filer_ext:BusinessRevenues", context ] => 615 }
+      errors = { [ "filer_ext:BusinessRevenueSummaryOfBusinessResults", context ] => 1.to_d }
+      amounts = extract_with(facts, errors: errors, filer_names: %w[BusinessRevenueSummaryOfBusinessResults BusinessRevenues])
+      expect(amounts["pl.summary_revenue"]).to eq 615
+      expect(amounts.rounding_errors["pl.summary_revenue"]).to eq 1
+    end
+
+    it "前の候補（標準タグ）が取れれば企業拡張タグは使わない" do
+      facts = { [ "t:SummaryRevenue", context ] => 900, [ "filer_ext:BusinessRevenueSummaryOfBusinessResults", context ] => 615 }
+      expect(extract_with(facts, filer_names: %w[BusinessRevenueSummaryOfBusinessResults])["pl.summary_revenue"]).to eq 900
+    end
+
+    it "形が合う要素が複数あっても、金額が同じなら1つとして取る" do
+      facts = { [ "filer_ext:BusinessRevenueSummaryOfBusinessResults", context ] => 615,
+                [ "filer_ext:OperatingRevenueSummaryOfBusinessResults", context ] => 615 }
+      names = %w[BusinessRevenueSummaryOfBusinessResults OperatingRevenueSummaryOfBusinessResults]
+      expect(extract_with(facts, filer_names: names)["pl.summary_revenue"]).to eq 615
+    end
+
+    it "形が合う要素の金額が食い違えば、どれが目的の科目か決められないため取らない" do
+      facts = { [ "filer_ext:BusinessRevenueSummaryOfBusinessResults", context ] => 615,
+                [ "filer_ext:OperatingRevenueSummaryOfBusinessResults", context ] => 251 }
+      names = %w[BusinessRevenueSummaryOfBusinessResults OperatingRevenueSummaryOfBusinessResults]
+      expect(extract_with(facts, filer_names: names)).not_to have_key("pl.summary_revenue")
     end
   end
 

@@ -60,10 +60,12 @@ module FinancialStatements
       "pl.profit_attributable_to_owners", # 親会社株主（所有者）に帰属する当期純利益
       # ---- 銀行・保険以外（jgaap_general / ifrs_classified / ifrs_liquidity が保存する）----
       "pl.revenue",                       # 売上高・営業収益（日本基準）/ 売上収益・収益（IFRS）
+      "pl.summary_revenue",               # 経営指標の要約（主要な経営指標等の推移）の売上。売上の照合に使う（ifrs_summary も保存する）
       "pl.cost_of_sales",                 # 売上原価（IFRSでは開示任意 → 無い企業がある）
       "pl.sga",                           # 販売費及び一般管理費（IFRSでは開示任意）
       # ---- 日本基準・一般のみ（jgaap_general が保存する）----
       "pl.financial_expenses",            # 金融費用（証券・商品先物。営業収益−金融費用=純営業収益）
+      "pl.non_sales_operating_revenue",   # 営業収入（営業収益のうち売上高以外）。売上の照合に使う
       "pl.non_operating_income",          # 営業外収益
       "pl.non_operating_expenses",        # 営業外費用
       # ---- 日本基準・一般 + IFRS（jgaap_general は必ず、ifrs_classified / ifrs_liquidity は任意開示があれば保存する）----

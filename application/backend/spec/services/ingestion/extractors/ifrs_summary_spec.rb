@@ -15,6 +15,8 @@ RSpec.describe Ingestion::Extractors::IfrsSummary do
         "bs.equity_attributable_to_owners_begin" => 18_036_000_000,
         "pl.profit_attributable_to_owners" => 1_321_000_000,
         "pl.revenue" => 119_281_000_000,
+        # 要約には日本基準の売上高119,430百万円も並ぶが、IFRSの売上収益を照合に使う
+        "pl.summary_revenue" => 119_281_000_000,
         "pl.profit_before_tax" => 3_688_000_000,
         "cf.operating" => 8_364_000_000,
         "cf.investing" => -4_886_000_000,

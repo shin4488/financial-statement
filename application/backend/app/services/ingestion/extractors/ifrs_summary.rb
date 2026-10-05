@@ -13,6 +13,8 @@ class Ingestion::Extractors::IfrsSummary < Ingestion::Extractors::Base
   DURATION_MAPPING = {
     "pl.profit_attributable_to_owners" => "jpcrp_cor:ProfitLossAttributableToOwnersOfParentIFRSSummaryOfBusinessResults",
     "pl.revenue"           => "jpcrp_cor:RevenueIFRSSummaryOfBusinessResults",
+    # 売上自体が要約の値だが、売上を照合する形式を揃えるため同じ候補で保存する
+    "pl.summary_revenue"   => Ingestion::Extractors::IfrsClassified::DURATION_MAPPING.fetch("pl.summary_revenue"),
     "pl.profit_before_tax" => "jpcrp_cor:ProfitLossBeforeTaxIFRSSummaryOfBusinessResults",
     "cf.operating" => "jpcrp_cor:CashFlowsFromUsedInOperatingActivitiesIFRSSummaryOfBusinessResults",
     "cf.investing" => "jpcrp_cor:CashFlowsFromUsedInInvestingActivitiesIFRSSummaryOfBusinessResults",
