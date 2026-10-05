@@ -77,6 +77,20 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
       sum("jppfs_cor:ShippingBusinessRevenueWAT",                       # 海運（単体）: 海運業収益
           "jppfs_cor:OtherBusinessRevenueWAT")                          #   + その他事業収益
     ],
+    # 経営指標の要約（主要な経営指標等の推移）の売上。売上のタグに合計ではなく内訳だけを付けた書類を見つけるため、
+    # 取り込んだ売上と照合する。要約に売上高と営業総収入のように内訳と総額が並ぶ会社があるため、
+    # 本表の売上と同じく最も包括的な値を採る。要約の売上も企業拡張タグで開示されることがあり、要素名は会社ごとに違う
+    "pl.summary_revenue" => [
+      max("jpcrp_cor:NetSalesSummaryOfBusinessResults",                 # 売上高
+          "jpcrp_cor:OperatingRevenue1SummaryOfBusinessResults",        # 営業収益
+          "jpcrp_cor:OperatingRevenue2SummaryOfBusinessResults",        # 営業収入
+          "jpcrp_cor:GrossOperatingRevenueSummaryOfBusinessResults",    # 営業総収入
+          "jpcrp_cor:RevenueKeyFinancialData"),                         # 売上収益（丸井グループ等）
+      filer_ext(/(Revenue|Revenues|Sales)SummaryOfBusinessResults\z/)   # 事業収益など。1株当たりの値や比率は要素名の末尾が違うため当たらない
+    ],
+    # 営業収入（営業収益のうち売上高以外）。売上を営業収益とした会社には、要約に売上高だけを載せる会社がある。
+    # 売上から営業収入を除いた額が要約の売上高と合うかで、売上を照合する
+    "pl.non_sales_operating_revenue" => "jppfs_cor:OperatingRevenue2",
     # 売上原価。OperatingCost（営業原価）を先頭に置く理由: OperatingRevenue1とペアの原価であり、
     # 営業収益型ではCostOfSales（売上原価）も併記されるが、そちらは売上高側の原価のため。
     # CostOfProductsManufactured（当期製品製造原価）を末尾に置く理由: 売上原価の代わりに

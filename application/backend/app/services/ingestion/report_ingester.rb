@@ -162,6 +162,7 @@ module Ingestion
           is_primary: primary?(ext, dei))
         replace_items(fs, ext.items)
         warn_missing_assets(fs, ext, doc_id)
+        warn_mismatches(fs, ext, doc_id)
       end
 
       # 科目は総入れ替え（delete→insert）。upsertにしない理由:
@@ -187,6 +188,17 @@ module Ingestion
         return unless FormatRegistry.extractor_for(ext.format)&.item_codes&.include?("bs.assets")
         Sentry.capture_message(
           "primary statement missing bs.assets: #{doc_id} (#{ext.format})", level: :warning)
+      end
+
+      # warn_missing_assetsと同じく、画面に出す財務諸表だけを照合する
+      def warn_mismatches(fs, ext, doc_id)
+        return unless fs.is_primary
+        Reconciliation.warnings(ext.items).each do |warning|
+          Sentry.capture_message(warning.message, level: :warning, extra: {
+            doc_id: doc_id, consolidation_type: ext.consolidation_type.to_s, presentation_format: ext.format,
+            amounts: warning.amounts
+          })
+        end
       end
 
       # is_primary = 一覧表示・検索の対象。投資判断では連結が重要のため連結を優先し、

@@ -33,6 +33,11 @@ class Ingestion::Extractors::IfrsClassified < Ingestion::Extractors::Base
       jpigp_cor:NetSalesIFRS
       jpcrp_cor:RevenueIFRSSummaryOfBusinessResults
     ],
+    # 経営指標の要約の売上（照合用）。IFRS移行年度の要約には日本基準の売上高も並ぶため、IFRSの要素だけを候補にする
+    "pl.summary_revenue" => [
+      "jpcrp_cor:RevenueIFRSSummaryOfBusinessResults",
+      filer_ext(/(Revenue|Revenues|Sales)IFRSSummaryOfBusinessResults\z/)
+    ],
     "pl.other_operating_income" => [ "jpigp_cor:OtherOperatingIncomeIFRS", "jpigp_cor:OtherIncomeIFRS" ],
     "pl.other_operating_expenses" => [ "jpigp_cor:OtherOperatingExpensesIFRS", "jpigp_cor:OtherExpensesIFRS" ],
     "pl.other_income_expenses_net" => "jpigp_cor:OtherIncomeExpensesNetIFRS",

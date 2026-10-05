@@ -175,6 +175,52 @@ RSpec.describe Ingestion::ReportIngester do
     end
   end
 
+  describe "売上と経営指標の要約の照合の警告" do
+    let(:context) { "CurrentYearDuration_NonConsolidatedMember" }
+    let(:assets) { { [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 1_000 } }
+
+    before { allow(Sentry).to receive(:capture_message) }
+
+    it "売上が要約の売上と合わなければ、照合の種類ごとの固定の文言で警告し、書類ID・連結区分・金額を付加情報にする" do
+      ingest("S0000001", annual_report_xml(facts: assets.merge(
+        [ "jppfs_cor:NetSales", context ] => 107,
+        [ "jpcrp030000-asr_E00001-000:BusinessRevenueSummaryOfBusinessResults", context ] => 615)))
+
+      expect(Sentry).to have_received(:capture_message).with(
+        "revenue does not match summary of business results", level: :warning,
+        extra: { doc_id: "S0000001", consolidation_type: "non_consolidated", presentation_format: "jgaap_general",
+                 amounts: { "pl.revenue" => 107, "pl.summary_revenue" => 615 } })
+    end
+
+    it "要約に売上があるのに売上が取れなければ警告する" do
+      ingest("S0000001", annual_report_xml(facts: assets.merge(
+        [ "jpcrp030000-asr_E00001-000:OperatingRevenuesSummaryOfBusinessResults", context ] => 110)))
+
+      expect(Sentry).to have_received(:capture_message).with(
+        "revenue missing although summary of business results has revenue", level: :warning,
+        extra: hash_including(doc_id: "S0000001", amounts: { "pl.summary_revenue" => 110 }))
+    end
+
+    it "売上が要約の売上と一致すれば警告しない" do
+      ingest("S0000001", annual_report_xml(facts: assets.merge(
+        [ "jppfs_cor:NetSales", context ] => 615, [ "jpcrp_cor:NetSalesSummaryOfBusinessResults", context ] => 615)))
+
+      expect(Sentry).not_to have_received(:capture_message)
+    end
+
+    it "画面に出さない単体は照合しない" do
+      ingest("S0000001", synthetic_xbrl_xml(
+        dei: { has_consolidated: "true" },
+        facts: { [ "jppfs_cor:Assets", "CurrentYearInstant" ] => 1_000,
+                 [ "jppfs_cor:NetSales", "CurrentYearDuration" ] => 615,
+                 [ "jpcrp_cor:NetSalesSummaryOfBusinessResults", "CurrentYearDuration" ] => 615,
+                 [ "jppfs_cor:NetSales", context ] => 107,
+                 [ "jpcrp_cor:NetSalesSummaryOfBusinessResults", context ] => 615 }))
+
+      expect(Sentry).not_to have_received(:capture_message)
+    end
+  end
+
   describe "連結廃止の再取込" do
     it "取込に現れなくなった連結行が削除され、is_primaryの重複が残らない" do
       ingest("S0000001", synthetic_xbrl_xml(

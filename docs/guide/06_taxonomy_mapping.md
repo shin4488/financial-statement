@@ -168,6 +168,16 @@
 
 本表から取得できない場合に限り、経営指標サマリを使う。本表の収益が企業独自のタグでしか開示されない企業にも対応するため。
 
+**売上の照合に使う科目** — [売上と経営指標の要約の照合](03_data_flow.md#売上と経営指標の要約の照合)で使い、グラフには使わない。
+
+| 科目コード | 形式 | XBRLタグ（上から順に探す） |
+|---|---|---|
+| `pl.summary_revenue` | 一般 | 1. 最大値 `max(NetSales, OperatingRevenue1, OperatingRevenue2, GrossOperatingRevenue` の各 `…SummaryOfBusinessResults`、`RevenueKeyFinancialData)`（`jpcrp_cor`）<br>2. 企業拡張タグのうち、要素名が `…(Revenue\|Revenues\|Sales)SummaryOfBusinessResults` で終わるもの（事業収益・営業収益など） |
+| `pl.summary_revenue` | 分類・配列・サマリ | 1. `jpcrp_cor:RevenueIFRSSummaryOfBusinessResults`<br>2. 企業拡張タグのうち、要素名が `…(Revenue\|Revenues\|Sales)IFRSSummaryOfBusinessResults` で終わるもの |
+| `pl.non_sales_operating_revenue` | 一般 | `jppfs_cor:OperatingRevenue2`（営業収入） |
+
+要約に売上高と営業総収入のように内訳と総額が並ぶ会社（ミニストップ単体）があるため、日本基準の標準タグは最も包括的な値を採る。IFRS移行年度の要約には日本基準の売上高も並ぶ（クリエイト・レストランツHD）ため、IFRSではIFRSの要素だけを候補にする。企業拡張タグの要素名の形は末尾で判定し、1株当たりの値や比率（`…PerShare…` など）には当てない。
+
 **銀行・保険** — 売上高という概念が無いため `pl.revenue` は保存しない。
 
 | 科目コード | 銀行 | 保険 | 日本語 |

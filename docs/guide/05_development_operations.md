@@ -136,6 +136,10 @@ Sentry通知とログから失敗した日付・書類を特定し、原因を�
 | `ingest failed <docID>` | 特定の書類の取込に失敗 | `rake 'ingestion:documents[docID]'` |
 | `accounting standard unknown` | 未知の会計基準（取込対象外としてスキップ済み） | 対応不要。頻発するなら形式対応を検討 |
 | `primary statement missing bs.assets` | 取り込めたが主要科目が欠けている | Extractor・形式判定を修正して再取込 |
+| `revenue does not match summary of business results` | 画面に出す財務諸表の売上が、経営指標の要約の売上と[一致しない](03_data_flow.md#売上と経営指標の要約の照合)。売上のタグに内訳だけが付いているか、取り違えている | 付加情報のdocIDの原本で売上の合計の要素を確かめ、Extractorの売上の取得候補を直す。実XBRLのspecを足して再取込 |
+| `revenue missing although summary of business results has revenue` | 経営指標の要約に売上があるのに、損益計算書の売上が取れない（取得候補にない要素名） | 原本で売上の合計の要素を確かめ、取得候補に加える。実XBRLのspecを足して再取込 |
+
+取込時の照合の警告（`revenue …`）は、文言を照合の種類ごとに固定し、docID・連結区分・表示形式・照合した金額を付加情報（extra）で送る。Sentry上で照合の種類ごとに1つの課題にまとまるため、件数と付加情報の一覧で対象の書類を確かめる。保存する値やグラフは照合の結果で直していないので、直し方は原本で確かめて決める。多くの書類を一度に再取込すると、同じ種類の警告がまとめて届く。
 
 連結廃止を示す訂正書類に当期の財務数値がない場合、旧連結行の削除と単体の既存データ保持が重なり、一覧から書類が消えることがある。Sentryの警告だけでなく表示対象も確認する。再取込しても原本の内容が同じなら解消するとは限らない。
 
