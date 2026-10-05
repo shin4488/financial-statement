@@ -13,7 +13,7 @@ bundle exec rails runner '
      S100XCO8 S100XTLJ S100YDP3 S100YGH5 S100YJHA
      S100YH8W S100YEGP S100YGFW S100YGOL S100YIW6 S100YGFN S100YZ8K S100YRHX S100YWE4 S100YZFP
      S100YS8T S100YSG1 S100YQR5 S100YR60 S100YXHA S100YTAL S100YTAR S100YRPF S100Z0VF S100YYOW S100YYT8
-     S100YK5Y].each do |doc_id|
+     S100YK5Y S100XVWE S100VZJC S100G4YH].each do |doc_id|
     path = client.download_xbrl(doc_id: doc_id, work_dir: dir)
     puts "#{doc_id}: #{path}"
     sleep 2
@@ -108,3 +108,6 @@ bundle exec rails runner '
 | docID | 企業 | 検証ポイント |
 |---|---|---|
 | S100YK5Y | 大運 | 単体の売上高と営業収入に同じ金額が付いている。売上を2倍にせず9,211,685千円で描く |
+| S100XVWE | KDDI | IFRSの営業費用が売上原価＋販管費の合計。営業費用を積まず、差額は収益側に110億円 |
+| S100VZJC | 住友理工 | IFRSの営業費用が売上原価＋販管費の合計で、符号が逆。営業費用を積まない |
+| S100G4YH | ディー・エヌ・エー | IFRSの費用が負の値。収益−売上原価の絶対値が売上総利益と端数の範囲で一致するため、正の値で描く |

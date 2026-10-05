@@ -17,6 +17,13 @@ module Charts
       private
         def val(code) = @items[code]
 
+        # 保存した科目どうしの式が端数の範囲で成り立つか。differenceは式の左辺と右辺の差、codesは式に使った科目。
+        # 端数を持たない入力（精度の分からない科目）では、差が0のときだけ成り立つとみなす
+        def balanced?(difference, codes)
+          errors = @items.respond_to?(:rounding_errors) ? @items.rounding_errors.values_at(*codes) : codes.map { nil }
+          FinancialStatements::RoundingRange.within?(difference, errors)
+        end
+
         def no_data_note(statement_label) = "#{statement_label}: #{NO_DATA_NOTE}"
 
         # 比率は%値（0-100）。truncate（切り捨て）を使う理由: 四捨五入だと内訳の合計が
