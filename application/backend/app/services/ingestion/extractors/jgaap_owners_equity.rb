@@ -28,14 +28,13 @@ module Ingestion
           return [ shareholders, adjustment ] if adjustment
           # 調整項目がゼロならタグが省略/nilになる有報もある。純資産の内訳を検算して判別する。
           # 新株予約権・株式引受権・非支配持分を除けば株主資本と一致するときだけ採用し、
-          # 説明できない欠損を0で補わない。切捨て開示の差は各タグの精度の範囲内だけ許容する。
+          # 説明できない欠損を0で補わない。
           net_assets = xbrl.money(NET_ASSETS, context)
           return if net_assets.nil?
           parts = [ shareholders ] + EXCLUDED.select { |tag| !xbrl.money(tag, context).nil? }
-          difference = (net_assets - parts.sum { |tag| xbrl.money(tag, context) }).abs
+          difference = net_assets - parts.sum { |tag| xbrl.money(tag, context) }
           errors = ([ NET_ASSETS ] + parts).map { |tag| xbrl.rounding_error(tag, context) }
-          matches = difference.zero? || (errors.none?(&:nil?) && difference < errors.sum)
-          [ shareholders ] if matches
+          [ shareholders ] if FinancialStatements::RoundingRange.within?(difference, errors)
         end
     end
   end

@@ -146,7 +146,7 @@
 | 5 | `jppfs_cor:OperatingRevenueCMD` | 営業収益（商品先物） |
 | 6 | `jppfs_cor:OperatingRevenueIVT` / `OperatingRevenueINV` | 営業収益（投資運用 / 投資業） |
 | 7 | `jppfs_cor:ShippingBusinessRevenueAndOtherOperatingRevenueWAT` | 海運業収益及びその他の営業収益（海運） |
-| 8 | 最大値 `max(OperatingRevenue1, NetSales + OperatingRevenue2)` → `jppfs_cor:Revenue` | 一般事業会社の総額: 営業収益 と 売上高+営業収入 の大きい方（企業のタグ付けの揺れを吸収する）。これらがなければ標準の収益タグ（丸井グループ等） |
+| 8 | 最大値 `max(OperatingRevenue1, NetSales + OperatingRevenue2)` → `jppfs_cor:Revenue` | 一般事業会社の総額: 営業収益 と 売上高+営業収入 の大きい方（企業のタグ付けの揺れを吸収する）。売上高と営業収入が同じ金額なら同じ総額とみなし、足さない（大運等）。これらがなければ標準の収益タグ（丸井グループ等） |
 | 9 | ガス事業売上高（`SalesFromGasBusinessGAS`、または `GasSalesGAS` + `ThirdPartyAccessRevenueGAS` + `RevenueFromInteroperatorSettlementGAS`）に `MiscellaneousOperatingRevenueGAS` + `RevenueForIncidentalBusinessesGAS` を加算 | ガス事業・雑収益・附帯事業を含む全社売上。合計と内訳が併記されるときは最大候補を採り、重複させない |
 | 10 | `jppfs_cor:ContractsCompletedRevOA` | 完成工事高 |
 | 11 | `jppfs_cor:NetSalesOfCompletedConstructionContractsCNS` | 完成工事高（建設業） |
@@ -186,7 +186,7 @@
 | `pl.financial_expenses` | 金融費用 | `jppfs_cor:FinancialExpensesSEC`（証券。営業収益−金融費用=純営業収益） | 存在しない | 一般 |
 | `pl.sga` | 販売費及び一般管理費 | フォールバック4件（下記） | `jpigp_cor:SellingGeneralAnd` `AdministrativeExpensesIFRS` | 一般・IFRS |
 | `pl.operating_expenses` | 営業費用（一括計上） | フォールバック10件（下記） | `jpigp_cor:OperatingExpensesIFRS` | 一般・IFRS |
-| `pl.gross_profit` | 売上総利益 | `jppfs_cor:GrossProfit` → `OperatingGrossProfit`（営業総利益）→ `OperatingGrossProfitWAT` | `jpigp_cor:GrossProfitIFRS` | — |
+| `pl.gross_profit` | 売上総利益 | `jppfs_cor:GrossProfit` → `OperatingGrossProfit`（営業総利益）→ `OperatingGrossProfitWAT` | `jpigp_cor:GrossProfitIFRS` | 分類・配列（負の値の費用の確認） |
 | `pl.operating_profit` | 営業利益 | `jppfs_cor:OperatingIncome` → `OperatingIncomeTotalBusiness`（全事業営業利益。鉄道単体） | `jpigp_cor:OperatingProfitLossIFRS` | 一般 |
 | `pl.ordinary_profit` | 経常利益 | `jppfs_cor:OrdinaryIncome` | 存在しない | 銀行 |
 | `pl.non_operating_income` | 営業外収益 | `jppfs_cor:NonOperatingIncome` | 存在しない | — |
@@ -236,7 +236,7 @@
 | 7 | 合算 `OperatingExpenses{Railway, Railroad, Related, Incidental, SideLine, RealEstate, Development, Automobile, Other}RWY`（収益と同じ9区分） | 鉄道（単体）: 事業区分別の営業費の合計 |
 | 8 | 合算 `OperatingExpensesOILTelecommunications` + `OperatingExpensesIncidentalELC` | 電気通信: 電気通信事業営業費用 + 附帯事業営業費用 |
 
-「営業費用」の意味は業種で違う（電気・特定金融は原価・販管費を含む合計、鉄道連結の営業費は内訳と併記される合計、商品先物は原価控除後）。Builderが貸借の合う費用構成を選ぶため、Extractorは業種を問わず営業費用のタグをそのまま保存すればよく、内訳と両方保存しても重複計上にならない。
+「営業費用」の意味は業種で違う（電気・特定金融は原価・販管費を含む合計、鉄道連結の営業費は内訳と併記される合計、商品先物は原価控除後）。Builderが貸借の合う費用構成を選ぶため、Extractorは業種を問わず営業費用のタグをそのまま保存すればよく、内訳と両方保存しても重複計上にならない。IFRSの営業費用は、売上原価・販管費と併記されるときはその合計（同額か、符号だけが逆。KDDI・住友理工等）のため、Builderは売上原価か販管費があれば営業費用を積まない。
 
 IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは使っていない。IFRSでは開示が任意で、開示する企業としない企業が混在して企業間の比較にならないため。
 
@@ -269,7 +269,7 @@ IFRSの追加科目は保存のみ。ガスの2科目は全社の費用を表す
 
 期首残高は、期末残高と同じタグで対象日を当期開始日の前日に変えて取得する。
 
-日本基準で期首現金の日付が一致しない場合は、同じ企業・連結区分の過去の現金残高を、当期の `NetIncreaseDecreaseInCashAndCashEquivalents` と連結範囲変更の調整額で照合する。`期首 + 増減 + 調整 = 期末` が開示精度の範囲内で成立する候補が一意に決まる場合だけ、その開示額をCFの期首に使う。候補のcontext IDには依存せず、精度不明・通貨不一致・候補競合時は補完しない。総資産・自己資本の期首検索には適用しない。
+日本基準で期首現金の日付が一致しない場合は、同じ企業・連結区分の過去の現金残高を、当期の `NetIncreaseDecreaseInCashAndCashEquivalents` と連結範囲変更の調整額で照合する。`期首 + 増減 + 調整 = 期末` が[開示精度の範囲](03_data_flow.md#金額の開示精度)で成立する候補が一意に決まる場合だけ、その開示額をCFの期首に使う。候補のcontext IDには依存せず、通貨不一致・候補競合時は補完しない。総資産・自己資本の期首検索には適用しない。
 
 金額の通貨はunit定義のISO 4217で識別し、円換算値が併記されていれば出現順によらず円を使う。外貨のみの金額を円として保存しない。FIGの2018年期・北日本紡績の2017年3月期・ビートHDの2019年期と2024年期で、期首日付が不整合でもCFの開示額と整合することを原本で確認している。
 

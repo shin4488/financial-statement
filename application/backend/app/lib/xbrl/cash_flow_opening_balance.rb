@@ -6,12 +6,11 @@ module Xbrl
       facts = [ opening, closing, change, *adjustments ]
       return if facts.any?(&:nil?)
       return unless facts.map(&:unit).uniq == [ Fact::JPY ]
-      return if facts.any? { |value| value.money.nil? || value.rounding_error.nil? }
+      return if facts.any? { |value| value.money.nil? }
       return if opening.money.negative? || closing.money.negative?
 
       difference = closing.money - opening.money - change.money - adjustments.sum(&:money)
-      tolerance = facts.sum(&:rounding_error)
-      opening if difference.zero? || difference.abs < tolerance
+      opening if FinancialStatements::RoundingRange.within?(difference, facts.map(&:rounding_error))
     end
   end
 end

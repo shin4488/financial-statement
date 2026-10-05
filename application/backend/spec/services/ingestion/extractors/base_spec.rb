@@ -1,6 +1,6 @@
 require "rails_helper"
 
-# マッピング表の4記法（単一タグ / フォールバック / 合算 sum / 最大値 max）の評価規則を、
+# マッピング表の記法（単一タグ / フォールバック / 合算 sum / 最大値 max）の評価規則を、
 # 実XBRLに依存しない最小のExtractorで検証する
 RSpec.describe Ingestion::Extractors::Base do
   let(:extractor_class) do
@@ -12,7 +12,8 @@ RSpec.describe Ingestion::Extractors::Base do
         "cf.cash_end" => "t:Cash"
       }.freeze)
       const_set(:DURATION_MAPPING, {
-        "pl.revenue" => [ "t:IndustryTotal", max("t:OperatingRevenue", sum("t:NetSales", "t:OperatingIncome2")) ]
+        "pl.revenue" => [ "t:IndustryTotal", max("t:OperatingRevenue", sum("t:NetSales", "t:OperatingIncome2")) ],
+        "pl.sga" => sum("t:Selling", "t:Administrative", distinct_amounts: true)
       }.freeze)
     end
   end
@@ -60,6 +61,21 @@ RSpec.describe Ingestion::Extractors::Base do
     it "フォールバックの前段（業種固有の総額）があればそちらを優先する" do
       facts = { [ "t:IndustryTotal", "CurrentYearDuration" ] => 382, [ "t:NetSales", "CurrentYearDuration" ] => 295 }
       expect(extract_with(facts)["pl.revenue"]).to eq 382
+    end
+  end
+
+  describe "同じ金額のタグを1回だけ数える合算" do
+    it "2つのタグに同じ金額が付いていれば、足さずに1つ分とする" do
+      facts = { [ "t:Selling", "CurrentYearDuration" ] => 500, [ "t:Administrative", "CurrentYearDuration" ] => 500 }
+      errors = { [ "t:Selling", "CurrentYearDuration" ] => 1.to_d, [ "t:Administrative", "CurrentYearDuration" ] => 1.to_d }
+      amounts = extract_with(facts, errors: errors)
+      expect(amounts["pl.sga"]).to eq 500
+      expect(amounts.rounding_errors["pl.sga"]).to eq 1
+    end
+
+    it "金額が違えば合算する" do
+      facts = { [ "t:Selling", "CurrentYearDuration" ] => 500, [ "t:Administrative", "CurrentYearDuration" ] => 300 }
+      expect(extract_with(facts)["pl.sga"]).to eq 800
     end
   end
 
