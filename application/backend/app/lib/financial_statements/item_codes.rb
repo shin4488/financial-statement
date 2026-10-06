@@ -50,6 +50,7 @@ module FinancialStatements
       "pl.other_operating_expenses",
       "pl.other_income_expenses_net",
       "pl.research_and_development",
+      "pl.general_and_administrative_expenses", # 一般管理費（IFRS。販管費とは別の行で開示する会社がある。売上0のグラフだけで使う）
       "pl.finance_income",
       "pl.finance_costs",
       "pl.equity_method_profit",

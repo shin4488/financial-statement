@@ -22,13 +22,13 @@ RSpec.describe Ingestion::Extractors::Base do
   end
 
   # facts: { [qname, context] => 値 } のスタブ。blanks: 値が空（表では「－」）のタグの [qname, context]
-  def extract_with(facts, errors: {}, filer_names: [], blanks: [])
+  def extract_with(facts, errors: {}, filer_names: [], blanks: [], extractor: extractor_class)
     xbrl = instance_double(Xbrl::Document)
     allow(xbrl).to receive(:element_names).with("filer_ext").and_return(Set.new(filer_names))
     allow(xbrl).to receive(:rounding_error) { |qname, ctx| errors[[ qname, ctx ]] }
     allow(xbrl).to receive(:money) { |qname, ctx| facts[[ qname, ctx ]] }
     allow(xbrl).to receive(:text) { |qname, ctx| blanks.include?([ qname, ctx ]) ? "" : facts[[ qname, ctx ]]&.to_s }
-    extractor_class.new(xbrl, "").extract
+    extractor.new(xbrl, "").extract
   end
 
   it "単一タグは値をそのまま、無ければキー自体を作らない" do
@@ -145,7 +145,7 @@ RSpec.describe Ingestion::Extractors::Base do
     end
   end
 
-  describe "売上0（売上の行が「－」）" do
+  describe "売上0（売上の行が「－」か、行がない）" do
     let(:context) { "CurrentYearDuration" }
     let(:operating_loss) { { [ "t:OperatingIncome", context ] => -4_271 } }
 
@@ -166,13 +166,22 @@ RSpec.describe Ingestion::Extractors::Base do
       expect(amounts).not_to have_key("pl.revenue")
     end
 
-    it "要約の売上だけが空なら保存しない" do
-      expect(extract_with(operating_loss, blanks: [ [ "t:SummaryRevenue", context ] ])).not_to have_key("pl.revenue")
+    it "本表に売上の行がなくても（前期も売上がない会社）、要約の売上が空なら、売上0として保存する" do
+      amounts = extract_with(operating_loss, blanks: [ [ "t:SummaryRevenue", context ] ])
+      expect(amounts.values_at("pl.revenue", "pl.summary_revenue")).to eq [ 0, 0 ]
     end
 
-    it "要約のタグ（jpcrp_cor）が売上の取得候補にあっても、本表の売上の行とはみなさない" do
+    it "売上の取得候補が要約のタグ（jpcrp_cor）だけの形式は、本表で売上がないことを確かめられないため保存しない" do
+      summary_only = Class.new(described_class) do
+        const_set(:INSTANT_MAPPING, {}.freeze)
+        const_set(:DURATION_MAPPING, {
+          "pl.revenue" => "jpcrp_cor:NetSalesSummaryOfBusinessResults",
+          "pl.summary_revenue" => "t:SummaryRevenue",
+          "pl.operating_profit" => "t:OperatingIncome"
+        }.freeze)
+      end
       blanks = [ [ "jpcrp_cor:NetSalesSummaryOfBusinessResults", context ], [ "t:SummaryRevenue", context ] ]
-      expect(extract_with(operating_loss, blanks: blanks)).not_to have_key("pl.revenue")
+      expect(extract_with(operating_loss, blanks: blanks, extractor: summary_only)).not_to have_key("pl.revenue")
     end
 
     it "損益の値がなければ（連結初年度で連結の損益計算書を作っていない書類など）、売上の行が空でも保存しない" do

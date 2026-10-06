@@ -233,7 +233,7 @@ RSpec.describe Ingestion::ReportIngester do
         [ "jppfs_cor:SellingGeneralAndAdministrativeExpenses", context ] => 250, [ "jppfs_cor:OperatingIncome", context ] => 100)))
 
       expect(Sentry).to have_received(:capture_message).with(
-        "profit and loss chart does not reconcile with revenue", level: :warning,
+        "profit and loss chart expenses do not reconcile", level: :warning,
         extra: { doc_id: "S0000001", consolidation_type: "non_consolidated", presentation_format: "jgaap_general",
                  amounts: { "pl.revenue" => 1_000, "pl.cost_of_sales" => 600, "pl.sga" => 250, "pl.operating_profit" => 100 } })
     end

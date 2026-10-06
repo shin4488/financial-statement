@@ -46,6 +46,7 @@ class Ingestion::Extractors::IfrsClassified < Ingestion::Extractors::Base
     "pl.other_operating_expenses" => [ "jpigp_cor:OtherOperatingExpensesIFRS", "jpigp_cor:OtherExpensesIFRS" ],
     "pl.other_income_expenses_net" => "jpigp_cor:OtherIncomeExpensesNetIFRS",
     "pl.research_and_development" => "jpigp_cor:ResearchAndDevelopmentExpenditureRecognizedAsExpenseDuringPeriodIFRS",
+    "pl.general_and_administrative_expenses" => "jpigp_cor:GeneralAndAdministrativeExpensesIFRS",
     "pl.finance_income" => "jpigp_cor:FinanceIncomeIFRS",
     "pl.finance_costs" => "jpigp_cor:FinanceCostsIFRS",
     "pl.equity_method_profit" => "jpigp_cor:ShareOfProfitLossOfInvestmentsAccountedForUsingEquityMethodIFRS",

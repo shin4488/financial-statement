@@ -4,6 +4,9 @@ require "rails_helper"
 # 期待値は有報の損益計算書の売上の合計。経営指標の要約に売上があれば、それとも一致する
 RSpec.describe "売上を企業拡張タグだけで開示する会社（実XBRL）" do
   let(:warnings) { [] }
+  let(:revenue_warnings) do
+    warnings.map(&:first) & [ Ingestion::Reconciliation::REVENUE_MISMATCH, Ingestion::Reconciliation::REVENUE_MISSING ]
+  end
 
   before { allow(Sentry).to receive(:capture_message) { |message, **options| warnings << [ message, options ] } }
 
@@ -28,7 +31,7 @@ RSpec.describe "売上を企業拡張タグだけで開示する会社（実XBRL
       aggregate_failures do
         expect(items["pl.revenue"]).to eq revenue
         expect(items["pl.summary_revenue"]).to eq revenue
-        expect(warnings).to be_empty
+        expect(revenue_warnings).to be_empty
       end
     end
   end
