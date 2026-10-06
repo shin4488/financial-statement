@@ -75,7 +75,13 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
       # 本表の総額がないときは、標準の経営指標サマリにある全社売上を合算より優先する。
       "jpcrp_cor:NetSalesSummaryOfBusinessResults",
       sum("jppfs_cor:ShippingBusinessRevenueWAT",                       # 海運（単体）: 海運業収益
-          "jppfs_cor:OtherBusinessRevenueWAT")                          #   + その他事業収益
+          "jppfs_cor:OtherBusinessRevenueWAT"),                         #   + その他事業収益
+      "jppfs_cor:GrossOperatingRevenue",                                # 営業総収入（売上高と営業収入の合計だけを付ける会社）
+      # 売上を企業拡張タグだけで開示する会社がある。要素名は会社ごとに違い、同じ会社でも年度で変わるため、
+      # 原本で売上の合計と確かめた要素名を並べる。取扱高（GrossSales）や売上の内訳の要素は売上ではないので入れない
+      "filer_ext:TotalBusinessRevenueRevOA", "filer_ext:BusinessRevenues", "filer_ext:BusinessRevenue",
+      "filer_ext:BusinessRevenueRevOA", "filer_ext:OperatingRevenue", "filer_ext:OperatingRevenueRevOA",
+      "filer_ext:OperatingRevenuesRevOA", "filer_ext:RevenueRevOA", "filer_ext:Revenue2", "filer_ext:Proceeds"
     ],
     # 経営指標の要約（主要な経営指標等の推移）の売上。売上のタグに合計ではなく内訳だけを付けた書類を見つけるため、
     # 取り込んだ売上と照合する。要約に売上高と営業総収入のように内訳と総額が並ぶ会社があるため、

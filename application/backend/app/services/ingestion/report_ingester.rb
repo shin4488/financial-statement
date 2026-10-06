@@ -86,7 +86,7 @@ module Ingestion
           format = @detector.detect(xbrl, accounting_standard: standard,
                                     industry_code: industry, consolidation: suffix)
           extractor_class = FormatRegistry.extractor_for(format)
-          items = extractor_class ? extractor_class.new(xbrl, suffix).extract : {}
+          items = extractor_class ? extractor_class.new(xbrl, suffix).extract : FinancialStatements::Amounts.new
           Extraction.new(consolidation_type: type, accounting_standard: standard,
                          format: format, items: items,
                          disclosed_roe: DisclosedRoeExtractor.extract(xbrl, accounting_standard: standard, consolidation: suffix))

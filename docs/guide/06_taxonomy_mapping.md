@@ -154,8 +154,19 @@
 | 13 | 合算 `OperatingRevenueOILTelecommunications` + `OperatingRevenueIncidentalELC` | 電気通信: 電気通信事業営業収益 + 附帯事業営業収益 |
 | 14 | `jpcrp_cor:NetSalesSummaryOfBusinessResults` | 本表の総額がなく、一部事業が企業拡張タグでも標準サマリから全社売上を取得（飯野海運等） |
 | 15 | 合算 `ShippingBusinessRevenueWAT` + `OtherBusinessRevenueWAT` | 海運（単体）: 海運業収益 + その他事業収益。標準サマリの全社売上もない場合 |
+| 16 | `jppfs_cor:GrossOperatingRevenue` | 営業総収入。売上高と営業収入の合計だけをタグ付けする会社（ミニストップ連結） |
+| 17 | 企業拡張タグ `TotalBusinessRevenueRevOA` → `BusinessRevenues` → `BusinessRevenue` → `BusinessRevenueRevOA` → `OperatingRevenue` → `OperatingRevenueRevOA` → `OperatingRevenuesRevOA` → `RevenueRevOA` → `Revenue2` → `Proceeds` | 売上を企業拡張タグだけで開示する会社（博報堂DY、スカイマーク、セーラー広告、デジタルHD、ラクオリア創薬、アンジェスなど）。原本で売上の合計と確かめた要素名 |
 
 業種固有の総額を優先する。商品先物取引業などでは、`NetSales` が営業収益の一部を指すため。
+
+企業拡張タグの要素名は会社ごとに違い、同じ会社でも年度で変わる（スカイマークは2023年 `TotalBusinessRevenueRevOA`、2026年 `BusinessRevenueRevOA`）。会社ごとではなく、原本で売上の合計と確かめた要素名の一覧で探す。一覧にない要素名で売上を開示する書類は、[経営指標の要約との照合](03_data_flow.md#売上と経営指標の要約の照合)の警告で見つけ、原本で確かめて一覧に足す。次の要素は売上ではないため一覧に入れない。
+
+| 一覧に入れない要素名 | 理由 |
+|---|---|
+| `GrossSales` | セーラー広告の取扱高で、売上ではない。売上は `Proceeds` |
+| `WholeChainStoreSales…` | ローソンのチェーン全店売上（経営指標の要約）で、ローソン自身の売上ではない |
+| `ResearchAndDevelopmentRevenuesRevOA`、`SalesOfProductsIFRS`、`OtherOperatingRevenueIFRS` など | 売上の内訳 |
+| `InsuranceRevenueIFRS` | 東京海上HD・ライフネット生命の保険収益。保険会社は運用収益も大きく、保険収益を売上とすると売上高純利益率などがほかの会社と比べられない。日本基準の保険会社も、経常収益を売上として扱っていない |
 
 **分類・配列** — `pl.revenue`
 
@@ -165,6 +176,7 @@
 | 2 | `jpigp_cor:Revenue2IFRS` | 収益 |
 | 3 | `jpigp_cor:NetSalesIFRS` | 売上高 |
 | 4 | `jpcrp_cor:RevenueIFRS` `SummaryOfBusinessResults` | 経営指標サマリ（本表ではない） |
+| 5 | 企業拡張タグ `OperatingRevenuesIFRS` → `OperatingRevenueIFRS` → `TotalNetRevenuesIFRS` | 本表の収益が企業拡張タグだけで、経営指標サマリにも標準タグがない会社（トヨタ、ローソン、Jトラスト、NTTドコモ）。原本で収益の合計と確かめた要素名 |
 
 本表から取得できない場合に限り、経営指標サマリを使う。本表の収益が企業独自のタグでしか開示されない企業にも対応するため。
 
@@ -442,7 +454,7 @@ ifrs_summaryの検証用（クリエイト・レストランツHD S100SO41、201
 同じ300件の主要財務諸表では13件に `pl.revenue` がない。再取得の失敗と区別する。
 
 - 日本基準の銀行・保険11件: 三菱UFJ FG、信金中央金庫、SBI新生銀行、東和銀行、琉球銀行、九州FG、かんぽ生命、第一ライフG、T&D HDの3書類。経常収益は `pl.ordinary_revenue` として扱うため、売上高純利益率・総資産回転率の分子/分母へ自動転用しない。
-- スカイマーク（S100YRPF）: 本表110,441百万円の `BusinessRevenueRevOA`、同額サマリの `OperatingRevenuesSummaryOfBusinessResults` はいずれも企業拡張タグ。標準タグの売上総額はない。
+- スカイマーク（S100YRPF）: 本表110,441百万円の `BusinessRevenueRevOA`、同額サマリの `OperatingRevenuesSummaryOfBusinessResults` はいずれも企業拡張タグ。標準タグの売上総額はない。売上の企業拡張タグの一覧で本表の値を取る（`spec/graphql/filer_extension_revenue_indicators_spec.rb`）。
 - 東京海上HD（S100YLS8）: IFRS保険収益7,693,560百万円は本表・サマリとも企業拡張タグ。同じ有報に併記された日本基準の経常収益8,872,277百万円は別定義なので代用しない。
 
-これらでも利益と期首期末残高があればROE・ROA・レバレッジは算出できる。上記4代表例を `spec/graphql/missing_revenue_indicators_spec.rb` で取込から公開APIまで確認する。企業拡張タグの採用や銀行・保険の指標名変更は、標準タグだけを使う取得方針の変更になる。
+これらでも利益と期首期末残高があればROE・ROA・レバレッジは算出できる。スカイマーク以外の3代表例を `spec/graphql/missing_revenue_indicators_spec.rb` で取込から公開APIまで確認する。銀行・保険の経常収益や保険収益を売上として扱うのは、売上の定義の変更になる。

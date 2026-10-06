@@ -45,4 +45,22 @@ RSpec.describe FinancialStatements::RevenueVerification do
   it "要約に売上がなければ照合できない" do
     expect(status("pl.revenue" => [ 276_862_000_000, 1_000_000 ])).to eq :unverifiable
   end
+
+  describe ".verified?（売上の取得候補を差し替える前の確認）" do
+    # スリー・ディー・マトリックス 2017年4月期: 売上は製品売上高107,127千円、要約の事業収益615,852千円
+    let(:items) do
+      FinancialStatements::Amounts.new.tap do |amounts|
+        amounts.merge!("pl.revenue" => 107_127_000, "pl.summary_revenue" => 615_852_000)
+        amounts.rounding_errors.merge!("pl.revenue" => 1_000.to_d, "pl.summary_revenue" => 1_000.to_d)
+      end
+    end
+
+    it "候補の金額が要約の売上と端数の範囲で一致すれば、確かめられたとする" do
+      expect(described_class.verified?(items, 615_852_000, 1_000.to_d)).to be true
+    end
+
+    it "候補の金額が要約の売上と合わなければ、確かめられない" do
+      expect(described_class.verified?(items, 508_725_000, 1_000.to_d)).to be false
+    end
+  end
 end

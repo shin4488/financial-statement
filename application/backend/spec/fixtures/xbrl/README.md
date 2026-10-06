@@ -13,7 +13,8 @@ bundle exec rails runner '
      S100XCO8 S100XTLJ S100YDP3 S100YGH5 S100YJHA
      S100YH8W S100YEGP S100YGFW S100YGOL S100YIW6 S100YGFN S100YZ8K S100YRHX S100YWE4 S100YZFP
      S100YS8T S100YSG1 S100YQR5 S100YR60 S100YXHA S100YTAL S100YTAR S100YRPF S100Z0VF S100YYOW S100YYT8
-     S100YK5Y S100XVWE S100VZJC S100G4YH S100B9WP S100O4KK S100Y4UH].each do |doc_id|
+     S100YK5Y S100XVWE S100VZJC S100G4YH S100B9WP S100O4KK S100Y4UH
+     S100YF0X S100XSQX S100YHXU S100YEAK S100J54V S100L2D0 S100QTB3 S100Y8NY].each do |doc_id|
     path = client.download_xbrl(doc_id: doc_id, work_dir: dir)
     puts "#{doc_id}: #{path}"
     sleep 2
@@ -97,7 +98,9 @@ bundle exec rails runner '
 
 上表は数値の再現条件であり、各企業の内部の計算方法を断定するものではない。金額と差の根拠は [タグ対応表の実地調査](../../../../../docs/guide/06_taxonomy_mapping.md#公表roeと計算値の差の追加照合) を参照。
 
-`spec/graphql/missing_revenue_indicators_spec.rb` は三菱UFJ FG・かんぽ生命・スカイマーク（S100YRPF）・東京海上HDで、売上関連の欠損がROE・ROA・レバレッジに波及しないことをAPIまで検証する。経常収益の売上高への読み替えや企業拡張タグの無条件取得は行わない。
+`spec/graphql/missing_revenue_indicators_spec.rb` は三菱UFJ FG・かんぽ生命・東京海上HDで、売上関連の欠損がROE・ROA・レバレッジに波及しないことをAPIまで検証する。経常収益や保険収益を売上高に読み替えない。
+
+`spec/graphql/filer_extension_revenue_indicators_spec.rb` はスカイマーク（S100YRPF）・リボミック（S100YF0X）・ラクオリア創薬（S100XSQX）で、売上を企業拡張タグだけで開示する会社の売上高純利益率・総資産回転率をAPIまで検証する。
 
 `spec/graphql/reporting_period_indicators_spec.rb` の `S100YYOW`（QPSホールディングス）と `S100YYT8`（インテリックスホールディングス）は、連結2025年6月〜2026年5月と単体2025年12月〜2026年5月の期間差を検証する。DEIの単体開始日で連結PL・CF・公表ROEを欠損にしない。
 
@@ -118,6 +121,22 @@ bundle exec rails runner '
 
 | docID | 企業 | 検証ポイント |
 |---|---|---|
-| S100B9WP | スリー・ディー・マトリックス | 2017年4月期。売上高が製品売上高107,127千円だけで、要約の事業収益615,852千円は企業拡張タグ。不一致として警告する |
+| S100B9WP | スリー・ディー・マトリックス | 2017年4月期。売上高が製品売上高107,127千円だけで、要約の事業収益615,852千円は企業拡張タグ。要約と一致する企業拡張タグの事業収益に差し替え、警告しない。PLは描けないまま |
 | S100O4KK | ベルク | 売上は売上高＋営業収入300,267百万円で、要約は売上高297,019百万円だけ。営業収入を除くと一致するため警告しない |
-| S100Y4UH | ミニストップ | 連結は要約に営業総収入91,788百万円があるのに売上が取れず、警告する。単体は要約の売上高・営業収入・営業総収入のうち最大の営業総収入で照合する |
+| S100Y4UH | ミニストップ | 連結は売上を営業総収入91,788百万円で取り、PLを描く。単体は要約の売上高・営業収入・営業総収入のうち最大の営業総収入で照合する |
+
+## 売上を企業拡張タグだけで開示する会社
+
+`spec/services/ingestion/filer_extension_revenue_samples_spec.rb` は、売上の企業拡張タグの一覧で売上を取ることを検証する。PLのグラフは `spec/services/charts/profit_loss_samples_spec.rb` で確かめる。
+
+| docID | 企業 | 検証ポイント |
+|---|---|---|
+| S100YRPF | スカイマーク | 2026年3月期。`BusinessRevenueRevOA` 110,441百万円。費用も企業拡張タグのためPLは描けないまま |
+| S100YF0X | リボミック | 2026年3月期。`OperatingRevenuesRevOA` 3,000千円。売上高純利益率は約−38,000% |
+| S100XSQX | ラクオリア創薬 | 2025年12月期。`BusinessRevenue` 3,979,956千円（連結） |
+| S100YHXU | 博報堂DYホールディングス | 2026年3月期。`RevenueRevOA` 861,003百万円。標準タグの売上原価・販管費でPLを描く |
+| S100YEAK | セーラー広告 | 2026年3月期。取扱高 `GrossSales` ではなく `Proceeds` 2,224,849千円を売上にし、PLを描く |
+| S100J54V | NTTドコモ | 2020年3月期（IFRS）。`OperatingRevenuesIFRS` 4,651,290百万円 |
+| S100L2D0 | Jトラスト | 2020年12月期（IFRS）。`OperatingRevenueIFRS` 32,652百万円 |
+| S100QTB3 | ローソン | 2023年2月期（IFRS）。要約のチェーン全店売上ではなく、本表の `OperatingRevenuesIFRS` 1,000,385百万円 |
+| S100Y8NY | トヨタ自動車 | 2026年3月期（IFRS）。要約にIFRSの売上がなく、本表の `TotalNetRevenuesIFRS` 50,684,952百万円 |
