@@ -21,6 +21,7 @@ RSpec.describe "Extractorの出力とItemCodesレジストリの整合" do
   def xbrl_recording_qnames(recorded)
     instance_double(Xbrl::Document).tap do |xbrl|
       allow(xbrl).to receive(:element_names).and_return(filer_names)
+      allow(xbrl).to receive(:text).and_return(nil)
       allow(xbrl).to receive(:money) do |qname, _context|
         recorded << qname
         nil

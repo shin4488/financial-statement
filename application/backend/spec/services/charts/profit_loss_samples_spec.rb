@@ -113,4 +113,78 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
       end
     end
   end
+
+  describe "費用の描き方（日本基準）" do
+    let(:warnings) { [] }
+
+    before { allow(Sentry).to receive(:capture_message) { |message, **options| warnings << [ message, options ] } }
+
+    it "燦ホールディングス 2025年3月期: 原価に当たる営業費用と販管費を積み、左右の高さが合う" do
+      _, chart = profit_loss("S100W6NE", :consolidated)
+      debit, credit = chart.bars
+      aggregate_failures do
+        expect(segments(debit)).to eq [ [ "営業費用", 24_216_000_000 ], [ "販売一般管理費", 3_246_000_000 ],
+                                        [ "営業利益", 4_521_000_000 ] ]
+        expect(segments(credit)).to eq [ [ "売上", 31_984_000_000 ] ]
+        expect(warnings).to be_empty
+      end
+    end
+
+    it "ジャックス 2020年3月期: 販管費ではなく、販管費と金融費用を含む営業費用の1段で描き、左右の高さが合う" do
+      _, chart = profit_loss("S100IZ1U", :consolidated)
+      debit, credit = chart.bars
+      aggregate_failures do
+        expect(segments(debit)).to eq [ [ "営業費用", 142_104_000_000 ], [ "営業利益", 16_506_000_000 ] ]
+        expect(segments(credit)).to eq [ [ "売上", 158_610_000_000 ] ]
+        expect(warnings).to be_empty
+      end
+    end
+
+    it "イオン九州 2024年2月期: 費用のタグでは左右が端数を超えてずれるため、1割以内のずれのまま描いて警告する" do
+      _, chart = profit_loss("S100THV6", :consolidated)
+      aggregate_failures do
+        expect(segments(chart.bars.first)).to eq [ [ "売上原価", 358_509_000_000 ], [ "販売一般管理費", 141_425_000_000 ],
+                                                   [ "営業利益", 10_382_000_000 ] ]
+        expect(warnings).to eq [ [
+          "profit and loss chart does not reconcile with revenue",
+          { level: :warning, extra: { doc_id: "S100THV6", consolidation_type: "consolidated", presentation_format: "jgaap_general",
+                                      amounts: { "pl.revenue" => 484_742_000_000, "pl.cost_of_sales" => 358_509_000_000,
+                                                 "pl.sga" => 141_425_000_000, "pl.operating_profit" => 10_382_000_000 } } }
+        ] ]
+      end
+    end
+  end
+
+  describe "売上0（売上の行が「－」）" do
+    it "ヘリオス 2019年12月期: 販管費と営業損失が一致するため、費用と営業損失の2本で描く" do
+      _, chart = profit_loss("S100ICLB", :non_consolidated)
+      debit, credit = chart.bars
+      aggregate_failures do
+        expect(segments(debit)).to eq [ [ "販売一般管理費", 4_271_000_000 ] ]
+        expect(segments(credit)).to eq [ [ "営業損失", -4_271_000_000 ] ]
+      end
+    end
+
+    it "ARCHION 2026年3月期: 営業費用と営業損失が一致するため、費用と営業損失の2本で描く" do
+      _, chart = profit_loss("S100YK16", :non_consolidated)
+      debit, credit = chart.bars
+      aggregate_failures do
+        expect(segments(debit)).to eq [ [ "営業費用", 73_000_000 ] ]
+        expect(segments(credit)).to eq [ [ "営業損失", -73_000_000 ] ]
+      end
+    end
+  end
+
+  {
+    "S100VY3Q" => [ "中外炉工業 2025年3月期", :consolidated ],
+    "S100O4KK" => [ "ベルク 2022年2月期", :consolidated ],
+    "S100YF3V" => [ "帝国ホテル 2026年3月期", :consolidated ],
+    "S100Y7MV" => [ "スパークス・グループ 2026年3月期", :consolidated ],
+    "S100Z4G9" => [ "キャンバス 2026年6月期（売上0で、費用が企業拡張タグ）", :non_consolidated ]
+  }.each do |doc_id, (name, consolidation_type)|
+    it "#{name}: 費用のタグで左右を説明できないため、費用を差額で求めずに描かない" do
+      _, chart = profit_loss(doc_id, consolidation_type)
+      expect(chart.renderable).to be false
+    end
+  end
 end

@@ -14,7 +14,8 @@ bundle exec rails runner '
      S100YH8W S100YEGP S100YGFW S100YGOL S100YIW6 S100YGFN S100YZ8K S100YRHX S100YWE4 S100YZFP
      S100YS8T S100YSG1 S100YQR5 S100YR60 S100YXHA S100YTAL S100YTAR S100YRPF S100Z0VF S100YYOW S100YYT8
      S100YK5Y S100XVWE S100VZJC S100G4YH S100B9WP S100O4KK S100Y4UH
-     S100YF0X S100XSQX S100YHXU S100YEAK S100J54V S100L2D0 S100QTB3 S100Y8NY].each do |doc_id|
+     S100YF0X S100XSQX S100YHXU S100YEAK S100J54V S100L2D0 S100QTB3 S100Y8NY
+     S100W6NE S100IZ1U S100THV6 S100ICLB S100YK16 S100Z4G9 S100QBCW S100VY3Q S100YF3V S100Y7MV].each do |doc_id|
     path = client.download_xbrl(doc_id: doc_id, work_dir: dir)
     puts "#{doc_id}: #{path}"
     sleep 2
@@ -114,6 +115,15 @@ bundle exec rails runner '
 | S100XVWE | KDDI | IFRSの営業費用が売上原価＋販管費の合計。営業費用を積まず、差額は収益側に110億円 |
 | S100VZJC | 住友理工 | IFRSの営業費用が売上原価＋販管費の合計で、符号が逆。営業費用を積まない |
 | S100G4YH | ディー・エヌ・エー | IFRSの費用が負の値。収益−売上原価の絶対値が売上総利益と端数の範囲で一致するため、正の値で描く |
+| S100W6NE | 燦ホールディングス | 2025年3月期。原価に当たる営業費用24,216百万円と販管費3,246百万円を積み、左右が端数の範囲で一致する |
+| S100IZ1U | ジャックス | 2020年3月期。差9%の販管費ではなく、販管費と金融費用を含む営業費用142,104百万円の1段で描く |
+| S100THV6 | イオン九州 | 2024年2月期。費用のタグでは左右が端数を超えてずれるため、1割以内のずれのまま描いてSentryに警告する |
+| S100ICLB | ヘリオス | 2019年12月期。売上0。販管費4,271百万円と営業損失が一致し、費用と営業損失の2本で描く |
+| S100YK16 | ARCHION | 2026年3月期。売上0。営業費用73百万円と営業損失が一致し、費用と営業損失の2本で描く |
+| S100Z4G9 | キャンバス | 2026年6月期。売上0として保存するが、費用が企業拡張タグのため描かない |
+| S100VY3Q・S100O4KK・S100YF3V・S100Y7MV | 中外炉工業・ベルク・帝国ホテル・スパークス・グループ | 費用のタグで左右を説明できないため、描かないまま |
+
+`spec/services/ingestion/zero_revenue_samples_spec.rb` は、売上の行と要約の売上がどちらも「－」の書類（ヘリオス・ARCHION・キャンバス）を売上0として保存し、連結初年度で連結の損益計算書を作っていない `S100QBCW`（クックビズ 2022年11月期）は売上0にしないことを検証する。
 
 ## 売上と経営指標の要約の照合
 

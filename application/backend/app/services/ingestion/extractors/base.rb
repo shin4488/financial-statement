@@ -33,11 +33,13 @@ module Ingestion
       #                                           どれが目的の科目か決められないため取らない。フォールバックの最後に置く
       #
       # 各記法は「XBRLとコンテキストを受けて金額かnilを返す」evaluateを持つ値オブジェクト。
-      # 記法を増やすときはStructを1つ足せばよく、評価側（lookup）や各Extractorには手が入らない
+      # 記法を増やすときはStructを1つ足せばよく、評価側（lookup）や各Extractorには手が入らない。
+      # blank?は、金額が取れず、行はあるが値が空（表では「－」。XBRLでは値のないタグ）のときにtrueを返す
 
       Tag = Struct.new(:qname) do
         def evaluate(xbrl, context) = xbrl.money(qname, context)
         def rounding_error(xbrl, context) = xbrl.rounding_error(qname, context)
+        def blank?(xbrl, context) = xbrl.text(qname, context) == ""
       end
 
       Sum = Struct.new(:tags, :distinct_amounts) do
@@ -53,6 +55,8 @@ module Ingestion
           values = counted_tags(xbrl, context).map { |tag| tag.evaluate(xbrl, context) }
           values.sum if values.any?
         end
+
+        def blank?(xbrl, context) = evaluate(xbrl, context).nil? && tags.any? { |tag| tag.blank?(xbrl, context) }
 
         private
           def counted_tags(xbrl, context)
@@ -71,11 +75,18 @@ module Ingestion
           values = entries.filter_map { |entry| entry.evaluate(xbrl, context) }
           values.max if values.any?
         end
+
+        def blank?(xbrl, context) = evaluate(xbrl, context).nil? && entries.any? { |entry| entry.blank?(xbrl, context) }
       end
 
       FilerExtension = Struct.new(:pattern) do
         def evaluate(xbrl, context) = (qname = match(xbrl, context)) && xbrl.money(qname, context)
         def rounding_error(xbrl, context) = (qname = match(xbrl, context)) && xbrl.rounding_error(qname, context)
+
+        def blank?(xbrl, context)
+          texts = xbrl.element_names("filer_ext").grep(pattern).filter_map { |name| xbrl.text("filer_ext:#{name}", context) }
+          texts.any? && texts.all?(&:empty?)
+        end
 
         private
           def match(xbrl, context)
@@ -127,6 +138,7 @@ module Ingestion
           end
         end
         replace_unverified_revenue(result)
+        verify_zero_revenue(result)
         result
       end
 
@@ -139,8 +151,7 @@ module Ingestion
           spec = self.class::DURATION_MAPPING["pl.revenue"]
           return unless spec && FinancialStatements::RevenueVerification.status(result) == :mismatched
           context = "CurrentYearDuration#{@c}"
-          entries(spec).each do |entry|
-            next if entry.is_a?(String) && entry.start_with?("jpcrp_cor:")
+          statement_revenue_entries(spec).each do |entry|
             candidate = self.class.wrap(entry)
             value = candidate.evaluate(@xbrl, context)
             next if value.nil?
@@ -151,6 +162,28 @@ module Ingestion
             return
           end
         end
+
+        # 売上がない会社（創薬ベンチャーなど）は、損益計算書の売上の行と経営指標の要約の売上を「－」で開示する。
+        # どちらも空のときだけ売上0と確かめられたとして、両方に0を保存する。片方だけが空のときは、
+        # 売上が一覧にない要素名で開示されているおそれがあり、0にすると実際の売上と違う値になるため保存しない。
+        # 連結初年度で連結の損益計算書を作っていない書類も、売上を含むすべての行が「－」になるため、
+        # 損益の値がある（損益計算書を作っている）ときだけ確かめる
+        def verify_zero_revenue(result)
+          revenue_spec, summary_spec = self.class::DURATION_MAPPING.values_at("pl.revenue", "pl.summary_revenue")
+          return unless revenue_spec && summary_spec
+          return if result.key?("pl.revenue") || result.key?("pl.summary_revenue")
+          return unless %w[pl.operating_profit pl.profit_before_tax pl.profit].any? { |code| result.key?(code) }
+          context = "CurrentYearDuration#{@c}"
+          blank = ->(entry) { self.class.wrap(entry).blank?(@xbrl, context) }
+          return unless statement_revenue_entries(revenue_spec).any?(&blank) && entries(summary_spec).any?(&blank)
+          %w[pl.revenue pl.summary_revenue].each do |code|
+            result[code] = 0
+            result.rounding_errors[code] = 0.to_d
+          end
+        end
+
+        # 売上の取得候補のうち、損益計算書の本表のもの（経営指標の要約のタグ jpcrp_cor を除く）
+        def statement_revenue_entries(spec) = entries(spec).reject { |entry| entry.is_a?(String) && entry.start_with?("jpcrp_cor:") }
 
         def put(result, code, value)
           unless value.nil?

@@ -7,15 +7,27 @@ module Ingestion
   module Reconciliation
     REVENUE_MISMATCH = "revenue does not match summary of business results".freeze
     REVENUE_MISSING = "revenue missing although summary of business results has revenue".freeze
+    # 描いたPLの費用・利益が、売上と端数の範囲で一致しない（タグで費用を説明できない）
+    PROFIT_LOSS_MISMATCH = "profit and loss chart does not reconcile with revenue".freeze
 
     Warning = Data.define(:message, :amounts)
 
-    def self.warnings(items)
+    def self.warnings(items, format)
+      [ revenue_warning(items), profit_loss_warning(items, format) ].compact
+    end
+
+    def self.revenue_warning(items)
       case FinancialStatements::RevenueVerification.status(items)
-      when :mismatched then [ Warning.new(REVENUE_MISMATCH, items.slice("pl.revenue", "pl.summary_revenue")) ]
-      when :revenue_missing then [ Warning.new(REVENUE_MISSING, items.slice("pl.summary_revenue")) ]
-      else []
+      when :mismatched then Warning.new(REVENUE_MISMATCH, items.slice("pl.revenue", "pl.summary_revenue"))
+      when :revenue_missing then Warning.new(REVENUE_MISSING, items.slice("pl.summary_revenue"))
       end
     end
+
+    # グラフに描く費用の組み合わせはグラフ作成処理が選ぶため、照合もその選んだ組み合わせで行う
+    def self.profit_loss_warning(items, format)
+      amounts = Charts::BuilderRegistry::PL[format]&.new(items)&.mismatch
+      Warning.new(PROFIT_LOSS_MISMATCH, amounts) if amounts
+    end
+    private_class_method :revenue_warning, :profit_loss_warning
   end
 end
