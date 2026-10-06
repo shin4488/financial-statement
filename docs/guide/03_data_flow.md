@@ -227,7 +227,7 @@ IFRS採用企業でも、単体財務諸表は日本基準の `jppfs_cor` + `_No
 flowchart TB
     Start{"会計基準はどれか<br>（DEIタグ AccountingStandardsDEI）"} -->|Japan GAAP| Ind{"業種コードはどれか<br>（複数なら先頭）"}
     Start -->|IFRS| Tag{"流動資産タグ<br>CurrentAssetsIFRS があるか"}
-    Start -->|US GAAP| Unsup2["unsupported"]
+    Start -->|US GAAP| UsSum["usgaap_summary"]
     Ind -->|"bnk（銀行）/ ins（保険）"| FinTag{"流動資産タグ<br>CurrentAssets があるか"}
     Ind -->|"それ以外（なし / cte / 建設・鉄道・電気・証券 等）"| General["jgaap_general"]
     FinTag -->|"ない（金融機関の様式）"| Fin["jgaap_bank / jgaap_insurance"]
@@ -238,7 +238,7 @@ flowchart TB
     AssetsTag -->|"ない（詳細タグ義務化前の有報）"| Sum["ifrs_summary"]
 ```
 
-業種コードだけでなく、原本にあるタグで様式を確かめる。銀行・保険の持株会社でも、単体は一般様式の場合がある。古いIFRS書類に本表の詳細タグがない場合は、経営指標の一覧から取得する。
+業種コードだけでなく、原本にあるタグで様式を確かめる。銀行・保険の持株会社でも、単体は一般様式の場合がある。古いIFRS書類に本表の詳細タグがない場合は、経営指標の一覧から取得する。米国基準は本表の科目が企業拡張タグだけなので、経営指標の一覧からCFと財務指標に使う数値だけを取得し、BS・PLは説明文を返す。
 
 ### 科目コード — 形式間で共通
 

@@ -29,8 +29,11 @@ module Ingestion
         else
           FormatRegistry::IFRS_SUMMARY
         end
+      when "us_gaap"
+        # 本表の詳細タグがEDINETタクソノミに存在しない（企業拡張タグのみ）ため、
+        # 標準タグのある経営指標の要約だけで構成する形式にする
+        FormatRegistry::USGAAP_SUMMARY
       else
-        # us_gaap: 本表の詳細タグがEDINETタクソノミに存在しない（企業拡張タグのみ）
         FormatRegistry::UNSUPPORTED
       end
     end

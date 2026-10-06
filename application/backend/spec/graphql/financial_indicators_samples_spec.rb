@@ -53,17 +53,14 @@ RSpec.describe "財務指標の実有報サンプル照合" do
 
   def verify_statement(statement, doc_id)
     metrics = FinancialStatements::Indicators.build(statement)
-    if statement.presentation_format == "unsupported"
-      published = summary("RateOfReturnOnEquityUSGAAP", "CurrentYearDuration")
-      expect(statement.disclosed_roe).to eq published&.fetch(:value)
-      expect_metric(metrics[:roe], published&.fetch(:value))
-      expect(metrics.values_at(:roa, :net_profit_margin, :asset_turnover, :financial_leverage).map(&:status)).to all(eq("missing_data"))
-      return
-    end
     suffix = statement.consolidated? ? "" : "_NonConsolidatedMember"
     ifrs = statement.accounting_standard_ifrs?
+    # 米国基準の連結は、経営指標の要約の米国基準の欄だけで照合する
+    usgaap = statement.accounting_standard_us_gaap?
     duration = "CurrentYearDuration#{suffix}"
-    profit_name = if ifrs
+    profit_name = if usgaap
+      "NetIncomeLossAttributableToOwnersOfParentUSGAAP"
+    elsif ifrs
       "ProfitLossAttributableToOwnersOfParentIFRS"
     elsif statement.consolidated?
       "ProfitLossAttributableToOwnersOfParent"
@@ -73,14 +70,15 @@ RSpec.describe "財務指標の実有報サンプル照合" do
     profit = summary(profit_name, duration).fetch(:value)
     items = statement.items_hash
     expect(items[statement.consolidated? ? "pl.profit_attributable_to_owners" : "pl.profit"]).to eq profit
-    asset_name = ifrs ? "TotalAssetsIFRS" : "TotalAssets"
+    asset_name = usgaap ? "TotalAssetsUSGAAP" : ifrs ? "TotalAssetsIFRS" : "TotalAssets"
     balances = %w[Prior1YearInstant CurrentYearInstant].map { |period| summary(asset_name, "#{period}#{suffix}")&.fetch(:value) }
     expect(items.values_at("bs.assets_begin", "bs.assets")).to eq balances
     average_assets = balances.sum / 2 if balances.none?(&:nil?)
     expect_metric(metrics[:roa], average_assets && profit / average_assets)
 
     # 照合側は企業拡張のサマリも読む（三菱商事単体: 本表Revenueは標準、サマリは独自タグ）。
-    revenue_fact = %w[RevenueIFRS NetSales OperatingRevenue1 Revenues].filter_map { |name| summary(name, duration, standard_only: false) }.first
+    revenue_names = usgaap ? %w[RevenuesUSGAAP] : %w[RevenueIFRS NetSales OperatingRevenue1 Revenues]
+    revenue_fact = revenue_names.filter_map { |name| summary(name, duration, standard_only: false) }.first
     revenue = revenue_fact&.fetch(:value)
     # ガス等の内訳合算とサマリの総額は、切捨て単位の合計だけ差が出る。
     revenue_error = revenue && (items.rounding_errors.fetch("pl.revenue") + revenue_fact[:precision])
@@ -95,14 +93,14 @@ RSpec.describe "財務指標の実有報サンプル照合" do
     expect_metric(metrics[:asset_turnover], revenue && average_assets && revenue / average_assets, tolerance: turnover_error)
 
     # 自己資本は、別欄の自己資本比率と照合。銀行等は切捨て開示なので1表示単位未満を許容。
-    equity_ratio_name = ifrs ? "RatioOfOwnersEquityToGrossAssetsIFRS" : "EquityToAssetRatio"
+    equity_ratio_name = usgaap ? "EquityToAssetRatioUSGAAP" : ifrs ? "RatioOfOwnersEquityToGrossAssetsIFRS" : "EquityToAssetRatio"
     %w[Prior1YearInstant CurrentYearInstant].zip(%w[bs.equity_attributable_to_owners_begin bs.equity_attributable_to_owners], balances).each do |period, code, assets|
       ratio = summary(equity_ratio_name, "#{period}#{suffix}")
       next unless ratio && assets
       expect(items[code]).not_to be_nil
       expect(items[code].to_d / assets).to be_within(ratio[:precision]).of(ratio[:value]) if items[code]
     end
-    disclosed_roe = summary(ifrs ? "RateOfReturnOnEquityIFRS" : "RateOfReturnOnEquity", duration)
+    disclosed_roe = summary(usgaap ? "RateOfReturnOnEquityUSGAAP" : ifrs ? "RateOfReturnOnEquityIFRS" : "RateOfReturnOnEquity", duration)
     if doc_id == "S100YI2V" && statement.consolidated?
       # 初年度連結のROEは企業公表値で補完する。他の指標の期首は捏造しない。
       expect(metrics[:roe].value).to eq disclosed_roe[:value].to_f

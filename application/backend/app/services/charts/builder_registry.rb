@@ -8,7 +8,8 @@ module Charts
       "jgaap_insurance" => Builders::BsJgaapInsurance,
       "ifrs_classified" => Builders::BsIfrsClassified,
       "ifrs_liquidity"  => Builders::BsIfrsLiquidity,
-      "ifrs_summary"    => Builders::BsIfrsSummary
+      "ifrs_summary"    => Builders::BsIfrsSummary,
+      "usgaap_summary"  => Builders::BsUsgaapSummary
     }.freeze
     PL = {
       "jgaap_general"   => Builders::PlJgaapGeneral,
@@ -19,7 +20,8 @@ module Charts
       "ifrs_classified" => Builders::PlIfrs,
       "ifrs_liquidity"  => Builders::PlIfrs,
       # 詳細タグなしでも経営指標サマリの収益・税引前利益で同じ骨格を描けるため共用する
-      "ifrs_summary"    => Builders::PlIfrs
+      "ifrs_summary"    => Builders::PlIfrs,
+      "usgaap_summary"  => Builders::PlUsgaapSummary
     }.freeze
     UNSUPPORTED_NOTE = "この会計基準・業種の財務諸表は表示に対応していません。".freeze
 

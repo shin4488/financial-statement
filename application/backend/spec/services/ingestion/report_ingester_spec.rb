@@ -166,12 +166,14 @@ RSpec.describe Ingestion::ReportIngester do
         .to eq "ifrs_summary"
     end
 
-    it "Extractorを持たない形式（unsupported）では警告しない" do
+    it "usgaap_summaryで指標用の総資産を取得できれば警告しない" do
       expect(Sentry).not_to receive(:capture_message).with(/primary statement missing bs\.assets/, anything)
-      ingest("S0000001", synthetic_xbrl_xml(dei: { accounting_standard: "US GAAP", has_consolidated: "true" }))
+      ingest("S0000001", synthetic_xbrl_xml(
+        dei: { accounting_standard: "US GAAP", has_consolidated: "true" },
+        facts: { [ "jpcrp_cor:TotalAssetsUSGAAPSummaryOfBusinessResults", "CurrentYearInstant" ] => 200 }))
 
       expect(Disclosure::FinancialStatement.find_by(consolidation_type: :consolidated).presentation_format)
-        .to eq "unsupported"
+        .to eq "usgaap_summary"
     end
   end
 

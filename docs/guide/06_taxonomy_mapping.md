@@ -20,6 +20,7 @@
 | 分類 | `ifrs_classified` | IFRS・流動/非流動分類BS（様式511000） |
 | 配列 | `ifrs_liquidity` | IFRS・流動性配列BS（様式512000） |
 | サマリ | `ifrs_summary` | IFRS・詳細タグなし（2019年3月期より前の有報。経営指標サマリ `jpcrp_cor:*IFRSSummaryOfBusinessResults` のみで構成） |
+| 米国サマリ | `usgaap_summary` | 米国基準（連結）。本表は企業拡張タグだけのため、経営指標サマリ `jpcrp_cor:*USGAAPSummaryOfBusinessResults` のみで構成し、CFと財務指標だけを表示する |
 
 「表示に使う形式」は、取得した科目をチャートで使う形式を示す。「—」はチャートでは使わず、保存する科目。
 
@@ -322,6 +323,28 @@ IFRSの追加科目は、研究開発費・一般管理費を売上0の会社の
 | `cf.financing` | `CashFlowsFromUsedIn` `FinancingActivitiesIFRS` `SummaryOfBusinessResults` |
 | `cf.cash_end` / `cf.cash_begin` | `CashAndCashEquivalentsIFRS` `SummaryOfBusinessResults`（期首は `Prior1YearInstant`） |
 
+### 米国サマリ（usgaap_summary）のタグ
+
+米国基準の有報は、本表の科目が企業拡張タグだけで、会社ごとの対応表がないと読めない。経営指標サマリ（`jpcrp_cor`）の標準タグから、CFと財務指標に使う残高・利益・売上だけを取得する。BS・PLのチャートは描かず、「貸借対照表: 米国基準は非対応です。」「損益計算書: 米国基準は非対応です。」を返す。サマリには資産合計と純資産しかなく、負債は差額でしか出せない（償還可能非支配持分がある会社では差額にそれも入る）。PLは売上と税引前利益しかなく、費用は差額でしか出せない。
+
+| 科目コード | XBRLタグ（すべて `jpcrp_cor`） |
+|---|---|
+| `bs.assets` / `bs.assets_begin` | `TotalAssetsUSGAAP` `SummaryOfBusinessResults`（期首は `Prior1YearInstant`） |
+| `bs.equity_attributable_to_owners` / `bs.equity_attributable_to_owners_begin` | `EquityAttributableToOwnersOfParentUSGAAP` `SummaryOfBusinessResults`（期首は `Prior1YearInstant`） |
+| `pl.profit_attributable_to_owners` | `NetIncomeLossAttributableToOwnersOfParentUSGAAP` `SummaryOfBusinessResults` |
+| `pl.revenue` | `RevenuesUSGAAP` `SummaryOfBusinessResults` |
+| `cf.operating` | `CashFlowsFromUsedIn` `OperatingActivitiesUSGAAP` `SummaryOfBusinessResults` |
+| `cf.investing` | `CashFlowsFromUsedIn` `InvestingActivitiesUSGAAP` `SummaryOfBusinessResults` |
+| `cf.financing` | `CashFlowsFromUsedIn` `FinancingActivitiesUSGAAP` `SummaryOfBusinessResults` |
+| `cf.cash_end` / `cf.cash_begin` | `CashAndCashEquivalentsUSGAAP` `SummaryOfBusinessResults`（期首は `Prior1YearInstant`） |
+
+自己資本は親会社株主に帰属する持分だけを使う。非支配持分を含む純資産（`EquityIncludingPortionAttributableToNonControllingInterestUSGAAP…`）で代えると、ROEの分母が大きくなりROEが低く出るため。持分のタグがない年度（ソニー 2021年3月期、トヨタ 2019年3月期）は自己資本を保存しない。ROEは、[企業公表ROE](#企業公表roe)があればそれを表示する。
+
+| 例 | 公表ROE | 親会社株主に帰属する持分で計算 |
+|---|---|---|
+| キヤノン 2025年12月期 | 9.7% | 9.66% |
+| ソニー 2021年3月期 | 24.2% | （タグなし。公表ROEを表示） |
+
 ## 実地調査の記録
 
 EDINETから取得した原本で、タグの有無と数値を確認した記録。調査時点の結果であり、現在の収録件数ではない。
@@ -404,7 +427,7 @@ ifrs_summaryの検証用（クリエイト・レストランツHD S100SO41、201
 | 投資運用 ivt / 投資業 inv | スパークス S100Y7MV<br>Mマート S100Y0DB | 一般 | 一般 | スパークスは営業費用が企業拡張タグのみでPLは描けない（BS/CFは描ける）。Mマートは `OperatingRevenue1` − 汎用の `OperatingExpenses` |
 | 保険 ins | かんぽ生命 S100YD29<br>第一ライフG S100YC7A<br>T&D S100Y9UP<br>ソニーFG S100YCL0<br>SBIインシュアランス S100YDWS<br>アニコム S100YFY1<br>ライフネット S100YC7R（単体） | 保険 | 保険 or 一般 | 経常収益 `OperatingIncomeINS` − 経常費用 `OperatingExpensesINS` = 経常利益。BSは有価証券・貸付金・現金及び預貯金 + 保険契約準備金。ソニーFG単体は業種コードinsだが流動/固定のある一般様式 → 流動資産タグの実在で一般に戻す |
 | 複数コード | 日本郵政 S100YE7T（bnk,ins）<br>日本インシュレーション S100YG71（cte,cns）<br>広島電鉄 S100YI48（cte,cns）<br>飯野海運 S100YGFN（cte,wat）<br>オウケイウェイヴ S100WS3E（cte,sec,cmd） | — | — | 先頭のコードを主たる業種として判定。日本郵政は銀行様式のPL（`OrdinaryIncomeBNK`）だが貯金が企業拡張タグのためBSは描けない。広島電鉄の単体は鉄道様式（`OperatingRevenueTotalRWY`） |
-| 米国基準 | キヤノン S100XTLJ<br>小松製作所<br>オリックス S100YG5L<br>オムロン<br>野村HD<br>富士フイルムHD | unsupported | 一般 | 本表の標準タグがなく企業拡張タグのみ（対象外のまま。単体は日本基準の標準タグで描ける） |
+| 米国基準 | キヤノン S100XTLJ<br>小松製作所<br>オリックス S100YG5L<br>オムロン<br>野村HD<br>富士フイルムHD | 米国サマリ | 一般 | 本表の標準タグがなく企業拡張タグのみ → 経営指標サマリの標準タグでCFと財務指標だけを表示する。単体は日本基準の標準タグで描ける |
 
 ### 3年分の全数検証（本番の直近3年）
 

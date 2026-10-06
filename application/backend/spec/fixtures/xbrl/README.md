@@ -16,7 +16,7 @@ bundle exec rails runner '
      S100YK5Y S100XVWE S100VZJC S100G4YH S100B9WP S100O4KK S100Y4UH
      S100YF0X S100XSQX S100YHXU S100YEAK S100J54V S100L2D0 S100QTB3 S100Y8NY
      S100W6NE S100IZ1U S100THV6 S100ICLB S100YK16 S100Z4G9 S100QBCW S100VY3Q S100YF3V S100Y7MV
-     S100YD7J S100YAVT S100IFQA S100NRX4].each do |doc_id|
+     S100YD7J S100YAVT S100IFQA S100NRX4 S100G1ZO S100LM4N].each do |doc_id|
     path = client.download_xbrl(doc_id: doc_id, work_dir: dir)
     puts "#{doc_id}: #{path}"
     sleep 2
@@ -61,7 +61,7 @@ bundle exec rails runner '
 | docID | 企業 | 検証ポイント |
 |---|---|---|
 | S100XCO8 | ピクセラ | 損失・新株予約権、調整差額の省略 |
-| S100XTLJ | キヤノン | 連結の本表は米国基準で未対応（公表ROEは取得）、単体は日本基準で算出 |
+| S100XTLJ | キヤノン | 連結は米国基準（usgaap_summary）で、経営指標サマリの米国基準の欄から算出。単体は日本基準で算出 |
 | S100YDP3 | りそなHD | 銀行、高いレバレッジ、単体の調整差額nil |
 | S100YGH5 | ソフトバンクG | IFRS、非支配持分と親会社帰属利益 |
 | S100YJHA | ユニチカ | 期首の自己資本がマイナスでも平均がプラスのケース |
@@ -133,6 +133,16 @@ bundle exec rails runner '
 | S100VY3Q・S100O4KK・S100YF3V・S100Y7MV | 中外炉工業・ベルク・帝国ホテル・スパークス・グループ | 費用のタグで左右を説明できないため、描かないまま |
 
 `spec/services/ingestion/zero_revenue_samples_spec.rb` は、売上の行と要約の売上がどちらも「－」の書類（ヘリオス・ARCHION・キャンバス）と、損益計算書に売上の行がなく要約の売上が「－」の書類（窪田製薬ホールディングス 2019年12月期）を売上0として保存することを検証する。要約に売上の行がない `S100YLS8`（東京海上HD）と、連結初年度で連結の損益計算書を作っていない `S100QBCW`（クックビズ 2022年11月期）は売上0にしない。
+
+## 米国基準
+
+`spec/graphql/usgaap_summary_samples_spec.rb` は、米国基準の有報を取込からAPIまで通し、経営指標サマリからCFと財務指標だけを出し、BS・PLは説明文を返すことを検証する。`spec/services/ingestion/extractors/usgaap_summary_spec.rb` は取得する科目を検証する。
+
+| docID | 企業 | 検証ポイント |
+|---|---|---|
+| S100XTLJ | キヤノン | 2025年12月期。CFを描き、ROEを親会社株主に帰属する持分で計算する（9.66%。公表ROEは9.7%） |
+| S100LM4N | ソニー | 2021年3月期。親会社株主に帰属する持分のタグがなく、非支配持分を含む純資産で代えない。ROEは公表値24.2%、ROAは計算する |
+| S100G1ZO | トヨタ自動車 | 2019年3月期。経営指標サマリのCFの3区分と現金残高でCFを描く |
 
 ## 売上と経営指標の要約の照合
 
