@@ -9,7 +9,7 @@ EDINETの財務データを可視化する。Rails API: `application/backend/`�
 - `/graphql` は未認証で公開される。変更時は `financial_statement_schema.rb` の `max_complexity` / `max_depth` 上限内で動くか確認する。
 - 証券コードはEDINETで5桁、UIで4桁。検索時は末尾に0を追加する。
 - 会計基準は `AccountingStandardsDEI` で判断する。IFRS連結は `jpigp_cor`、日本基準は `jppfs_cor`。IFRS企業でも単体は日本基準で、古いIFRS資料にはサマリのみのものがある。
-- 銀行・保険の固有形式と業種別フォールバックを維持する。対応形式・年度条件は実装とタグ対応表に従う。米国基準の `unsupported` は説明文を出す正常系。
+- 銀行・保険の固有形式と業種別フォールバックを維持する。対応形式・年度条件は実装とタグ対応表に従う。米国基準は経営指標の要約でCFと財務指標だけを出す `usgaap_summary` で、BS・PLの説明文は正常系。
 
 ## 開発・検証
 
