@@ -1,7 +1,7 @@
 require "rails_helper"
 
 # 売上がない会社の売上を、実XBRLの取込（公開API）で確かめる。
-# 本表の売上の行と経営指標の要約の売上がどちらも「－」のときだけ、売上0として保存する
+# 本表の売上の行が「－」か行そのものがなく、経営指標の要約の売上が「－」のときだけ、売上0として保存する
 RSpec.describe "売上0の書類（実XBRL）" do
   def ingest(doc_id)
     require_xbrl_fixture(doc_id)
@@ -20,6 +20,17 @@ RSpec.describe "売上0の書類（実XBRL）" do
       items = Disclosure::FinancialStatement.find_by!(is_primary: true).items_hash
       expect(items.values_at("pl.revenue", "pl.summary_revenue")).to eq [ 0, 0 ]
     end
+  end
+
+  it "窪田製薬ホールディングス 2019年12月期（IFRS）: 損益計算書に売上の行がなく、要約の売上が「－」のため、売上0として保存する" do
+    ingest("S100IFQA")
+    items = Disclosure::FinancialStatement.find_by!(is_primary: true).items_hash
+    expect(items.values_at("pl.revenue", "pl.summary_revenue")).to eq [ 0, 0 ]
+  end
+
+  it "東京海上ホールディングス 2026年3月期（IFRS）: 要約に売上の行がないため、売上0にしない" do
+    ingest("S100YLS8")
+    expect(Disclosure::FinancialStatement.find_by!(is_primary: true).items_hash).not_to have_key("pl.revenue")
   end
 
   it "クックビズ 2022年11月期: 連結初年度で連結の損益計算書を作っておらず、すべての行が「－」のため、売上0にしない" do

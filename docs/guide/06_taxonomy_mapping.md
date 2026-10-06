@@ -159,7 +159,7 @@
 
 業種固有の総額を優先する。商品先物取引業などでは、`NetSales` が営業収益の一部を指すため。
 
-どの候補にも値がなく、本表の候補（上の1〜17。経営指標サマリの14を除く）のタグと経営指標サマリの売上のタグがどちらも値のない「－」なら、損益の値があるときだけ売上0とする（[取得できない科目は保存しない](03_data_flow.md#取得できない科目は保存しない)）。IFRSも同じ。
+どの候補にも値がなく（本表の売上の行が「－」か、行そのものがない）、経営指標サマリの売上のタグが値のない「－」なら、損益の値があるときだけ売上0とする（[取得できない科目は保存しない](03_data_flow.md#取得できない科目は保存しない)）。IFRSも同じ。
 
 企業拡張タグの要素名は会社ごとに違い、同じ会社でも年度で変わる（スカイマークは2023年 `TotalBusinessRevenueRevOA`、2026年 `BusinessRevenueRevOA`）。会社ごとではなく、原本で売上の合計と確かめた要素名の一覧で探す。一覧にない要素名で売上を開示する書類は、[経営指標の要約との照合](03_data_flow.md#売上と経営指標の要約の照合)の警告で見つけ、原本で確かめて一覧に足す。次の要素は売上ではないため一覧に入れない。
 
@@ -211,7 +211,7 @@
 | `pl.sga` | 販売費及び一般管理費 | フォールバック4件（下記） | `jpigp_cor:SellingGeneralAnd` `AdministrativeExpensesIFRS` | 一般・IFRS |
 | `pl.operating_expenses` | 営業費用（一括計上） | フォールバック10件（下記） | `jpigp_cor:OperatingExpensesIFRS` | 一般・IFRS |
 | `pl.gross_profit` | 売上総利益 | `jppfs_cor:GrossProfit` → `OperatingGrossProfit`（営業総利益）→ `OperatingGrossProfitWAT` | `jpigp_cor:GrossProfitIFRS` | 分類・配列（負の値の費用の確認） |
-| `pl.operating_profit` | 営業利益 | `jppfs_cor:OperatingIncome` → `OperatingIncomeTotalBusiness`（全事業営業利益。鉄道単体） | `jpigp_cor:OperatingProfitLossIFRS` | 一般 |
+| `pl.operating_profit` | 営業利益 | `jppfs_cor:OperatingIncome` → `OperatingIncomeTotalBusiness`（全事業営業利益。鉄道単体） | `jpigp_cor:OperatingProfitLossIFRS` | 一般・IFRS（売上0の会社だけ） |
 | `pl.ordinary_profit` | 経常利益 | `jppfs_cor:OrdinaryIncome` | 存在しない | 銀行 |
 | `pl.non_operating_income` | 営業外収益 | `jppfs_cor:NonOperatingIncome` | 存在しない | — |
 | `pl.non_operating_expenses` | 営業外費用 | `jppfs_cor:NonOperatingExpenses` | 存在しない | — |
@@ -262,11 +262,11 @@
 
 「営業費用」の意味は業種で違う（電気・特定金融は原価・販管費を含む合計、鉄道連結の営業費は内訳と併記される合計、商品先物は原価控除後）。Builderが貸借の合う費用構成を選ぶため、Extractorは業種を問わず営業費用のタグをそのまま保存すればよく、内訳と両方保存しても重複計上にならない。IFRSの営業費用は、売上原価・販管費と併記されるときはその合計（同額か、符号だけが逆。KDDI・住友理工等）のため、Builderは売上原価か販管費があれば営業費用を積まない。
 
-IFRSの営業利益（`pl.operating_profit`）は保存はするがBuilderでは使っていない。IFRSでは開示が任意で、開示する企業としない企業が混在して企業間の比較にならないため。
+IFRSの営業利益（`pl.operating_profit`）は、売上0の会社のグラフ（費用と営業損失の2本）でだけ使う。IFRSでは開示が任意で、開示する企業としない企業が混在して企業間の比較にならないため、売上がある会社のグラフは収益から税引前利益までで描く。
 
 ### 追加保存する損益科目
 
-IFRSの追加科目は保存のみ。ガスの2科目は全社の費用を表すため、PLの「売上原価等」に含める。
+IFRSの追加科目は、研究開発費・一般管理費を売上0の会社のグラフで使い、ほかは保存のみ。ガスの2科目は全社の費用を表すため、PLの「売上原価等」に含める。
 
 | 科目コード | タグ名（IFRSはjpigp_cor、ガスはjppfs_cor） | 内容 |
 |---|---|---|
@@ -274,6 +274,7 @@ IFRSの追加科目は保存のみ。ガスの2科目は全社の費用を表す
 | `pl.other_operating_expenses` | `OtherOperatingExpensesIFRS` → `OtherExpensesIFRS` | その他費用 |
 | `pl.other_income_expenses_net` | `OtherIncomeExpensesNetIFRS` | その他損益の開示純額 |
 | `pl.research_and_development` | `ResearchAndDevelopmentExpenditure RecognizedAsExpenseDuringPeriodIFRS` | 研究開発費（他の費用と重複する場合がある） |
+| `pl.general_and_administrative_expenses` | `GeneralAndAdministrativeExpensesIFRS` | 一般管理費（販管費と別の行で開示する会社がある。窪田製薬ホールディングス） |
 | `pl.finance_income` / `pl.finance_costs` | `FinanceIncomeIFRS` / `FinanceCostsIFRS` | 金融収益／金融費用 |
 | `pl.equity_method_profit` | `ShareOfProfitLossOfInvestments AccountedForUsingEquityMethodIFRS` | 持分法損益（符号を保持） |
 | `pl.gas_miscellaneous_expenses` | `OperatingMiscellaneousExpensesGAS` | ガス雑営業費用 |

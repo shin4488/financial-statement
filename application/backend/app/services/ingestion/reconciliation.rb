@@ -7,8 +7,9 @@ module Ingestion
   module Reconciliation
     REVENUE_MISMATCH = "revenue does not match summary of business results".freeze
     REVENUE_MISSING = "revenue missing although summary of business results has revenue".freeze
-    # 描いたPLの費用・利益が、売上と端数の範囲で一致しない（タグで費用を説明できない）
-    PROFIT_LOSS_MISMATCH = "profit and loss chart does not reconcile with revenue".freeze
+    # 描いたPLの費用が、保存した科目どうしの式を端数の範囲で満たさない（タグで費用を説明できない）。
+    # 式は描き方で違い、グラフ作成処理が決める（日本基準は費用・営業利益と売上、IFRSは積まなかった営業費用と売上原価・販管費）
+    PROFIT_LOSS_MISMATCH = "profit and loss chart expenses do not reconcile".freeze
 
     Warning = Data.define(:message, :amounts)
 

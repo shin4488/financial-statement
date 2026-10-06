@@ -163,19 +163,20 @@ module Ingestion
           end
         end
 
-        # 売上がない会社（創薬ベンチャーなど）は、損益計算書の売上の行と経営指標の要約の売上を「－」で開示する。
-        # どちらも空のときだけ売上0と確かめられたとして、両方に0を保存する。片方だけが空のときは、
-        # 売上が一覧にない要素名で開示されているおそれがあり、0にすると実際の売上と違う値になるため保存しない。
+        # 売上がない会社（創薬ベンチャーなど）は、経営指標の要約の売上を「－」で開示し、損益計算書では売上の行を「－」にするか、
+        # 前期も売上がなければ行そのものを載せない。本表の売上の取得候補のどれからも売上が取れず、要約の売上が「－」のときに、
+        # 売上0と確かめられたとして両方に0を保存する。要約に売上の行がないときは、売上が一覧にない要素名で開示されている
+        # おそれがあり、0にすると実際の売上と違う値になるため保存しない。
+        # 経営指標の要約だけで作る形式は、本表で売上がないことを確かめられないため対象にしない。
         # 連結初年度で連結の損益計算書を作っていない書類も、売上を含むすべての行が「－」になるため、
         # 損益の値がある（損益計算書を作っている）ときだけ確かめる
         def verify_zero_revenue(result)
           revenue_spec, summary_spec = self.class::DURATION_MAPPING.values_at("pl.revenue", "pl.summary_revenue")
-          return unless revenue_spec && summary_spec
+          return unless revenue_spec && summary_spec && statement_revenue_entries(revenue_spec).any?
           return if result.key?("pl.revenue") || result.key?("pl.summary_revenue")
           return unless %w[pl.operating_profit pl.profit_before_tax pl.profit].any? { |code| result.key?(code) }
           context = "CurrentYearDuration#{@c}"
-          blank = ->(entry) { self.class.wrap(entry).blank?(@xbrl, context) }
-          return unless statement_revenue_entries(revenue_spec).any?(&blank) && entries(summary_spec).any?(&blank)
+          return unless entries(summary_spec).any? { |entry| self.class.wrap(entry).blank?(@xbrl, context) }
           %w[pl.revenue pl.summary_revenue].each do |code|
             result[code] = 0
             result.rounding_errors[code] = 0.to_d
