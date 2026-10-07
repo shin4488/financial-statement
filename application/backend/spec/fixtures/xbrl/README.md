@@ -18,7 +18,7 @@ bundle exec rails runner '
      S100W6NE S100IZ1U S100THV6 S100ICLB S100YK16 S100Z4G9 S100QBCW S100VY3Q S100YF3V S100Y7MV
      S100YD7J S100YAVT S100IFQA S100NRX4 S100G1ZO S100LM4N
      S100Y9G1 S100IXWZ S100D97M S100Y87F
-     S100LR17 S100YCOW S100YLVF S100DGXR S100AQXU S1009DYN].each do |doc_id|
+     S100LR17 S100YCOW S100YLVF S100DGXR S100AQXU S1009DYN S100YCDE].each do |doc_id|
     path = client.download_xbrl(doc_id: doc_id, work_dir: dir)
     puts "#{doc_id}: #{path}"
     sleep 2
@@ -79,7 +79,7 @@ bundle exec rails runner '
 
 追加の回帰フィクスチャ `S100YGFN`（飯野海運単体）は、不動産事業の収益が企業拡張タグでも、標準サマリの全社売上116,888百万円で純利益率・回転率を算出することを検証する。海運事業だけの104,979百万円を全社売上にしない。
 
-`S100YZ8K` はクレディセゾンを提出者とする信託受益証券の有報。提出者の証券コードが一覧APIにあっても企業自身の財務ではないため、一覧取得とdocID直接取込の両方で除外し、企業マスタを変更しないことを検証する。
+`S100YZ8K` はクレディセゾンを提出者とする信託受益証券の有報。提出者の証券コードが一覧APIにあっても企業自身の財務ではないため、一覧取得とdocID直接取込の両方で除外し、企業マスタを変更しないことを検証する。`S100YCDE` はクレディセゾン自身の2026年3月期の有報。会計期間の終わりが後の `S100YZ8K` を表示から外した状態でも、最新期と判定して企業マスタの証券コード（82530）を更新することを検証する。
 
 `S100YRHX`（信金中央金庫）は、株主資本に相当する「会員勘定合計」が標準の `ShareholdersEquityShinkinBNK` で開示される例。連結・単体とも評価差額を加え、非支配持分を含めず期首・期末自己資本を取得することを検証する。
 

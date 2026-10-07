@@ -208,11 +208,14 @@ module Ingestion
                              : ext.consolidation_type == :non_consolidated
       end
 
-      # この有報がその企業の最新会計期か（同じ期の再取込・訂正有報も最新扱い）
+      # この有報がその企業の最新会計期か（同じ期の再取込・訂正有報も最新扱い）。
+      # 表示から外した書類（主たる財務諸表がない有報。企業の有報として誤って取り込んだファンドの書類など）は、
+      # 企業自身の決算ではないため比べない。比べると、その会計期間の終わりが過ぎるまで企業マスタが更新されなくなる
       def latest_fiscal_year?(company, dei)
         return true if company.new_record?
         Disclosure::Report.where(company: company)
                           .where("fiscal_year_end_date > ?", dei.fiscal_year_end_date)
+                          .joins(:primary_financial_statement)
                           .none?
       end
   end
