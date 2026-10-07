@@ -356,6 +356,19 @@ RSpec.describe Ingestion::ReportIngester do
       end
     end
 
+    it "表示から外した書類（主たる財務諸表がない有報）の会計期間が後でも、企業自身の最新期の有報で企業マスタを更新する" do
+      # 信託受益証券の有報を企業の有報として取り込み、証券コードを空欄で上書きした後に、表示から外した状態
+      company = Disclosure::Company.create!(edinet_code: "E03041", stock_code: "", name_ja: "株式会社クレディセゾン")
+      fund = create(:disclosure_report, company: company, edinet_document_id: "S100YZ8K",
+                    fiscal_year_start_date: Date.new(2025, 6, 13), fiscal_year_end_date: Date.new(2026, 5, 31))
+      create(:disclosure_financial_statement, report: fund, consolidation_type: :non_consolidated, is_primary: false,
+             items_hash: { "bs.assets" => 1_000 })
+
+      ingest("S100YCDE", File.read(require_xbrl_fixture("S100YCDE")))
+
+      expect(company.reload).to have_attributes(stock_code: "82530", name_ja: "株式会社クレディセゾン")
+    end
+
     it "証券コードのある合成ファンドも除外する（CIで常時検証）" do
       ingest("S0000001", synthetic_xbrl_xml(facts: { [ "jpdei_cor:FundCodeDEI", "FilingDateInstant" ] => "G15497" }))
       expect(Disclosure::Company.count).to eq 0
