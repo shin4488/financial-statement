@@ -12,6 +12,8 @@ module Ingestion
     PROFIT_LOSS_MISMATCH = "profit and loss chart expenses do not reconcile".freeze
     # 描いたBSで、借方の科目の合計が資産合計と、または資産合計が負債合計＋純資産合計と、端数の範囲で一致しない
     BALANCE_SHEET_MISMATCH = "balance sheet chart does not reconcile with totals".freeze
+    # 期首残＋各CF＋換算差額など＝期末残が、行がない項目を0とみなしても端数の範囲で成り立たない
+    CASH_FLOW_MISMATCH = "cash flow does not reconcile with closing balance".freeze
 
     Warning = Data.define(:message, :amounts)
 
@@ -19,7 +21,8 @@ module Ingestion
       [
         revenue_warning(items),
         chart_warning(PROFIT_LOSS_MISMATCH, Charts::BuilderRegistry::PL[format], items),
-        chart_warning(BALANCE_SHEET_MISMATCH, Charts::BuilderRegistry::BS[format], items)
+        chart_warning(BALANCE_SHEET_MISMATCH, Charts::BuilderRegistry::BS[format], items),
+        (chart_warning(CASH_FLOW_MISMATCH, Charts::Builders::CashFlow, items) if reads_cash_flow_adjustments?(format))
       ].compact
     end
 
@@ -35,6 +38,13 @@ module Ingestion
       amounts = builder&.new(items)&.mismatch
       Warning.new(message, amounts) if amounts
     end
-    private_class_method :revenue_warning, :chart_warning
+
+    # 経営指標の要約だけで作る形式は、要約に換算差額などの行がないため、換算差額がある年はCFの式が合わない。
+    # 原本で直せる誤りではないため、式の行を読む形式だけを照合する
+    def self.reads_cash_flow_adjustments?(format)
+      codes = FormatRegistry.extractor_for(format)&.item_codes || []
+      codes.intersect?(FinancialStatements::CashFlowVerification::ADJUSTMENTS)
+    end
+    private_class_method :revenue_warning, :chart_warning, :reads_cash_flow_adjustments?
   end
 end

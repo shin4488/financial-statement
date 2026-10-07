@@ -14,7 +14,9 @@ class Ingestion::Extractors::JgaapBank < Ingestion::Extractors::Base
     "bs.cash_and_equivalents" => "jppfs_cor:CashAndDueFromBanksAssetsBNK",
     # 貯金を企業拡張タグ（要素名 DepositsLiabilities）で開示する会社がある。原本で預金（貯金）の合計と確かめた要素名を最後に置く
     "bs.deposits"             => [ "jppfs_cor:DepositsLiabilitiesBNK", "filer_ext:DepositsLiabilities" ],
-    "cf.cash_end"             => "jppfs_cor:CashAndCashEquivalents"
+    # CF計算書の期末残に標準タグがなければ、同じ金額を開示する経営指標の要約の現金同等物の残高で補う（一般事業会社と同じ）
+    "cf.cash_end"             => [ "jppfs_cor:CashAndCashEquivalents",
+                                   "jpcrp_cor:CashAndCashEquivalentsSummaryOfBusinessResults" ]
   }.freeze
 
   DURATION_MAPPING = {
@@ -32,6 +34,7 @@ class Ingestion::Extractors::JgaapBank < Ingestion::Extractors::Base
     "pl.profit_attributable_to_owners" => "jppfs_cor:ProfitLossAttributableToOwnersOfParent",
     "cf.new_consolidation" => "jppfs_cor:IncreaseInCashAndCashEquivalentsFromNewlyConsolidatedSubsidiaryCCE",
     "cf.consolidation_change" => "jppfs_cor:IncreaseDecreaseInCashAndCashEquivalentsResultingFromChangeOfScopeOfConsolidationCCE",
+    "cf.merger" => "jppfs_cor:IncreaseInCashAndCashEquivalentsResultingFromMergerCCE",
     "cf.exchange_effect" => "jppfs_cor:EffectOfExchangeRateChangeOnCashAndCashEquivalents",
     "cf.operating" => "jppfs_cor:NetCashProvidedByUsedInOperatingActivities",
     "cf.investing" => "jppfs_cor:NetCashProvidedByUsedInInvestmentActivities",

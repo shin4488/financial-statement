@@ -61,6 +61,9 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
 
     before { allow(Sentry).to receive(:capture_message) { |message, **options| warnings << [ message, options ] } }
 
+    # 同じ書類のBS・CFの照合の警告は、それぞれのspecで確かめる
+    def profit_loss_warnings = warnings.select { |message, _| message.start_with?("profit and loss") }
+
     it "武田薬品 2026年3月期: 表示した費用があり、差額が費用側なら「その他の費用（純額）」になる" do
       _, chart = profit_loss("S100YB5L", :consolidated)
       debit, credit = chart.bars
@@ -77,7 +80,7 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
       aggregate_failures do
         expect(segments(debit)).to eq [ [ "費用（純額）", -620_081_000_000 ], [ "税引前利益", 327_668_000_000 ] ]
         expect(segments(credit)).to eq [ [ "収益", 947_749_000_000 ] ]
-        expect(warnings).to be_empty
+        expect(profit_loss_warnings).to be_empty
       end
     end
 
@@ -98,7 +101,7 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
         expect(segments(debit)).to eq [ [ "売上原価", 473_074_000_000 ], [ "販売費及び一般管理費", 462_998_000_000 ],
                                         [ "その他の費用（純額）", -17_179_000_000 ], [ "税引前利益", 47_134_000_000 ] ]
         expect(segments(credit)).to eq [ [ "収益", 1_000_385_000_000 ] ]
-        expect(warnings).to be_empty
+        expect(profit_loss_warnings).to be_empty
       end
     end
 
@@ -110,7 +113,7 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
         expect(segments(debit)).to eq [ [ "売上原価", 39_141_418_000_000 ], [ "販売費及び一般管理費", 4_697_524_000_000 ],
                                         [ "その他の費用（純額）", -1_693_014_000_000 ], [ "税引前利益", 5_152_996_000_000 ] ]
         expect(segments(credit)).to eq [ [ "収益", 50_684_952_000_000 ] ]
-        expect(warnings).to eq [ [
+        expect(profit_loss_warnings).to eq [ [
           "profit and loss chart expenses do not reconcile",
           { level: :warning, extra: { doc_id: "S100Y8NY", consolidation_type: "consolidated", presentation_format: "ifrs_classified",
                                       amounts: { "pl.cost_of_sales" => 39_141_418_000_000, "pl.sga" => 4_697_524_000_000,
@@ -126,8 +129,8 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
         expect(segments(debit)).to eq [ [ "販売費及び一般管理費", 19_643_000_000 ], [ "その他の費用（純額）", -15_987_000_000 ] ]
         expect(segments(credit)).to eq [ [ "収益", 32_652_000_000 ], [ "税引前損失", -2_978_000_000 ] ]
         expect(debit.segments.find { |segment| segment.key == "otherNet" }.ratio).to eq(-48.9)
-        expect(warnings.map(&:first)).to eq [ "profit and loss chart expenses do not reconcile" ]
-        expect(warnings.dig(0, 1, :extra, :amounts)).to eq("pl.sga" => 19_643_000_000, "pl.operating_expenses" => 17_653_000_000)
+        expect(profit_loss_warnings.map(&:first)).to eq [ "profit and loss chart expenses do not reconcile" ]
+        expect(profit_loss_warnings.dig(0, 1, :extra, :amounts)).to eq("pl.sga" => 19_643_000_000, "pl.operating_expenses" => 17_653_000_000)
       end
     end
   end
@@ -195,6 +198,9 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
 
     before { allow(Sentry).to receive(:capture_message) { |message, **options| warnings << [ message, options ] } }
 
+    # 同じ書類のBS・CFの照合の警告は、それぞれのspecで確かめる
+    def profit_loss_warnings = warnings.select { |message, _| message.start_with?("profit and loss") }
+
     it "燦ホールディングス 2025年3月期: 原価に当たる営業費用と販管費を積み、左右の高さが合う" do
       _, chart = profit_loss("S100W6NE", :consolidated)
       debit, credit = chart.bars
@@ -202,7 +208,7 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
         expect(segments(debit)).to eq [ [ "営業費用", 24_216_000_000 ], [ "販売一般管理費", 3_246_000_000 ],
                                         [ "営業利益", 4_521_000_000 ] ]
         expect(segments(credit)).to eq [ [ "売上", 31_984_000_000 ] ]
-        expect(warnings).to be_empty
+        expect(profit_loss_warnings).to be_empty
       end
     end
 
@@ -212,7 +218,7 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
       aggregate_failures do
         expect(segments(debit)).to eq [ [ "営業費用", 142_104_000_000 ], [ "営業利益", 16_506_000_000 ] ]
         expect(segments(credit)).to eq [ [ "売上", 158_610_000_000 ] ]
-        expect(warnings).to be_empty
+        expect(profit_loss_warnings).to be_empty
       end
     end
 
@@ -221,7 +227,7 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
       aggregate_failures do
         expect(segments(chart.bars.first)).to eq [ [ "売上原価", 358_509_000_000 ], [ "販売一般管理費", 141_425_000_000 ],
                                                    [ "営業利益", 10_382_000_000 ] ]
-        expect(warnings).to eq [ [
+        expect(profit_loss_warnings).to eq [ [
           "profit and loss chart expenses do not reconcile",
           { level: :warning, extra: { doc_id: "S100THV6", consolidation_type: "consolidated", presentation_format: "jgaap_general",
                                       amounts: { "pl.revenue" => 484_742_000_000, "pl.cost_of_sales" => 358_509_000_000,
