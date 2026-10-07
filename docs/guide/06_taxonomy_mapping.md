@@ -293,10 +293,12 @@ IFRSの追加科目は、研究開発費・一般管理費を売上0の会社の
 | `cf.operating` | 営業活動によるCF | `jppfs_cor:NetCashProvidedByUsedIn` `OperatingActivities` | `jpigp_cor:NetCashProvidedByUsedIn` `OperatingActivitiesIFRS` |
 | `cf.investing` | 投資活動によるCF | `jppfs_cor:NetCashProvidedByUsedIn` `InvestmentActivities` | `jpigp_cor:NetCashProvidedByUsedIn` `InvestingActivitiesIFRS` |
 | `cf.financing` | 財務活動によるCF | `jppfs_cor:NetCashProvidedByUsedIn` `FinancingActivities` | `jpigp_cor:NetCashProvidedByUsedIn` `FinancingActivitiesIFRS` |
-| `cf.cash_end` | 現金及び現金同等物の期末残高 | `jppfs_cor:CashAndCashEquivalents` | `jpigp_cor:CashAndCashEquivalentsIFRS` |
+| `cf.cash_end` | 現金及び現金同等物の期末残高 | `jppfs_cor:CashAndCashEquivalents` → `jpcrp_cor:CashAndCashEquivalents` `SummaryOfBusinessResults` | `jpigp_cor:CashAndCashEquivalentsIFRS` |
 | `cf.cash_begin` | 同・期首残高 | 同上（`Prior1YearInstant`） | 同上（`Prior1YearInstant`） |
 
-投資活動のタグ名が日本基準は `Investment`、IFRSは `Investing` で異なる。CFは5科目そろわないとウォーターフォールが繋がらないため、1つでも欠けるとチャートは `renderable: false` になる。
+投資活動のタグ名が日本基準は `Investment`、IFRSは `Investing` で異なる。CFは5科目そろわないとウォーターフォールが繋がらないため、1つでも欠けるとチャートは `renderable: false` になる。ただし、期首残・営業CF・投資CF・財務CFの行がない（「－」かタグがない）ときは、その項目を0とみなして「期首残＋営業CF＋投資CF＋財務CF＋換算差額＋新規連結・連結範囲の変更による増減＋合併による増加＝期末残」が[開示精度の範囲](03_data_flow.md#金額の開示精度)で成り立つ場合だけ、グラフとFCF推移で0として扱う（保存する値は変えない）。期末残の行がないCFは0として扱わない。
+
+日本基準の期末残高は、CF計算書に標準タグがなければ、経営指標の要約の現金同等物の残高で補う（Fringe81 2017年3月期で、CF計算書の期末残に標準タグがなく、要約の275,119千円が式と端数の範囲で一致することを確認）。
 
 期首残高は、期末残高と同じタグで対象日を当期開始日の前日に変えて取得する。
 
@@ -304,13 +306,14 @@ IFRSの追加科目は、研究開発費・一般管理費を売上0の会社の
 
 金額の通貨はunit定義のISO 4217で識別し、円換算値が併記されていれば出現順によらず円を使う。外貨のみの金額を円として保存しない。FIGの2018年期・北日本紡績の2017年3月期・ビートHDの2019年期と2024年期で、期首日付が不整合でもCFの開示額と整合することを原本で確認している。
 
-次の調整科目も保存する。現行の5点のチャートには使用しない。
+次の調整科目も保存する。5点のチャートには描かず、上の式（「－」の判定と、取込のときの照合）にだけ使う。
 
 | 科目コード | 一般・銀行・保険（jppfs_cor） | 分類・配列（jpigp_cor） |
 |---|---|---|
 | `cf.exchange_effect` | `EffectOfExchangeRateChangeOnCashAndCashEquivalents` | `EffectOfExchangeRateChanges OnCashAndCashEquivalentsIFRS` |
 | `cf.new_consolidation` | `IncreaseInCashAndCashEquivalents FromNewlyConsolidatedSubsidiaryCCE` | — |
 | `cf.consolidation_change` | `IncreaseDecreaseInCashAndCashEquivalents ResultingFromChangeOfScopeOfConsolidationCCE` | — |
+| `cf.merger` | `IncreaseInCashAndCashEquivalents ResultingFromMergerCCE` | — |
 
 ### サマリ（ifrs_summary）のタグ
 

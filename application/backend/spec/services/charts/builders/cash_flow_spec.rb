@@ -21,9 +21,31 @@ RSpec.describe Charts::Builders::CashFlow do
       .to eq %w[cashIncrease cashDecrease cashIncrease cashDecrease cashIncrease]
   end
 
-  it "1点でも欠けるとunrenderable（滝の繋がりが崩れるため）" do
+  it "1点でも欠け、0とみなしてもCFの式が成り立たなければunrenderable（滝の繋がりが崩れるため）" do
     chart = described_class.new(items.except("cf.cash_begin")).build
     expect(chart.renderable).to be false
     expect(chart.steps).to be_empty
+  end
+
+  it "活動がなく行がない項目は、0とみなしてCFの式が成り立てば0として描く" do
+    chart = described_class.new(items.merge("cf.financing" => nil, "cf.cash_end" => 90_504_976).compact).build
+    aggregate_failures do
+      expect(chart.renderable).to be true
+      expect(chart.steps.map { |step| [ step.key, step.amount ] }).to eq [
+        [ "cashBegin", 109_095_437 ], [ "operating", -23_064_420 ], [ "investing", 4_473_959 ],
+        [ "financing", 0 ], [ "cashEnd", 90_504_976 ]
+      ]
+      expect(chart.steps[3].color_role).to eq "cashIncrease"
+    end
+  end
+
+  describe "#mismatch（取込のときの照合）" do
+    it "5点がそろっていても、換算差額などを含めた式が成り立たなければ金額を返す" do
+      expect(described_class.new(items).mismatch).to eq items
+    end
+
+    it "換算差額を含めて式が成り立てばnil" do
+      expect(described_class.new(items.merge("cf.exchange_effect" => 690_400)).mismatch).to be_nil
+    end
   end
 end

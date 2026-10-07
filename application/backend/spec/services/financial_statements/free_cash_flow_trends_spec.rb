@@ -63,6 +63,26 @@ RSpec.describe FinancialStatements::FreeCashFlowTrends do
     expect(trend.points.map(&:amount)).to eq [ nil ] * 5
   end
 
+  it "活動がなく投資CFの行がない年は、CFのグラフと同じくCFの式が成り立つときだけ0として扱う" do
+    current = statement(2025, operating: 30_000_000)
+    current.primary_financial_statement.tap do |fs|
+      { "cf.cash_begin" => 100_000_000, "cf.financing" => -5_000_000, "cf.cash_end" => 125_000_000 }.each do |code, amount|
+        create(:disclosure_financial_statement_item, financial_statement: fs, item_code: code, amount: amount)
+      end
+    end
+    unbalanced = statement(2024, operating: 30_000_000)
+    unbalanced.primary_financial_statement.tap do |fs|
+      { "cf.cash_begin" => 100_000_000, "cf.cash_end" => 125_000_000 }.each do |code, amount|
+        create(:disclosure_financial_statement_item, financial_statement: fs, item_code: code, amount: amount)
+      end
+    end
+
+    trend = described_class.build([ current ]).fetch(current.id)
+
+    expect(trend.points[4]).to have_attributes(operating_cf: 30_000_000, investing_cf: 0, amount: 30_000_000)
+    expect(trend.points[3]).to have_attributes(operating_cf: 30_000_000, investing_cf: nil, amount: nil)
+  end
+
   it "年内に複数期がある場合は対象期以前の最新の決算期を使う" do
     current = statement(2025, operating: 20_000_000, investing: -5_000_000)
     statement(2024, operating: 10_000_000, investing: -2_000_000)

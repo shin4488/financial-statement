@@ -14,7 +14,9 @@ class Ingestion::Extractors::JgaapInsurance < Ingestion::Extractors::Base
     "bs.securities"           => "jppfs_cor:SecuritiesAssetsINS",        # 有価証券（保険会社の資産の大半）
     "bs.loans"                => "jppfs_cor:LoansReceivablesAssetsINS",  # 貸付金
     "bs.policy_reserves"      => "jppfs_cor:ReserveForInsurancePolicyLiabilitiesLiabilitiesINS", # 保険契約準備金（負債の大半）
-    "cf.cash_end"             => "jppfs_cor:CashAndCashEquivalents"
+    # CF計算書の期末残に標準タグがなければ、同じ金額を開示する経営指標の要約の現金同等物の残高で補う（一般事業会社と同じ）
+    "cf.cash_end"             => [ "jppfs_cor:CashAndCashEquivalents",
+                                   "jpcrp_cor:CashAndCashEquivalentsSummaryOfBusinessResults" ]
   }.freeze
 
   DURATION_MAPPING = {
@@ -32,6 +34,7 @@ class Ingestion::Extractors::JgaapInsurance < Ingestion::Extractors::Base
     "pl.profit_attributable_to_owners" => "jppfs_cor:ProfitLossAttributableToOwnersOfParent",
     "cf.new_consolidation" => "jppfs_cor:IncreaseInCashAndCashEquivalentsFromNewlyConsolidatedSubsidiaryCCE",
     "cf.consolidation_change" => "jppfs_cor:IncreaseDecreaseInCashAndCashEquivalentsResultingFromChangeOfScopeOfConsolidationCCE",
+    "cf.merger" => "jppfs_cor:IncreaseInCashAndCashEquivalentsResultingFromMergerCCE",
     "cf.exchange_effect" => "jppfs_cor:EffectOfExchangeRateChangeOnCashAndCashEquivalents",
     "cf.operating" => "jppfs_cor:NetCashProvidedByUsedInOperatingActivities",
     "cf.investing" => "jppfs_cor:NetCashProvidedByUsedInInvestmentActivities",

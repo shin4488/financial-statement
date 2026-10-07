@@ -22,7 +22,9 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
     # 消費される（消費先が違う）。縦持ちでは行が1つ増えるだけなので冗長保存を許容し、
     # Builder側が「どのコードを見ればよいか」で迷わないようにする
     "bs.cash_and_equivalents"         => "jppfs_cor:CashAndCashEquivalents",
-    "cf.cash_end"                     => "jppfs_cor:CashAndCashEquivalents"
+    # CF計算書の期末残に標準タグを付けていない書類がある。経営指標の要約の現金同等物の残高は同じ金額を開示するため、2番目の候補にする
+    "cf.cash_end"                     => [ "jppfs_cor:CashAndCashEquivalents",
+                                           "jpcrp_cor:CashAndCashEquivalentsSummaryOfBusinessResults" ]
   }.freeze
 
   DURATION_MAPPING = {
@@ -176,6 +178,7 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
     "pl.gas_incidental_expenses" => "jppfs_cor:ExpensesForIncidentalBusinessesGAS",
     "cf.new_consolidation" => "jppfs_cor:IncreaseInCashAndCashEquivalentsFromNewlyConsolidatedSubsidiaryCCE",
     "cf.consolidation_change" => "jppfs_cor:IncreaseDecreaseInCashAndCashEquivalentsResultingFromChangeOfScopeOfConsolidationCCE",
+    "cf.merger" => "jppfs_cor:IncreaseInCashAndCashEquivalentsResultingFromMergerCCE",
     "cf.exchange_effect" => "jppfs_cor:EffectOfExchangeRateChangeOnCashAndCashEquivalents",
     "cf.operating" => "jppfs_cor:NetCashProvidedByUsedInOperatingActivities",
     "cf.investing" => "jppfs_cor:NetCashProvidedByUsedInInvestmentActivities", # JGAAPはInvestment（IFRSはInvesting。取り違え注意）

@@ -1,10 +1,11 @@
 module FinancialStatements
   # 一覧に表示する有報を起点に、同じ企業の過去5年をまとめて取得する。
   # 各年はカードと同じ主たる財務諸表を使い、連結区分が切り替われば注記する。
-  # CFの2科目だけを一括取得し、カード数に比例した追加クエリを発生させない。
+  # CFの式に使う科目だけを一括取得し、カード数に比例した追加クエリを発生させない。
+  # 活動がなく「－」の営業CF・投資CFは、CFのグラフと同じく式が成り立つときだけ0として扱う。
   class FreeCashFlowTrends
     YEARS = 5
-    CODES = %w[cf.operating cf.investing].freeze
+    CODES = (CashFlowVerification::FLOWS + CashFlowVerification::ADJUSTMENTS + [ CashFlowVerification::CLOSING ]).freeze
     Point = Struct.new(:year, :fiscal_year_start_date, :fiscal_year_end_date,
                        :operating_cf, :investing_cf, :amount, :consolidation_type, keyword_init: true)
     Trend = Struct.new(:renderable, :note, :points, keyword_init: true)
@@ -58,16 +59,18 @@ module FinancialStatements
         return {} if statements.empty?
 
         Disclosure::FinancialStatementItem.where(financial_statement_id: statements.map(&:id), item_code: CODES)
-          .pluck(:financial_statement_id, :item_code, :amount)
-          .each_with_object({}) do |(id, code, amount), result|
-            (result[id] ||= {})[code] = amount
+          .pluck(:financial_statement_id, :item_code, :amount, :rounding_error)
+          .each_with_object({}) do |(id, code, amount, rounding_error), result|
+            amounts = (result[id] ||= Amounts.new)
+            amounts[code] = amount
+            amounts.rounding_errors[code] = rounding_error
           end
       end
 
       def point(year, statement, amounts)
         return Point.new(year: year) unless statement
 
-        values = amounts.fetch(statement.id, {})
+        values = CashFlowVerification.amounts(amounts.fetch(statement.id, Amounts.new))
         operating = values["cf.operating"]
         investing = values["cf.investing"]
         Point.new(year: year,

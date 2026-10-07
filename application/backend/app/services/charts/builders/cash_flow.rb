@@ -12,9 +12,11 @@ class Charts::Builders::CashFlow < Charts::Builders::StackBase
 
   def build
     # 5点すべて揃わなければ表示不可とする（all-or-nothing）。
-    # 理由: ウォーターフォールは1点欠けると滝の繋がりが崩れ、誤解を招くグラフになる
+    # 理由: ウォーターフォールは1点欠けると滝の繋がりが崩れ、誤解を招くグラフになる。
+    # 活動がなく「－」の項目は、CFの式が成り立つときだけ0として揃える（FCF推移と同じ判定）
+    amounts = FinancialStatements::CashFlowVerification.amounts(@items)
     steps = STEPS.map { |key, label, code, kind|
-      v = val(code)
+      v = amounts[code]
       return Charts::WaterfallChart.unrenderable(no_data_note("キャッシュフロー")) if v.nil?
       # amountはStackChartと違い符号付きのまま渡す。増減の向きが情報そのものだから
       Charts::WaterfallStep.new(key: key, label: label, amount: v, kind: kind,
@@ -22,4 +24,9 @@ class Charts::Builders::CashFlow < Charts::Builders::StackBase
     }
     Charts::WaterfallChart.new(renderable: true, note: nil, steps: steps)
   end
+
+  # 期末残があるのに、期首残＋各CF＋換算差額など＝期末残が成り立たないときの金額。
+  # 5点が揃って描くCFでは描いていない行（式に入れていない調整の行など）が、行がなく描けないCFでは「－」でない項目が残っている。
+  # 描けないCFも警告するのは、式に足りない行を見つければ描けるようになるため
+  def mismatch = FinancialStatements::CashFlowVerification.mismatch(@items)
 end
