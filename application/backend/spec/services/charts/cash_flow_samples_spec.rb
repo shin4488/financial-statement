@@ -93,6 +93,75 @@ RSpec.describe "キャッシュ・フロー計算書のグラフ（実XBRL）" d
     end
   end
 
+  describe "IFRSの期首残・期末残は、CF計算書の残高で描く" do
+    it "THK 2025年12月期: CF計算書の期末残（120,534百万円）が財政状態計算書の現金及び現金同等物（110,008百万円）と違い、CF計算書の残高で描く" do
+      fs, chart = cash_flow("S100XRWN", :consolidated)
+      aggregate_failures do
+        expect(steps(chart)).to include("cashBegin" => 138_293_000_000, "cashEnd" => 120_534_000_000)
+        expect(fs.items_hash["bs.cash_and_equivalents"]).to eq 110_008_000_000 # BSの科目は財政状態計算書の額のまま
+        expect(cash_flow_warnings).to be_empty
+      end
+    end
+
+    it "富士通 2026年3月期: CF計算書の期首残（320,099百万円）が前期末の財政状態計算書の額と違い、CF計算書の残高で描く" do
+      _, chart = cash_flow("S100YM3K", :consolidated)
+      aggregate_failures do
+        expect(steps(chart)).to include("cashBegin" => 320_099_000_000, "cashEnd" => 450_366_000_000)
+        expect(cash_flow_warnings).to be_empty
+      end
+    end
+
+    it "第一三共 2026年3月期: 売却目的で保有する資産への振替の前のCF計算書の期末残（488,983百万円）で式が成り立ち、その額で描く" do
+      _, chart = cash_flow("S100YZB3", :consolidated)
+      aggregate_failures do
+        expect(steps(chart)).to include("cashBegin" => 639_838_000_000, "cashEnd" => 488_983_000_000)
+        expect(cash_flow_warnings).to be_empty
+      end
+    end
+
+    it "兼松 2026年3月期: CF計算書用のタグを調整後の期首残高の行に付けていて式が成り立たないため、財政状態計算書の額のまま描いて警告する" do
+      _, chart = cash_flow("S100YGCZ", :consolidated)
+      aggregate_failures do
+        expect(steps(chart)).to include("cashBegin" => 56_779_000_000, "cashEnd" => 58_418_000_000)
+        expect(cash_flow_warnings.map(&:first)).to eq [ "cash flow does not reconcile with closing balance" ]
+      end
+    end
+
+    it "武田薬品工業 2026年3月期: CF計算書の残高を別に開示していない会社は、財政状態計算書の現金及び現金同等物で描く" do
+      _, chart = cash_flow("S100YB5L", :consolidated)
+      aggregate_failures do
+        expect(steps(chart)).to include("cashBegin" => 385_113_000_000, "cashEnd" => 595_054_000_000)
+        expect(cash_flow_warnings).to be_empty
+      end
+    end
+  end
+
+  describe "日本基準の連結範囲の変更・合併の行は、標準タグの分け方によらず式に含める" do
+    it "良品計画 2025年8月期: 連結除外に伴う現金及び現金同等物の減少額（△175百万円）を含めて式が成り立つ" do
+      fs = cash_flow("S100X5NI", :consolidated).first
+      aggregate_failures do
+        expect(fs.items_hash["cf.consolidation_change"]).to eq(-175_000_000)
+        expect(cash_flow_warnings).to be_empty
+      end
+    end
+
+    it "コシダカホールディングス 2023年8月期: 非連結子会社との合併に伴う現金及び現金同等物の増加額（13,878千円）を含めて式が成り立つ" do
+      fs = cash_flow("S100X7D9", :consolidated).first
+      aggregate_failures do
+        expect(fs.items_hash["cf.merger"]).to eq 13_878_000
+        expect(cash_flow_warnings).to be_empty
+      end
+    end
+
+    it "前澤給装工業 2026年3月期: 連結子会社の合併による現金及び現金同等物の増減額（289百万円）を含めて式が成り立つ" do
+      fs = cash_flow("S100YIVJ", :non_consolidated).first
+      aggregate_failures do
+        expect(fs.items_hash["cf.merger"]).to eq 289_000_000
+        expect(cash_flow_warnings).to be_empty
+      end
+    end
+  end
+
   it "新都ホールディングス 2026年1月期: 5点がそろって描くが、式に入れていない行があり式が合わないため警告する" do
     _, chart = cash_flow("S100YXHA", :consolidated)
     aggregate_failures do

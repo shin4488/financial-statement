@@ -11,7 +11,8 @@ class Ingestion::Extractors::IfrsLiquidity < Ingestion::Extractors::Base
     "bs.equity_attributable_to_owners" => "jpigp_cor:EquityAttributableToOwnersOfParentIFRS",
     "bs.non_controlling_interests"     => "jpigp_cor:NonControllingInterestsIFRS",
     "bs.cash_and_equivalents"          => "jpigp_cor:CashAndCashEquivalentsIFRS",
-    "cf.cash_end"                      => "jpigp_cor:CashAndCashEquivalentsIFRS"
+    # CF計算書の残高のタグはBSの様式によらないため、分類形式の定義を共有する
+    "cf.cash_end"                      => Ingestion::Extractors::IfrsClassified::INSTANT_MAPPING.fetch("cf.cash_end")
   }.freeze
 
   # PL/CFのタグ体系はBSの様式（511000/512000）と独立に共通のため、
