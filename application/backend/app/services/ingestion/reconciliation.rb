@@ -10,11 +10,17 @@ module Ingestion
     # 描いたPLの費用が、保存した科目どうしの式を端数の範囲で満たさない（タグで費用を説明できない）。
     # 式は描き方で違い、グラフ作成処理が決める（日本基準は費用・営業利益と売上、IFRSは積まなかった営業費用と売上原価・販管費）
     PROFIT_LOSS_MISMATCH = "profit and loss chart expenses do not reconcile".freeze
+    # 描いたBSで、借方の科目の合計が資産合計と、または資産合計が負債合計＋純資産合計と、端数の範囲で一致しない
+    BALANCE_SHEET_MISMATCH = "balance sheet chart does not reconcile with totals".freeze
 
     Warning = Data.define(:message, :amounts)
 
     def self.warnings(items, format)
-      [ revenue_warning(items), profit_loss_warning(items, format) ].compact
+      [
+        revenue_warning(items),
+        chart_warning(PROFIT_LOSS_MISMATCH, Charts::BuilderRegistry::PL[format], items),
+        chart_warning(BALANCE_SHEET_MISMATCH, Charts::BuilderRegistry::BS[format], items)
+      ].compact
     end
 
     def self.revenue_warning(items)
@@ -24,11 +30,11 @@ module Ingestion
       end
     end
 
-    # グラフに描く費用の組み合わせはグラフ作成処理が選ぶため、照合もその選んだ組み合わせで行う
-    def self.profit_loss_warning(items, format)
-      amounts = Charts::BuilderRegistry::PL[format]&.new(items)&.mismatch
-      Warning.new(PROFIT_LOSS_MISMATCH, amounts) if amounts
+    # グラフに描く科目の組み合わせはグラフ作成処理が選ぶため、照合もその描き方で行う
+    def self.chart_warning(message, builder, items)
+      amounts = builder&.new(items)&.mismatch
+      Warning.new(message, amounts) if amounts
     end
-    private_class_method :revenue_warning, :profit_loss_warning
+    private_class_method :revenue_warning, :chart_warning
   end
 end
