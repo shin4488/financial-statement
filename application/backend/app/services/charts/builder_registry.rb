@@ -28,9 +28,10 @@ module Charts
     def self.build_all(financial_statement)
       items = financial_statement.items_hash
       format = financial_statement.presentation_format
+      date = financial_statement.fiscal_year_end_date
       {
-        balance_sheet: BS[format]&.new(items)&.build || Charts::StackChart.unrenderable(UNSUPPORTED_NOTE),
-        profit_loss:   PL[format]&.new(items)&.build || Charts::StackChart.unrenderable(UNSUPPORTED_NOTE),
+        balance_sheet: BS[format]&.new(items, fiscal_year_end_date: date)&.build || Charts::StackChart.unrenderable(UNSUPPORTED_NOTE),
+        profit_loss:   PL[format]&.new(items, fiscal_year_end_date: date)&.build || Charts::StackChart.unrenderable(UNSUPPORTED_NOTE),
         cash_flow:     Builders::CashFlow.new(items).build
       }
     end

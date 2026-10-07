@@ -16,7 +16,8 @@ bundle exec rails runner '
      S100YK5Y S100XVWE S100VZJC S100G4YH S100B9WP S100O4KK S100Y4UH
      S100YF0X S100XSQX S100YHXU S100YEAK S100J54V S100L2D0 S100QTB3 S100Y8NY
      S100W6NE S100IZ1U S100THV6 S100ICLB S100YK16 S100Z4G9 S100QBCW S100VY3Q S100YF3V S100Y7MV
-     S100YD7J S100YAVT S100IFQA S100NRX4 S100G1ZO S100LM4N].each do |doc_id|
+     S100YD7J S100YAVT S100IFQA S100NRX4 S100G1ZO S100LM4N
+     S100Y9G1 S100IXWZ S100D97M S100Y87F].each do |doc_id|
     path = client.download_xbrl(doc_id: doc_id, work_dir: dir)
     puts "#{doc_id}: #{path}"
     sleep 2
@@ -48,7 +49,7 @@ bundle exec rails runner '
 | S100Y0DB | Mマート | 投資業コード（inv）・単体のみ: 営業収益−汎用の営業費用（OperatingExpenses） |
 | S100YD29 | かんぽ生命 | jgaap_insurance判定（連結・単体とも）/ 経常収益=OperatingIncomeINS / 保険契約準備金 |
 | S100YCL0 | ソニーフィナンシャルG | 連結はjgaap_insurance / 単体は業種コードinsでも流動資産があるためjgaap_general |
-| S100YE7T | 日本郵政 | 複数業種コード（bnk,ins）→ 先頭の銀行 / 貯金が企業拡張タグのためBSは描けない |
+| S100YE7T | 日本郵政 | 複数業種コード（bnk,ins）→ 銀行の経常収益があるため銀行 / 貯金を企業拡張タグから取りBSを描く |
 | S100SO41 | クリエイト・レストランツHD | ifrs_summary判定（2019年2月期=詳細タグ義務化前でjpigp_corが無い）/ 経営指標サマリからPL骨格+CF5点 |
 
 期待値の出典はリポジトリルートの docs/guide/06_taxonomy_mapping.md（「実地調査の記録」）の実測表。
@@ -143,6 +144,20 @@ bundle exec rails runner '
 | S100XTLJ | キヤノン | 2025年12月期。CFを描き、ROEを親会社株主に帰属する持分で計算する（9.66%。公表ROEは9.7%） |
 | S100LM4N | ソニー | 2021年3月期。親会社株主に帰属する持分のタグがなく、非支配持分を含む純資産で代えない。ROEは公表値24.2%、ROAは計算する |
 | S100G1ZO | トヨタ自動車 | 2019年3月期。経営指標サマリのCFの3区分と現金残高でCFを描く |
+
+## 貸借対照表のグラフ
+
+`spec/services/charts/balance_sheet_samples_spec.rb` は、BSのグラフの構成・金額と、取込のときのBSの照合の警告を検証する。
+
+| docID | 企業 | 検証ポイント |
+|---|---|---|
+| S100YE7T | 日本郵政 | 2026年3月期。貯金を企業拡張タグ `DepositsLiabilities` 184,652,065百万円から取り、銀行の様式で描く |
+| S100Y9G1 | ゆうちょ銀行 | 2026年3月期。連結・単体とも貯金を企業拡張タグ `DepositsLiabilities` から取り、描く |
+| S100YK16 | ARCHION | 2026年3月期。資産0・負債407百万円・純資産−407百万円。借方に何も積まず、負債を分母にして描く |
+| S100IXWZ | ソニーフィナンシャルHD | 2020年3月期。業種コードBNK,INSでも銀行の経常収益がなく保険の経常収益があるため、保険の様式で描く（保険契約準備金10,731,488百万円、経常収益1,781,420百万円） |
+| S100XCO8 | ピクセラ | 2025年9月期。繰延資産11,276千円を借方に積み、借方の合計が資産合計と端数の範囲で一致する |
+| S100D97M | 三菱商事 | 2018年3月期（ifrs_summary）。2019年3月末より前に終わる年度のIFRSの説明文 |
+| S100Y87F | いちよし証券 | 2025年3月期。流動負債・固定負債のほかの負債（特別法上の準備金）は差額でしか描けないため今のまま描き、BSの照合は警告しない |
 
 ## 売上と経営指標の要約の照合
 

@@ -15,6 +15,9 @@ module Disclosure
     # FormatRegistry 1箇所に限定する方を優先。二重管理にすると形式追加時に片方を忘れる）
     validates :presentation_format, inclusion: { in: Ingestion::FormatRegistry::ALL }
 
+    # グラフの説明文を年度で分ける形式があるため、グラフ作成処理に決算日を渡す
+    delegate :fiscal_year_end_date, to: :report
+
     # {item_code => amount} のハッシュ。ChartBuilderへの入力形式。
     # メモ化する理由: 1つの財務諸表からBS/PL/CFの3つのBuilderが呼ばれるため、
     # クエリを1回に抑える（preload済みなら科目と精度をメモリから取得する）

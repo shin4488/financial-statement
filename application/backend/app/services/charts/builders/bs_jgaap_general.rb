@@ -6,13 +6,14 @@ class Charts::Builders::BsJgaapGeneral < Charts::Builders::StackBase
     [ "investments", "投資その他資産", "bs.investments_and_other_assets", "asset4" ]
   ].freeze
   FIXED_ASSET_TOTAL = [ "fixedAssets", "固定資産", "bs.non_current_assets", "asset2" ].freeze
+  # 資産合計は流動資産・固定資産・繰延資産の合計。繰延資産を開示しない会社は行がないため積まない
+  DEFERRED_ASSETS = [ "deferredAssets", "繰延資産", "bs.deferred_assets", "asset5" ].freeze
 
   def build
-    debit_specs = [ [ "currentAssets", "流動資産", "bs.current_assets", "asset1" ], *fixed_asset_specs ]
+    debit_specs = [ [ "currentAssets", "流動資産", "bs.current_assets", "asset1" ], *fixed_asset_specs, DEFERRED_ASSETS ]
     # 比率の分母をbs.assetsでなく「表示する科目の合計」にする理由:
-    # jppfs_cor:Assetsには繰延資産など表示しない科目も含まれ得るため、
-    # bs.assetsを分母にすると表示セグメントの比率合計が100%に届かない企業が出る。
-    # 表示するものの合計を分母にすれば定義上100%で完結する
+    # 固定資産の3分類が固定資産に届かない会社など、表示しない資産が残る会社でも
+    # 表示セグメントの比率合計を100%で完結させるため
     base = debit_specs.sum { |_, _, code, _| val(code).to_i }
     two_sided_chart(
       debit_specs: debit_specs,

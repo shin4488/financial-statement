@@ -105,6 +105,8 @@
 
 電気・鉄道・電気通信の単体などでは、固定資産を事業別に区分するため、有形・無形の標準タグがない場合がある。
 
+資産合計は流動資産・固定資産・繰延資産の合計になる。繰延資産（創立費・開業費・株式交付費・社債発行費など）は開示する会社だけがタグを持つ。
+
 ### 形式固有の内訳科目
 
 | 科目コード | 日本語 | 形式 | XBRLタグ | 表示に使う形式 |
@@ -112,10 +114,13 @@
 | `bs.tangible_fixed_assets` | 有形固定資産 | 一般 | `jppfs_cor:PropertyPlantAndEquipment` | 一般 |
 | `bs.intangible_fixed_assets` | 無形固定資産 | 一般 | `jppfs_cor:IntangibleAssets` | 一般 |
 | `bs.investments_and_other_assets` | 投資その他の資産 | 一般 | `jppfs_cor:InvestmentsAndOtherAssets` | 一般 |
+| `bs.deferred_assets` | 繰延資産 | 一般 | `jppfs_cor:DeferredAssets` | 一般 |
 | `bs.loans` | 貸出金 / 貸付金 | 銀行・保険 | 銀行 `jppfs_cor:LoansAndBillsDiscountedAssetsBNK`<br>保険 `jppfs_cor:LoansReceivablesAssetsINS` | 銀行・保険 |
 | `bs.securities` | 有価証券 | 銀行・保険 | 銀行 `jppfs_cor:SecuritiesAssetsBNK`<br>保険 `jppfs_cor:SecuritiesAssetsINS` | 銀行・保険 |
-| `bs.deposits` | 預金 | 銀行 | `jppfs_cor:DepositsLiabilitiesBNK` | 銀行 |
+| `bs.deposits` | 預金 | 銀行 | `jppfs_cor:DepositsLiabilitiesBNK` → 企業拡張タグ `DepositsLiabilities` | 銀行 |
 | `bs.policy_reserves` | 保険契約準備金 | 保険 | `jppfs_cor:ReserveForInsurance` `PolicyLiabilitiesLiabilitiesINS` | 保険 |
+
+日本郵政とゆうちょ銀行は、貯金を企業拡張タグ `DepositsLiabilities` で開示している（日本郵政の2017年・2026年、ゆうちょ銀行の2018年・2026年の有報で確認）。標準タグで取れないときだけ使う。
 | `bs.property_plant_and_equipment` | 有形固定資産 | 分類 | `jpigp_cor:PropertyPlantAndEquipmentIFRS` | — |
 | `bs.goodwill_and_intangibles` | のれん及び無形資産 | 分類 | `jpigp_cor:GoodwillAndIntangibleAssetsIFRS` → なければ `GoodwillIFRS` + `IntangibleAssetsIFRS` | — |
 | `bs.equity_attributable_to_owners` | 自己資本 / 親会社所有者帰属持分 | 全対応形式 | 上記「ROE・ROAの期首・期末残高」参照 | 指標 |
@@ -375,7 +380,7 @@ EDINETから取得した原本で、タグの有無と数値を確認した記�
 | 東京海上: 保険収益が拡張タグ `InsuranceRevenueIFRS`（7.69兆円）のみで、経営指標サマリの標準タグも存在しない | PLに表示できない理由を示し、他の表は表示する |
 | CFの3区分と現金同等物は全形式で取得可能（タグ名が基準別に異なるのみ） | CFチャートを全形式共通のBuilderにできる |
 | 銀行BSに流動/固定の区分がなく、合計だけは汎用タグ（`jppfs_cor:Assets` 等）で取れる | 銀行BSは主要科目+残差で描く |
-| 2019年3月期より前のIFRS有報（S100SO41ほか）は `jpigp_cor` のfact自体が収録されていない（詳細タグ付けは2019年3月31日以後終了事業年度から義務化）。財務諸表の値は経営指標サマリ `jpcrp_cor:*IFRSSummaryOfBusinessResults` のみ | 資産合計タグも無いIFRS書類はサマリだけで構成する `ifrs_summary` として扱う。BSはサマリに負債の実値が無いため描かず説明文にする |
+| 2019年3月期より前のIFRS有報（S100SO41ほか）は `jpigp_cor` のfact自体が収録されていない（詳細タグ付けは2019年3月31日以後終了事業年度から義務化）。財務諸表の値は経営指標サマリ `jpcrp_cor:*IFRSSummaryOfBusinessResults` のみ | 資産合計タグも無いIFRS書類はサマリだけで構成する `ifrs_summary` として扱う。BSはサマリに負債の実値が無いため描かず説明文にする。説明文は、決算日が2019年3月31日より前なら「2019年3月末より前のIFRSは非対応」、それ以外（義務化後にこの形式になった書類）は「詳細データがない」と書く |
 
 ### 金融庁 IFRSタクソノミ要素リスト（1g_IFRS_ElementList.xlsx）からの知見
 
@@ -426,7 +431,7 @@ ifrs_summaryの検証用（クリエイト・レストランツHD S100SO41、201
 | 商品先物 cmd | 小林洋行 S100YJB4<br>豊トラスティ証券 S100YJ8P<br>unbanked S100YNMZ | 一般 | 一般 | 小林洋行のみ商品先物の様式（営業収益 `OperatingRevenueCMD`（`OperatingRevenue1` にも同値）− 売上原価 = 営業総利益 − 営業費用 `OperatingExpensesCMD` = 営業利益）→ PLの費用構成「原価+営業費用」。単体は `NetSales`（商品売上高）が営業収益の内訳 → 営業収益系を売上高より優先する。他2社は証券様式・標準タグ |
 | 投資運用 ivt / 投資業 inv | スパークス S100Y7MV<br>Mマート S100Y0DB | 一般 | 一般 | スパークスは営業費用が企業拡張タグのみでPLは描けない（BS/CFは描ける）。Mマートは `OperatingRevenue1` − 汎用の `OperatingExpenses` |
 | 保険 ins | かんぽ生命 S100YD29<br>第一ライフG S100YC7A<br>T&D S100Y9UP<br>ソニーFG S100YCL0<br>SBIインシュアランス S100YDWS<br>アニコム S100YFY1<br>ライフネット S100YC7R（単体） | 保険 | 保険 or 一般 | 経常収益 `OperatingIncomeINS` − 経常費用 `OperatingExpensesINS` = 経常利益。BSは有価証券・貸付金・現金及び預貯金 + 保険契約準備金。ソニーFG単体は業種コードinsだが流動/固定のある一般様式 → 流動資産タグの実在で一般に戻す |
-| 複数コード | 日本郵政 S100YE7T（bnk,ins）<br>日本インシュレーション S100YG71（cte,cns）<br>広島電鉄 S100YI48（cte,cns）<br>飯野海運 S100YGFN（cte,wat）<br>オウケイウェイヴ S100WS3E（cte,sec,cmd） | — | — | 先頭のコードを主たる業種として判定。日本郵政は銀行様式のPL（`OrdinaryIncomeBNK`）だが貯金が企業拡張タグのためBSは描けない。広島電鉄の単体は鉄道様式（`OperatingRevenueTotalRWY`） |
+| 複数コード | 日本郵政 S100YE7T（bnk,ins）<br>ソニーFG S100IXWZ（BNK,INS。2018〜2020年3月期）<br>日本インシュレーション S100YG71（cte,cns）<br>広島電鉄 S100YI48（cte,cns）<br>飯野海運 S100YGFN（cte,wat）<br>オウケイウェイヴ S100WS3E（cte,sec,cmd） | — | — | 先頭のコードを主たる業種として判定。銀行と保険を並べる会社は、経常収益のタグ（銀行 `OrdinaryIncomeBNK`、保険 `OperatingIncomeINS`）がある業種の様式にする。日本郵政は銀行様式のPL（`OrdinaryIncomeBNK`）で、貯金は企業拡張タグから取る。ソニーFGのこの3年は保険の経常収益だけがあり、保険の様式で作られている。広島電鉄の単体は鉄道様式（`OperatingRevenueTotalRWY`） |
 | 米国基準 | キヤノン S100XTLJ<br>小松製作所<br>オリックス S100YG5L<br>オムロン<br>野村HD<br>富士フイルムHD | 米国サマリ | 一般 | 本表の標準タグがなく企業拡張タグのみ → 経営指標サマリの標準タグでCFと財務指標だけを表示する。単体は日本基準の標準タグで描ける |
 
 ### 3年分の全数検証（本番の直近3年）

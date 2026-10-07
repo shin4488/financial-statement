@@ -4,10 +4,20 @@ require "rails_helper"
 # 「正常系 / 債務超過 / 貸借乖離」の3観点を形式ごとに検証する
 RSpec.describe "Charts::Builders BS各種" do
   describe Charts::Builders::BsIfrsSummary do
-    it "科目によらず理由の説明つきで表示不可になる" do
-      chart = described_class.new({}).build
-      expect(chart.renderable).to be false
-      expect(chart.note).to include "詳細データが収録されていない"
+    def note(date) = described_class.new({ "bs.assets" => 1_000 }, fiscal_year_end_date: date).build.note
+
+    it "詳細タグ付けが義務になる前（2019年3月31日より前に終わる年度）は、年度を理由に表示不可とする" do
+      aggregate_failures do
+        expect(note(Date.new(2018, 3, 31))).to eq "財政状態計算書: 2019年3月末より前のIFRSは非対応です。"
+        expect(note(Date.new(2019, 3, 30))).to eq "財政状態計算書: 2019年3月末より前のIFRSは非対応です。"
+      end
+    end
+
+    it "義務になった後の年度と、決算日が分からないときは、年度を理由に書かない" do
+      aggregate_failures do
+        expect(note(Date.new(2019, 3, 31))).to eq "財政状態計算書: 詳細データがないため表示できません。"
+        expect(note(nil)).to eq "財政状態計算書: 詳細データがないため表示できません。"
+      end
     end
   end
 
@@ -43,6 +53,76 @@ RSpec.describe "Charts::Builders BS各種" do
     it "貸借が1割超乖離したらunrenderable" do
       chart = described_class.new(items.merge("bs.current_assets" => 4_000)).build
       expect(chart.renderable).to be false
+    end
+
+    it "繰延資産があれば借方の最後に積み、比率の分母に含める" do
+      chart = described_class.new(items.merge("bs.deferred_assets" => 100, "bs.equity" => 500)).build
+      debit, = chart.bars
+      aggregate_failures do
+        expect(debit.segments.map { |s| [ s.label, s.amount, s.color_role ] }.last).to eq [ "繰延資産", 100, "asset5" ]
+        expect(debit.segments.map(&:ratio)).to eq [ 36.3, 27.2, 9.0, 18.1, 9.0 ]
+      end
+    end
+
+    describe "資産合計が0の会社" do
+      let(:zero_assets) do
+        { "bs.current_assets" => 0, "bs.assets" => 0, "bs.current_liabilities" => 407,
+          "bs.liabilities" => 407, "bs.equity" => -407 }
+      end
+
+      it "負債と同じ額の債務超過なら、借方に何も積まず、負債を分母にして描く" do
+        chart = described_class.new(zero_assets).build
+        debit, credit, insolvency = chart.bars
+        aggregate_failures do
+          expect(chart.renderable).to be true
+          expect(debit.segments).to be_empty
+          expect(credit.segments.map { |s| [ s.label, s.ratio ] }).to eq [ [ "流動負債", 100.0 ] ]
+          expect(insolvency.segments.map { |s| [ s.color_role, s.amount, s.ratio ] })
+            .to eq [ [ "spacer", 0, nil ], [ "equity", 407, -100.0 ] ]
+        end
+      end
+
+      it "負債＋純資産が負債の1割を超えて0から離れていれば描かない（資産0で貸借が合わない）" do
+        chart = described_class.new(zero_assets.merge("bs.equity" => -300)).build
+        expect(chart.renderable).to be false
+      end
+    end
+
+    describe "#mismatch（取込のときの照合）" do
+      let(:balanced) { items.merge("bs.assets" => 1_000, "bs.liabilities" => 600) }
+
+      it "借方の科目の合計が資産合計と、資産合計が負債合計＋純資産合計と一致すればnil" do
+        expect(described_class.new(balanced).mismatch).to be_nil
+      end
+
+      it "借方に描いていない資産が残っていれば、照合に使った金額を返す" do
+        amounts = described_class.new(balanced.merge("bs.assets" => 1_011, "bs.equity" => 411)).mismatch
+        expect(amounts).to eq("bs.current_assets" => 400, "bs.tangible_fixed_assets" => 300,
+                              "bs.intangible_fixed_assets" => 100, "bs.investments_and_other_assets" => 200,
+                              "bs.assets" => 1_011, "bs.liabilities" => 600, "bs.equity" => 411)
+      end
+
+      it "繰延資産を借方に積めば、資産合計と一致する" do
+        expect(described_class.new(balanced.merge("bs.deferred_assets" => 11, "bs.assets" => 1_011, "bs.equity" => 411)).mismatch)
+          .to be_nil
+      end
+
+      it "資産合計が負債合計＋純資産合計と一致しなければ、金額を返す" do
+        expect(described_class.new(balanced.merge("bs.liabilities" => 610)).mismatch).to include("bs.liabilities" => 610)
+      end
+
+      it "差が各金額の端数の範囲に収まれば一致とみなす" do
+        amounts = FinancialStatements::Amounts.new
+        balanced.merge("bs.assets" => 1_001).each do |code, value|
+          amounts[code] = value
+          amounts.rounding_errors[code] = 1.to_d
+        end
+        expect(described_class.new(amounts).mismatch).to be_nil
+      end
+
+      it "描かないBSは照合しない" do
+        expect(described_class.new(balanced.merge("bs.current_assets" => 4_000)).mismatch).to be_nil
+      end
     end
 
     describe "固定資産の3分類を持たない業種（電気・鉄道・電気通信の単体など）" do
@@ -152,6 +232,15 @@ RSpec.describe "Charts::Builders BS各種" do
     it "預金が欠けるとunrenderable（負債全額をその他負債として描くと預金0%の誤ったグラフになるため）" do
       chart = described_class.new(items.except("bs.deposits")).build
       expect(chart.renderable).to be false
+    end
+
+    it "預金が負債合計を超えるときは描かない（その他負債を差額で求めるため、取り違えた預金に貸借の照合で気づけない）" do
+      chart = described_class.new(items.merge("bs.deposits" => 407_987_397)).build
+      expect(chart.renderable).to be false
+    end
+
+    it "その他資産・その他負債を合計から求めるため、合計行どうしが合えば照合の警告はない" do
+      expect(described_class.new(items).mismatch).to be_nil
     end
   end
 end

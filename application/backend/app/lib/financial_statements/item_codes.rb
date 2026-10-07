@@ -33,6 +33,7 @@ module FinancialStatements
       "bs.tangible_fixed_assets",         # 有形固定資産
       "bs.intangible_fixed_assets",       # 無形固定資産
       "bs.investments_and_other_assets",  # 投資その他の資産
+      "bs.deferred_assets",               # 繰延資産（創立費・開業費・株式交付費・社債発行費など）
       # ---- IFRS・流動/非流動分類のみ（ifrs_classified が保存する。非流動資産の代表内訳）----
       "bs.property_plant_and_equipment",  # 有形固定資産
       "bs.goodwill_and_intangibles",      # のれん及び無形資産（別掲企業はExtractorが合算）

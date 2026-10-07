@@ -16,4 +16,11 @@ RSpec.describe Charts::BuilderRegistry do
     expect(charts[:profit_loss].renderable).to be false
     expect(charts[:cash_flow].renderable).to be true
   end
+
+  it "有報の決算日をグラフ作成処理に渡し、説明文を年度で分ける" do
+    report = create(:disclosure_report, fiscal_year_start_date: Date.new(2017, 4, 1), fiscal_year_end_date: Date.new(2018, 3, 31))
+    fs = create(:disclosure_financial_statement, report: report, presentation_format: "ifrs_summary",
+                items_hash: { "bs.assets" => 1_000 })
+    expect(described_class.build_all(fs)[:balance_sheet].note).to eq "財政状態計算書: 2019年3月末より前のIFRSは非対応です。"
+  end
 end

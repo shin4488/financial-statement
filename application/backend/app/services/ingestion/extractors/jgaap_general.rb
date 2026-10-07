@@ -11,6 +11,7 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
     "bs.intangible_fixed_assets"      => "jppfs_cor:IntangibleAssets",
     "bs.investments_and_other_assets" => "jppfs_cor:InvestmentsAndOtherAssets",
     "bs.non_current_assets"           => "jppfs_cor:NoncurrentAssets",
+    "bs.deferred_assets"              => "jppfs_cor:DeferredAssets",
     "bs.assets"                       => "jppfs_cor:Assets",
     "bs.current_liabilities"          => "jppfs_cor:CurrentLiabilities",
     "bs.non_current_liabilities"      => "jppfs_cor:NoncurrentLiabilities",

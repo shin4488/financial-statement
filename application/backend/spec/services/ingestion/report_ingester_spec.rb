@@ -249,6 +249,35 @@ RSpec.describe Ingestion::ReportIngester do
     end
   end
 
+  describe "BSの照合の警告" do
+    let(:context) { "CurrentYearInstant_NonConsolidatedMember" }
+    let(:balance_sheet) do
+      { [ "jppfs_cor:CurrentAssets", context ] => 400, [ "jppfs_cor:NoncurrentAssets", context ] => 589,
+        [ "jppfs_cor:PropertyPlantAndEquipment", context ] => 589,
+        [ "jppfs_cor:CurrentLiabilities", context ] => 300, [ "jppfs_cor:NoncurrentLiabilities", context ] => 300,
+        [ "jppfs_cor:Liabilities", context ] => 600, [ "jppfs_cor:NetAssets", context ] => 400 }
+    end
+
+    before { allow(Sentry).to receive(:capture_message) }
+
+    it "描くBSの借方の科目の合計が資産合計に届かなければ、照合に使った金額を付けて警告する" do
+      ingest("S0000001", annual_report_xml(facts: balance_sheet.merge([ "jppfs_cor:Assets", context ] => 1_000)))
+
+      expect(Sentry).to have_received(:capture_message).with(
+        "balance sheet chart does not reconcile with totals", level: :warning,
+        extra: { doc_id: "S0000001", consolidation_type: "non_consolidated", presentation_format: "jgaap_general",
+                 amounts: { "bs.current_assets" => 400, "bs.tangible_fixed_assets" => 589, "bs.assets" => 1_000,
+                            "bs.liabilities" => 600, "bs.equity" => 400 } })
+    end
+
+    it "繰延資産を借方に積んで資産合計と一致すれば警告しない" do
+      ingest("S0000001", annual_report_xml(facts: balance_sheet.merge(
+        [ "jppfs_cor:Assets", context ] => 1_000, [ "jppfs_cor:DeferredAssets", context ] => 11)))
+
+      expect(Sentry).not_to have_received(:capture_message)
+    end
+  end
+
   describe "連結廃止の再取込" do
     it "取込に現れなくなった連結行が削除され、is_primaryの重複が残らない" do
       ingest("S0000001", synthetic_xbrl_xml(

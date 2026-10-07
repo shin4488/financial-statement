@@ -50,6 +50,15 @@ RSpec.describe Ingestion::FormatDetector do
       end
     end
 
+    it "銀行と保険を並べる会社は、経常収益のタグがある業種の様式になる（先頭が銀行でも、保険の経常収益だけなら保険）" do
+      aggregate_failures do
+        expect(detect(xbrl_with("jppfs_cor:OperatingIncomeINS"), "japan_gaap", "BNK,INS")).to eq "jgaap_insurance"
+        expect(detect(xbrl_with("jppfs_cor:OrdinaryIncomeBNK"), "japan_gaap", "bnk,ins")).to eq "jgaap_bank"
+        expect(detect(xbrl_with("jppfs_cor:OrdinaryIncomeBNK", "jppfs_cor:OperatingIncomeINS"), "japan_gaap", "bnk,ins"))
+          .to eq "jgaap_bank"
+      end
+    end
+
     it "業種コードが銀行・保険でも流動資産タグを持つ財務諸表（持株会社の単体など）は一般になる" do
       aggregate_failures do
         expect(detect(general_xbrl, "japan_gaap", "bnk")).to eq "jgaap_general"
