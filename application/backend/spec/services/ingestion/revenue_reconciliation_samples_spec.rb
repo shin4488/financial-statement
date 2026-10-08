@@ -24,6 +24,37 @@ RSpec.describe "売上と経営指標の要約の照合（実XBRL）" do
     end
   end
 
+  describe "売上高の下に営業収入の内訳を並べ、営業収益の合計の行がない会社は、要約と一致する両方の合計に差し替える" do
+    {
+      "S100Y3VC" => [ "セキチュー 2026年2月期（不動産賃貸収入 848,235千円）", 31_867_169_000 ],
+      "S100YD39" => [ "アルビス 2026年3月期（不動産賃貸収入 1,101百万円）", 100_951_000_000 ],
+      "S100Y5IT" => [ "リンガーハット 2026年2月期（その他の営業収入 819,558千円）", 45_084_680_000 ]
+    }.each do |doc_id, (name, revenue)|
+      it "#{name}: 売上を売上高と営業収入の内訳の合計にし、PLも左右が合うため警告しない" do
+        items = ingest(doc_id)
+        aggregate_failures do
+          expect(items["pl.revenue"]).to eq revenue
+          expect(warnings).to be_empty
+        end
+      end
+    end
+  end
+
+  describe "IFRSで標準タグの収益にその他の収益などを含める会社は、要約と一致する営業収益の企業拡張タグに差し替える" do
+    {
+      "S100YA84" => [ "日本取引所グループ 2026年3月期（収益計 199,051百万円、営業収益 OperatingRevenueRevenue2IFRS）", 198_735_000_000 ],
+      "S100YM8I" => [ "マネックスグループ 2026年3月期（収益合計 92,787百万円、営業収益 OperatingRevenueRevenueIFRS）", 83_606_000_000 ]
+    }.each do |doc_id, (name, revenue)|
+      it "#{name}: 売上を営業収益にし、警告しない" do
+        items = ingest(doc_id)
+        aggregate_failures do
+          expect(items["pl.revenue"]).to eq revenue
+          expect(warnings).to be_empty
+        end
+      end
+    end
+  end
+
   it "ミニストップ 2026年2月期: 売上を営業総収入で取り、要約の営業総収入と一致するため警告しない" do
     items = ingest("S100Y4UH")
     aggregate_failures do

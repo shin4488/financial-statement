@@ -116,6 +116,32 @@ RSpec.describe Ingestion::Extractors::Base do
     end
   end
 
+  describe "すべてのタグに値があるときだけ足す合算" do
+    let(:context) { "CurrentYearDuration" }
+    let(:extractor) do
+      Class.new(described_class) do
+        const_set(:INSTANT_MAPPING, {}.freeze)
+        const_set(:DURATION_MAPPING, {
+          "pl.revenue" => [ "t:NetSales", sum("t:NetSales", "t:RentIncome", all_present: true) ],
+          "pl.summary_revenue" => "t:SummaryRevenue",
+          "pl.sga" => sum("t:Selling", "t:Administrative", all_present: true)
+        }.freeze)
+      end
+    end
+
+    it "すべてのタグに値があれば足し、1つでもなければ合計として使わない" do
+      aggregate_failures do
+        expect(extract_with({ [ "t:Selling", context ] => 30, [ "t:Administrative", context ] => 20 }, extractor: extractor)["pl.sga"]).to eq 50
+        expect(extract_with({ [ "t:Selling", context ] => 30 }, extractor: extractor)).not_to have_key("pl.sga")
+      end
+    end
+
+    it "売上高が要約の売上と合わず、売上高と内訳の行の合計が要約と一致すれば、その合計に差し替える" do
+      facts = { [ "t:NetSales", context ] => 300, [ "t:RentIncome", context ] => 8, [ "t:SummaryRevenue", context ] => 308 }
+      expect(extract_with(facts, extractor: extractor)["pl.revenue"]).to eq 308
+    end
+  end
+
   describe "経営指標の要約の売上と合わない売上の差し替え" do
     let(:context) { "CurrentYearDuration" }
     # 売上高が製品売上高だけで、合計の事業収益は企業拡張タグに付いている書類

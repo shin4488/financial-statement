@@ -30,7 +30,9 @@ class Ingestion::Extractors::IfrsClassified < Ingestion::Extractors::Base
     # サマリの値は本表と一致する。
     # サマリを最後に置く理由: 本表タグの方が一次情報であり、サマリは表示単位変更などの
     # リスクが理論上あるため、あくまでフォールバック。
-    # サマリにもない会社は、原本で収益の合計と確かめた企業拡張タグの要素名で探す（日本基準と同じ考え方）
+    # サマリにもない会社は、原本で収益の合計と確かめた企業拡張タグの要素名で探す（日本基準と同じ考え方）。
+    # 標準タグの収益に「その他の収益」などを含めて収益合計とし、営業収益を企業拡張タグに付ける会社もあるため、
+    # その要素名も並べ、要約の売上と照合して差し替える候補にする
     "pl.revenue" => %w[
       jpigp_cor:RevenueIFRS
       jpigp_cor:Revenue2IFRS
@@ -39,6 +41,8 @@ class Ingestion::Extractors::IfrsClassified < Ingestion::Extractors::Base
       filer_ext:OperatingRevenuesIFRS
       filer_ext:OperatingRevenueIFRS
       filer_ext:TotalNetRevenuesIFRS
+      filer_ext:OperatingRevenueRevenue2IFRS
+      filer_ext:OperatingRevenueRevenueIFRS
     ],
     # 経営指標の要約の売上（照合用）。IFRS移行年度の要約には日本基準の売上高も並ぶため、IFRSの要素だけを候補にする
     "pl.summary_revenue" => [

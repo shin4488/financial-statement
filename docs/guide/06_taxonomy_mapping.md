@@ -162,6 +162,7 @@
 | 15 | 合算 `ShippingBusinessRevenueWAT` + `OtherBusinessRevenueWAT` | 海運（単体）: 海運業収益 + その他事業収益。標準サマリの全社売上もない場合 |
 | 16 | `jppfs_cor:GrossOperatingRevenue` | 営業総収入。売上高と営業収入の合計だけをタグ付けする会社（ミニストップ連結） |
 | 17 | 企業拡張タグ `TotalBusinessRevenueRevOA` → `BusinessRevenues` → `BusinessRevenue` → `BusinessRevenueRevOA` → `OperatingRevenue` → `OperatingRevenueRevOA` → `OperatingRevenuesRevOA` → `RevenueRevOA` → `Revenue2` → `Proceeds` | 売上を企業拡張タグだけで開示する会社（博報堂DY、スカイマーク、セーラー広告、デジタルHD、ラクオリア創薬、アンジェスなど）。原本で売上の合計と確かめた要素名 |
+| 18 | 合算 `NetSales` + `RentIncomeOfRealEstateRevOA`、合算 `NetSales` + `OtherOperatingRevenue2RevOA`（どちらもすべてのタグに値があるときだけ） | 売上高の下に営業収入の内訳（不動産賃貸収入・その他の営業収入）を並べ、営業収益の合計の行にタグを付けない会社（セキチュー・アルビス・リンガーハット）。売上高がある会社は8で売上が取れるため、[経営指標の要約と照合](03_data_flow.md#売上と経営指標の要約の照合)して差し替えるときだけ使う |
 
 業種固有の総額を優先する。商品先物取引業などでは、`NetSales` が営業収益の一部を指すため。
 
@@ -184,7 +185,7 @@
 | 2 | `jpigp_cor:Revenue2IFRS` | 収益 |
 | 3 | `jpigp_cor:NetSalesIFRS` | 売上高 |
 | 4 | `jpcrp_cor:RevenueIFRS` `SummaryOfBusinessResults` | 経営指標サマリ（本表ではない） |
-| 5 | 企業拡張タグ `OperatingRevenuesIFRS` → `OperatingRevenueIFRS` → `TotalNetRevenuesIFRS` | 本表の収益が企業拡張タグだけで、経営指標サマリにも標準タグがない会社（トヨタ、ローソン、Jトラスト、NTTドコモ）。原本で収益の合計と確かめた要素名 |
+| 5 | 企業拡張タグ `OperatingRevenuesIFRS` → `OperatingRevenueIFRS` → `TotalNetRevenuesIFRS` → `OperatingRevenueRevenue2IFRS` → `OperatingRevenueRevenueIFRS` | 本表の収益が企業拡張タグだけで、経営指標サマリにも標準タグがない会社（トヨタ、ローソン、Jトラスト、NTTドコモ）。原本で収益の合計と確かめた要素名。標準タグの収益に「その他の収益」などを含めて収益合計とし、営業収益を企業拡張タグに付ける会社（日本取引所グループ・マネックスグループ）は、要約の売上と照合して営業収益に差し替える |
 
 本表から取得できない場合に限り、経営指標サマリを使う。本表の収益が企業独自のタグでしか開示されない企業にも対応するため。
 

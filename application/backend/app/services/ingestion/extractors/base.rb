@@ -23,6 +23,9 @@ module Ingestion
       #   sum("…:A", "…:B", distinct_amounts: true)
       #                                       … 合算。ただし同じ金額のタグは1回だけ数える。内訳として足すタグに、
       #                                           会社によっては同じ総額を重ねて付けることがある場合に使う
+      #   sum("…:A", "…:B", all_present: true)
+      #                                       … 合算。ただしすべてのタグに値があるときだけ足し、1つでもなければnil。
+      #                                           合計の行がなく内訳の行だけを並べる会社のための候補で、片方の行だけを合計として使わないために使う
       #   max("…:A", sum("…:B", "…:C"))        … 最大値。同じ科目の総額候補が複数併記され、どれが総額かが
       #                                           企業のタグ付けで揺れる場合（売上高と営業収益）に、内訳は総額を
       #                                           超えないことを根拠に「最も包括的な値」を採る。要素にはタグかsumを置ける
@@ -42,7 +45,7 @@ module Ingestion
         def blank?(xbrl, context) = xbrl.text(qname, context) == ""
       end
 
-      Sum = Struct.new(:tags, :distinct_amounts) do
+      Sum = Struct.new(:tags, :distinct_amounts, :all_present) do
         def rounding_error(xbrl, context)
           errors = counted_tags(xbrl, context).map { |tag| tag.rounding_error(xbrl, context) }
           errors.sum if errors.any? && errors.none?(&:nil?)
@@ -61,6 +64,7 @@ module Ingestion
         private
           def counted_tags(xbrl, context)
             present = tags.reject { |tag| tag.evaluate(xbrl, context).nil? }
+            return [] if all_present && present.size < tags.size
             distinct_amounts ? present.uniq { |tag| tag.evaluate(xbrl, context) } : present
           end
       end
@@ -96,7 +100,7 @@ module Ingestion
           end
       end
 
-      def self.sum(*qnames, distinct_amounts: false) = Sum.new(qnames.map { |qname| Tag.new(qname) }, distinct_amounts)
+      def self.sum(*qnames, distinct_amounts: false, all_present: false) = Sum.new(qnames.map { |qname| Tag.new(qname) }, distinct_amounts, all_present)
       def self.max(*entries) = Max.new(entries.map { |entry| wrap(entry) })
       def self.filer_ext(pattern) = FilerExtension.new(pattern)
       # マッピング表では単一タグを裸の文字列で書けるようにしているため、評価前にTagへ揃える
