@@ -8,12 +8,15 @@ class Charts::Builders::BsJgaapBank < Charts::Builders::StackBase
     # 形式判定ミスか取込不良の可能性が高い）。
     # 資産側の内訳（貸出金等）は欠けても残差の「その他資産」に吸収されるだけなので許容する
     deposits = val("bs.deposits")
+    liabilities = val("bs.liabilities")
     return Charts::StackChart.unrenderable(no_data_note("貸借対照表")) if deposits.nil?
+    # その他負債を「負債合計−預金」で求めるため、預金の値が誤っていても貸借の照合では気づけない。
+    # 負債の一部である預金が負債合計を超えるなら、取り違えた値とみなして描かない
+    return Charts::StackChart.unrenderable(no_data_note("貸借対照表")) if liabilities && deposits > liabilities
 
     assets = val("bs.assets")
     known_assets = %w[bs.cash_and_equivalents bs.loans bs.securities].sum { |c| val(c).to_i }
     other_assets = assets ? assets - known_assets : nil
-    liabilities = val("bs.liabilities")
     other_liabilities = liabilities ? liabilities - deposits : nil
     two_sided_chart(
       debit_specs: [

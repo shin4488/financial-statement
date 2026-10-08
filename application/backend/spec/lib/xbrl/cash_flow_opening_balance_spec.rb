@@ -23,9 +23,9 @@ RSpec.describe Xbrl::CashFlowOpeningBalance do
     expect(reconcile(closing: money(37_621_000))).to be_nil
   end
 
-  it "開示精度の上限に達する差や、精度不明を許容しない" do
+  it "開示精度の上限に達する差や、精度不明の金額を含む差を許容しない" do
     expect(reconcile(closing: money(36_624_000))).to be_nil
-    expect(reconcile(opening: money(23_236_000, decimals: nil))).to be_nil
+    expect(reconcile(opening: money(23_236_000, decimals: nil), closing: money(36_622_000))).to be_nil
   end
 
   it "不足・不正な数値や通貨の混在から補完しない" do

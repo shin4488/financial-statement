@@ -166,12 +166,115 @@ RSpec.describe Ingestion::ReportIngester do
         .to eq "ifrs_summary"
     end
 
-    it "Extractorを持たない形式（unsupported）では警告しない" do
+    it "usgaap_summaryで指標用の総資産を取得できれば警告しない" do
       expect(Sentry).not_to receive(:capture_message).with(/primary statement missing bs\.assets/, anything)
-      ingest("S0000001", synthetic_xbrl_xml(dei: { accounting_standard: "US GAAP", has_consolidated: "true" }))
+      ingest("S0000001", synthetic_xbrl_xml(
+        dei: { accounting_standard: "US GAAP", has_consolidated: "true" },
+        facts: { [ "jpcrp_cor:TotalAssetsUSGAAPSummaryOfBusinessResults", "CurrentYearInstant" ] => 200 }))
 
       expect(Disclosure::FinancialStatement.find_by(consolidation_type: :consolidated).presentation_format)
-        .to eq "unsupported"
+        .to eq "usgaap_summary"
+    end
+  end
+
+  describe "売上と経営指標の要約の照合の警告" do
+    let(:context) { "CurrentYearDuration_NonConsolidatedMember" }
+    let(:assets) { { [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 1_000 } }
+
+    before { allow(Sentry).to receive(:capture_message) }
+
+    it "売上が要約の売上と合わなければ、照合の種類ごとの固定の文言で警告し、書類ID・連結区分・金額を付加情報にする" do
+      ingest("S0000001", annual_report_xml(facts: assets.merge(
+        [ "jppfs_cor:NetSales", context ] => 107,
+        [ "jpcrp030000-asr_E00001-000:BusinessRevenueSummaryOfBusinessResults", context ] => 615)))
+
+      expect(Sentry).to have_received(:capture_message).with(
+        "revenue does not match summary of business results", level: :warning,
+        extra: { doc_id: "S0000001", consolidation_type: "non_consolidated", presentation_format: "jgaap_general",
+                 amounts: { "pl.revenue" => 107, "pl.summary_revenue" => 615 } })
+    end
+
+    it "要約に売上があるのに売上が取れなければ警告する" do
+      ingest("S0000001", annual_report_xml(facts: assets.merge(
+        [ "jpcrp030000-asr_E00001-000:OperatingRevenuesSummaryOfBusinessResults", context ] => 110)))
+
+      expect(Sentry).to have_received(:capture_message).with(
+        "revenue missing although summary of business results has revenue", level: :warning,
+        extra: hash_including(doc_id: "S0000001", amounts: { "pl.summary_revenue" => 110 }))
+    end
+
+    it "売上が要約の売上と一致すれば警告しない" do
+      ingest("S0000001", annual_report_xml(facts: assets.merge(
+        [ "jppfs_cor:NetSales", context ] => 615, [ "jpcrp_cor:NetSalesSummaryOfBusinessResults", context ] => 615)))
+
+      expect(Sentry).not_to have_received(:capture_message)
+    end
+
+    it "画面に出さない単体は照合しない" do
+      ingest("S0000001", synthetic_xbrl_xml(
+        dei: { has_consolidated: "true" },
+        facts: { [ "jppfs_cor:Assets", "CurrentYearInstant" ] => 1_000,
+                 [ "jppfs_cor:NetSales", "CurrentYearDuration" ] => 615,
+                 [ "jpcrp_cor:NetSalesSummaryOfBusinessResults", "CurrentYearDuration" ] => 615,
+                 [ "jppfs_cor:NetSales", context ] => 107,
+                 [ "jpcrp_cor:NetSalesSummaryOfBusinessResults", context ] => 615 }))
+
+      expect(Sentry).not_to have_received(:capture_message)
+    end
+  end
+
+  describe "日本基準のPLの照合の警告" do
+    let(:context) { "CurrentYearDuration_NonConsolidatedMember" }
+    let(:assets) { { [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 1_000 } }
+
+    before { allow(Sentry).to receive(:capture_message) }
+
+    it "費用のタグの組み合わせが売上と一致せず、1割以内のずれで描くときは、照合に使った金額を付けて警告する" do
+      ingest("S0000001", annual_report_xml(facts: assets.merge(
+        [ "jppfs_cor:NetSales", context ] => 1_000, [ "jppfs_cor:CostOfSales", context ] => 600,
+        [ "jppfs_cor:SellingGeneralAndAdministrativeExpenses", context ] => 250, [ "jppfs_cor:OperatingIncome", context ] => 100)))
+
+      expect(Sentry).to have_received(:capture_message).with(
+        "profit and loss chart expenses do not reconcile", level: :warning,
+        extra: { doc_id: "S0000001", consolidation_type: "non_consolidated", presentation_format: "jgaap_general",
+                 amounts: { "pl.revenue" => 1_000, "pl.cost_of_sales" => 600, "pl.sga" => 250, "pl.operating_profit" => 100 } })
+    end
+
+    it "費用のタグの組み合わせが売上と一致すれば警告しない" do
+      ingest("S0000001", annual_report_xml(facts: assets.merge(
+        [ "jppfs_cor:NetSales", context ] => 1_000, [ "jppfs_cor:CostOfSales", context ] => 600,
+        [ "jppfs_cor:SellingGeneralAndAdministrativeExpenses", context ] => 300, [ "jppfs_cor:OperatingIncome", context ] => 100)))
+
+      expect(Sentry).not_to have_received(:capture_message)
+    end
+  end
+
+  describe "BSの照合の警告" do
+    let(:context) { "CurrentYearInstant_NonConsolidatedMember" }
+    let(:balance_sheet) do
+      { [ "jppfs_cor:CurrentAssets", context ] => 400, [ "jppfs_cor:NoncurrentAssets", context ] => 589,
+        [ "jppfs_cor:PropertyPlantAndEquipment", context ] => 589,
+        [ "jppfs_cor:CurrentLiabilities", context ] => 300, [ "jppfs_cor:NoncurrentLiabilities", context ] => 300,
+        [ "jppfs_cor:Liabilities", context ] => 600, [ "jppfs_cor:NetAssets", context ] => 400 }
+    end
+
+    before { allow(Sentry).to receive(:capture_message) }
+
+    it "描くBSの借方の科目の合計が資産合計に届かなければ、照合に使った金額を付けて警告する" do
+      ingest("S0000001", annual_report_xml(facts: balance_sheet.merge([ "jppfs_cor:Assets", context ] => 1_000)))
+
+      expect(Sentry).to have_received(:capture_message).with(
+        "balance sheet chart does not reconcile with totals", level: :warning,
+        extra: { doc_id: "S0000001", consolidation_type: "non_consolidated", presentation_format: "jgaap_general",
+                 amounts: { "bs.current_assets" => 400, "bs.tangible_fixed_assets" => 589, "bs.assets" => 1_000,
+                            "bs.liabilities" => 600, "bs.equity" => 400 } })
+    end
+
+    it "繰延資産を借方に積んで資産合計と一致すれば警告しない" do
+      ingest("S0000001", annual_report_xml(facts: balance_sheet.merge(
+        [ "jppfs_cor:Assets", context ] => 1_000, [ "jppfs_cor:DeferredAssets", context ] => 11)))
+
+      expect(Sentry).not_to have_received(:capture_message)
     end
   end
 
@@ -251,6 +354,19 @@ RSpec.describe Ingestion::ReportIngester do
         expect(Disclosure::Company.count).to eq 1
         expect(company.reload.attributes).to eq previous
       end
+    end
+
+    it "表示から外した書類（主たる財務諸表がない有報）の会計期間が後でも、企業自身の最新期の有報で企業マスタを更新する" do
+      # 信託受益証券の有報を企業の有報として取り込み、証券コードを空欄で上書きした後に、表示から外した状態
+      company = Disclosure::Company.create!(edinet_code: "E03041", stock_code: "", name_ja: "株式会社クレディセゾン")
+      fund = create(:disclosure_report, company: company, edinet_document_id: "S100YZ8K",
+                    fiscal_year_start_date: Date.new(2025, 6, 13), fiscal_year_end_date: Date.new(2026, 5, 31))
+      create(:disclosure_financial_statement, report: fund, consolidation_type: :non_consolidated, is_primary: false,
+             items_hash: { "bs.assets" => 1_000 })
+
+      ingest("S100YCDE", File.read(require_xbrl_fixture("S100YCDE")))
+
+      expect(company.reload).to have_attributes(stock_code: "82530", name_ja: "株式会社クレディセゾン")
     end
 
     it "証券コードのある合成ファンドも除外する（CIで常時検証）" do

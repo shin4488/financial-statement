@@ -1,6 +1,16 @@
 require "rails_helper"
 
 RSpec.describe Charts::Builders::PlJgaapGeneral do
+  # 取込で保存する科目と同じく、各金額に表示単位の端数（1単位）を持たせる
+  def amounts(values)
+    FinancialStatements::Amounts.new.tap do |items|
+      items.merge!(values)
+      values.each_key { |code| items.rounding_errors[code] = 1.to_d }
+    end
+  end
+
+  def keys(chart) = chart.bars.map { |bar| bar.segments.map(&:key) }
+
   describe "黒字" do
     let(:items) do
       { "pl.revenue" => 1_000, "pl.cost_of_sales" => 600, "pl.sga" => 300,
@@ -55,8 +65,8 @@ RSpec.describe Charts::Builders::PlJgaapGeneral do
     end
 
     it "内訳と一括の営業費用が併記されていれば内訳（原価・販管費）で描く（重複計上しない）" do
-      chart = described_class.new({ "pl.revenue" => 1_086_179, "pl.cost_of_sales" => 744_710, "pl.sga" => 238_275,
-                                    "pl.operating_expenses" => 982_986, "pl.operating_profit" => 103_193 }).build
+      chart = described_class.new(amounts("pl.revenue" => 1_086_179, "pl.cost_of_sales" => 744_710, "pl.sga" => 238_275,
+                                          "pl.operating_expenses" => 982_986, "pl.operating_profit" => 103_193)).build
       expect(chart.bars.first.segments.map(&:key)).to eq %w[costOfSales sga operatingProfit]
     end
 
@@ -70,6 +80,82 @@ RSpec.describe Charts::Builders::PlJgaapGeneral do
       chart = described_class.new({ "pl.revenue" => 5_047_625, "pl.cost_of_sales" => 1_654_880,
                                     "pl.operating_expenses" => 3_210_396, "pl.operating_profit" => 182_347 }).build
       expect(chart.bars.first.segments.map(&:key)).to eq %w[costOfSales operatingExpenses operatingProfit]
+    end
+  end
+
+  describe "費用の組み合わせの選び方（左右が端数の範囲で一致する組み合わせを優先する）" do
+    it "信販会社は、差が1割以内の販管費より、左右が一致する営業費用（販管費と金融費用を含む合計）で描く（単位: 百万円）" do
+      # ジャックス 2020年3月期: 販管費127,491＋営業利益16,506は売上158,610と9%ずれる
+      builder = described_class.new(amounts("pl.revenue" => 158_610, "pl.sga" => 127_491,
+                                            "pl.operating_expenses" => 142_104, "pl.operating_profit" => 16_506))
+      aggregate_failures do
+        expect(keys(builder.build)).to eq [ %w[operatingExpenses operatingProfit], %w[revenue] ]
+        expect(builder.mismatch).to be_nil
+      end
+    end
+
+    it "原価に当たる費用を営業費用として開示し、別に販管費を並べる会社は、営業費用と販管費を積む（単位: 百万円）" do
+      # 燦ホールディングス 2025年3月期: 営業費用24,216＋販管費3,246＋営業利益4,521＝31,983、売上31,984
+      builder = described_class.new(amounts("pl.revenue" => 31_984, "pl.sga" => 3_246,
+                                            "pl.operating_expenses" => 24_216, "pl.operating_profit" => 4_521))
+      chart = builder.build
+      segments = chart.bars.first.segments.to_h { |s| [ s.key, s ] }
+      aggregate_failures do
+        expect(keys(chart)).to eq [ %w[operatingExpenses sga operatingProfit], %w[revenue] ]
+        expect(segments["operatingExpenses"]).to have_attributes(color_role: "expense1", tooltip_label: "営業費用（販管費を除く）")
+        expect(segments["sga"].color_role).to eq "expense2"
+        expect(builder.mismatch).to be_nil
+      end
+    end
+
+    it "営業費用が販管費を含む合計の会社は、販管費を二重に積まない（単位: 百万円）" do
+      # 燦ホールディングス単体: 営業費用4,152＋営業利益2,631＝売上6,783
+      chart = described_class.new(amounts("pl.revenue" => 6_783, "pl.sga" => 1_722,
+                                          "pl.operating_expenses" => 4_152, "pl.operating_profit" => 2_631)).build
+      expect(keys(chart)).to eq [ %w[operatingExpenses operatingProfit], %w[revenue] ]
+    end
+
+    it "営業費用と販管費の組み合わせは、左右の差が1割以内でも端数を超えてずれれば使わない" do
+      chart = described_class.new(amounts("pl.revenue" => 1_000, "pl.sga" => 250,
+                                          "pl.operating_expenses" => 600, "pl.operating_profit" => 100)).build
+      expect(chart.renderable).to be false
+    end
+
+    it "どの組み合わせも端数の範囲で一致しなければ、差が1割以内の組み合わせで描き、照合に使った金額を返す" do
+      builder = described_class.new(amounts("pl.revenue" => 1_000, "pl.cost_of_sales" => 600, "pl.sga" => 250,
+                                            "pl.operating_profit" => 100))
+      aggregate_failures do
+        expect(keys(builder.build)).to eq [ %w[costOfSales sga operatingProfit], %w[revenue] ]
+        expect(builder.mismatch).to eq("pl.revenue" => 1_000, "pl.cost_of_sales" => 600, "pl.sga" => 250,
+                                       "pl.operating_profit" => 100)
+      end
+    end
+
+    it "描かないときは、照合の不一致を返さない" do
+      builder = described_class.new(amounts("pl.revenue" => 2_478_950, "pl.sga" => 748_887, "pl.operating_profit" => 108_348))
+      aggregate_failures do
+        expect(builder.build.renderable).to be false
+        expect(builder.mismatch).to be_nil
+      end
+    end
+  end
+
+  describe "売上0（売上の行が「－」）" do
+    it "費用の合計と営業損失が一致すれば、借方に費用、貸方に営業損失を積み、比率の分母を営業損失にする（単位: 百万円）" do
+      # ヘリオス 2019年12月期: 販管費4,271、営業損失4,271
+      chart = described_class.new(amounts("pl.revenue" => 0, "pl.sga" => 4_271, "pl.operating_profit" => -4_271)).build
+      debit, credit = chart.bars
+      aggregate_failures do
+        expect(chart.renderable).to be true
+        expect(debit.segments.map { |s| [ s.key, s.amount, s.ratio ] }).to eq [ [ "sga", 4_271, 100.0 ] ]
+        expect(credit.segments.map { |s| [ s.key, s.amount, s.signed_amount, s.ratio ] })
+          .to eq [ [ "operatingLoss", 4_271, -4_271, -100.0 ] ]
+      end
+    end
+
+    it "費用の合計と営業損失が合わなければ、費用を差額で求めずに描かない" do
+      chart = described_class.new(amounts("pl.revenue" => 0, "pl.sga" => 3_000, "pl.operating_profit" => -4_271)).build
+      expect(chart.renderable).to be false
     end
   end
 

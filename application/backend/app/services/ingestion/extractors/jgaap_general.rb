@@ -11,6 +11,7 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
     "bs.intangible_fixed_assets"      => "jppfs_cor:IntangibleAssets",
     "bs.investments_and_other_assets" => "jppfs_cor:InvestmentsAndOtherAssets",
     "bs.non_current_assets"           => "jppfs_cor:NoncurrentAssets",
+    "bs.deferred_assets"              => "jppfs_cor:DeferredAssets",
     "bs.assets"                       => "jppfs_cor:Assets",
     "bs.current_liabilities"          => "jppfs_cor:CurrentLiabilities",
     "bs.non_current_liabilities"      => "jppfs_cor:NoncurrentLiabilities",
@@ -21,7 +22,9 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
     # 消費される（消費先が違う）。縦持ちでは行が1つ増えるだけなので冗長保存を許容し、
     # Builder側が「どのコードを見ればよいか」で迷わないようにする
     "bs.cash_and_equivalents"         => "jppfs_cor:CashAndCashEquivalents",
-    "cf.cash_end"                     => "jppfs_cor:CashAndCashEquivalents"
+    # CF計算書の期末残に標準タグを付けていない書類がある。経営指標の要約の現金同等物の残高は同じ金額を開示するため、2番目の候補にする
+    "cf.cash_end"                     => [ "jppfs_cor:CashAndCashEquivalents",
+                                           "jpcrp_cor:CashAndCashEquivalentsSummaryOfBusinessResults" ]
   }.freeze
 
   DURATION_MAPPING = {
@@ -41,10 +44,12 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
       # 一般事業会社の総額。営業収益（OperatingRevenue1）と 売上高+営業収入（NetSales+OperatingRevenue2）は
       # 制度上は 営業収益 = 売上高 + 営業収入 だが、どれをどう付けるかは企業で揺れる:
       #   営業収益を総額に付ける小売（3タグとも） / 総額タグを付けず売上高と営業収入だけ付ける小売 /
-      #   売上高を総額とし営業収益を一部の事業にだけ付ける会社 / 営業収入だけを開示する持株会社の単体
+      #   売上高を総額とし営業収益を一部の事業にだけ付ける会社 / 営業収入だけを開示する持株会社の単体 /
+      #   売上高と営業収入の両方に同じ総額を付ける会社（足すと売上が2倍になるため、同じ金額なら1回だけ数える）
       # 内訳は総額を超えないので、最も包括的な値（最大）を採ればどのパターンでも総額になる
       max("jppfs_cor:OperatingRevenue1",                                # 営業収益
-          sum("jppfs_cor:NetSales", "jppfs_cor:OperatingRevenue2")),    # 売上高 + 営業収入
+          sum("jppfs_cor:NetSales", "jppfs_cor:OperatingRevenue2",      # 売上高 + 営業収入
+              distinct_amounts: true)),
       "jppfs_cor:Revenue",                                            # 収益（丸井グループ等）
       # ガス事業売上高は全社売上ではない。雑収益・附帯事業収益も含める（各内訳を重複加算しない）。
       max(sum("jppfs_cor:SalesFromGasBusinessGAS",
@@ -73,8 +78,33 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
       # 本表の総額がないときは、標準の経営指標サマリにある全社売上を合算より優先する。
       "jpcrp_cor:NetSalesSummaryOfBusinessResults",
       sum("jppfs_cor:ShippingBusinessRevenueWAT",                       # 海運（単体）: 海運業収益
-          "jppfs_cor:OtherBusinessRevenueWAT")                          #   + その他事業収益
+          "jppfs_cor:OtherBusinessRevenueWAT"),                         #   + その他事業収益
+      "jppfs_cor:GrossOperatingRevenue",                                # 営業総収入（売上高と営業収入の合計だけを付ける会社）
+      # 売上を企業拡張タグだけで開示する会社がある。要素名は会社ごとに違い、同じ会社でも年度で変わるため、
+      # 原本で売上の合計と確かめた要素名を並べる。取扱高（GrossSales）や売上の内訳の要素は売上ではないので入れない
+      "filer_ext:TotalBusinessRevenueRevOA", "filer_ext:BusinessRevenues", "filer_ext:BusinessRevenue",
+      "filer_ext:BusinessRevenueRevOA", "filer_ext:OperatingRevenue", "filer_ext:OperatingRevenueRevOA",
+      "filer_ext:OperatingRevenuesRevOA", "filer_ext:RevenueRevOA", "filer_ext:Revenue2", "filer_ext:Proceeds",
+      # 売上高の下に営業収入の内訳（不動産賃貸収入・その他の営業収入）を並べ、営業収益の合計の行にタグを付けない会社がある。
+      # 売上高だけでは売上が内訳になるため、両方の行があるときの合計を、要約の売上と照合して差し替える候補に置く。
+      # 売上高がある会社は上の候補で売上が取れるため、ここまで来るのは差し替えのときだけ
+      sum("jppfs_cor:NetSales", "jppfs_cor:RentIncomeOfRealEstateRevOA", all_present: true),
+      sum("jppfs_cor:NetSales", "jppfs_cor:OtherOperatingRevenue2RevOA", all_present: true)
     ],
+    # 経営指標の要約（主要な経営指標等の推移）の売上。売上のタグに合計ではなく内訳だけを付けた書類を見つけるため、
+    # 取り込んだ売上と照合する。要約に売上高と営業総収入のように内訳と総額が並ぶ会社があるため、
+    # 本表の売上と同じく最も包括的な値を採る。要約の売上も企業拡張タグで開示されることがあり、要素名は会社ごとに違う
+    "pl.summary_revenue" => [
+      max("jpcrp_cor:NetSalesSummaryOfBusinessResults",                 # 売上高
+          "jpcrp_cor:OperatingRevenue1SummaryOfBusinessResults",        # 営業収益
+          "jpcrp_cor:OperatingRevenue2SummaryOfBusinessResults",        # 営業収入
+          "jpcrp_cor:GrossOperatingRevenueSummaryOfBusinessResults",    # 営業総収入
+          "jpcrp_cor:RevenueKeyFinancialData"),                         # 売上収益（丸井グループ等）
+      filer_ext(/(Revenue|Revenues|Sales)SummaryOfBusinessResults\z/)   # 事業収益など。1株当たりの値や比率は要素名の末尾が違うため当たらない
+    ],
+    # 営業収入（営業収益のうち売上高以外）。売上を営業収益とした会社には、要約に売上高だけを載せる会社がある。
+    # 売上から営業収入を除いた額が要約の売上高と合うかで、売上を照合する
+    "pl.non_sales_operating_revenue" => "jppfs_cor:OperatingRevenue2",
     # 売上原価。OperatingCost（営業原価）を先頭に置く理由: OperatingRevenue1とペアの原価であり、
     # 営業収益型ではCostOfSales（売上原価）も併記されるが、そちらは売上高側の原価のため。
     # CostOfProductsManufactured（当期製品製造原価）を末尾に置く理由: 売上原価の代わりに
@@ -152,7 +182,13 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
     "pl.gas_miscellaneous_expenses" => "jppfs_cor:OperatingMiscellaneousExpensesGAS",
     "pl.gas_incidental_expenses" => "jppfs_cor:ExpensesForIncidentalBusinessesGAS",
     "cf.new_consolidation" => "jppfs_cor:IncreaseInCashAndCashEquivalentsFromNewlyConsolidatedSubsidiaryCCE",
-    "cf.consolidation_change" => "jppfs_cor:IncreaseDecreaseInCashAndCashEquivalentsResultingFromChangeOfScopeOfConsolidationCCE",
+    # 連結範囲の変更と合併による現金の増減は、標準タグでも会社によって行の分け方が違う（連結除外に伴う減少、
+    # 非連結子会社との合併に伴う増加など）。どれもCFの式（期首残＋各CF＋換算差額など＝期末残）に足す行なので、ある行を合計する
+    "cf.consolidation_change" => sum("jppfs_cor:IncreaseDecreaseInCashAndCashEquivalentsResultingFromChangeOfScopeOfConsolidationCCE",
+                                     "jppfs_cor:DecreaseInCashAndCashEquivalentsResultingFromExclusionOfSubsidiariesFromConsolidationCCE"),
+    "cf.merger" => sum("jppfs_cor:IncreaseInCashAndCashEquivalentsResultingFromMergerCCE",
+                       "jppfs_cor:IncreaseInCashAndCashEquivalentsResultingFromMergerWithUnconsolidatedSubsidiariesCCE",
+                       "jppfs_cor:IncreaseDecreaseInCashAndCashEquivalentsResultingFromMergerOfSubsidiariesCCE"),
     "cf.exchange_effect" => "jppfs_cor:EffectOfExchangeRateChangeOnCashAndCashEquivalents",
     "cf.operating" => "jppfs_cor:NetCashProvidedByUsedInOperatingActivities",
     "cf.investing" => "jppfs_cor:NetCashProvidedByUsedInInvestmentActivities", # JGAAPはInvestment（IFRSはInvesting。取り違え注意）

@@ -2,8 +2,8 @@ require "rails_helper"
 
 RSpec.describe "売上高を取得できない実有報の財務指標" do
   # 銀行・日本基準の保険は経常収益を売上高に読み替えない。
-  # スカイマーク・東京海上HDは本表とサマリの収益が企業拡張タグだけに存在する。
-  %w[S100YJQO S100YD29 S100YRPF S100YLS8].each do |doc_id|
+  # 東京海上HDの保険収益は、運用収益も大きい保険会社の収益をほかの会社の売上と比べられないため売上にしない。
+  %w[S100YJQO S100YD29 S100YLS8].each do |doc_id|
     it "#{doc_id} は売上関連の欠損があってもROE・ROA・レバレッジを返す", :aggregate_failures do
       require_xbrl_fixture(doc_id)
       Dir.mktmpdir do |dir|

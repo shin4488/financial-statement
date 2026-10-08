@@ -7,7 +7,9 @@ module SyntheticXbrl
     "jpdei_cor" => "http://disclosure.edinet-fsa.go.jp/taxonomy/jpdei/2013-08-31/jpdei_cor",
     "jppfs_cor" => "http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2025-11-01/jppfs_cor",
     "jpigp_cor" => "http://disclosure.edinet-fsa.go.jp/taxonomy/jpigp/2025-11-01/jpigp_cor",
-    "jpcrp_cor" => "http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp/2025-11-01/jpcrp_cor"
+    "jpcrp_cor" => "http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp/2025-11-01/jpcrp_cor",
+    # 提出者の企業拡張タグ（EDINETコードE00001の有報）
+    "jpcrp030000-asr_E00001-000" => "http://disclosure.edinet-fsa.go.jp/jpcrp030000/asr/001/E00001-000/2026-03-31/01/2026-06-20"
   }.freeze
 
   DEI_TAGS = {

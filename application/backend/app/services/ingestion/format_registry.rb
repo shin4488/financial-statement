@@ -8,7 +8,8 @@ module Ingestion
     IFRS_CLASSIFIED = "ifrs_classified"
     IFRS_LIQUIDITY  = "ifrs_liquidity"
     IFRS_SUMMARY    = "ifrs_summary"
-    UNSUPPORTED     = "unsupported"
+    USGAAP_SUMMARY  = "usgaap_summary"
+    UNSUPPORTED     = "unsupported" # 対応する形式がない財務諸表。形式を足したら、再取込タスクで取り直す
 
     EXTRACTORS = {
       JGAAP_GENERAL   => Extractors::JgaapGeneral,
@@ -16,7 +17,8 @@ module Ingestion
       JGAAP_INSURANCE => Extractors::JgaapInsurance,
       IFRS_CLASSIFIED => Extractors::IfrsClassified,
       IFRS_LIQUIDITY  => Extractors::IfrsLiquidity,
-      IFRS_SUMMARY    => Extractors::IfrsSummary
+      IFRS_SUMMARY    => Extractors::IfrsSummary,
+      USGAAP_SUMMARY  => Extractors::UsgaapSummary
     }.freeze
 
     # 形式の正当な値一覧はEXTRACTORSから導出する（別に列挙すると形式追加時に片方を忘れるため）

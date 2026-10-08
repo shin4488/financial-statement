@@ -18,7 +18,10 @@ class Ingestion::Extractors::IfrsClassified < Ingestion::Extractors::Base
     "bs.goodwill_and_intangibles"      => [ "jpigp_cor:GoodwillAndIntangibleAssetsIFRS",
                                             sum("jpigp_cor:GoodwillIFRS", "jpigp_cor:IntangibleAssetsIFRS") ],
     "bs.cash_and_equivalents"    => "jpigp_cor:CashAndCashEquivalentsIFRS",
-    "cf.cash_end"                => "jpigp_cor:CashAndCashEquivalentsIFRS"
+    # CF計算書の現金及び現金同等物の残高が財政状態計算書の額と違う会社は、CF計算書の残高を2番目の標準タグで開示する。
+    # CFの式（期首残＋各CF＋換算差額＝期末残）がそちらで成り立つときは、そちらを期首残・期末残にする
+    "cf.cash_end"                => [ "jpigp_cor:CashAndCashEquivalentsIFRS",
+                                      "jpigp_cor:CashAndCashEquivalentsIfDifferentFromBSBalanceIFRS" ]
   }.freeze
 
   DURATION_MAPPING = {
@@ -26,17 +29,31 @@ class Ingestion::Extractors::IfrsClassified < Ingestion::Extractors::Base
     # サマリを入れる理由: 本表の収益が企業拡張タグのみの企業があり、標準タグでは取れない。
     # サマリの値は本表と一致する。
     # サマリを最後に置く理由: 本表タグの方が一次情報であり、サマリは表示単位変更などの
-    # リスクが理論上あるため、あくまでフォールバック
+    # リスクが理論上あるため、あくまでフォールバック。
+    # サマリにもない会社は、原本で収益の合計と確かめた企業拡張タグの要素名で探す（日本基準と同じ考え方）。
+    # 標準タグの収益に「その他の収益」などを含めて収益合計とし、営業収益を企業拡張タグに付ける会社もあるため、
+    # その要素名も並べ、要約の売上と照合して差し替える候補にする
     "pl.revenue" => %w[
       jpigp_cor:RevenueIFRS
       jpigp_cor:Revenue2IFRS
       jpigp_cor:NetSalesIFRS
       jpcrp_cor:RevenueIFRSSummaryOfBusinessResults
+      filer_ext:OperatingRevenuesIFRS
+      filer_ext:OperatingRevenueIFRS
+      filer_ext:TotalNetRevenuesIFRS
+      filer_ext:OperatingRevenueRevenue2IFRS
+      filer_ext:OperatingRevenueRevenueIFRS
+    ],
+    # 経営指標の要約の売上（照合用）。IFRS移行年度の要約には日本基準の売上高も並ぶため、IFRSの要素だけを候補にする
+    "pl.summary_revenue" => [
+      "jpcrp_cor:RevenueIFRSSummaryOfBusinessResults",
+      filer_ext(/(Revenue|Revenues|Sales)IFRSSummaryOfBusinessResults\z/)
     ],
     "pl.other_operating_income" => [ "jpigp_cor:OtherOperatingIncomeIFRS", "jpigp_cor:OtherIncomeIFRS" ],
     "pl.other_operating_expenses" => [ "jpigp_cor:OtherOperatingExpensesIFRS", "jpigp_cor:OtherExpensesIFRS" ],
     "pl.other_income_expenses_net" => "jpigp_cor:OtherIncomeExpensesNetIFRS",
     "pl.research_and_development" => "jpigp_cor:ResearchAndDevelopmentExpenditureRecognizedAsExpenseDuringPeriodIFRS",
+    "pl.general_and_administrative_expenses" => "jpigp_cor:GeneralAndAdministrativeExpensesIFRS",
     "pl.finance_income" => "jpigp_cor:FinanceIncomeIFRS",
     "pl.finance_costs" => "jpigp_cor:FinanceCostsIFRS",
     "pl.equity_method_profit" => "jpigp_cor:ShareOfProfitLossOfInvestmentsAccountedForUsingEquityMethodIFRS",

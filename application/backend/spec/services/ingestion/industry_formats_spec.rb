@@ -39,7 +39,7 @@ RSpec.describe "業種別の形式判定と描画可否（実XBRL）" do
       { consolidated: [ "jgaap_insurance", true, true ], non_consolidated: [ "jgaap_general", true, true ] },
       "業種コードinsでも流動資産があれば一般（持株会社の単体）" ],
     [ "S100YE7T", "日本郵政（bnk,ins）",
-      { consolidated: [ "jgaap_bank", false, true ] }, "先頭の業種=銀行。貯金は企業拡張タグのためBSは描けない" ]
+      { consolidated: [ "jgaap_bank", true, true ] }, "銀行の経常収益があるため銀行。貯金は企業拡張タグから取る" ]
   ]
 
   cases.each do |doc_id, name, expectations, note|

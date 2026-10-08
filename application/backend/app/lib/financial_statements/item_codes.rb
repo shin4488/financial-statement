@@ -9,7 +9,9 @@ module FinancialStatements
     # （%w[] 内にはコメントを書けないため。この可読性はレジストリの本質的な価値なので崩さないこと）
     #
     # ifrs_summary（経営指標サマリのみで構成する形式）は各セクションの形式の列挙に含めず、
-    # PL・CFに加え、指標に必要な総資産・自己資本（期首/期末）・親会社帰属利益を保存する
+    # PL・CFに加え、指標に必要な総資産・自己資本（期首/期末）・親会社帰属利益を保存する。
+    # usgaap_summary（米国基準。経営指標サマリのみで構成する形式）も列挙に含めず、
+    # CFと、指標に必要な総資産・自己資本（期首/期末）・親会社帰属利益・売上だけを保存する
 
     BS = [
       # ---- 全形式共通（jgaap_general / jgaap_bank / jgaap_insurance / ifrs_classified / ifrs_liquidity すべてが保存する）----
@@ -31,6 +33,7 @@ module FinancialStatements
       "bs.tangible_fixed_assets",         # 有形固定資産
       "bs.intangible_fixed_assets",       # 無形固定資産
       "bs.investments_and_other_assets",  # 投資その他の資産
+      "bs.deferred_assets",               # 繰延資産（創立費・開業費・株式交付費・社債発行費など）
       # ---- IFRS・流動/非流動分類のみ（ifrs_classified が保存する。非流動資産の代表内訳）----
       "bs.property_plant_and_equipment",  # 有形固定資産
       "bs.goodwill_and_intangibles",      # のれん及び無形資産（別掲企業はExtractorが合算）
@@ -50,6 +53,7 @@ module FinancialStatements
       "pl.other_operating_expenses",
       "pl.other_income_expenses_net",
       "pl.research_and_development",
+      "pl.general_and_administrative_expenses", # 一般管理費（IFRS。販管費とは別の行で開示する会社がある。売上0のグラフだけで使う）
       "pl.finance_income",
       "pl.finance_costs",
       "pl.equity_method_profit",
@@ -60,10 +64,12 @@ module FinancialStatements
       "pl.profit_attributable_to_owners", # 親会社株主（所有者）に帰属する当期純利益
       # ---- 銀行・保険以外（jgaap_general / ifrs_classified / ifrs_liquidity が保存する）----
       "pl.revenue",                       # 売上高・営業収益（日本基準）/ 売上収益・収益（IFRS）
+      "pl.summary_revenue",               # 経営指標の要約（主要な経営指標等の推移）の売上。売上の照合に使う（ifrs_summary も保存する）
       "pl.cost_of_sales",                 # 売上原価（IFRSでは開示任意 → 無い企業がある）
       "pl.sga",                           # 販売費及び一般管理費（IFRSでは開示任意）
       # ---- 日本基準・一般のみ（jgaap_general が保存する）----
       "pl.financial_expenses",            # 金融費用（証券・商品先物。営業収益−金融費用=純営業収益）
+      "pl.non_sales_operating_revenue",   # 営業収入（営業収益のうち売上高以外）。売上の照合に使う
       "pl.non_operating_income",          # 営業外収益
       "pl.non_operating_expenses",        # 営業外費用
       # ---- 日本基準・一般 + IFRS（jgaap_general は必ず、ifrs_classified / ifrs_liquidity は任意開示があれば保存する）----
@@ -85,6 +91,7 @@ module FinancialStatements
       # ---- 全形式共通（CFは基準・業種によらず構造が同一）----
       "cf.new_consolidation",             # 新規連結に伴う現金残高の増加
       "cf.consolidation_change",          # 連結範囲変更による現金残高の増減
+      "cf.merger",                        # 合併に伴う現金及び現金同等物の増減
       "cf.exchange_effect",               # 現金及び現金同等物に係る換算差額
       "cf.cash_begin",                    # 現金及び現金同等物の期首残高（前期末 Prior1YearInstant）
       "cf.operating",                     # 営業活動によるキャッシュ・フロー

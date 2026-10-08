@@ -29,8 +29,11 @@ module Ingestion
         else
           FormatRegistry::IFRS_SUMMARY
         end
+      when "us_gaap"
+        # 本表の詳細タグがEDINETタクソノミに存在しない（企業拡張タグのみ）ため、
+        # 標準タグのある経営指標の要約だけで構成する形式にする
+        FormatRegistry::USGAAP_SUMMARY
       else
-        # us_gaap: 本表の詳細タグがEDINETタクソノミに存在しない（企業拡張タグのみ）
         FormatRegistry::UNSUPPORTED
       end
     end
@@ -39,18 +42,25 @@ module Ingestion
       def detect_jgaap(xbrl, industry_code, consolidation)
         # 業種DEIコードは大文字小文字が揺れる（"bnk"と"INS"の両方が存在する）。
         # 複数の業種別規則を適用する企業はカンマ区切りで並ぶ（例: "bnk,ins"）ため、先頭を主たる業種とみなす
-        primary_industry = industry_code.to_s.downcase.split(",").first
-        format = FINANCIAL_INSTITUTION_FORMATS.fetch(primary_industry, FormatRegistry::JGAAP_GENERAL)
+        industries = industry_code.to_s.downcase.split(",")
+        format = FINANCIAL_INSTITUTION_FORMATS.fetch(industries.first, FormatRegistry::JGAAP_GENERAL)
         return format if format == FormatRegistry::JGAAP_GENERAL
 
         # 業種コードが銀行・保険でも、流動資産タグを持つ財務諸表は一般事業会社の様式で作られている
         # （銀行・保険持株会社の単体財務諸表など。金融機関の様式には流動/固定の区分自体がない）。
         # DEIの業種コードは提出者が付けるため、様式はタグの実在で確かめる
-        if xbrl.money("jppfs_cor:CurrentAssets", "CurrentYearInstant#{consolidation}")
-          FormatRegistry::JGAAP_GENERAL
-        else
-          format
-        end
+        return FormatRegistry::JGAAP_GENERAL if xbrl.money("jppfs_cor:CurrentAssets", "CurrentYearInstant#{consolidation}")
+
+        # 銀行と保険を並べる会社は、先頭の業種の様式で財務諸表を作っているとは限らない。
+        # 様式ごとに経常収益のタグが違うため、並んだ金融機関の業種のうち、経常収益のタグがある最初の様式にする
+        financial_formats = industries.filter_map { |industry| FINANCIAL_INSTITUTION_FORMATS[industry] }.uniq
+        financial_formats.find { |candidate| ordinary_revenue?(xbrl, candidate, consolidation) } || format
+      end
+
+      # 経常収益のタグは、その様式のExtractorのマッピングを使う（タグ名を二重に持たない）
+      def ordinary_revenue?(xbrl, format, consolidation)
+        spec = FormatRegistry.extractor_for(format)::DURATION_MAPPING.fetch("pl.ordinary_revenue")
+        !Extractors::Base.wrap(spec).evaluate(xbrl, "CurrentYearDuration#{consolidation}").nil?
       end
   end
 end

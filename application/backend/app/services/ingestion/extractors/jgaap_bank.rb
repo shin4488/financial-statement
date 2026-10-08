@@ -12,8 +12,11 @@ class Ingestion::Extractors::JgaapBank < Ingestion::Extractors::Base
     # BSの「現金預け金」とCFの「現金及び現金同等物」は銀行では別概念のため別タグ
     # （日銀預け金等の扱いが異なる。値が一致する銀行もあるが混同しないこと）
     "bs.cash_and_equivalents" => "jppfs_cor:CashAndDueFromBanksAssetsBNK",
-    "bs.deposits"             => "jppfs_cor:DepositsLiabilitiesBNK",
-    "cf.cash_end"             => "jppfs_cor:CashAndCashEquivalents"
+    # 貯金を企業拡張タグ（要素名 DepositsLiabilities）で開示する会社がある。原本で預金（貯金）の合計と確かめた要素名を最後に置く
+    "bs.deposits"             => [ "jppfs_cor:DepositsLiabilitiesBNK", "filer_ext:DepositsLiabilities" ],
+    # CF計算書の期末残に標準タグがなければ、同じ金額を開示する経営指標の要約の現金同等物の残高で補う（一般事業会社と同じ）
+    "cf.cash_end"             => [ "jppfs_cor:CashAndCashEquivalents",
+                                   "jpcrp_cor:CashAndCashEquivalentsSummaryOfBusinessResults" ]
   }.freeze
 
   DURATION_MAPPING = {
@@ -30,7 +33,9 @@ class Ingestion::Extractors::JgaapBank < Ingestion::Extractors::Base
     "pl.profit"             => "jppfs_cor:ProfitLoss",
     "pl.profit_attributable_to_owners" => "jppfs_cor:ProfitLossAttributableToOwnersOfParent",
     "cf.new_consolidation" => "jppfs_cor:IncreaseInCashAndCashEquivalentsFromNewlyConsolidatedSubsidiaryCCE",
-    "cf.consolidation_change" => "jppfs_cor:IncreaseDecreaseInCashAndCashEquivalentsResultingFromChangeOfScopeOfConsolidationCCE",
+    # CF計算書の調整の行のタグは業種の様式によらないため、一般事業会社の定義を共有する
+    "cf.consolidation_change" => Ingestion::Extractors::JgaapGeneral::DURATION_MAPPING.fetch("cf.consolidation_change"),
+    "cf.merger" => Ingestion::Extractors::JgaapGeneral::DURATION_MAPPING.fetch("cf.merger"),
     "cf.exchange_effect" => "jppfs_cor:EffectOfExchangeRateChangeOnCashAndCashEquivalents",
     "cf.operating" => "jppfs_cor:NetCashProvidedByUsedInOperatingActivities",
     "cf.investing" => "jppfs_cor:NetCashProvidedByUsedInInvestmentActivities",
