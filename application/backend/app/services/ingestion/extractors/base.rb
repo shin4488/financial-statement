@@ -137,12 +137,38 @@ module Ingestion
             result.rounding_errors["cf.cash_begin"] = fact.rounding_error
           end
         end
+        use_cash_flow_statement_balances(result)
         replace_unverified_revenue(result)
         verify_zero_revenue(result)
         result
       end
 
       private
+        # CFの期首残・期末残は、期末残の取得候補の先頭のタグで取る（IFRSは財政状態計算書と同じ現金及び現金同等物のタグ）。
+        # CF計算書の残高がその額と違う会社は、CF計算書の残高を2番目以降の標準タグで開示する。ただし、そのタグを調整後の期首残高など
+        # ほかの行に付ける会社もあるため、期首残・期末残をそのタグの額にしたときにCFの式が端数の範囲で成り立つ場合だけ差し替える。
+        # 経営指標の要約のタグは本表の残高ではないため候補にしない
+        def use_cash_flow_statement_balances(result)
+          spec = self.class::INSTANT_MAPPING["cf.cash_end"]
+          return unless spec && result.key?("cf.cash_end")
+          balances = { "cf.cash_end" => "CurrentYearInstant#{@c}", "cf.cash_begin" => "Prior1YearInstant#{@c}" }
+          statement_entries(spec).drop(1).each do |entry|
+            candidate = self.class.wrap(entry)
+            trial = FinancialStatements::Amounts.new.merge!(result)
+            trial.rounding_errors.merge!(result.rounding_errors)
+            balances.each do |code, context|
+              value = candidate.evaluate(@xbrl, context)
+              next if value.nil?
+              trial[code] = value
+              trial.rounding_errors[code] = candidate.rounding_error(@xbrl, context)
+            end
+            next if trial == result || FinancialStatements::CashFlowVerification.mismatch(trial)
+            result.merge!(trial.slice(*balances.keys))
+            result.rounding_errors.merge!(trial.rounding_errors.slice(*balances.keys))
+            return
+          end
+        end
+
         # 売上のタグに、合計ではなく内訳だけが付いた書類がある（標準タグの売上高が製品売上高だけで、
         # 合計の事業収益は企業拡張タグに付けるなど）。売上が経営指標の要約の売上と合わないときは、
         # 売上の取得候補のうち要約と一致するものを売上にする。どれも合わなければ、取込の照合で警告する。
@@ -151,7 +177,7 @@ module Ingestion
           spec = self.class::DURATION_MAPPING["pl.revenue"]
           return unless spec && FinancialStatements::RevenueVerification.status(result) == :mismatched
           context = "CurrentYearDuration#{@c}"
-          statement_revenue_entries(spec).each do |entry|
+          statement_entries(spec).each do |entry|
             candidate = self.class.wrap(entry)
             value = candidate.evaluate(@xbrl, context)
             next if value.nil?
@@ -172,7 +198,7 @@ module Ingestion
         # 損益の値がある（損益計算書を作っている）ときだけ確かめる
         def verify_zero_revenue(result)
           revenue_spec, summary_spec = self.class::DURATION_MAPPING.values_at("pl.revenue", "pl.summary_revenue")
-          return unless revenue_spec && summary_spec && statement_revenue_entries(revenue_spec).any?
+          return unless revenue_spec && summary_spec && statement_entries(revenue_spec).any?
           return if result.key?("pl.revenue") || result.key?("pl.summary_revenue")
           return unless %w[pl.operating_profit pl.profit_before_tax pl.profit].any? { |code| result.key?(code) }
           context = "CurrentYearDuration#{@c}"
@@ -183,8 +209,8 @@ module Ingestion
           end
         end
 
-        # 売上の取得候補のうち、損益計算書の本表のもの（経営指標の要約のタグ jpcrp_cor を除く）
-        def statement_revenue_entries(spec) = entries(spec).reject { |entry| entry.is_a?(String) && entry.start_with?("jpcrp_cor:") }
+        # 取得候補のうち、財務諸表の本表のもの（経営指標の要約のタグ jpcrp_cor を除く）
+        def statement_entries(spec) = entries(spec).reject { |entry| entry.is_a?(String) && entry.start_with?("jpcrp_cor:") }
 
         def put(result, code, value)
           unless value.nil?

@@ -293,12 +293,14 @@ IFRSの追加科目は、研究開発費・一般管理費を売上0の会社の
 | `cf.operating` | 営業活動によるCF | `jppfs_cor:NetCashProvidedByUsedIn` `OperatingActivities` | `jpigp_cor:NetCashProvidedByUsedIn` `OperatingActivitiesIFRS` |
 | `cf.investing` | 投資活動によるCF | `jppfs_cor:NetCashProvidedByUsedIn` `InvestmentActivities` | `jpigp_cor:NetCashProvidedByUsedIn` `InvestingActivitiesIFRS` |
 | `cf.financing` | 財務活動によるCF | `jppfs_cor:NetCashProvidedByUsedIn` `FinancingActivities` | `jpigp_cor:NetCashProvidedByUsedIn` `FinancingActivitiesIFRS` |
-| `cf.cash_end` | 現金及び現金同等物の期末残高 | `jppfs_cor:CashAndCashEquivalents` → `jpcrp_cor:CashAndCashEquivalents` `SummaryOfBusinessResults` | `jpigp_cor:CashAndCashEquivalentsIFRS` |
+| `cf.cash_end` | 現金及び現金同等物の期末残高 | `jppfs_cor:CashAndCashEquivalents` → `jpcrp_cor:CashAndCashEquivalents` `SummaryOfBusinessResults` | `jpigp_cor:CashAndCashEquivalentsIFRS`（式が成り立てば `jpigp_cor:CashAndCashEquivalents` `IfDifferentFromBSBalanceIFRS`） |
 | `cf.cash_begin` | 同・期首残高 | 同上（`Prior1YearInstant`） | 同上（`Prior1YearInstant`） |
 
-投資活動のタグ名が日本基準は `Investment`、IFRSは `Investing` で異なる。CFは5科目そろわないとウォーターフォールが繋がらないため、1つでも欠けるとチャートは `renderable: false` になる。ただし、期首残・営業CF・投資CF・財務CFの行がない（「－」かタグがない）ときは、その項目を0とみなして「期首残＋営業CF＋投資CF＋財務CF＋換算差額＋新規連結・連結範囲の変更による増減＋合併による増加＝期末残」が[開示精度の範囲](03_data_flow.md#金額の開示精度)で成り立つ場合だけ、グラフとFCF推移で0として扱う（保存する値は変えない）。期末残の行がないCFは0として扱わない。
+投資活動のタグ名が日本基準は `Investment`、IFRSは `Investing` で異なる。CFは5科目そろわないとウォーターフォールが繋がらないため、1つでも欠けるとチャートは `renderable: false` になる。ただし、期首残・営業CF・投資CF・財務CFの行がない（「－」かタグがない）ときは、その項目を0とみなして「期首残＋営業CF＋投資CF＋財務CF＋換算差額＋新規連結・連結範囲の変更による増減＋合併による増減＝期末残」が[開示精度の範囲](03_data_flow.md#金額の開示精度)で成り立つ場合だけ、グラフとFCF推移で0として扱う（保存する値は変えない）。期末残の行がないCFは0として扱わない。
 
 日本基準の期末残高は、CF計算書に標準タグがなければ、経営指標の要約の現金同等物の残高で補う（Fringe81 2017年3月期で、CF計算書の期末残に標準タグがなく、要約の275,119千円が式と端数の範囲で一致することを確認）。
+
+IFRSの期首残高・期末残高は、財政状態計算書の現金及び現金同等物のタグで取り、CF計算書の残高が財政状態計算書の額と違う会社がCF計算書の残高に付ける `CashAndCashEquivalentsIfDifferentFromBSBalanceIFRS` の額にすると上の式が[開示精度の範囲](03_data_flow.md#金額の開示精度)で成り立つときは、その額にする。THK 2025年12月期は、CF計算書の期末残が120,534百万円（経営指標の要約と同じ）、財政状態計算書の現金及び現金同等物が110,008百万円。このタグを調整後の期首残高の行に当期末の日付で付ける会社（兼松 2026年3月期）もあり、そのときは式が成り立たないため財政状態計算書の額のままにする。2025年10月〜2026年9月に提出されたIFRSの有報359件では、25件がこのタグを使い、16件で財政状態計算書の額と違った。
 
 期首残高は、期末残高と同じタグで対象日を当期開始日の前日に変えて取得する。
 
@@ -312,8 +314,10 @@ IFRSの追加科目は、研究開発費・一般管理費を売上0の会社の
 |---|---|---|
 | `cf.exchange_effect` | `EffectOfExchangeRateChangeOnCashAndCashEquivalents` | `EffectOfExchangeRateChanges OnCashAndCashEquivalentsIFRS` |
 | `cf.new_consolidation` | `IncreaseInCashAndCashEquivalents FromNewlyConsolidatedSubsidiaryCCE` | — |
-| `cf.consolidation_change` | `IncreaseDecreaseInCashAndCashEquivalents ResultingFromChangeOfScopeOfConsolidationCCE` | — |
-| `cf.merger` | `IncreaseInCashAndCashEquivalents ResultingFromMergerCCE` | — |
+| `cf.consolidation_change` | `IncreaseDecreaseInCashAndCashEquivalents ResultingFromChangeOfScopeOfConsolidationCCE` ＋ `DecreaseInCashAndCashEquivalents ResultingFromExclusionOfSubsidiariesFromConsolidationCCE` | — |
+| `cf.merger` | `IncreaseInCashAndCashEquivalents ResultingFromMergerCCE` ＋ `IncreaseInCashAndCashEquivalents ResultingFromMergerWithUnconsolidatedSubsidiariesCCE` ＋ `IncreaseDecreaseInCashAndCashEquivalents ResultingFromMergerOfSubsidiariesCCE` | — |
+
+連結範囲の変更と合併の行は、標準タグでも会社によって分け方が違う（連結除外に伴う減少、非連結子会社との合併に伴う増加など）ため、ある行を合計して1つの科目にする。2025年10月〜2026年9月に提出された有報のCF計算書で使われていた日本基準の調整の行の標準タグは、上の表の6つだった。企業拡張タグだけの行（新都ホールディングス 2026年1月期の株式交付に伴う増加、シーラホールディングス 2026年5月期の株式交換による増加など）は式に入れない。
 
 ### サマリ（ifrs_summary）のタグ
 

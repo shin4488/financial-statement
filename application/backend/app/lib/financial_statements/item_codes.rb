@@ -91,7 +91,7 @@ module FinancialStatements
       # ---- 全形式共通（CFは基準・業種によらず構造が同一）----
       "cf.new_consolidation",             # 新規連結に伴う現金残高の増加
       "cf.consolidation_change",          # 連結範囲変更による現金残高の増減
-      "cf.merger",                        # 合併に伴う現金及び現金同等物の増加
+      "cf.merger",                        # 合併に伴う現金及び現金同等物の増減
       "cf.exchange_effect",               # 現金及び現金同等物に係る換算差額
       "cf.cash_begin",                    # 現金及び現金同等物の期首残高（前期末 Prior1YearInstant）
       "cf.operating",                     # 営業活動によるキャッシュ・フロー

@@ -177,8 +177,13 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
     "pl.gas_miscellaneous_expenses" => "jppfs_cor:OperatingMiscellaneousExpensesGAS",
     "pl.gas_incidental_expenses" => "jppfs_cor:ExpensesForIncidentalBusinessesGAS",
     "cf.new_consolidation" => "jppfs_cor:IncreaseInCashAndCashEquivalentsFromNewlyConsolidatedSubsidiaryCCE",
-    "cf.consolidation_change" => "jppfs_cor:IncreaseDecreaseInCashAndCashEquivalentsResultingFromChangeOfScopeOfConsolidationCCE",
-    "cf.merger" => "jppfs_cor:IncreaseInCashAndCashEquivalentsResultingFromMergerCCE",
+    # 連結範囲の変更と合併による現金の増減は、標準タグでも会社によって行の分け方が違う（連結除外に伴う減少、
+    # 非連結子会社との合併に伴う増加など）。どれもCFの式（期首残＋各CF＋換算差額など＝期末残）に足す行なので、ある行を合計する
+    "cf.consolidation_change" => sum("jppfs_cor:IncreaseDecreaseInCashAndCashEquivalentsResultingFromChangeOfScopeOfConsolidationCCE",
+                                     "jppfs_cor:DecreaseInCashAndCashEquivalentsResultingFromExclusionOfSubsidiariesFromConsolidationCCE"),
+    "cf.merger" => sum("jppfs_cor:IncreaseInCashAndCashEquivalentsResultingFromMergerCCE",
+                       "jppfs_cor:IncreaseInCashAndCashEquivalentsResultingFromMergerWithUnconsolidatedSubsidiariesCCE",
+                       "jppfs_cor:IncreaseDecreaseInCashAndCashEquivalentsResultingFromMergerOfSubsidiariesCCE"),
     "cf.exchange_effect" => "jppfs_cor:EffectOfExchangeRateChangeOnCashAndCashEquivalents",
     "cf.operating" => "jppfs_cor:NetCashProvidedByUsedInOperatingActivities",
     "cf.investing" => "jppfs_cor:NetCashProvidedByUsedInInvestmentActivities", # JGAAPはInvestment（IFRSはInvesting。取り違え注意）

@@ -33,8 +33,9 @@ class Ingestion::Extractors::JgaapInsurance < Ingestion::Extractors::Base
     "pl.profit"             => "jppfs_cor:ProfitLoss",
     "pl.profit_attributable_to_owners" => "jppfs_cor:ProfitLossAttributableToOwnersOfParent",
     "cf.new_consolidation" => "jppfs_cor:IncreaseInCashAndCashEquivalentsFromNewlyConsolidatedSubsidiaryCCE",
-    "cf.consolidation_change" => "jppfs_cor:IncreaseDecreaseInCashAndCashEquivalentsResultingFromChangeOfScopeOfConsolidationCCE",
-    "cf.merger" => "jppfs_cor:IncreaseInCashAndCashEquivalentsResultingFromMergerCCE",
+    # CF計算書の調整の行のタグは業種の様式によらないため、一般事業会社の定義を共有する
+    "cf.consolidation_change" => Ingestion::Extractors::JgaapGeneral::DURATION_MAPPING.fetch("cf.consolidation_change"),
+    "cf.merger" => Ingestion::Extractors::JgaapGeneral::DURATION_MAPPING.fetch("cf.merger"),
     "cf.exchange_effect" => "jppfs_cor:EffectOfExchangeRateChangeOnCashAndCashEquivalents",
     "cf.operating" => "jppfs_cor:NetCashProvidedByUsedInOperatingActivities",
     "cf.investing" => "jppfs_cor:NetCashProvidedByUsedInInvestmentActivities",

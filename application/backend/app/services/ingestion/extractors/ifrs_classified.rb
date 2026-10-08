@@ -18,7 +18,10 @@ class Ingestion::Extractors::IfrsClassified < Ingestion::Extractors::Base
     "bs.goodwill_and_intangibles"      => [ "jpigp_cor:GoodwillAndIntangibleAssetsIFRS",
                                             sum("jpigp_cor:GoodwillIFRS", "jpigp_cor:IntangibleAssetsIFRS") ],
     "bs.cash_and_equivalents"    => "jpigp_cor:CashAndCashEquivalentsIFRS",
-    "cf.cash_end"                => "jpigp_cor:CashAndCashEquivalentsIFRS"
+    # CF計算書の現金及び現金同等物の残高が財政状態計算書の額と違う会社は、CF計算書の残高を2番目の標準タグで開示する。
+    # CFの式（期首残＋各CF＋換算差額＝期末残）がそちらで成り立つときは、そちらを期首残・期末残にする
+    "cf.cash_end"                => [ "jpigp_cor:CashAndCashEquivalentsIFRS",
+                                      "jpigp_cor:CashAndCashEquivalentsIfDifferentFromBSBalanceIFRS" ]
   }.freeze
 
   DURATION_MAPPING = {
