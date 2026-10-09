@@ -105,8 +105,8 @@ module Ingestion
           report.financial_statements
                 .where.not(consolidation_type: statements.map(&:consolidation_type))
                 .destroy_all
-          # 主とする区分が単体から連結に替わる再取込（連結を含む訂正有報など）では、新しい主を立てる前に
-          # 旧い主を外す。区分ごとに更新する途中で主が2つになり、1有報1主の一意制約に反するため
+          # 主とする区分が単体から連結に替わる再取込（連結を含む訂正有報など）では、新しい主を立てる前に旧い主を外す。
+          # 区分ごとに更新する途中で主が2つになり、1有報1主の一意制約に反するため
           primary_types = statements.select { |ext| primary?(ext, dei) }.map(&:consolidation_type)
           report.financial_statements.where(is_primary: true)
                 .where.not(consolidation_type: primary_types)
