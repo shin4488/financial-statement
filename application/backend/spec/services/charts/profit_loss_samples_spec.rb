@@ -115,9 +115,10 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
         expect(segments(credit)).to eq [ [ "収益", 50_684_952_000_000 ] ]
         expect(profit_loss_warnings).to eq [ [
           "profit and loss chart expenses do not reconcile",
-          { level: :warning, extra: { doc_id: "S100Y8NY", consolidation_type: "consolidated", presentation_format: "ifrs_classified",
-                                      amounts: { "pl.cost_of_sales" => 39_141_418_000_000, "pl.sga" => 4_697_524_000_000,
-                                                 "pl.operating_expenses" => 46_918_736_000_000 } } }
+          { level: :warning, fingerprint: [ "profit and loss chart expenses do not reconcile" ],
+            extra: { doc_id: "S100Y8NY", consolidation_type: "consolidated", presentation_format: "ifrs_classified",
+                     amounts: { "pl.cost_of_sales" => 39_141_418_000_000, "pl.sga" => 4_697_524_000_000,
+                                "pl.operating_expenses" => 46_918_736_000_000 } } }
         ] ]
       end
     end
@@ -229,9 +230,10 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
                                                    [ "営業利益", 10_382_000_000 ] ]
         expect(profit_loss_warnings).to eq [ [
           "profit and loss chart expenses do not reconcile",
-          { level: :warning, extra: { doc_id: "S100THV6", consolidation_type: "consolidated", presentation_format: "jgaap_general",
-                                      amounts: { "pl.revenue" => 484_742_000_000, "pl.cost_of_sales" => 358_509_000_000,
-                                                 "pl.sga" => 141_425_000_000, "pl.operating_profit" => 10_382_000_000 } } }
+          { level: :warning, fingerprint: [ "profit and loss chart expenses do not reconcile" ],
+            extra: { doc_id: "S100THV6", consolidation_type: "consolidated", presentation_format: "jgaap_general",
+                     amounts: { "pl.revenue" => 484_742_000_000, "pl.cost_of_sales" => 358_509_000_000,
+                                "pl.sga" => 141_425_000_000, "pl.operating_profit" => 10_382_000_000 } } }
         ] ]
       end
     end
