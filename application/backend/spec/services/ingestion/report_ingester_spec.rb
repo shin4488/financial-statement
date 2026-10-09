@@ -294,6 +294,22 @@ RSpec.describe Ingestion::ReportIngester do
     end
   end
 
+  describe "連結が加わる再取込" do
+    it "単体だけの有報のあとに連結を含む訂正有報を取り込むと、画面に出す財務諸表が連結に替わる" do
+      ingest("S0000001", annual_report_xml)
+      expect(Disclosure::FinancialStatement.sole.is_primary).to be true
+
+      ingest("S0000009", synthetic_xbrl_xml(
+        dei: { has_consolidated: "true" },
+        facts: { [ "jppfs_cor:Assets", "CurrentYearInstant" ] => 200,
+                 [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 100 }))
+
+      expect(Disclosure::Report.sole.edinet_document_id).to eq "S0000009"
+      expect(Disclosure::FinancialStatement.where(is_primary: true).pluck(:consolidation_type)).to eq [ "consolidated" ]
+      expect(Disclosure::FinancialStatement.find_by(consolidation_type: :non_consolidated).is_primary).to be false
+    end
+  end
+
   describe "取り込まない書類" do
     it "証券コードが空でも既存書類・企業・期間が一致する再取込は可能" do
       ingest("S0000001", annual_report_xml)
