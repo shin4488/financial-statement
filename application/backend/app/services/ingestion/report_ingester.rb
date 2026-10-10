@@ -200,7 +200,8 @@ module Ingestion
       def warn_mismatches(fs, ext, doc_id)
         return unless fs.is_primary
         Reconciliation.warnings(ext.items, ext.format).each do |warning|
-          Sentry.capture_message(warning.message, level: :warning, extra: {
+          # 照合の種類ごとに1つのissueにまとめる。指定しないとSentryは送った箇所でまとめ、種類の違う警告が1つのissueに混ざる
+          Sentry.capture_message(warning.message, level: :warning, fingerprint: [ warning.message ], extra: {
             doc_id: doc_id, consolidation_type: ext.consolidation_type.to_s, presentation_format: ext.format,
             amounts: warning.amounts
           })
