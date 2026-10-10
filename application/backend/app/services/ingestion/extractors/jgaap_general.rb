@@ -85,11 +85,13 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
       "filer_ext:TotalBusinessRevenueRevOA", "filer_ext:BusinessRevenues", "filer_ext:BusinessRevenue",
       "filer_ext:BusinessRevenueRevOA", "filer_ext:OperatingRevenue", "filer_ext:OperatingRevenueRevOA",
       "filer_ext:OperatingRevenuesRevOA", "filer_ext:RevenueRevOA", "filer_ext:Revenue2", "filer_ext:Proceeds",
-      # 売上高の下に営業収入の内訳（不動産賃貸収入・その他の営業収入）を並べ、営業収益の合計の行にタグを付けない会社がある。
-      # 売上高だけでは売上が内訳になるため、両方の行があるときの合計を、要約の売上と照合して差し替える候補に置く。
+      # 売上高の下に営業収入の内訳（不動産賃貸収入・賃貸収入・その他の営業収入）を並べ、営業収益の合計の行にタグを付けない会社がある。
+      # 売上高だけでは売上が内訳になるため、すべての行があるときの合計を、要約の売上と照合して差し替える候補に置く。
       # 売上高がある会社は上の候補で売上が取れるため、ここまで来るのは差し替えのときだけ
       sum("jppfs_cor:NetSales", "jppfs_cor:RentIncomeOfRealEstateRevOA", all_present: true),
-      sum("jppfs_cor:NetSales", "jppfs_cor:OtherOperatingRevenue2RevOA", all_present: true)
+      sum("jppfs_cor:NetSales", "jppfs_cor:OtherOperatingRevenue2RevOA", all_present: true),
+      sum("jppfs_cor:NetSales", "jppfs_cor:RentIncomeOfRealEstateRevOA", "jppfs_cor:OtherRevenue2RevOA", all_present: true),
+      sum("jppfs_cor:NetSales", "jppfs_cor:RentIncomeRevOA", all_present: true)
     ],
     # 経営指標の要約（主要な経営指標等の推移）の売上。売上のタグに合計ではなく内訳だけを付けた書類を見つけるため、
     # 取り込んだ売上と照合する。要約に売上高と営業総収入のように内訳と総額が並ぶ会社があるため、

@@ -162,7 +162,7 @@
 | 15 | 合算 `ShippingBusinessRevenueWAT` + `OtherBusinessRevenueWAT` | 海運（単体）: 海運業収益 + その他事業収益。標準サマリの全社売上もない場合 |
 | 16 | `jppfs_cor:GrossOperatingRevenue` | 営業総収入。売上高と営業収入の合計だけをタグ付けする会社（ミニストップ連結） |
 | 17 | 企業拡張タグ `TotalBusinessRevenueRevOA` → `BusinessRevenues` → `BusinessRevenue` → `BusinessRevenueRevOA` → `OperatingRevenue` → `OperatingRevenueRevOA` → `OperatingRevenuesRevOA` → `RevenueRevOA` → `Revenue2` → `Proceeds` | 売上を企業拡張タグだけで開示する会社（博報堂DY、スカイマーク、セーラー広告、デジタルHD、ラクオリア創薬、アンジェスなど）。原本で売上の合計と確かめた要素名 |
-| 18 | 合算 `NetSales` + `RentIncomeOfRealEstateRevOA`、合算 `NetSales` + `OtherOperatingRevenue2RevOA`（どちらもすべてのタグに値があるときだけ） | 売上高の下に営業収入の内訳（不動産賃貸収入・その他の営業収入）を並べ、営業収益の合計の行にタグを付けない会社（セキチュー・アルビス・リンガーハット）。売上高がある会社は8で売上が取れるため、[経営指標の要約と照合](03_data_flow.md#売上と経営指標の要約の照合)して差し替えるときだけ使う |
+| 18 | 合算 `NetSales` + `RentIncomeOfRealEstateRevOA`、合算 `NetSales` + `OtherOperatingRevenue2RevOA`、合算 `NetSales` + `RentIncomeOfRealEstateRevOA` + `OtherRevenue2RevOA`、合算 `NetSales` + `RentIncomeRevOA`（どれもすべてのタグに値があるときだけ） | 売上高の下に営業収入の内訳（不動産賃貸収入・賃貸収入・その他の営業収入）を並べ、営業収益の合計の行にタグを付けない会社（セキチュー・アルビス・リンガーハット・アオキスーパー・コーナン商事）。売上高がある会社は8で売上が取れるため、[経営指標の要約と照合](03_data_flow.md#売上と経営指標の要約の照合)して差し替えるときだけ使う |
 
 業種固有の総額を優先する。商品先物取引業などでは、`NetSales` が営業収益の一部を指すため。
 
