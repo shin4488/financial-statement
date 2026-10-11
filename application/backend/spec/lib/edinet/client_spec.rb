@@ -73,6 +73,54 @@ RSpec.describe Edinet::Client do
     end
   end
 
+  # API仕様では結果を直接返し、エラーもHTTP 200のJSONで返すため、リダイレクトは追わずに失敗させる。
+  # open-uriは既定で、httpへのリダイレクトを拒否したときや同じURLへのリダイレクトをループと検出したときに、キー入りのURLを例外メッセージに含める
+  describe "リダイレクト応答" do
+    let(:api_key) { "dummy-subscription-key" }
+
+    # キーの有無を判定できる値にし、実キーのある環境でも失敗時の出力に実キーを出さない
+    around do |example|
+      original = ENV["EDINET_API_KEY"]
+      ENV["EDINET_API_KEY"] = api_key
+      example.run
+    ensure
+      ENV["EDINET_API_KEY"] = original
+    end
+
+    def expect_failure_without_key(&request)
+      expect(&request).to raise_error { |error|
+        aggregate_failures do
+          expect(error.message).to include("302")
+          expect(error.message).not_to include(api_key)
+          # open-uriのリダイレクト例外はリダイレクト先URLを持つため、原因（cause）にも残さない
+          expect(error.cause).to be_nil
+        end
+      }
+    end
+
+    { "httpへのリダイレクト" => ->(_url) { "http://example.invalid/redirected" },
+      "同じURLへのリダイレクト（ループ）" => ->(url) { url } }.each do |label, location_for|
+      it "書類一覧APIで#{label}を受けたら追わず、キーを含まない例外で失敗する" do
+        url = "https://api.edinet-fsa.go.jp/api/v2/documents.json?date=2026-06-20&type=2&Subscription-Key=#{api_key}"
+        stub_request(:get, %r{documents\.json})
+          .to_return(status: [ 302, "Found" ], headers: { "Location" => location_for.call(url) })
+        expect_failure_without_key { client.list_annual_reports(date: Date.new(2026, 6, 20)) }
+        expect(a_request(:get, %r{documents\.json})).to have_been_made.once
+      end
+
+      it "書類取得APIで#{label}を受けたら追わず、キーを含まない例外で失敗し、一時ファイルを残さない" do
+        url = "https://api.edinet-fsa.go.jp/api/v2/documents/S1000001?type=1&Subscription-Key=#{api_key}"
+        stub_request(:get, %r{documents/S1000001})
+          .to_return(status: [ 302, "Found" ], headers: { "Location" => location_for.call(url) })
+        Dir.mktmpdir do |work_dir|
+          expect_failure_without_key { client.download_xbrl(doc_id: "S1000001", work_dir: work_dir) }
+          expect(Dir.children(work_dir)).to be_empty
+        end
+        expect(a_request(:get, %r{documents/S1000001})).to have_been_made.once
+      end
+    end
+  end
+
   describe "#download_xbrl" do
     def zip_body(entries)
       Zip::OutputStream.write_buffer do |zip|

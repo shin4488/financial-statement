@@ -153,7 +153,7 @@ Sentry通知とログから失敗した日付・書類を特定し、原因を�
 | 新しい業種・形式に対応した | `rake 'ingestion:reingest_unsupported[提出日from,提出日to]'` | `unsupported` を含む有報だけ |
 | 詳細タグ義務化前のIFRS有報が `ifrs_liquidity` のまま残っている | `rake ingestion:reingest_ifrs_summary` | 「primaryなのに資産合計が無い」有報をDBから自動特定（移行完了後は0件になり、再実行しても何もしない） |
 
-EDINETの404は書類の取得不能、403・429はアクセス制限として原因を確認し、連続再試行しない。HTTP 200でも本文にエラーが含まれる場合がある。
+EDINETの404は書類の取得不能、403・429はアクセス制限として原因を確認し、連続再試行しない。HTTP 200でも本文にエラーが含まれる場合がある。リダイレクトはAPI仕様にない応答のため追わず、書類一覧は `EDINET documents.json failed`、書類取得は `EDINET document redirected` で失敗させる。メンテナンス情報を確認して再実行し、続く場合はAPI仕様の変更を確認する。
 
 日次確認では、ジョブの実行ログ・エラー、取込件数とEDINETの提出一覧、公開APIの応答を確認する。
 
