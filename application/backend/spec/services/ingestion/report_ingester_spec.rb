@@ -183,13 +183,14 @@ RSpec.describe Ingestion::ReportIngester do
 
     before { allow(Sentry).to receive(:capture_message) }
 
-    it "売上が要約の売上と合わなければ、照合の種類ごとの固定の文言で警告し、書類ID・連結区分・金額を付加情報にする" do
+    it "売上が要約の売上と合わなければ、照合の種類ごとの固定の文言で警告し、その文言でissueをまとめ、書類ID・連結区分・金額を付加情報にする" do
       ingest("S0000001", annual_report_xml(facts: assets.merge(
         [ "jppfs_cor:NetSales", context ] => 107,
         [ "jpcrp030000-asr_E00001-000:BusinessRevenueSummaryOfBusinessResults", context ] => 615)))
 
       expect(Sentry).to have_received(:capture_message).with(
         "revenue does not match summary of business results", level: :warning,
+        fingerprint: [ "revenue does not match summary of business results" ],
         extra: { doc_id: "S0000001", consolidation_type: "non_consolidated", presentation_format: "jgaap_general",
                  amounts: { "pl.revenue" => 107, "pl.summary_revenue" => 615 } })
     end
@@ -200,6 +201,7 @@ RSpec.describe Ingestion::ReportIngester do
 
       expect(Sentry).to have_received(:capture_message).with(
         "revenue missing although summary of business results has revenue", level: :warning,
+        fingerprint: [ "revenue missing although summary of business results has revenue" ],
         extra: hash_including(doc_id: "S0000001", amounts: { "pl.summary_revenue" => 110 }))
     end
 
@@ -236,6 +238,7 @@ RSpec.describe Ingestion::ReportIngester do
 
       expect(Sentry).to have_received(:capture_message).with(
         "profit and loss chart expenses do not reconcile", level: :warning,
+        fingerprint: [ "profit and loss chart expenses do not reconcile" ],
         extra: { doc_id: "S0000001", consolidation_type: "non_consolidated", presentation_format: "jgaap_general",
                  amounts: { "pl.revenue" => 1_000, "pl.cost_of_sales" => 600, "pl.sga" => 250, "pl.operating_profit" => 100 } })
     end
@@ -265,6 +268,7 @@ RSpec.describe Ingestion::ReportIngester do
 
       expect(Sentry).to have_received(:capture_message).with(
         "balance sheet chart does not reconcile with totals", level: :warning,
+        fingerprint: [ "balance sheet chart does not reconcile with totals" ],
         extra: { doc_id: "S0000001", consolidation_type: "non_consolidated", presentation_format: "jgaap_general",
                  amounts: { "bs.current_assets" => 400, "bs.tangible_fixed_assets" => 589, "bs.assets" => 1_000,
                             "bs.liabilities" => 600, "bs.equity" => 400 } })
