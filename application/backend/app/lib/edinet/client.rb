@@ -78,9 +78,16 @@ module Edinet
         # 書類取得APIの type=1 は「提出本文書及び監査報告書」のzip
         uri = URI("#{BASE}/documents/#{doc_id}")
         uri.query = URI.encode_www_form(type: 1, "Subscription-Key" => api_key)
-        # copy_stream: レスポンス全体をStringに載せず直接ファイルへ書く（巨大レスポンスでのOOM対策）。
-        # 上限+1バイトまで読んで超過を検出する（Content-Lengthは信用せず実バイト数で判定）
-        uri.open { |src| IO.copy_stream(src, zip_path, MAX_ZIP_SIZE + 1) }
+        # API仕様では書類を直接返し、エラーもHTTP 200のJSONで返すため、リダイレクトは追わない。
+        # 追うと、open-uriはhttpへのリダイレクトを拒否したときやループを検出したときに、キー入りのURLを例外メッセージに含める
+        begin
+          # copy_stream: レスポンス全体をStringに載せず直接ファイルへ書く（巨大レスポンスでのOOM対策）。
+          # 上限+1バイトまで読んで超過を検出する（Content-Lengthは信用せず実バイト数で判定）
+          uri.open(redirect: false) { |src| IO.copy_stream(src, zip_path, MAX_ZIP_SIZE + 1) }
+        rescue OpenURI::HTTPRedirect => e
+          # HTTPRedirectはリダイレクト先URL（キーを含み得る）を持つため、ステータスだけの例外にし、原因（cause）にも残さない
+          raise "EDINET document redirected: #{doc_id} (#{e.message})", cause: nil
+        end
         if File.size(zip_path) > MAX_ZIP_SIZE
           raise "EDINET zip too large: #{doc_id} (> #{MAX_ZIP_SIZE} bytes)"
         end
