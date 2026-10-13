@@ -105,4 +105,16 @@ RSpec.describe FinancialStatements::FreeCashFlowTrends do
     expect(trend.points[3].amount).to eq 5_000_000
     expect(trend.points[4].amount).to eq 15_000_000
   end
+
+  it "一覧の有報を読んだ後、過去5年を読む前に主の財務諸表が外れた（別の取込と重なった）ときは、過去5年のデータなしとして返す" do
+    current = statement(2025, operating: 30_000_000, investing: -10_000_000)
+    current.primary_financial_statement.update!(is_primary: false)
+
+    trend = described_class.build([ current ]).fetch(current.id)
+
+    expect(trend.renderable).to be false
+    expect(trend.note).to eq "過去5年のデータがありません"
+    expect(trend.points.map(&:year)).to eq [ 2021, 2022, 2023, 2024, 2025 ]
+    expect(trend.points.map(&:amount)).to all(be_nil)
+  end
 end

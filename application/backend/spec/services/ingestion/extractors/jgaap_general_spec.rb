@@ -34,4 +34,18 @@ RSpec.describe Ingestion::Extractors::JgaapGeneral do
       expect(debit).to be_within(2_000).of(items["pl.revenue"])
     end
   end
+
+  describe "#extract（株主資本はあるが、評価・換算差額等のタグも純資産もない）" do
+    it "株主資本を自己資本と確かめられないため、期首・期末の自己資本を取らない" do
+      xbrl = synthetic_xbrl_document(facts: {
+        [ "jppfs_cor:ShareholdersEquity", "Prior1YearInstant" ] => 300,
+        [ "jppfs_cor:ShareholdersEquity", "CurrentYearInstant" ] => 400,
+        [ "jppfs_cor:Assets", "CurrentYearInstant" ] => 1_000
+      })
+      items = described_class.new(xbrl, Ingestion::Extractors::Base::CONSOLIDATED).extract
+      expect(items).to include("bs.assets" => 1_000)
+      expect(items).not_to have_key("bs.equity_attributable_to_owners")
+      expect(items).not_to have_key("bs.equity_attributable_to_owners_begin")
+    end
+  end
 end

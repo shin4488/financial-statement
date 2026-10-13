@@ -134,6 +134,24 @@ RSpec.describe Charts::Builders::PlIfrs do
       chart = described_class.new(amounts(values.merge("pl.cost_of_sales" => 56_206_000_000), 1_000_000)).build
       expect(chart.renderable).to be false
     end
+
+    it "売上原価がなく、販管費か営業費用だけが負の値なら、確かめられないため描かない" do
+      [ values.except("pl.cost_of_sales"),
+        values.slice("pl.revenue", "pl.gross_profit", "pl.profit_before_tax").merge("pl.operating_expenses" => -106_047_000_000) ].each do |items|
+        chart = described_class.new(amounts(items, 1_000_000)).build
+        expect(chart.renderable).to be false
+        expect(chart.note).to include("表示に対応していません")
+      end
+    end
+  end
+
+  describe "差額（その他の収益・費用の純額）がちょうど0" do
+    it "差額のセグメントを積まず、借方は費用と税引前利益、貸方は収益だけになる" do
+      debit, credit = described_class.new({ "pl.revenue" => 1_000, "pl.cost_of_sales" => 600, "pl.sga" => 300,
+                                            "pl.profit_before_tax" => 100 }).build.bars
+      expect(labeled(debit)).to eq [ [ "売上原価", 600 ], [ "販売費及び一般管理費", 300 ], [ "税引前利益", 100 ] ]
+      expect(labeled(credit)).to eq [ [ "収益", 1_000 ] ]
+    end
   end
 
   describe "表示した費用がない（売上原価・販管費・営業費用のタグがない）" do

@@ -422,4 +422,82 @@ RSpec.describe Ingestion::ReportIngester do
       expect(Disclosure::Company.count).to eq 0
     end
   end
+
+  describe "ファンドの書類として取り込み直した有報の表示対象" do
+    include ActiveSupport::Testing::TimeHelpers
+
+    it "主だった財務諸表だけを表示から外して更新日時を進め、主でない財務諸表と科目はそのまま残す" do
+      ingest("S0000001", synthetic_xbrl_xml(
+        dei: { has_consolidated: "true" },
+        facts: { [ "jppfs_cor:Assets", "CurrentYearInstant" ] => 200,
+                 [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 100 }))
+      consolidated = Disclosure::FinancialStatement.find_by(consolidation_type: :consolidated)
+      non_consolidated = Disclosure::FinancialStatement.find_by(consolidation_type: :non_consolidated)
+      consolidated_attributes = consolidated.attributes
+      non_consolidated_attributes = non_consolidated.attributes
+
+      travel(1.minute) do
+        ingest("S0000001", synthetic_xbrl_xml(facts: { [ "jpdei_cor:FundCodeDEI", "FilingDateInstant" ] => "G15497" }))
+      end
+
+      expect(consolidated.reload.is_primary).to be false
+      expect(consolidated.updated_at).to be > consolidated_attributes["updated_at"]
+      expect(consolidated.attributes.except("is_primary", "updated_at"))
+        .to eq consolidated_attributes.except("is_primary", "updated_at")
+      expect(non_consolidated.reload.attributes).to eq non_consolidated_attributes
+      expect(Disclosure::FinancialStatementItem.pluck(:item_code, :amount))
+        .to contain_exactly([ "bs.assets", 200 ], [ "bs.assets", 100 ])
+    end
+  end
+
+  describe "保存の途中の例外" do
+    it "例外の前に送った通知は送られたまま、DBは1有報分すべて取り込む前に戻る" do
+      ingest("S0000001", synthetic_xbrl_xml(
+        dei: { has_consolidated: "true", name_ja: "訂正前の社名" },
+        facts: { [ "jppfs_cor:Assets", "CurrentYearInstant" ] => 200,
+                 [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 100 }))
+      tables = [ Disclosure::Company, Disclosure::Report, Disclosure::FinancialStatement, Disclosure::FinancialStatementItem ]
+      snapshot = -> { tables.map { |model| model.order(:id).map(&:attributes) } }
+      before_correction = snapshot.call
+      # 連結を保存して通知を送った後に、単体の財務諸表の保存でDBが失敗する状況を作る。
+      # PostgreSQLのDDLはトランザクションに含まれるため、制約はこのexampleの終わりに消える
+      ActiveRecord::Base.connection.execute(
+        "ALTER TABLE financial_statements ADD CONSTRAINT reject_non_consolidated CHECK (consolidation_type <> 1) NOT VALID")
+      notices = []
+      allow(Sentry).to receive(:capture_message) { |*args, **kwargs| notices << [ args, kwargs ] }
+
+      expect {
+        ingest("S0000009", synthetic_xbrl_xml(
+          dei: { has_consolidated: "true", name_ja: "訂正後の社名" },
+          facts: { [ "jppfs_cor:NetSales", "CurrentYearDuration" ] => 300,
+                   [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 150 }))
+      }.to raise_error(ActiveRecord::StatementInvalid, /reject_non_consolidated/)
+
+      expect(notices).to eq [ [ [ "primary statement missing bs.assets: S0000009 (jgaap_general)" ], { level: :warning } ] ]
+      expect(snapshot.call).to eq before_correction
+    end
+  end
+
+  describe "連結廃止を示す訂正書類（財務factを含まない）" do
+    it "連結の行を消し、単体は既存の行を残して警告する。主の財務諸表がなくなった書類は一覧から外れる" do
+      ingest("S0000001", synthetic_xbrl_xml(
+        dei: { has_consolidated: "true" },
+        facts: { [ "jppfs_cor:Assets", "CurrentYearInstant" ] => 200,
+                 [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 100 }))
+      non_consolidated = Disclosure::FinancialStatement.find_by(consolidation_type: :non_consolidated)
+      non_consolidated_attributes = non_consolidated.attributes
+      listed = -> { FinancialStatementSchema.execute("{ financialReports(limit: 10, offset: 0) { companyName } }").to_h }
+      expect(listed.call).to eq("data" => { "financialReports" => [ { "companyName" => "テスト株式会社" } ] })
+      notices = []
+      allow(Sentry).to receive(:capture_message) { |*args, **kwargs| notices << [ args, kwargs ] }
+
+      ingest("S0000009", synthetic_xbrl_xml(dei: { has_consolidated: "false" }))
+
+      expect(notices).to eq [ [ [ "skip empty extraction for existing statement: S0000009 (non_consolidated)" ], { level: :warning } ] ]
+      expect(Disclosure::FinancialStatement.sole.attributes).to eq non_consolidated_attributes
+      expect(Disclosure::FinancialStatementItem.pluck(:item_code, :amount)).to eq [ [ "bs.assets", 100 ] ]
+      expect(Disclosure::Report.sole).to have_attributes(edinet_document_id: "S0000009", has_consolidated_statement: false)
+      expect(listed.call).to eq("data" => { "financialReports" => [] })
+    end
+  end
 end
