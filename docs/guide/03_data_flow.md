@@ -242,7 +242,15 @@ flowchart TB
 
 ### 科目コード — 形式間で共通
 
-科目コードは、会計基準が違っても同じ意味の数値を扱うための名前。`bs.assets` は総資産、`pl.revenue` は売上高を表す。定義は `app/lib/financial_statements/item_codes.rb` にまとめている。
+科目コードは、会計基準が違っても同じ意味の数値を扱うための名前。`bs.assets` は総資産、`pl.revenue` は売上高を表す。定義は科目カタログ `app/lib/financial_statements/item_catalog.rb` に、1科目1行で書いている。
+
+| 1行に書くこと | 内容 | 例 |
+|---|---|---|
+| 期間 | `instant`（当期末の残高）か `duration`（当期の増減）。Extractorがその科目の値を引くコンテキストと同じにする | `bs.assets` は `instant`、`pl.revenue` は `duration` |
+| 期首の科目 | `opening`。`of:` の科目の、同じ有報の前期末の残高を、期首の科目として保存する | `bs.assets_begin` は `bs.assets` の前期末 |
+| 意味 | 科目の意味と、形式ごとの違い | `bs.cash_and_equivalents` は現金及び現金同等物（銀行は「現金預け金」、保険は「現金及び預貯金」） |
+
+形式名（`jgaap_general` など）の一覧は `app/lib/financial_statements/formats.rb` にある。
 
 ### タグから科目コードへの変換
 
@@ -581,12 +589,13 @@ APIは `asset1`（資産）や `profit`（利益）などの色の役割を返�
 
 | 変更の種類 | 主な変更箇所 |
 |---|---|
-| 取得するタグや優先順位の変更 | 対象形式のExtractor。新科目なら `item_codes.rb`、表示にも使うならBuilderを更新する |
+| 取得するタグや優先順位の変更 | 対象形式のExtractor |
+| 新しい科目を保存する | `item_catalog.rb` に1行足し、対象形式のExtractorの、カタログの期間と同じ表（`INSTANT_MAPPING`・`DURATION_MAPPING`）に取得するタグを足す。期首の科目も保存するなら、`Extractors::Base::OPENING_ITEMS` と、`ReportIngester` が当期の科目の有無を確かめるときに除く科目にも足す。表示にも使うならBuilderを更新する |
 | 一般様式の業種を追加 | `JgaapGeneral` に業種のタグを追加する |
-| 構成の異なる形式を追加 | Extractor・Builderを作成し、形式判定と登録表に追加する |
+| 構成の異なる形式を追加 | Extractor・Builderを作成し、形式名を `formats.rb` に足して、形式判定と登録表に追加する |
 | 色の役割を追加 | バックエンド、Webの `colorRoles.ts`、Chrome拡張を揃えて変更する |
 
 タグを変更するときは、原本の数値で検証し、[タグ対応表](06_taxonomy_mapping.md)も更新する。
 
-- `mapping_consistency_spec.rb` で未定義の科目コードがないことを確認する。業種を追加するときは、`industry_formats_spec.rb` に実XBRLのケースを加え、形式判定から描画まで検証する。
+- `mapping_consistency_spec.rb` で未定義の科目コードがないこと、`item_catalog_consistency_spec.rb` でカタログの期間・期首の科目がExtractorと合うことを確認する。業種を追加するときは、`industry_formats_spec.rb` に実XBRLのケースを加え、形式判定から描画まで検証する。
 - 既に `unsupported` で保存済みの有報は再取込タスクで取り直す（[05章](05_development_operations.md)）
