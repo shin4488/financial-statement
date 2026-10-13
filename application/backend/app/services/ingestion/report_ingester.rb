@@ -1,5 +1,6 @@
 module Ingestion
-  # 1有報の取込オーケストレーション + 永続化
+  # 1有報の取込オーケストレーション + 永続化。
+  # Sentryのメッセージの通知は、書類ごとに変わる値を除いた文言をfingerprintにし、送った箇所でなく通知の種類ごとに1つのissueにまとめる
   class ReportIngester
     def initialize(client: Edinet::Client.new,
                    dei_extractor: DeiExtractor.new,
@@ -30,19 +31,22 @@ module Ingestion
       if dei.accounting_standard.nil?
         # 会計基準不明のまま取り込むと形式判定できないためスキップ。ただし黙殺すると
         # 「特定企業だけデータが無い」原因を追えなくなるため警告だけ残す
-        Sentry.capture_message("accounting standard unknown: #{doc_id}", level: :warning)
+        Sentry.capture_message("accounting standard unknown: #{doc_id}", level: :warning,
+                               fingerprint: [ "accounting standard unknown" ])
         return
       end
       # 文書内DEIは提出者が書いた値のため、企業マスタのキーとして信頼する前に検証する。
       # 権威ある一覧メタデータと食い違う書類（なりすまし・提出ミス）は他社レコードを
       # 上書きし得るため取り込まない
       unless dei.edinet_code.to_s.match?(/\A[A-Z]\d{5}\z/)
-        Sentry.capture_message("invalid edinet code in DEI: #{doc_id} (#{dei.edinet_code.inspect})", level: :error)
+        Sentry.capture_message("invalid edinet code in DEI: #{doc_id} (#{dei.edinet_code.inspect})", level: :error,
+                               fingerprint: [ "invalid edinet code in DEI" ])
         return
       end
       if expected_sec_code && dei.stock_code != expected_sec_code
         Sentry.capture_message(
-          "sec code mismatch: #{doc_id} (list=#{expected_sec_code} dei=#{dei.stock_code})", level: :error)
+          "sec code mismatch: #{doc_id} (list=#{expected_sec_code} dei=#{dei.stock_code})", level: :error,
+          fingerprint: [ "sec code mismatch" ])
         return
       end
 
@@ -157,7 +161,7 @@ module Ingestion
         if current_items.empty? && fs.persisted? && fs.items.exists?
           Sentry.capture_message(
             "skip empty extraction for existing statement: #{doc_id} (#{ext.consolidation_type})",
-            level: :warning)
+            level: :warning, fingerprint: [ "skip empty extraction for existing statement" ])
           return
         end
         fs.update!(
@@ -193,7 +197,8 @@ module Ingestion
         return unless fs.is_primary && !ext.items.key?("bs.assets")
         return unless FormatRegistry.extractor_for(ext.format)&.item_codes&.include?("bs.assets")
         Sentry.capture_message(
-          "primary statement missing bs.assets: #{doc_id} (#{ext.format})", level: :warning)
+          "primary statement missing bs.assets: #{doc_id} (#{ext.format})", level: :warning,
+          fingerprint: [ "primary statement missing bs.assets" ])
       end
 
       # warn_missing_assetsと同じく、画面に出す財務諸表だけを照合する
