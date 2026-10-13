@@ -11,9 +11,7 @@ module Disclosure
     enum :consolidation_type, { consolidated: 0, non_consolidated: 1 }
     enum :accounting_standard, { japan_gaap: 0, us_gaap: 1, ifrs: 2 }, prefix: true
 
-    # モデル→Ingestion名前空間への参照になるが許容する（形式の正当な値一覧の管理場所を
-    # FormatRegistry 1箇所に限定する方を優先。二重管理にすると形式追加時に片方を忘れる）
-    validates :presentation_format, inclusion: { in: Ingestion::FormatRegistry::ALL }
+    validates :presentation_format, inclusion: { in: FinancialStatements::Formats::ALL }
 
     # グラフの説明文を年度で分ける形式があるため、グラフ作成処理に決算日を渡す
     delegate :fiscal_year_end_date, to: :report

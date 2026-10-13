@@ -1,15 +1,15 @@
 module Ingestion
-  # 表示形式（presentation_format）の一覧と、形式→Extractorの対応。
+  # 形式→Extractorの対応。形式名の一覧は FinancialStatements::Formats にあり、ここの形式名と ALL はその値を指す。
   # 新しい形式に対応するときの手順全体は docs/guide を参照
   module FormatRegistry
-    JGAAP_GENERAL   = "jgaap_general"
-    JGAAP_BANK      = "jgaap_bank"
-    JGAAP_INSURANCE = "jgaap_insurance"
-    IFRS_CLASSIFIED = "ifrs_classified"
-    IFRS_LIQUIDITY  = "ifrs_liquidity"
-    IFRS_SUMMARY    = "ifrs_summary"
-    USGAAP_SUMMARY  = "usgaap_summary"
-    UNSUPPORTED     = "unsupported" # 対応する形式がない財務諸表。形式を足したら、再取込タスクで取り直す
+    JGAAP_GENERAL   = FinancialStatements::Formats::JGAAP_GENERAL
+    JGAAP_BANK      = FinancialStatements::Formats::JGAAP_BANK
+    JGAAP_INSURANCE = FinancialStatements::Formats::JGAAP_INSURANCE
+    IFRS_CLASSIFIED = FinancialStatements::Formats::IFRS_CLASSIFIED
+    IFRS_LIQUIDITY  = FinancialStatements::Formats::IFRS_LIQUIDITY
+    IFRS_SUMMARY    = FinancialStatements::Formats::IFRS_SUMMARY
+    USGAAP_SUMMARY  = FinancialStatements::Formats::USGAAP_SUMMARY
+    UNSUPPORTED     = FinancialStatements::Formats::UNSUPPORTED
 
     EXTRACTORS = {
       JGAAP_GENERAL   => Extractors::JgaapGeneral,
@@ -21,8 +21,7 @@ module Ingestion
       USGAAP_SUMMARY  => Extractors::UsgaapSummary
     }.freeze
 
-    # 形式の正当な値一覧はEXTRACTORSから導出する（別に列挙すると形式追加時に片方を忘れるため）
-    ALL = (EXTRACTORS.keys + [ UNSUPPORTED ]).freeze
+    ALL = FinancialStatements::Formats::ALL
 
     def self.extractor_for(format) = EXTRACTORS[format] # unsupportedはnil
   end

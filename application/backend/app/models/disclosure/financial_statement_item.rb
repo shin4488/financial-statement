@@ -4,7 +4,7 @@ module Disclosure
 
     belongs_to :financial_statement, class_name: "Disclosure::FinancialStatement"
 
-    validates :item_code, inclusion: { in: FinancialStatements::ItemCodes::ALL }
+    validates :item_code, inclusion: { in: FinancialStatements::ItemCatalog::ALL }
     validates :amount, presence: true
   end
 end
