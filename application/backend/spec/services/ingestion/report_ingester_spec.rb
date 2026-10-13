@@ -149,7 +149,7 @@ RSpec.describe Ingestion::ReportIngester do
   describe "primaryの財務諸表でbs.assetsが無いときの警告" do
     it "BSを抽出する形式では形式判定ミスの可能性として警告する" do
       expect(Sentry).to receive(:capture_message)
-        .with(/primary statement missing bs\.assets/, level: :warning)
+        .with(/primary statement missing bs\.assets/, level: :warning, fingerprint: [ "primary statement missing bs.assets" ])
       ingest("S0000001", annual_report_xml(
         facts: { [ "jppfs_cor:NetSales", "CurrentYearDuration_NonConsolidatedMember" ] => 100 }))
     end
@@ -340,7 +340,7 @@ RSpec.describe Ingestion::ReportIngester do
     it "既存書類でも一覧APIの証券コードを照合できなければ更新しない" do
       ingest("S0000001", annual_report_xml)
       Disclosure::Company.sole.update!(stock_code: "")
-      expect(Sentry).to receive(:capture_message).with(/sec code mismatch/, level: :error)
+      expect(Sentry).to receive(:capture_message).with(/sec code mismatch/, level: :error, fingerprint: [ "sec code mismatch" ])
       ingest("S0000001", synthetic_xbrl_xml(dei: { stock_code: "" }), expected_sec_code: "45020")
       expect(Disclosure::FinancialStatement.sole.items_hash["bs.assets"]).to eq 100
     end
@@ -400,19 +400,19 @@ RSpec.describe Ingestion::ReportIngester do
     end
 
     it "DEIのEDINETコードが不正な書類は保存しない（他社レコードの上書き防止）" do
-      expect(Sentry).to receive(:capture_message).with(/invalid edinet code/, level: :error)
+      expect(Sentry).to receive(:capture_message).with(/invalid edinet code/, level: :error, fingerprint: [ "invalid edinet code in DEI" ])
       ingest("S0000001", synthetic_xbrl_xml(dei: { edinet_code: "不正な値" }))
       expect(Disclosure::Company.count).to eq 0
     end
 
     it "書類一覧APIの証券コードとDEIの証券コードが食い違う書類は保存しない" do
-      expect(Sentry).to receive(:capture_message).with(/sec code mismatch/, level: :error)
+      expect(Sentry).to receive(:capture_message).with(/sec code mismatch/, level: :error, fingerprint: [ "sec code mismatch" ])
       ingest("S0000001", annual_report_xml, expected_sec_code: "72030")
       expect(Disclosure::Report.count).to eq 0
     end
 
     it "会計基準が判定できない書類は保存しない（形式判定できないため）" do
-      expect(Sentry).to receive(:capture_message).with(/accounting standard unknown/, level: :warning)
+      expect(Sentry).to receive(:capture_message).with(/accounting standard unknown/, level: :warning, fingerprint: [ "accounting standard unknown" ])
       ingest("S0000001", synthetic_xbrl_xml(dei: { accounting_standard: nil }))
       expect(Disclosure::Report.count).to eq 0
     end
@@ -473,7 +473,8 @@ RSpec.describe Ingestion::ReportIngester do
                    [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 150 }))
       }.to raise_error(ActiveRecord::StatementInvalid, /reject_non_consolidated/)
 
-      expect(notices).to eq [ [ [ "primary statement missing bs.assets: S0000009 (jgaap_general)" ], { level: :warning } ] ]
+      expect(notices).to eq [ [ [ "primary statement missing bs.assets: S0000009 (jgaap_general)" ],
+                                { level: :warning, fingerprint: [ "primary statement missing bs.assets" ] } ] ]
       expect(snapshot.call).to eq before_correction
     end
   end
@@ -493,7 +494,8 @@ RSpec.describe Ingestion::ReportIngester do
 
       ingest("S0000009", synthetic_xbrl_xml(dei: { has_consolidated: "false" }))
 
-      expect(notices).to eq [ [ [ "skip empty extraction for existing statement: S0000009 (non_consolidated)" ], { level: :warning } ] ]
+      expect(notices).to eq [ [ [ "skip empty extraction for existing statement: S0000009 (non_consolidated)" ],
+                                { level: :warning, fingerprint: [ "skip empty extraction for existing statement" ] } ] ]
       expect(Disclosure::FinancialStatement.sole.attributes).to eq non_consolidated_attributes
       expect(Disclosure::FinancialStatementItem.pluck(:item_code, :amount)).to eq [ [ "bs.assets", 100 ] ]
       expect(Disclosure::Report.sole).to have_attributes(edinet_document_id: "S0000009", has_consolidated_statement: false)
