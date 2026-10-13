@@ -1,22 +1,11 @@
 # rails cの手打ちにしない理由: 長時間ジョブは中断・再開が前提になるため、
 # コマンド1つで任意期間を再実行できる形にしておく（全処理が冪等のため重複実行は無害）
 module IngestionTasks
-  # docID列を上から順に取り込む（このファイルの全タスク共通の実行部）。
-  # 1件の失敗を他に波及させない（日次取込と同じ方針）。失敗分は出力を見て個別に再実行する
+  # docID列を上から順に取り込む（backfill以外のタスク共通の実行部）。
+  # 1件の失敗を他に波及させない（日次取込と同じ方針）。失敗分は出力を見て個別に再実行する。
+  # 待ち方には自分の sleep を渡す。このモジュールの sleep を差し替えると、書類間の待ち時間を記録・省略できる
   def self.ingest_each(doc_ids)
-    ingester = Ingestion::ReportIngester.new
-    Dir.mktmpdir("edinet") do |work_dir|
-      doc_ids.each do |doc_id|
-        begin
-          ingester.ingest(doc_id: doc_id, work_dir: work_dir)
-          puts "ingested #{doc_id}"
-        rescue => e
-          puts "ingest failed #{doc_id}: #{e.message}"
-          Sentry.capture_exception(e)
-        end
-        sleep(Ingestion::DailyIngestionService::THROTTLE_SECONDS) # EDINETのレート制限（403）対策
-      end
-    end
+    UseCases::IngestDocuments.new(sleeper: ->(seconds) { sleep(seconds) }).call(doc_ids)
   end
 end
 

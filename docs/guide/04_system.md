@@ -30,36 +30,38 @@ Redisは取込ジョブのキューとスケジュールを保持する。財務
 
 ## 取込ジョブの信頼性
 
-Sidekiqが毎日2:00に前日提出分を取り込む。手動で日付範囲を指定するときも同じ処理を使う。EDINETへのリクエスト集中を避けるため、書類は間隔を空けて1件ずつ処理する。
+Sidekiqが毎日2:00に前日提出分を取り込む。手動で日付範囲を指定するときも同じ処理を使う。EDINETへのリクエスト集中を避けるため、書類は間隔を空けて1件ずつ処理する（docIDを指定するrakeのタスクも同じ）。
 
 <a id="sequence-daily"></a>
 
 ```mermaid
 sequenceDiagram
     participant J as Sidekiq / 日次ジョブ
-    participant S as DailyIngestionService
+    participant F as IngestFilings
     participant E as EDINET API
+    participant R as SequentialRunner
     participant I as ReportIngester
     participant M as ログ / Sentry
-    J->>S: 前日提出分の取込を開始
-    S->>E: 日付ごとの書類一覧を取得
+    J->>F: 前日提出分の取込を開始
+    F->>E: 日付ごとの書類一覧を取得
     alt 一覧を取得できない
-        S->>M: 日付と失敗を記録
-        Note over S: この日は未取込。対象期間の次の日へ進む
+        F->>M: 日付と失敗を記録
+        Note over F: この日は未取込。対象期間の次の日へ進む
     else 一覧を取得できた
-        loop 対象書類を1件ずつ（間隔を空ける）
-            S->>I: 書類IDと一覧の証券コードを渡す
+        F->>R: 書類一覧と、1件の取込・記録の仕方・待ち方を渡す
+        loop 対象書類を1件ずつ（失敗した書類の後も間隔を空ける）
+            R->>I: 書類IDと一覧の証券コードで取込を呼ぶ
             Note over I: 原本取得・対象確認 → 科目抽出・保存
             alt 例外が発生
-                I-->>S: 失敗
-                S->>M: 書類IDと失敗を記録
+                I-->>R: 失敗
+                R->>M: 書類IDと失敗を記録
             else 例外なし
-                I-->>S: 保存、または対象外・数値なしで終了
-                S->>M: 処理の終了を記録
+                I-->>R: 保存、または対象外・数値なしで終了
+                R->>M: 処理の終了を記録
             end
         end
     end
-    S-->>J: 終了（失敗分の自動再試行はしない）
+    F-->>J: 終了（失敗分の自動再試行はしない）
 ```
 
 処理終了のログだけでは、科目が更新されたとは限らない。
