@@ -50,4 +50,27 @@ RSpec.describe Ingestion::DailyIngestionService do
 
     expect(Disclosure::Report.sole.edinet_document_id).to eq "S1000002"
   end
+
+  it "EDINETへの書類の取得ごとに本番の間隔（1秒）を待ち、取得に失敗した書類の後も待つ" do
+    date = Date.new(2026, 6, 20)
+    stub_list(date, [
+      { "docID" => "S1000001", "secCode" => "72030", "filerName" => "取得に失敗する会社", "docTypeCode" => "120" },
+      { "docID" => "S1000002", "secCode" => "45020", "filerName" => "取得できる会社", "docTypeCode" => "120" }
+    ])
+    events = []
+    allow(described_class).to receive(:sleep) { |seconds| events << [ :sleep, seconds ] }
+    stub_request(:get, %r{documents/S1000001}).to_return do
+      events << [ :download, "S1000001" ]
+      { status: 500 }
+    end
+    stub_request(:get, %r{documents/S1000002}).to_return do
+      events << [ :download, "S1000002" ]
+      { status: 200, body: zip_with_xbrl("S1000002", synthetic_xbrl_xml(dei: { stock_code: "45020" })) }
+    end
+    allow(Sentry).to receive(:capture_exception)
+
+    described_class.run(from_date: date, to_date: date)
+
+    expect(events).to eq [ [ :download, "S1000001" ], [ :sleep, 1 ], [ :download, "S1000002" ], [ :sleep, 1 ] ]
+  end
 end

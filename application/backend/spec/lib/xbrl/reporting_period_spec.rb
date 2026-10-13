@@ -238,6 +238,18 @@ RSpec.describe "XBRLの実日付による対象期間の照合" do
     expect(period.money("jppfs_cor:Assets", "Prior1YearInstant")).to eq 80
     expect(period.money("jppfs_cor:Assets", "CurrentYearInstant")).to eq 100
   end
+
+  it "当期の期間の宣言（CurrentYearDuration）の期間を読めなければ、宣言を使わずDEIの期首で当期・期首を引く" do
+    doc = load_document([
+      filing, context("CurrentYearDuration", [ "2024-07-01", "2025-02-30" ]),
+      context("annual", [ "2025-01-01", "2025-12-31" ]), context("opening", [ "2024-12-31" ])
+    ], { [ "jppfs_cor:NetSales", "CurrentYearDuration" ] => 999,
+         [ "jppfs_cor:NetSales", "annual" ] => 20,
+         [ "jppfs_cor:Assets", "opening" ] => 80 })
+    period = bind_period(doc)
+    expect(period.money("jppfs_cor:NetSales", "CurrentYearDuration")).to eq 20
+    expect(period.money("jppfs_cor:Assets", "Prior1YearInstant")).to eq 80
+  end
 end
 
 RSpec.describe "CFの期首額の照合はBSの期首検索を緩めない" do
@@ -292,5 +304,68 @@ RSpec.describe "CFの期首額の照合はBSの期首検索を緩めない" do
 
   it "開示精度の範囲で複数候補が成立するときは推測で選ばない" do
     expect(extraction(competing: true)).not_to have_key("cf.cash_begin")
+  end
+end
+
+RSpec.describe "CFの期首額を補完する条件" do
+  let(:contexts) do
+    { "FilingDateInstant" => "<i:instant>2026-03-01</i:instant>", "CurrentYearInstant" => "<i:instant>2025-12-31</i:instant>",
+      "CurrentYearDuration" => "<i:startDate>2025-01-01</i:startDate><i:endDate>2025-12-31</i:endDate>",
+      "OpeningCash" => "<i:instant>2023-12-31</i:instant>" }
+  end
+
+  # facts: { [タグ, contextのID] => 金額 }。円単位で、開示精度は decimals で指定したもの以外はINF
+  def extract(extractor, facts, extra_contexts: {}, decimals: {})
+    xml = +<<~XML
+      <i:xbrl xmlns:i="http://www.xbrl.org/2003/instance" xmlns:c="http://www.xbrl.org/2003/iso4217"
+       xmlns:jppfs_cor="http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2025-11-01/jppfs_cor"
+       xmlns:jpigp_cor="http://disclosure.edinet-fsa.go.jp/taxonomy/jpigp/2025-11-01/jpigp_cor"
+       xmlns:jpcrp_cor="http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp/2025-11-01/jpcrp_cor">
+      <i:unit id="yen"><i:measure>c:JPY</i:measure></i:unit>
+    XML
+    contexts.merge(extra_contexts).each do |id, period|
+      xml << "<i:context id='#{id}'><i:entity><i:identifier scheme='urn:test'>E00001</i:identifier></i:entity><i:period>#{period}</i:period></i:context>"
+    end
+    facts.each do |(qname, context), amount|
+      xml << "<#{qname} contextRef='#{context}' unitRef='yen' decimals='#{decimals.fetch([ qname, context ], 'INF')}'>#{amount}</#{qname}>"
+    end
+    period = Xbrl::Document.new(Nokogiri::XML(xml + "</i:xbrl>")).for_reporting_period(start_date: "2025-01-01", end_date: "2025-12-31")
+    extractor.new(period, "").extract
+  end
+
+  let(:opening_and_change) do
+    { [ "jppfs_cor:CashAndCashEquivalents", "OpeningCash" ] => 100,
+      [ "jppfs_cor:NetIncreaseDecreaseInCashAndCashEquivalents", "CurrentYearDuration" ] => 20 }
+  end
+
+  it "期末残を経営指標の要約のタグで取り、原本の期末残（日本基準のタグ）がなければ補完しない" do
+    result = extract(Ingestion::Extractors::JgaapGeneral, opening_and_change.merge(
+      [ "jpcrp_cor:CashAndCashEquivalentsSummaryOfBusinessResults", "CurrentYearInstant" ] => 120))
+    expect(result).to include("cf.cash_end" => 120)
+    expect(result).not_to have_key("cf.cash_begin")
+  end
+
+  it "原本の期末残（日本基準のタグ）が、別のタグで取った期末残と違えば補完しない（同じなら補完する）" do
+    # 期末残の最初の候補が日本基準のタグでない形式（IFRSなど）でだけ、2つの期末残が食い違い得る
+    ifrs_closing = { [ "jpigp_cor:CashAndCashEquivalentsIFRS", "CurrentYearInstant" ] => 120 }
+    differing = extract(Ingestion::Extractors::IfrsClassified, opening_and_change.merge(ifrs_closing).merge(
+      [ "jppfs_cor:CashAndCashEquivalents", "CurrentYearInstant" ] => 140,
+      [ "jppfs_cor:CashAndCashEquivalents", "OpeningCash" ] => 120))
+    expect(differing).to include("cf.cash_end" => 120)
+    expect(differing).not_to have_key("cf.cash_begin")
+
+    same = extract(Ingestion::Extractors::IfrsClassified, opening_and_change.merge(ifrs_closing).merge(
+      [ "jppfs_cor:CashAndCashEquivalents", "CurrentYearInstant" ] => 120))
+    expect(same).to include("cf.cash_begin" => 100, "cf.cash_end" => 120)
+  end
+
+  it "期間を読めないcontextは候補にせず、ほかのcontextの期首残で補完する" do
+    # 期間を読めるなら、開示精度の範囲でCFの式を満たす2つ目の候補になり、補完しなくなる値
+    result = extract(Ingestion::Extractors::JgaapGeneral, opening_and_change.merge(
+      [ "jppfs_cor:CashAndCashEquivalents", "CurrentYearInstant" ] => 120,
+      [ "jppfs_cor:CashAndCashEquivalents", "UnreadablePeriod" ] => 101),
+      extra_contexts: { "UnreadablePeriod" => "<i:instant>2023-02-30</i:instant>" },
+      decimals: { [ "jppfs_cor:CashAndCashEquivalents", "UnreadablePeriod" ] => "-1" })
+    expect(result).to include("cf.cash_begin" => 100, "cf.cash_end" => 120)
   end
 end

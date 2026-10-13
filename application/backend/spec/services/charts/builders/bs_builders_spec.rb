@@ -174,6 +174,26 @@ RSpec.describe "Charts::Builders BS各種" do
       chart = described_class.new(items.except("bs.policy_reserves")).build
       expect(chart.renderable).to be false
     end
+
+    it "資産合計がなければその他資産を積まず、比率を出さない。貸借の差が1割以内なら描き、超えれば描かない" do
+      chart = described_class.new({ "bs.cash_and_equivalents" => 100, "bs.securities" => 700, "bs.loans" => 150,
+                                    "bs.policy_reserves" => 800, "bs.liabilities" => 900, "bs.equity" => 100 }).build
+      debit, credit = chart.bars
+      expect(chart.renderable).to be true
+      expect(debit.segments.map(&:key)).to eq %w[cash securities loans]
+      expect(credit.segments.map(&:key)).to eq %w[policyReserves otherLiabilities equity]
+      expect((debit.segments + credit.segments).map(&:ratio)).to all(be_nil)
+      expect(described_class.new(items.except("bs.assets")).build.renderable).to be false
+    end
+
+    it "負債合計がなければその他負債を積まない" do
+      chart = described_class.new({ "bs.assets" => 1_000, "bs.cash_and_equivalents" => 100, "bs.securities" => 700,
+                                    "bs.loans" => 150, "bs.policy_reserves" => 900, "bs.equity" => 100 }).build
+      debit, credit = chart.bars
+      expect(debit.segments.map { |s| [ s.key, s.amount ] })
+        .to eq [ [ "cash", 100 ], [ "securities", 700 ], [ "loans", 150 ], [ "otherAssets", 50 ] ]
+      expect(credit.segments.map { |s| [ s.key, s.amount ] }).to eq [ [ "policyReserves", 900 ], [ "equity", 100 ] ]
+    end
   end
 
   describe Charts::Builders::BsIfrsClassified do
@@ -241,6 +261,26 @@ RSpec.describe "Charts::Builders BS各種" do
 
     it "その他資産・その他負債を合計から求めるため、合計行どうしが合えば照合の警告はない" do
       expect(described_class.new(items).mismatch).to be_nil
+    end
+
+    it "資産合計がなければその他資産を積まず、比率を出さない。貸借の差が1割以内なら描き、超えれば描かない" do
+      chart = described_class.new({ "bs.cash_and_equivalents" => 100, "bs.loans" => 500, "bs.securities" => 350,
+                                    "bs.deposits" => 800, "bs.liabilities" => 900, "bs.equity" => 100 }).build
+      debit, credit = chart.bars
+      expect(chart.renderable).to be true
+      expect(debit.segments.map(&:key)).to eq %w[cash loans securities]
+      expect(credit.segments.map(&:key)).to eq %w[deposits otherLiabilities equity]
+      expect((debit.segments + credit.segments).map(&:ratio)).to all(be_nil)
+      expect(described_class.new(items.except("bs.assets")).build.renderable).to be false
+    end
+
+    it "負債合計がなければその他負債を積まない" do
+      chart = described_class.new({ "bs.assets" => 1_000, "bs.cash_and_equivalents" => 100, "bs.loans" => 500,
+                                    "bs.securities" => 350, "bs.deposits" => 900, "bs.equity" => 100 }).build
+      debit, credit = chart.bars
+      expect(debit.segments.map { |s| [ s.key, s.amount ] })
+        .to eq [ [ "cash", 100 ], [ "loans", 500 ], [ "securities", 350 ], [ "otherAssets", 50 ] ]
+      expect(credit.segments.map { |s| [ s.key, s.amount ] }).to eq [ [ "deposits", 900 ], [ "equity", 100 ] ]
     end
   end
 end

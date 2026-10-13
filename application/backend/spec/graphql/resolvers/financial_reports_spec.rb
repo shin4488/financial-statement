@@ -74,4 +74,14 @@ RSpec.describe "financialReports query" do
     result = execute({ "limit" => 10, "offset" => 0, "operatingCfSign" => "NEGATIVE" })
     expect(result.dig("data", "financialReports")).to eq []
   end
+
+  it "企業マスタの証券コードがない有報は、stockCodeをnull（空文字なら空文字）で返す" do
+    company = financial_statement.report.company
+    { nil => nil, "" => "" }.each do |stored, displayed|
+      company.update!(stock_code: stored)
+      result = execute({ "limit" => 10, "offset" => 0 })
+      expect(result["errors"]).to be_nil
+      expect(result.dig("data", "financialReports", 0, "stockCode")).to eq displayed
+    end
+  end
 end
