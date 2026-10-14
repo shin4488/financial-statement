@@ -369,3 +369,134 @@ RSpec.describe "CFの期首額を補完する条件" do
     expect(result).to include("cf.cash_begin" => 100, "cf.cash_end" => 120)
   end
 end
+
+RSpec.describe "期間と連結区分のシンボルによる検索と、CFの期首額の補完" do
+  let(:filing) { context_xml("FilingDateInstant", [ "2026-03-01" ]) }
+  let(:non_consolidated) do
+    '<i:scenario><m:explicitMember dimension="jppfs_cor:ConsolidatedOrNonConsolidatedAxis">jppfs_cor:NonConsolidatedMember</m:explicitMember></i:scenario>'
+  end
+
+  def context_xml(id, dates, entity: "E00001", scenario: "")
+    period = dates.one? ? "<i:instant>#{dates.first}</i:instant>" :
+      "<i:startDate>#{dates.first}</i:startDate><i:endDate>#{dates.last}</i:endDate>"
+    "<i:context id='#{id}'><i:entity><i:identifier scheme='urn:test'>#{entity}</i:identifier></i:entity><i:period>#{period}</i:period>#{scenario}</i:context>"
+  end
+
+  # facts: { [jppfs_corの要素名, contextのID] => 金額 }。単位は円で、開示精度は decimals で指定したもの以外はINF
+  def load_document(contexts, facts, decimals: {})
+    xml = +<<~XML
+      <i:xbrl xmlns:i="http://www.xbrl.org/2003/instance" xmlns:c="http://www.xbrl.org/2003/iso4217" xmlns:m="http://xbrl.org/2006/xbrldi"
+       xmlns:jppfs_cor="http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2025-11-01/jppfs_cor">
+      <i:unit id="yen"><i:measure>c:JPY</i:measure></i:unit>
+    XML
+    xml << contexts.join
+    facts.each do |(name, id), amount|
+      xml << "<jppfs_cor:#{name} contextRef='#{id}' unitRef='yen' decimals='#{decimals.fetch([ name, id ], 'INF')}'>#{amount}</jppfs_cor:#{name}>"
+    end
+    Xbrl::Document.new(Nokogiri::XML(xml + "</i:xbrl>"))
+  end
+
+  def bind_period(doc) = doc.for_reporting_period(start_date: "2025-01-01", end_date: "2025-12-31")
+
+  describe "期間と連結区分による検索" do
+    it "期間と連結区分をシンボルで指定し、値・開示精度・単位を組で返す" do
+      doc = load_document([
+        filing, context_xml("closing", [ "2025-12-31" ]), context_xml("year", [ "2025-01-01", "2025-12-31" ]),
+        context_xml("opening", [ "2024-12-31" ]), context_xml("parent_closing", [ "2025-12-31" ], scenario: non_consolidated)
+      ], { [ "Assets", "closing" ] => 300, [ "NetSales", "year" ] => 50, [ "Assets", "opening" ] => 200,
+           [ "Assets", "parent_closing" ] => 60 },
+         decimals: { [ "Assets", "parent_closing" ] => "-3" })
+      period = bind_period(doc)
+      expect(period.fact("jppfs_cor:Assets", period: :instant, consolidation: :consolidated))
+        .to eq Xbrl::Fact.new(value: "300", decimals: "INF", unit: Xbrl::Fact::JPY)
+      expect(period.fact("jppfs_cor:NetSales", period: :duration, consolidation: :consolidated).money).to eq 50
+      expect(period.fact("jppfs_cor:Assets", period: :prior_instant, consolidation: :consolidated).money).to eq 200
+      expect(period.fact("jppfs_cor:Assets", period: :instant, consolidation: :non_consolidated))
+        .to eq Xbrl::Fact.new(value: "60", decimals: "-3", unit: Xbrl::Fact::JPY)
+      expect(period.fact("jppfs_cor:Assets", period: :prior_instant, consolidation: :non_consolidated)).to be_nil
+    end
+
+    it "区分ごとの当期の開始日より前の時点の値を、企業と連結区分が一致するcontextに限ってすべて返す" do
+      other_axis = '<i:scenario><m:explicitMember dimension="jppfs_cor:SomeAxis">jppfs_cor:SomeMember</m:explicitMember></i:scenario>'
+      # 連結の当期は2024-07-01から、単体の当期は2025-01-01から
+      doc = load_document([
+        filing, context_xml("CurrentYearDuration", [ "2024-07-01", "2025-12-31" ]),
+        context_xml("CurrentYearDuration_NonConsolidatedMember", [ "2025-01-01", "2025-12-31" ], scenario: non_consolidated),
+        context_xml("group_opening", [ "2024-06-30" ]), context_xml("group_older", [ "2022-03-31" ]),
+        context_xml("group_in_period", [ "2024-12-31" ]),
+        context_xml("parent_opening", [ "2024-12-31" ], scenario: non_consolidated),
+        context_xml("other_entity", [ "2023-12-31" ], entity: "E99999"),
+        context_xml("other_axis", [ "2023-12-31" ], scenario: other_axis),
+        context_xml("prior_year", [ "2023-07-01", "2024-06-30" ])
+      ], { "group_opening" => 200, "group_older" => 150, "group_in_period" => 999, "parent_opening" => 80,
+           "other_entity" => 1, "other_axis" => 2, "prior_year" => 3 }.transform_keys { |id| [ "CashAndCashEquivalents", id ] })
+      period = bind_period(doc)
+      expect(period.facts_before_period("jppfs_cor:CashAndCashEquivalents", consolidation: :consolidated).map(&:money))
+        .to contain_exactly(200, 150)
+      expect(period.facts_before_period("jppfs_cor:CashAndCashEquivalents", consolidation: :non_consolidated).map(&:money))
+        .to contain_exactly(80)
+    end
+
+    it "当期を決められない書類では、過去の時点の値も返さない" do
+      doc = load_document([ filing, context_xml("opening", [ "2023-12-31" ]) ], { [ "CashAndCashEquivalents", "opening" ] => 100 })
+      expect(bind_period(doc).facts_before_period("jppfs_cor:CashAndCashEquivalents", consolidation: :consolidated).map(&:money))
+        .to eq [ 100 ]
+      period = doc.for_reporting_period(start_date: "", end_date: "2025-12-31")
+      expect(period.facts_before_period("jppfs_cor:CashAndCashEquivalents", consolidation: :consolidated)).to eq []
+    end
+  end
+
+  describe "CFの期首額を補完する入口と区分" do
+    let(:current) do
+      [ filing, context_xml("CurrentYearInstant", [ "2025-12-31" ]), context_xml("CurrentYearDuration", [ "2025-01-01", "2025-12-31" ]) ]
+    end
+    let(:cash) do
+      { [ "CashAndCashEquivalents", "CurrentYearInstant" ] => 120,
+        [ "NetIncreaseDecreaseInCashAndCashEquivalents", "CurrentYearDuration" ] => 20 }
+    end
+
+    def extract(source, consolidation = Ingestion::Extractors::Base::CONSOLIDATED)
+      Ingestion::Extractors::JgaapGeneral.new(source, consolidation).extract
+    end
+
+    it "ReportingPeriodを通したときだけ補完し、Xbrl::Documentを直接渡したときは補完しない" do
+      doc = load_document(current + [ context_xml("OpeningCash", [ "2023-12-31" ]) ],
+                          cash.merge([ "CashAndCashEquivalents", "OpeningCash" ] => 100))
+      expect(extract(bind_period(doc))).to include("cf.cash_begin" => 100, "cf.cash_end" => 120)
+      direct = extract(doc)
+      expect(direct).to include("cf.cash_end" => 120)
+      expect(direct).not_to have_key("cf.cash_begin")
+    end
+
+    it "期首残を取れていれば、補完で置き換えない" do
+      # 期首残（前期末の90）がなければ、CFの式を満たす2023年末の100で補完される
+      doc = load_document(current + [ context_xml("Prior1YearInstant", [ "2024-12-31" ]), context_xml("OpeningCash", [ "2023-12-31" ]) ],
+                          cash.merge([ "CashAndCashEquivalents", "Prior1YearInstant" ] => 90,
+                                     [ "CashAndCashEquivalents", "OpeningCash" ] => 100))
+      expect(extract(bind_period(doc))).to include("cf.cash_begin" => 90, "cf.cash_end" => 120)
+    end
+
+    it "単体の区分では、単体のcontextの残高だけで補完する" do
+      doc = load_document([
+        filing, context_xml("CurrentYearInstant_NonConsolidatedMember", [ "2025-12-31" ], scenario: non_consolidated),
+        context_xml("CurrentYearDuration_NonConsolidatedMember", [ "2025-01-01", "2025-12-31" ], scenario: non_consolidated),
+        context_xml("ParentOpening", [ "2023-12-31" ], scenario: non_consolidated), context_xml("GroupOpening", [ "2023-12-31" ])
+      ], { [ "CashAndCashEquivalents", "CurrentYearInstant_NonConsolidatedMember" ] => 120,
+           [ "NetIncreaseDecreaseInCashAndCashEquivalents", "CurrentYearDuration_NonConsolidatedMember" ] => 20,
+           [ "CashAndCashEquivalents", "ParentOpening" ] => 100, [ "CashAndCashEquivalents", "GroupOpening" ] => 101 },
+         # 連結の101も開示精度の範囲でCFの式を満たすため、連結区分を照合しなければ候補が2つになり補完しない
+         decimals: { [ "CashAndCashEquivalents", "GroupOpening" ] => "-1" })
+      result = extract(bind_period(doc), Ingestion::Extractors::Base::NON_CONSOLIDATED)
+      expect(result).to include("cf.cash_begin" => 100, "cf.cash_end" => 120)
+    end
+
+    it "補った期首残の端数は、採った原本の開示精度にする" do
+      doc = load_document(current + [ context_xml("OpeningCash", [ "2023-12-31" ]) ],
+                          cash.merge([ "CashAndCashEquivalents", "OpeningCash" ] => 100),
+                          decimals: { [ "CashAndCashEquivalents", "OpeningCash" ] => "-1" })
+      result = extract(bind_period(doc))
+      expect(result["cf.cash_begin"]).to eq 100
+      expect(result.rounding_errors["cf.cash_begin"]).to eq 10
+    end
+  end
+end

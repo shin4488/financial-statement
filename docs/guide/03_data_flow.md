@@ -91,14 +91,21 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant I as ReportIngester
-    participant X as ReportingPeriod / Extractor
+    participant X as Extractor
+    participant P as ReportingPeriod
+    participant A as 補正ルール OpeningCash
     participant D as DB
-    Note over I,X: ①で確認した原本と識別情報
+    Note over I,P: ①で確認した原本と識別情報
     I->>X: 会計基準・開示形式ごとに科目と公表ROEを抽出
-    X->>X: 企業・実日付・連結区分・通貨を照合
-    opt 日本基準CFの期首現金を通常取得できない
-        X->>X: 原本の候補を当期増減・調整額・期末額で照合
-        Note over X: 一意で金額が整合する原本の期首額だけ使う
+    X->>P: 期間・連結区分を指定してタグの値を引く
+    P->>P: 企業・実日付・連結区分・通貨を照合
+    P-->>X: 金額・開示精度
+    opt CFの期首残を通常取得できず、期末残がある
+        X->>A: CFの期首残を補う
+        A->>P: 日本基準のタグの期末残・当期増減・調整額と、当期の開始日より前の時点の残高
+        P-->>A: 企業・連結区分が一致するfact（値・開示精度・単位）
+        A->>A: 期首＋当期増減＋調整額＝期末を、円・開示精度の範囲で照合
+        Note over A: 一意で金額が整合する原本の期首額だけ使う
     end
     X-->>I: 科目・金額・開示精度・公表ROE
     Note over I,D: 1有報の保存は1トランザクション。失敗時は巻き戻す
@@ -204,14 +211,25 @@ XBRLは、科目の名前（タグ）、企業・期間・連結区分（コン�
 
 EDINETの標準コンテキストIDの読み方:
 
-| コンテキストID | 意味 |
-|---|---|
-| `CurrentYearInstant` | 当期末時点（BSの残高に使う） |
-| `CurrentYearDuration` | 当期の期間（PL・CFの増減に使う） |
-| `Prior1YearInstant` | 前期末時点（CF・ROE/ROA用の期首残高） |
-| 上記 + `_NonConsolidatedMember` | 単体（サフィックスなしは連結） |
+| コンテキストID | 意味 | `ReportingPeriod` での指定 |
+|---|---|---|
+| `CurrentYearInstant` | 当期末時点（BSの残高に使う） | `period: :instant` |
+| `CurrentYearDuration` | 当期の期間（PL・CFの増減に使う） | `period: :duration` |
+| `Prior1YearInstant` | 前期末時点（CF・ROE/ROA用の期首残高） | `period: :prior_instant` |
+| 上記 + `_NonConsolidatedMember` | 単体（サフィックスなしは連結） | `consolidation: :non_consolidated`（連結は `:consolidated`） |
 
-実際の取込ではID名だけで当期を決めない。`Xbrl::Document` はXMLのfactとcontextを索引化し、`Xbrl::Context` は企業・日付・ディメンションを解析する。`Xbrl::ReportingPeriod` が連結／単体の対象期間を決めて、同じ意味のcontextから科目を選ぶ。IDが任意の名称でも同じ結果になり、標準名でも別年度や別企業の数値は使わない。
+実際の取込ではID名だけで当期を決めない。IDが任意の名称でも同じ結果になり、標準名でも別年度や別企業の数値は使わない。
+
+```mermaid
+flowchart LR
+    D["Xbrl::Document<br>XMLのfactとcontextを索引化"] --> P
+    C["Xbrl::Context<br>企業・日付・ディメンションを解析"] --> P
+    P["Xbrl::ReportingPeriod<br>連結／単体ごとに当期の期間を決め、<br>同じ意味のcontextからfactを選ぶ"]
+    P -->|"期間・連結区分を指定した<br>金額・開示精度"| X["Extractor<br>タグ → 科目コード"]
+    P -->|"当期の開始日より前の時点で、<br>企業・連結区分が一致するfactの一覧"| A["補正ルール<br>Ingestion::Adjustments::OpeningCash<br>CFの式で照合して期首残を補う"]
+```
+
+`ReportingPeriod` は当期末・当期・前期末の日付の照合を緩めず、どのタグをどう補うかを持たない。CFの期首残だけは当期の増減で裏付けられるため、過去の時点の候補を取込の補正ルールが照合する（[② 科目抽出・保存](#sequence-save)）。
 
 IFRS採用企業でも、単体財務諸表は日本基準の `jppfs_cor` + `_NonConsolidatedMember` でタグ付けされる。このため単体は常に日本基準として処理する。
 

@@ -78,7 +78,7 @@ app/lib/
   xbrl/document.rb                     # XBRLのfact検索プリミティブ
 app/models/disclosure/                 # 現行テーブルのモデル
 app/services/
-  ingestion/                           # 形式判定・Extractor・取込
+  ingestion/                           # 形式判定・Extractor・補正ルール・取込
   use_cases/                           # 入口から呼ぶ処理の手順（日付・docID指定の取込、書類の逐次実行）
   charts/                              # ChartBuilder（チャート構造の組み立て）
   disclosure/search_query.rb           # 一覧検索（CF符号・証券コード）
