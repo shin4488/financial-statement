@@ -84,4 +84,22 @@ RSpec.describe "financialReports query" do
       expect(result.dig("data", "financialReports", 0, "stockCode")).to eq displayed
     end
   end
+
+  it "会計基準・連結区分・形式は、保存した文字列のまま返す" do
+    report = execute({ "limit" => 10, "offset" => 0 }).dig("data", "financialReports", 0)
+    expect(report.values_at("accountingStandard", "consolidationType", "presentationFormat"))
+      .to eq %w[ifrs consolidated ifrs_classified]
+
+    financial_statement.update!(consolidation_type: :non_consolidated)
+    expect(execute({ "limit" => 10, "offset" => 0 }).dig("data", "financialReports", 0, "consolidationType"))
+      .to eq "non_consolidated"
+  end
+
+  it "提出日がない有報は、filingDateをnullで返し、提出日のある有報の後に並べる" do
+    create(:disclosure_financial_statement, report: create(:disclosure_report, filing_date: nil))
+
+    result = FinancialStatementSchema.execute("{ financialReports(limit: 10, offset: 0) { filingDate } }").to_h
+
+    expect(result.dig("data", "financialReports").map { |report| report["filingDate"] }).to eq [ "2026-06-20", nil ]
+  end
 end

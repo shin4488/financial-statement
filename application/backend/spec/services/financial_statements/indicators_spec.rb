@@ -130,4 +130,27 @@ RSpec.describe FinancialStatements::Indicators do
     expect(indicators.values.map(&:status)).to all(eq("missing_data"))
     expect(indicators.values.map(&:value)).to all(be_nil)
   end
+
+  describe "StatementData から作る" do
+    def statement_data(consolidation_type, disclosed_roe: nil)
+      FinancialStatements::StatementData.new(
+        consolidation_type: consolidation_type, accounting_standard: "ifrs", presentation_format: "ifrs_classified",
+        amounts: FinancialStatements::Amounts.new.merge!(items), disclosed_roe: disclosed_roe,
+        fiscal_year_end_date: Date.new(2026, 3, 31))
+    end
+
+    it "凍結した金額から、ARモデルなどを渡したときと同じ指標を作る" do
+      expect(described_class.build(statement_data(:consolidated))).to eq indicators
+    end
+
+    it "単体は、親会社帰属利益ではなく当期純利益を使う" do
+      expect(described_class.build(statement_data(:non_consolidated))[:roe].value).to eq 0.2
+    end
+
+    it "計算できないときは、公表ROEを使う" do
+      items.delete("bs.equity_attributable_to_owners_begin")
+      expect(described_class.build(statement_data(:consolidated, disclosed_roe: 0.372.to_d))[:roe])
+        .to have_attributes(value: 0.372, source: "disclosed")
+    end
+  end
 end

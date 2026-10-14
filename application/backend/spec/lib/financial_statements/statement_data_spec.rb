@@ -32,6 +32,11 @@ RSpec.describe FinancialStatements::StatementData do
       expect(build(consolidation_type: "consolidated").consolidation_type).to eq :consolidated
       expect(build(consolidation_type: "non_consolidated").consolidation_type).to eq :non_consolidated
     end
+
+    it "連結かどうかを、ARモデルと同じ名前で答える" do
+      expect(build(consolidation_type: "consolidated")).to be_consolidated
+      expect(build(consolidation_type: :non_consolidated)).not_to be_consolidated
+    end
   end
 
   describe "金額" do

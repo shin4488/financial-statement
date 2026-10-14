@@ -25,5 +25,13 @@ module Disclosure
         amounts.rounding_errors[item.item_code] = item.rounding_error
       end
     end
+
+    # グラフ・指標に渡す、DBに依存しない値
+    def to_statement_data
+      FinancialStatements::StatementData.new(
+        consolidation_type: consolidation_type, accounting_standard: accounting_standard,
+        presentation_format: presentation_format, amounts: items_hash,
+        disclosed_roe: disclosed_roe, fiscal_year_end_date: fiscal_year_end_date)
+    end
   end
 end
