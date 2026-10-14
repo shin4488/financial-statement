@@ -1,6 +1,6 @@
 # PLは貸借バランスが定義的に成立する（導出項目が差分を埋める）ため、
-# two_sided_chart は使わずBuilderごとに組み立てる。共通ヘルパ（seg/ratio）のみ利用
-class Charts::Builders::PlJgaapGeneral < Charts::Builders::StackBase
+# 貸借2本の部品（TwoSidedChart）は使わずBuilderごとに組み立てる
+class Charts::Builders::PlJgaapGeneral < Charts::Builders::Base
   # 費用の構成は業種で異なる。開示されている科目だけを積み、費用を差額で求めることはしない。
   # 各要素は [科目コード, key, ラベル, 色の役割, ツールチップ表示名（labelと同じならnil）]:
   #   1. 内訳型: 売上原価・金融費用（証券）・販管費 … 一般事業会社の基本形
@@ -44,12 +44,12 @@ class Charts::Builders::PlJgaapGeneral < Charts::Builders::StackBase
 
     # 比率の分母は売上（表示の基準線が売上のため）。売上0の会社は、費用の合計と一致する営業損失を分母にする
     base = revenue.zero? ? -op : revenue
-    debit = expenses.segments.map { |key, label, v, role, tooltip| seg(key, label, v, role, base: base, tooltip: tooltip) }
-    credit = revenue.zero? ? [] : [ seg("revenue", "売上", revenue, "revenue", base: base) ]
+    debit = expenses.segments.map { |key, label, v, role, tooltip| Charts::Segments.segment(key, label, v, role, base: base, tooltip: tooltip) }
+    credit = revenue.zero? ? [] : [ Charts::Segments.segment("revenue", "売上", revenue, "revenue", base: base) ]
     if op.negative?
-      credit << seg("operatingLoss", "営業損失", -op, "loss", base: base, signed: op)
+      credit << Charts::Segments.segment("operatingLoss", "営業損失", -op, "loss", base: base, signed: op)
     else
-      debit << seg("operatingProfit", "営業利益", op, "profit", base: base)
+      debit << Charts::Segments.segment("operatingProfit", "営業利益", op, "profit", base: base)
     end
     Charts::StackChart.new(renderable: true, note: nil,
                    bars: [ Charts::Bar.new(label: "借方", segments: debit), Charts::Bar.new(label: "貸方", segments: credit) ])
@@ -85,11 +85,11 @@ class Charts::Builders::PlJgaapGeneral < Charts::Builders::StackBase
       both = expenses(OPERATING_EXPENSES_AND_SGA)
       candidates = both.codes.size == OPERATING_EXPENSES_AND_SGA.size ? structures + [ both ] : structures
       balanced = candidates.find do |expenses|
-        balanced?(revenue - expenses.segments.sum { |_, _, v, _, _| v } - op, [ "pl.revenue", *expenses.codes, "pl.operating_profit" ])
+        Charts::Tolerance.balanced?(@items, revenue - expenses.segments.sum { |_, _, v, _, _| v } - op, [ "pl.revenue", *expenses.codes, "pl.operating_profit" ])
       end
       return balanced.tap { |expenses| expenses.balanced = true } if balanced
       return if revenue.zero?
-      structures.find { |expenses| within_tolerance?(revenue, expenses.segments.sum { |_, _, v, _, _| v } + op) }
+      structures.find { |expenses| Charts::Tolerance.within?(revenue, expenses.segments.sum { |_, _, v, _, _| v } + op) }
     end
 
     def expenses(specs)

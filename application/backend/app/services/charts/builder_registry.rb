@@ -3,25 +3,25 @@ module Charts
   # （BS側だけ足すとPLが説明文になるだけで例外にはならないため、両方揃っているかはspecで検証している）
   module BuilderRegistry
     BS = {
-      "jgaap_general"   => Builders::BsJgaapGeneral,
-      "jgaap_bank"      => Builders::BsJgaapBank,
-      "jgaap_insurance" => Builders::BsJgaapInsurance,
-      "ifrs_classified" => Builders::BsIfrsClassified,
-      "ifrs_liquidity"  => Builders::BsIfrsLiquidity,
-      "ifrs_summary"    => Builders::BsIfrsSummary,
-      "usgaap_summary"  => Builders::BsUsgaapSummary
+      FinancialStatements::Formats::JGAAP_GENERAL   => Builders::BsJgaapGeneral,
+      FinancialStatements::Formats::JGAAP_BANK      => Builders::BsJgaapBank,
+      FinancialStatements::Formats::JGAAP_INSURANCE => Builders::BsJgaapInsurance,
+      FinancialStatements::Formats::IFRS_CLASSIFIED => Builders::BsIfrsClassified,
+      FinancialStatements::Formats::IFRS_LIQUIDITY  => Builders::BsIfrsLiquidity,
+      FinancialStatements::Formats::IFRS_SUMMARY    => Builders::BsIfrsSummary,
+      FinancialStatements::Formats::USGAAP_SUMMARY  => Builders::BsUsgaapSummary
     }.freeze
     PL = {
-      "jgaap_general"   => Builders::PlJgaapGeneral,
+      FinancialStatements::Formats::JGAAP_GENERAL   => Builders::PlJgaapGeneral,
       # 銀行・保険のPLはどちらも 経常収益−経常費用=経常利益 の骨格のため共通Builderを使う
-      "jgaap_bank"      => Builders::PlJgaapFinancialInstitution,
-      "jgaap_insurance" => Builders::PlJgaapFinancialInstitution,
+      FinancialStatements::Formats::JGAAP_BANK      => Builders::PlJgaapFinancialInstitution,
+      FinancialStatements::Formats::JGAAP_INSURANCE => Builders::PlJgaapFinancialInstitution,
       # IFRSのPLはBSの様式（流動/非流動 or 流動性配列）に依存しないため共通Builderを使う
-      "ifrs_classified" => Builders::PlIfrs,
-      "ifrs_liquidity"  => Builders::PlIfrs,
+      FinancialStatements::Formats::IFRS_CLASSIFIED => Builders::PlIfrs,
+      FinancialStatements::Formats::IFRS_LIQUIDITY  => Builders::PlIfrs,
       # 詳細タグなしでも経営指標サマリの収益・税引前利益で同じ骨格を描けるため共用する
-      "ifrs_summary"    => Builders::PlIfrs,
-      "usgaap_summary"  => Builders::PlUsgaapSummary
+      FinancialStatements::Formats::IFRS_SUMMARY    => Builders::PlIfrs,
+      FinancialStatements::Formats::USGAAP_SUMMARY  => Builders::PlUsgaapSummary
     }.freeze
     UNSUPPORTED_NOTE = "この会計基準・業種の財務諸表は表示に対応していません。".freeze
 

@@ -3,7 +3,7 @@
 # 形式判定は「資産合計タグの不存在」なので、詳細タグ付けが義務になった後の有報がこの形式になる可能性も残る。
 # そのため、義務になる前（2019年3月31日より前に終わる事業年度）と決算日で確かめられたときだけ、年度を理由に書く。
 # 決算月は会社で違うため「3月期」ではなく「3月末」と書く
-class Charts::Builders::BsIfrsSummary < Charts::Builders::StackBase
+class Charts::Builders::BsIfrsSummary < Charts::Builders::Base
   DETAILED_TAGGING_START = Date.new(2019, 3, 31)
 
   def build

@@ -1,5 +1,5 @@
 # CFは会計基準・業種によらず3区分+期首期末の構造が同一のため全形式共通
-class Charts::Builders::CashFlow < Charts::Builders::StackBase
+class Charts::Builders::CashFlow < Charts::Builders::Base
   # ラベルを短縮形にしている理由: X軸の目盛りにそのまま表示されるため、
   # 正式名称（営業活動によるキャッシュ・フロー等）では潰れて読めない
   STEPS = [
