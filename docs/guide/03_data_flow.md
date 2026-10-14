@@ -93,20 +93,33 @@ sequenceDiagram
     participant I as ReportIngester
     participant X as Extractor
     participant P as ReportingPeriod
-    participant A as 補正ルール OpeningCash
+    participant A as 補正ルール
     participant D as DB
     Note over I,P: ①で確認した原本と識別情報
     I->>X: 会計基準・開示形式ごとに科目と公表ROEを抽出
-    X->>P: 期間・連結区分を指定してタグの値を引く
+    X->>P: 対応表の科目ごとに、取得式が期間・連結区分を指定してタグの値を引く
     P->>P: 企業・実日付・連結区分・通貨を照合
     P-->>X: 金額・開示精度
-    opt CFの期首残を通常取得できず、期末残がある
-        X->>A: CFの期首残を補う
+    X->>A: すべての科目を取った後に、一覧の順に適用する
+    opt 1. OpeningCash：CFの期首残がなく、期末残がある
         A->>P: 日本基準のタグの期末残・当期増減・調整額と、当期の開始日より前の時点の残高
         P-->>A: 企業・連結区分が一致するfact（値・開示精度・単位）
         A->>A: 期首＋当期増減＋調整額＝期末を、円・開示精度の範囲で照合
         Note over A: 一意で金額が整合する原本の期首額だけ使う
     end
+    opt 2. CashFlowStatementBalance：CFの期末残がある
+        A->>P: 期末残の2番目以降の取得候補（要約のタグを除く）で、期末残・期首残を引く
+        Note over A: CFの式が端数の範囲で成り立てば、期首残・期末残をその候補の値にする
+    end
+    opt 3. RevenueCandidate：売上が経営指標の要約の売上と一致しない
+        A->>P: 売上の取得候補（要約のタグを除く）を順に引く
+        Note over A: 要約と一致する最初の候補を売上にする
+    end
+    opt 4. ZeroRevenue：売上も要約の売上も取れず、損益の値がある
+        A->>P: 要約の売上の行が「－」か
+        Note over A: 「－」なら売上と要約の売上を0にする
+    end
+    A-->>X: 補った・差し替えた科目
     X-->>I: 科目・金額・開示精度・公表ROE
     Note over I,D: 1有報の保存は1トランザクション。失敗時は巻き戻す
     I->>D: 企業と会計期間をキーに書類を作成・更新
@@ -287,7 +300,7 @@ flowchart TB
 
 ### タグから科目コードへの変換
 
-Extractorは、原本のタグと科目コードの対応表を使って数値を取り出す。企業・業種でタグ名が異なるため、次の書き方で指定する。
+Extractorは、原本のタグと科目コードの対応表を使って数値を取り出す。企業・業種でタグ名が異なるため、次の書き方で指定する。書き方ごとに取得式（`app/services/ingestion/expressions/` の1クラス）があり、金額と開示精度を組で返す。
 
 | 記法 | 意味 | 例 |
 |---|---|---|
@@ -299,6 +312,7 @@ Extractorは、原本のタグと科目コードの対応表を使って数値�
 | `max("…:A", sum("…:B", "…:C"))` | 最大値（総額の候補が複数併記されるとき、最も包括的な値を採る。内訳は総額を超えないことが根拠） | 一般事業会社の売上高: 営業収益 と 売上高+営業収入 のどちらが総額かは企業のタグ付けで揺れる（下記） |
 | `"filer_ext:BusinessRevenues"` | 企業拡張タグのうち、原本で意味を確かめた要素名 | 売上を企業拡張タグだけで開示する会社の売上 |
 | `filer_ext(/…SummaryOfBusinessResults\z/)` | 企業拡張タグのうち、要素名が正規表現に合うもの。合う要素の金額か精度が食い違えば取らない | 経営指標の要約の売上（要素名が会社ごとに違う） |
+| `ratio("…:RateOfReturnOnEquitySummaryOfBusinessResults")` | 比率。値の文字列を数値にし、有限の値だけを採る（空・不正・非有限の値は取らない） | 企業公表ROE（`DisclosedRoeExtractor` が会計基準ごとのタグを読み、科目コードでなく財務諸表の公表ROEに保存する。科目の対応表では使わない） |
 
 `max` が要るのは、制度上は「営業収益 = 売上高 + 営業収入」なのに、どのタグをどう付けるかが企業ごとに揺れるため。「先に見つかった方を採る」だけでは下表の2・3で総額を取り損ねるが、内訳は総額を超えないので「大きい方」ならどのパターンでも総額になる。
 
@@ -440,7 +454,7 @@ erDiagram
 
 売上のタグに、合計ではなく内訳だけが付いた書類がある。スリー・ディー・マトリックスの2017年4月期は、標準タグの売上高 `NetSales` が製品売上高（107,127千円）だけで、合計の事業収益（615,852千円）は企業拡張タグに付いている。売上が内訳だと、売上高純利益率などの指標が実際と違ってしまう。
 
-そこで、経営指標の要約（主要な経営指標等の推移）の売上を `pl.summary_revenue` に保存し、`FinancialStatements::RevenueVerification` で売上と照合する。売上が要約と一致しないときは、取込のときに売上の取得候補（`pl.revenue` のフォールバックの各候補）を順に照合し、要約と一致する最初の候補を売上にする（`Extractors::Base`）。要約の値そのものを売上にすると照合にならないため、要約のタグ（`jpcrp_cor`）は候補にしない。どの候補も一致しなければ値を変えず、取込時に[Sentryに警告](05_development_operations.md#日次バッチの監視とリカバリ)を送る。
+そこで、経営指標の要約（主要な経営指標等の推移）の売上を `pl.summary_revenue` に保存し、`FinancialStatements::RevenueVerification` で売上と照合する。売上が要約と一致しないときは、取込のときに売上の取得候補（`pl.revenue` のフォールバックの各候補）を順に照合し、要約と一致する最初の候補を売上にする（補正ルール `Adjustments::RevenueCandidate`）。要約の値そのものを売上にすると照合にならないため、要約のタグ（`jpcrp_cor`）は候補にしない。どの候補も一致しなければ値を変えず、取込時に[Sentryに警告](05_development_operations.md#日次バッチの監視とリカバリ)を送る。
 
 | 結果 | 条件 | 例 |
 |---|---|---|
@@ -655,6 +669,8 @@ APIは `asset1`（資産）や `profit`（利益）などの色の役割を返�
 | 取得するタグや優先順位の変更 | 対象形式のExtractor |
 | 新しい科目を保存する | `item_catalog.rb` に1行足し、対象形式のExtractorの、カタログの期間と同じ表（`INSTANT_MAPPING`・`DURATION_MAPPING`）に取得するタグを足す。期首の科目も保存するなら、`Extractors::Base::OPENING_ITEMS` と、`ReportIngester` が当期の科目の有無を確かめるときに除く科目にも足す。表示にも使うならBuilderを更新する |
 | 一般様式の業種を追加 | `JgaapGeneral` に業種のタグを追加する |
+| 新しい取得の書き方 | `app/services/ingestion/expressions/` に、`evaluate`・`amount`・`blank?` を持つクラスを1つ足し、書き方を `Ingestion::Expressions` に足す |
+| 新しい補正ルール | `app/services/ingestion/adjustments/` に、`apply` を持つクラスを1つ足し、`Adjustments::ALL` の適用の順の位置に1行足す |
 | 構成の異なる形式を追加 | Extractor・Builderを作成し、形式名を `formats.rb` に足して、形式判定と登録表に追加する |
 | 色の役割を追加 | バックエンド、Webの `colorRoles.ts`、Chrome拡張を揃えて変更する |
 

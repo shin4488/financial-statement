@@ -7,7 +7,14 @@ module Xbrl
     PERIODS = { instant: "CurrentYearInstant", duration: "CurrentYearDuration", prior_instant: "Prior1YearInstant" }.freeze
     CONTEXT_IDS = PERIODS.to_a.product(CONSOLIDATIONS.to_a)
                          .to_h { |(period, name), (suffix, consolidation)| [ "#{name}#{suffix}", [ period, consolidation ] ] }.freeze
-    private_constant :CONTEXT_IDS
+    STANDARD_IDS = CONTEXT_IDS.invert.freeze
+    private_constant :CONTEXT_IDS, :STANDARD_IDS
+
+    # 期間と連結区分を指す標準のコンテキストID。取得式は、標準のIDで答える文書（Xbrl::Document やspecの代役）にも同じ指定で問い合わせる
+    def self.context_id(period, consolidation) = STANDARD_IDS.fetch([ period, consolidation ])
+
+    # 標準のコンテキストIDが指す期間と連結区分の組（標準でないIDは nil）。旧い入口が受けるIDを組に読み替える
+    def self.period_and_consolidation(context_id) = CONTEXT_IDS[context_id]
 
     def initialize(document, contexts:, start_date:, end_date:)
       @document = document

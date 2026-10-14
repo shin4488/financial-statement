@@ -500,3 +500,23 @@ RSpec.describe "期間と連結区分のシンボルによる検索と、CFの�
     end
   end
 end
+
+RSpec.describe "期間・連結区分と標準のコンテキストIDの読み替え" do
+  it "期間と連結区分の組から標準のIDを求め、標準のIDから同じ組に戻せる" do
+    pairs = Xbrl::ReportingPeriod::PERIODS.keys.product(Xbrl::ReportingPeriod::CONSOLIDATIONS.values)
+    ids = pairs.map { |period, consolidation| Xbrl::ReportingPeriod.context_id(period, consolidation) }
+    aggregate_failures do
+      expect(ids).to contain_exactly("CurrentYearInstant", "CurrentYearDuration", "Prior1YearInstant",
+                                     "CurrentYearInstant_NonConsolidatedMember", "CurrentYearDuration_NonConsolidatedMember",
+                                     "Prior1YearInstant_NonConsolidatedMember")
+      expect(ids.map { |id| Xbrl::ReportingPeriod.period_and_consolidation(id) }).to eq pairs
+    end
+  end
+
+  it "決めていない期間・連結区分は例外にし、標準でないIDは組にしない" do
+    aggregate_failures do
+      expect { Xbrl::ReportingPeriod.context_id(:instant, nil) }.to raise_error(KeyError)
+      expect(Xbrl::ReportingPeriod.period_and_consolidation("FilingDateInstant")).to be_nil
+    end
+  end
+end
