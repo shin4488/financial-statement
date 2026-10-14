@@ -8,12 +8,11 @@ module Ingestion
       "us_gaap" => "jpcrp_cor:RateOfReturnOnEquityUSGAAPSummaryOfBusinessResults"
     }.freeze
 
+    # consolidation は Extractors::Base::CONSOLIDATED / NON_CONSOLIDATED
     def self.extract(xbrl, accounting_standard:, consolidation:)
       tag = TAGS[accounting_standard]
       return unless tag
-      raw = xbrl.text(tag, "CurrentYearDuration#{consolidation}")
-      value = BigDecimal(raw.to_s, exception: false)
-      value if value&.finite? && value.to_f.finite?
+      Expressions.ratio(tag).amount(xbrl, period: :duration, consolidation: Xbrl::ReportingPeriod::CONSOLIDATIONS[consolidation])
     end
   end
 end

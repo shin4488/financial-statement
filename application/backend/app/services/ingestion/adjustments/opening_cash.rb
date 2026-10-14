@@ -12,8 +12,8 @@ module Ingestion
         jppfs_cor:IncreaseDecreaseInCashAndCashEquivalentsResultingFromChangeOfScopeOfConsolidationCCE
       ].freeze
 
-      # 期首残がなく期末残があるときだけ補い、amounts を直接更新する。consolidation は :consolidated・:non_consolidated
-      def self.apply(amounts, source:, consolidation:)
+      # 期首残がなく期末残があるときだけ補う。使うタグはこのルールが持つため、対応表（mapping）は使わない
+      def self.apply(amounts, mapping:, source:, consolidation:)
         return if amounts.key?("cf.cash_begin") || !amounts.key?("cf.cash_end")
         # 過去の時点のfactを返せるのは Xbrl::ReportingPeriod だけ。Xbrl::Document やその代役を直接渡したときは補完しない
         return unless source.respond_to?(:facts_before_period)

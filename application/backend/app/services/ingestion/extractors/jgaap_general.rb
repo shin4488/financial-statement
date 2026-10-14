@@ -17,7 +17,7 @@ class Ingestion::Extractors::JgaapGeneral < Ingestion::Extractors::Base
     "bs.non_current_liabilities"      => "jppfs_cor:NoncurrentLiabilities",
     "bs.liabilities"                  => "jppfs_cor:Liabilities",
     "bs.equity"                       => "jppfs_cor:NetAssets",
-    "bs.equity_attributable_to_owners" => Ingestion::Extractors::JgaapOwnersEquity.new,
+    "bs.equity_attributable_to_owners" => Ingestion::Expressions::JgaapOwnersEquity.new,
     # 同じタグを2つの科目コードに保存する: 現金同等物はBSの科目としてもCFの期末残高としても
     # 消費される（消費先が違う）。縦持ちでは行が1つ増えるだけなので冗長保存を許容し、
     # Builder側が「どのコードを見ればよいか」で迷わないようにする
