@@ -135,12 +135,8 @@ module Ingestion
             put(result, opening, lookup(spec, "Prior1YearInstant#{@c}"))
           end
         end
-        if !result.key?("cf.cash_begin") && result.key?("cf.cash_end") && @xbrl.respond_to?(:reconciled_opening_cash)
-          if (fact = @xbrl.reconciled_opening_cash(consolidation: @c, closing_amount: result["cf.cash_end"]))
-            result["cf.cash_begin"] = fact.money
-            result.rounding_errors["cf.cash_begin"] = fact.rounding_error
-          end
-        end
+        # 補正は前の補正の結果を使うため、この順に行う
+        Adjustments::OpeningCash.apply(result, source: @xbrl, consolidation: Xbrl::ReportingPeriod::CONSOLIDATIONS[@c])
         use_cash_flow_statement_balances(result)
         replace_unverified_revenue(result)
         verify_zero_revenue(result)

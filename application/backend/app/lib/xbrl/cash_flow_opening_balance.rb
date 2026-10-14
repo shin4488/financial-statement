@@ -1,16 +1,9 @@
 module Xbrl
-  # 期首 + 当期増減 + 連結範囲変更等 = 期末を、同一通貨・開示精度で照合する。
-  # 計算値で原本を置き換えず、式を満たす原本の期首額だけを返す。
+  # 期首現金の照合は、取込の補正ルール Ingestion::Adjustments::OpeningCash が持つ。
+  # ここは照合を渡すだけの入口で、XBRL読取からは呼ばない（XBRL読取は取込を参照しない）。
   class CashFlowOpeningBalance
     def self.reconcile(opening:, closing:, change:, adjustments:)
-      facts = [ opening, closing, change, *adjustments ]
-      return if facts.any?(&:nil?)
-      return unless facts.map(&:unit).uniq == [ Fact::JPY ]
-      return if facts.any? { |value| value.money.nil? }
-      return if opening.money.negative? || closing.money.negative?
-
-      difference = closing.money - opening.money - change.money - adjustments.sum(&:money)
-      opening if FinancialStatements::RoundingRange.within?(difference, facts.map(&:rounding_error))
+      Ingestion::Adjustments::OpeningCash.reconcile(opening: opening, closing: closing, change: change, adjustments: adjustments)
     end
   end
 end
