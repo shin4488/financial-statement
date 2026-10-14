@@ -4,14 +4,25 @@ module FinancialStatements
   class Indicators
     Metric = Struct.new(:value, :status, :source, keyword_init: true)
 
-    def self.build(financial_statement)
-      new(financial_statement).build
+    # StatementData を受ける。items_hash・consolidated?・disclosed_roe を持つ値（ARモデルなど）も受け、その3つだけを読む
+    def self.build(statement)
+      new(statement.is_a?(StatementData) ? statement : statement_data_from(statement)).build
     end
 
-    def initialize(financial_statement)
-      @items = financial_statement.items_hash
-      @disclosed_roe = financial_statement.disclosed_roe
-      @profit_code = financial_statement.consolidated? ? "pl.profit_attributable_to_owners" : "pl.profit"
+    def self.statement_data_from(source)
+      items = source.items_hash
+      # StatementData は端数の表を持つ Amounts を受けるため、普通のHashは端数の表が空の Amounts に詰め替える
+      amounts = items.is_a?(Amounts) ? items : Amounts.new.merge!(items)
+      StatementData.new(consolidation_type: source.consolidated? ? :consolidated : :non_consolidated,
+                        accounting_standard: nil, presentation_format: nil, amounts: amounts,
+                        disclosed_roe: source.disclosed_roe, fiscal_year_end_date: nil)
+    end
+    private_class_method :statement_data_from
+
+    def initialize(statement)
+      @items = statement.amounts
+      @disclosed_roe = statement.disclosed_roe
+      @profit_code = statement.consolidated? ? "pl.profit_attributable_to_owners" : "pl.profit"
     end
 
     def build

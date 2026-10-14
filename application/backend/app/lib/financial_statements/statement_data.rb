@@ -9,5 +9,7 @@ module FinancialStatements
       copy.rounding_errors.freeze
       super(consolidation_type: consolidation_type.to_sym, amounts: copy.freeze, **)
     end
+
+    def consolidated? = consolidation_type == :consolidated
   end
 end

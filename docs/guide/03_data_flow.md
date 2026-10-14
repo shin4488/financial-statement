@@ -125,19 +125,34 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant U as Web / 拡張機能
-    participant A as GraphQL
+    participant A as GraphQL（リゾルバ）
+    participant L as ListFinancialReports
     participant D as DB
-    participant B as Builder / Indicators
+    participant B as Charts / Indicators / FreeCashFlowTrends
     U->>A: 証券コード・CF条件・取得範囲で問い合わせ
     A->>A: 入力とクエリの上限を検証
-    A->>D: 表示対象の財務諸表を検索
+    A->>L: 検索条件と、FCF推移を要求されたか
+    L->>D: 表示対象の書類と財務諸表を検索
     Note over D: ②で保存した科目と公表ROE。連結優先
-    D-->>A: 書類と財務諸表
-    A->>B: 必要なチャート・指標を組み立て
-    B-->>A: 数値と表示可否、指標の状態・出典
+    D-->>L: 書類と財務諸表
+    L->>L: 財務諸表をDBに依存しない値（StatementData）にする
+    opt FCF推移を要求された
+        L->>D: 同じ企業の過去5年の財務諸表から、CFの科目を一括で読む
+        D-->>L: 過去の財務諸表（PastStatement）
+    end
+    L->>B: チャート・指標・FCF推移を組み立て
+    B-->>L: 数値と表示可否、指標の状態・出典
+    L-->>A: 書類ごとの結果
     A-->>U: 要求された項目をJSONで返す
     U->>U: グラフ・指標、または表示できない理由を描画
 ```
+
+| 担当 | 役割 |
+|---|---|
+| `Resolvers::FinancialReports` | 引数の検証、FCF推移を要求されたかの判定、応答の形への変換 |
+| `UseCases::ListFinancialReports` | 検索と組み立ての順序。FCF推移は要求されたときだけ作る |
+| `Disclosure::SearchQuery`・`CashFlowHistory` | DBの検索。書類の件数によらず、問い合わせの回数を一定にする |
+| `Charts::BuilderRegistry`・`FinancialStatements::Indicators`・`FreeCashFlowTrends` | 受け取った値からチャート・指標・FCF推移を組み立てる。DBを使わない |
 
 ### 形式の違いは、取込とチャートの組み立てで扱う
 
@@ -516,8 +531,8 @@ BSも同様に、固定資産は「有形・無形・投資その他の3分類�
 
 | 段階 | 処理 |
 |---|---|
-| データを揃える | 同じ有報・連結区分の純利益、売上高、期首・期末の総資産と自己資本を使う |
-| 指標を計算する | ROE・ROAとその内訳を、それぞれに必要なデータで計算する。グラフ用の比率や丸めた値は使わない |
+| データを揃える | 同じ有報・連結区分の純利益、売上高、期首・期末の総資産と自己資本を使う。純利益は、連結なら親会社株主に帰属する当期純利益、単体なら当期純利益 |
+| 指標を計算する | `FinancialStatements::Indicators` が、表示する財務諸表の値（`StatementData`）から、ROE・ROAとその内訳を、それぞれに必要なデータで計算する。グラフ用の比率や丸めた値は使わない |
 | 結果を画面へ渡す | 数値に加え、計算できたか、企業公表値かを伝える。画面側で再計算しない |
 
 ROEは計算値を優先し、データ不足の場合に限って同じ決算の企業公表値を使う。計算できない指標があっても、他の指標は表示する。
@@ -546,6 +561,8 @@ query {
 | 金額は独自スカラ `Money`（JSON数値のまま返す） | 標準のBigInt型は文字列になり、Web・Chrome拡張の両方に変換処理が必要になる。日本企業の最大級の総資産400兆円=4×10^14はJavaScriptの安全整数9×10^15に収まる |
 | 検索は提出日降順 | 保存した提出日の新しい順に返す |
 | CFパターンは科目行の符号で判定 | 絞り込み対象は `is_primary`（連結優先）の財務諸表だけ |
+| FCF推移は要求されたときだけ作る | `freeCashFlowTrend` を選んだときだけ、同じ企業の過去5年の財務諸表を読む。選んだかはリゾルバが判定し、[`ListFinancialReports`](#sequence-display) には要否だけを渡す |
+| 連結区分は文字列で返す | `consolidationType` は `"consolidated"`・`"non_consolidated"`。内部の値（`StatementData`）はシンボルで持ち、リゾルバが文字列にする |
 
 ## 描画: チャート構造 → recharts → 画面
 

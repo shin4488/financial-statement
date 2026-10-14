@@ -117,4 +117,47 @@ RSpec.describe FinancialStatements::FreeCashFlowTrends do
     expect(trend.points.map(&:year)).to eq [ 2021, 2022, 2023, 2024, 2025 ]
     expect(trend.points.map(&:amount)).to all(be_nil)
   end
+
+  describe "推移を作る有報と過去の財務諸表の値から作る" do
+    def target(report_id, end_date, company_id: 1)
+      FinancialStatements::TrendTarget.new(report_id: report_id, company_id: company_id, fiscal_year_end_date: end_date)
+    end
+
+    def past(end_date, operating:, investing:, consolidation_type: :consolidated, company_id: 1)
+      amounts = FinancialStatements::Amounts.new
+      amounts.store("cf.operating", operating, nil)
+      amounts.store("cf.investing", investing, nil)
+      FinancialStatements::PastStatement.new(company_id: company_id, fiscal_year_start_date: end_date.prev_year + 1,
+                                             fiscal_year_end_date: end_date, consolidation_type: consolidation_type,
+                                             amounts: amounts)
+    end
+
+    it "DBを読まずに、有報のidごとに、同じ企業の過去の財務諸表から推移を作る" do
+      history = [
+        past(Date.new(2025, 3, 31), operating: 30_000_000, investing: -10_000_000),
+        past(Date.new(2024, 3, 31), operating: 80_000_000, investing: 20_000_000, consolidation_type: :non_consolidated),
+        # 決算期変更で同じ年に2つ。対象期より後の決算は使わない
+        past(Date.new(2023, 3, 31), operating: 1_000_000, investing: 0),
+        past(Date.new(2023, 12, 31), operating: 2_000_000, investing: 0),
+        past(Date.new(2025, 3, 31), operating: 5_000_000, investing: -1_000_000, company_id: 2)
+      ]
+      targets = [ target(10, Date.new(2025, 3, 31)), target(20, Date.new(2025, 3, 31), company_id: 2),
+                  target(30, Date.new(2023, 6, 30)) ]
+
+      trends = nil
+      expect(count_queries { trends = described_class.build(targets, history) }).to eq 0
+
+      expect(trends.keys).to eq [ 10, 20, 30 ]
+      expect(trends[10].points.map(&:amount)).to eq [ nil, nil, 2_000_000, 100_000_000, 20_000_000 ]
+      expect(trends[10].note).to eq "連結区分：2023年 連結 → 2024年 単体 → 2025年 連結"
+      expect(trends[20].points.map(&:amount)).to eq [ nil, nil, nil, nil, 4_000_000 ]
+      expect(trends[20].note).to be_nil
+      expect(trends[30].points.map(&:year)).to eq [ 2019, 2020, 2021, 2022, 2023 ]
+      expect(trends[30].points.last).to have_attributes(fiscal_year_end_date: "2023-03-31", amount: 1_000_000)
+    end
+
+    it "有報がなければ空にする" do
+      expect(described_class.build([], [])).to eq({})
+    end
+  end
 end

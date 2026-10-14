@@ -25,10 +25,11 @@ module Charts
     }.freeze
     UNSUPPORTED_NOTE = "この会計基準・業種の財務諸表は表示に対応していません。".freeze
 
-    def self.build_all(financial_statement)
-      items = financial_statement.items_hash
-      format = financial_statement.presentation_format
-      date = financial_statement.fiscal_year_end_date
+    # StatementData を受ける。items_hash・presentation_format・fiscal_year_end_date を持つ値（ARモデルなど）も受け、その3つだけを読む
+    def self.build_all(statement)
+      items = statement.is_a?(FinancialStatements::StatementData) ? statement.amounts : statement.items_hash
+      format = statement.presentation_format
+      date = statement.fiscal_year_end_date
       {
         balance_sheet: BS[format]&.new(items, fiscal_year_end_date: date)&.build || Charts::StackChart.unrenderable(UNSUPPORTED_NOTE),
         profit_loss:   PL[format]&.new(items, fiscal_year_end_date: date)&.build || Charts::StackChart.unrenderable(UNSUPPORTED_NOTE),

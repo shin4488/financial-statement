@@ -25,11 +25,12 @@ module Resolvers
 
     def resolve(limit:, offset:, stock_codes: nil,
                 operating_cf_sign: nil, investing_cf_sign: nil, financing_cf_sign: nil, lookahead:)
-      reports = Disclosure::SearchQuery.new.call(
+      entries = UseCases::ListFinancialReports.new.call(
         limit: limit, offset: offset, stock_codes: stock_codes,
-        cf_signs: { operating: operating_cf_sign, investing: investing_cf_sign, financing: financing_cf_sign })
-      trends = lookahead.selects?(:free_cash_flow_trend) ? FinancialStatements::FreeCashFlowTrends.build(reports) : {}
-      reports.map { |report| present(report, trends[report.id]) }
+        cf_signs: { operating: operating_cf_sign, investing: investing_cf_sign, financing: financing_cf_sign },
+        # FCF推移は過去5年の財務諸表を読むため、応答に含めるときだけ作らせる
+        with_trend: lookahead.selects?(:free_cash_flow_trend))
+      entries.map { |entry| present(entry) }
     end
 
     private
@@ -38,9 +39,9 @@ module Resolvers
       # この混在で追加の変換層なしにフィールドが引ける。
       # 専用のPresenterクラスにしない理由: 整形がこのメソッド1つに収まる薄さであり、
       # 科目・形式の知識は既にBuilder側に隔離されているため
-      def present(report, free_cash_flow_trend)
-        fs = report.primary_financial_statement
-        charts = Charts::BuilderRegistry.build_all(fs)
+      def present(entry)
+        report = entry.report
+        statement = entry.statement
         {
           id: report.id,
           stock_code: Disclosure::StockCode.to_display(report.company.stock_code),
@@ -50,12 +51,13 @@ module Resolvers
           fiscal_year_start_date: report.fiscal_year_start_date.to_s,
           fiscal_year_end_date: report.fiscal_year_end_date.to_s,
           filing_date: report.filing_date&.to_s,
-          accounting_standard: fs.accounting_standard,
-          consolidation_type: fs.consolidation_type,
-          presentation_format: fs.presentation_format,
-          financial_indicators: FinancialStatements::Indicators.build(fs),
-          free_cash_flow_trend: free_cash_flow_trend,
-          **charts # balance_sheet: / profit_loss: / cash_flow: が展開される
+          accounting_standard: statement.accounting_standard,
+          # StatementData はシンボルで持つため、保存した値と同じ文字列で返す
+          consolidation_type: statement.consolidation_type.to_s,
+          presentation_format: statement.presentation_format,
+          financial_indicators: entry.indicators,
+          free_cash_flow_trend: entry.free_cash_flow_trend,
+          **entry.charts # balance_sheet: / profit_loss: / cash_flow: が展開される
         }
       end
   end
