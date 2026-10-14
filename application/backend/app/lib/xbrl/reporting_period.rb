@@ -1,8 +1,13 @@
 module Xbrl
-  # 既存Extractorの期間名は「当期末・当期・期首」を指定する検索キーとして扱う。
+  # 当期末・当期・期首のfactを、期間と連結区分を指定して引く。既存Extractorが渡す標準のコンテキストIDも同じ指定として読む。
   # 元文書のIDへの別名付けではなく、全書類でcontextの内容を照合する読み取り専用ビュー。
   class ReportingPeriod
     CONSOLIDATIONS = { "" => :consolidated, "_NonConsolidatedMember" => :non_consolidated }.freeze
+    # 期間の種類と、その期間を指すEDINETの標準のコンテキストID（連結区分の接尾辞を除く）
+    PERIODS = { instant: "CurrentYearInstant", duration: "CurrentYearDuration", prior_instant: "Prior1YearInstant" }.freeze
+    CONTEXT_IDS = PERIODS.to_a.product(CONSOLIDATIONS.to_a)
+                         .to_h { |(period, name), (suffix, consolidation)| [ "#{name}#{suffix}", [ period, consolidation ] ] }.freeze
+    private_constant :CONTEXT_IDS
 
     def initialize(document, contexts:, start_date:, end_date:)
       @document = document
@@ -19,42 +24,40 @@ module Xbrl
       index = contexts.group_by { |_, context| [ context.entity, context.period, context.consolidation ] }
       CONSOLIDATIONS.each do |suffix, consolidation|
         start = statement_start(contexts["CurrentYearDuration#{suffix}"], entity, consolidation, ending) || beginning
-        @beginnings[suffix] = start
-        periods = { "CurrentYearInstant" => [ ending ], "CurrentYearDuration" => [ start, ending ],
-                    "Prior1YearInstant" => [ start - 1 ] }
-        periods.each do |name, period|
-          @candidates["#{name}#{suffix}"] = index.fetch([ entity, period, consolidation ], []).map(&:first)
+        @beginnings[consolidation] = start
+        dates = { instant: [ ending ], duration: [ start, ending ], prior_instant: [ start - 1 ] }
+        dates.each do |period, value|
+          @candidates[[ period, consolidation ]] = index.fetch([ entity, value, consolidation ], []).map(&:first)
         end
       end
     end
 
     def element_names(prefix) = @document.element_names(prefix)
-    def money(qname, context) = fact(qname, context)&.money
-    def text(qname, context) = fact(qname, context)&.value
-    def rounding_error(qname, context) = fact(qname, context)&.rounding_error
+    def money(qname, context) = fact_by_id(qname, context)&.money
+    def text(qname, context) = fact_by_id(qname, context)&.value
+    def rounding_error(qname, context) = fact_by_id(qname, context)&.rounding_error
 
-    # CFだけは当期の増減額で原本の期首現金を裏付けられる。
-    # 日付照合を緩めず、総資産・自己資本の期首検索とは別経路にする。
-    def reconciled_opening_cash(consolidation:, closing_amount:)
+    # period は :instant・:duration・:prior_instant、consolidation は :consolidated・:non_consolidated。
+    # 値・開示精度・単位を組で返す
+    def fact(qname, period:, consolidation:)
+      @facts.fetch([ qname, period, consolidation ]) do |key|
+        facts = @candidates.fetch([ period, consolidation ], []).filter_map { |id| @document.fact(qname, id) }.uniq
+        # 同義contextに分散した科目や同一factの重複は読める。
+        # 値・精度・単位のいずれかが食い違うときはIDや文書内の順序で選ばない。
+        @facts[key] = facts.one? ? facts.first : nil
+      end
+    end
+
+    # 当期の開始日より前の時点で、企業と連結区分が一致するcontextのfactを、文書の順にすべて返す。
+    # 当期末・当期・期首の日付の照合は緩めず、別の式で裏付けて使う処理のために、候補を絞らずに渡す。
+    def facts_before_period(qname, consolidation:)
       beginning = @beginnings[consolidation]
-      return unless beginning
-      balance_tag = "jppfs_cor:CashAndCashEquivalents"
-      closing = fact(balance_tag, "CurrentYearInstant#{consolidation}")
-      return unless closing && closing.money == closing_amount
-      duration = "CurrentYearDuration#{consolidation}"
-      change = fact("jppfs_cor:NetIncreaseDecreaseInCashAndCashEquivalents", duration)
-      adjustments = %w[IncreaseInCashAndCashEquivalentsFromNewlyConsolidatedSubsidiaryCCE
-                       IncreaseDecreaseInCashAndCashEquivalentsResultingFromChangeOfScopeOfConsolidationCCE]
-                      .filter_map { |name| fact("jppfs_cor:#{name}", duration) }
-      # 任意のIDでも企業・区分を照合する。数年前の残高を無条件には使わず、
-      # CFの式を満たす候補が一意のときだけ採用する。
-      matches = @contexts.filter_map do |id, context|
-        next unless context.entity == @entity && context.consolidation == CONSOLIDATIONS[consolidation]
+      return [] unless beginning
+      @contexts.filter_map do |id, context|
+        next unless context.entity == @entity && context.consolidation == consolidation
         next unless context.period&.size == 1 && context.period.first < beginning
-        opening = @document.fact(balance_tag, id)
-        CashFlowOpeningBalance.reconcile(opening: opening, closing: closing, change: change, adjustments: adjustments)
-      end.uniq
-      matches.first if matches.one?
+        @document.fact(qname, id)
+      end
     end
 
     private
@@ -67,13 +70,9 @@ module Xbrl
         context.period.first
       end
 
-      def fact(qname, context)
-        @facts.fetch([ qname, context ]) do |key|
-          facts = @candidates.fetch(context, []).filter_map { |id| @document.fact(qname, id) }.uniq
-          # 同義contextに分散した科目や同一factの重複は読める。
-          # 値・精度・単位のいずれかが食い違うときはIDや文書内の順序で選ばない。
-          @facts[key] = facts.one? ? facts.first : nil
-        end
+      def fact_by_id(qname, context)
+        period, consolidation = CONTEXT_IDS[context]
+        fact(qname, period: period, consolidation: consolidation) if period
       end
   end
 end
