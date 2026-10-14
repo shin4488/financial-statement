@@ -470,6 +470,34 @@ WebとChrome拡張にはBS・PL用とCF用のチャートデータを返す。We
 
 表示できない場合は `renderable: false` と説明文 `note` を返す。
 
+### Builderの基底クラスと部品
+
+形式とBuilderの割り当ては `Charts::BuilderRegistry` の表にあり、キーは `FinancialStatements::Formats` の形式名。BSは1形式1クラス、PLは骨格が同じ形式どうし（銀行と保険、IFRSの3形式）で1クラスを共有し、CFは全形式で `CashFlow` を使う。
+
+各Builderは最小の基底クラス `Charts::Builders::Base` を継承し、組み立ての補助は部品として呼ぶ。補助の一部だけを使うBuilderが、使わない組み立てや照合まで受け継がないようにするため。
+
+```mermaid
+flowchart LR
+    Reg["Charts::BuilderRegistry<br>形式 → Builder"] --> B["形式ごとのBuilder（12）"]
+    Rec["Ingestion::Reconciliation<br>取込の照合"] -->|mismatch| B
+    B -->|継承| Base["Builders::Base<br>金額の表の受け取り・既定の mismatch（nil）・no_data_note"]
+    B -->|使う| T["TwoSidedChart<br>貸借2本の組み立てと照合"]
+    B -->|使う| S["Segments<br>項目と比率"]
+    B -->|使う| Tol["Tolerance<br>許容差と端数の判定"]
+    T --> S
+    T --> Tol
+```
+
+| Builder | 使う部品 | 照合（`mismatch`） |
+|---|---|---|
+| `BsJgaapGeneral`・`BsJgaapBank`・`BsJgaapInsurance`・`BsIfrsClassified`・`BsIfrsLiquidity` | `TwoSidedChart`（`BsJgaapGeneral` は固定資産の内訳の判定に `Tolerance` も） | `TwoSidedChart` の照合の結果を返す |
+| `PlJgaapGeneral`・`PlIfrs` | `Segments`・`Tolerance` | 描き方に合わせて上書きする |
+| `CashFlow` | なし | `FinancialStatements::CashFlowVerification` の式で上書きする |
+| `PlJgaapFinancialInstitution` | `Segments` | 上書きしない（nil） |
+| `BsIfrsSummary`・`BsUsgaapSummary`・`PlUsgaapSummary` | なし（説明文だけを返す） | 上書きしない（nil） |
+
+照合する式は、IFRSのPLは[赤字と差額の表示](#赤字と差額の表示武田薬品のpl)の営業費用の段落に、日本基準のPLは[業種による費用の違い](#業種による費用の違い日本基準のpl)に、BS・CFは[表示前の確認](#表示前の確認)にある。
+
 ### 赤字と差額の表示：武田薬品のPL
 
 計算に使う保存済みの科目（単位: 百万円）:

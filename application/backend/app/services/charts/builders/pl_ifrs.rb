@@ -1,6 +1,6 @@
 # IFRS: 収益→税引前利益の骨格。中間科目（営業利益等）はIFRSでは開示任意で
 # 企業間比較ができないため骨格から除外し、費用の内訳は「開示されている科目だけ」使う
-class Charts::Builders::PlIfrs < Charts::Builders::StackBase
+class Charts::Builders::PlIfrs < Charts::Builders::Base
   # 費用の内訳。各要素は [key, ラベル, 科目コード, 色の役割]
   BREAKDOWN = [
     [ "costOfSales", "売上原価",             "pl.cost_of_sales", "expense1" ],
@@ -25,25 +25,25 @@ class Charts::Builders::PlIfrs < Charts::Builders::StackBase
     # 収益・税引前利益・表示した費用が実際の値なら、損益計算書の残りの行の合計と一致し、借方合計=貸方合計になる
     other_net = pbt - (revenue - expenses.sum { |_, _, v, _, _| v })
 
-    debit = expenses.map { |key, label, v, role, _| seg(key, label, v, role, base: revenue) }
-    credit = [ seg("revenue", "収益", revenue, "revenue", base: revenue) ]
+    debit = expenses.map { |key, label, v, role, _| Charts::Segments.segment(key, label, v, role, base: revenue) }
+    credit = [ Charts::Segments.segment("revenue", "収益", revenue, "revenue", base: revenue) ]
     # 差額の名前は、有報で一般的な「その他の収益」「その他の費用」「費用」を使い、積まれる側で分ける。
     # 表示した費用がなければ通常の費用がすべて差額に入るため、「その他」と書くと一部の費用だけに見えてしまう。
     # expense3/revenue2はどちらも差額専用のロール。実在の科目（原価・販管費・収益）と同系色だと
     # 差額だと見分けがつかないため、どちら側に積まれても同じ専用色になるようロールを分けている
     if other_net.negative?
       label = expenses.empty? ? "費用（純額）" : "その他の費用（純額）"
-      debit << seg("otherNet", label, -other_net, "expense3", base: revenue, signed: other_net)
+      debit << Charts::Segments.segment("otherNet", label, -other_net, "expense3", base: revenue, signed: other_net)
     elsif other_net.positive?
-      credit << seg("otherNet", "その他の収益（純額）", other_net, "revenue2", base: revenue)
+      credit << Charts::Segments.segment("otherNet", "その他の収益（純額）", other_net, "revenue2", base: revenue)
     end
     # other_net.zero? の場合はセグメント自体を出さない（高さ0の積み上げは無意味なため）
     if pbt.negative?
       # 赤字は貸方に「税引前損失」として積む: 借方（費用）が貸方（収益）より高いとき、
       # その差を貸方側に埋めることで2本の高さを揃える（日本基準の営業損失と同じ表現）
-      credit << seg("lossBeforeTax", "税引前損失", -pbt, "loss", base: revenue, signed: pbt)
+      credit << Charts::Segments.segment("lossBeforeTax", "税引前損失", -pbt, "loss", base: revenue, signed: pbt)
     else
-      debit << seg("profitBeforeTax", "税引前利益", pbt, "profit", base: revenue)
+      debit << Charts::Segments.segment("profitBeforeTax", "税引前利益", pbt, "profit", base: revenue)
     end
     chart(debit, credit)
   end
@@ -56,7 +56,7 @@ class Charts::Builders::PlIfrs < Charts::Builders::StackBase
     breakdown = BREAKDOWN.map { |_, _, code, _| code }.reject { |code| val(code).nil? }
     return if drawn_expenses.nil? || operating_expenses.nil? || breakdown.empty?
     codes = breakdown + [ "pl.operating_expenses" ]
-    return if balanced?(operating_expenses.abs - breakdown.sum { |code| val(code) }.abs, codes)
+    return if Charts::Tolerance.balanced?(@items, operating_expenses.abs - breakdown.sum { |code| val(code) }.abs, codes)
     codes.to_h { |code| [ code, val(code) ] }
   end
 
@@ -78,10 +78,10 @@ class Charts::Builders::PlIfrs < Charts::Builders::StackBase
       specs = expense_specs(ZERO_REVENUE_BREAKDOWN)
       return unrenderable if op.nil? || !op.negative? || specs.empty? || specs.any? { |_, _, v, _, _| v.negative? }
       codes = specs.map { |_, _, _, _, code| code } + [ "pl.operating_profit" ]
-      return unrenderable unless balanced?(-op - specs.sum { |_, _, v, _, _| v }, codes)
+      return unrenderable unless Charts::Tolerance.balanced?(@items, -op - specs.sum { |_, _, v, _, _| v }, codes)
 
-      debit = specs.map { |key, label, v, role, _| seg(key, label, v, role, base: -op) }
-      chart(debit, [ seg("operatingLoss", "営業損失", -op, "loss", base: -op, signed: op) ])
+      debit = specs.map { |key, label, v, role, _| Charts::Segments.segment(key, label, v, role, base: -op) }
+      chart(debit, [ Charts::Segments.segment("operatingLoss", "営業損失", -op, "loss", base: -op, signed: op) ])
     end
 
     # 原価+販管費型と営業費用一括型のどちらでもこの形で吸収する。内訳の科目があれば内訳を積み、なければ営業費用を積む。
@@ -103,7 +103,7 @@ class Charts::Builders::PlIfrs < Charts::Builders::StackBase
       cost = val("pl.cost_of_sales")
       gross_profit = val("pl.gross_profit")
       return unless cost&.negative? && gross_profit
-      return unless balanced?(revenue - cost.abs - gross_profit, %w[pl.revenue pl.cost_of_sales pl.gross_profit])
+      return unless Charts::Tolerance.balanced?(@items, revenue - cost.abs - gross_profit, %w[pl.revenue pl.cost_of_sales pl.gross_profit])
       specs.map { |key, label, v, role, code| [ key, label, v.abs, role, code ] }
     end
 
