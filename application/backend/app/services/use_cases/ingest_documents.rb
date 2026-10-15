@@ -7,11 +7,11 @@ module UseCases
     end
 
     def call(doc_ids)
-      ingester = Ingestion::ReportIngester.new(client: @client)
+      ingest_report = IngestReport.new(client: @client)
       Dir.mktmpdir("edinet") do |work_dir|
         SequentialRunner.each(doc_ids, sleeper: @sleeper,
                               on_success: method(:record_success), on_failure: method(:record_failure)) do |doc_id|
-          ingester.ingest(doc_id: doc_id, work_dir: work_dir)
+          ingest_report.call(doc_id: doc_id, work_dir: work_dir)
         end
       end
     end

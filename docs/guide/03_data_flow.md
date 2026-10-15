@@ -55,30 +55,39 @@ HTTP応答だけでなく本文のエラーも確認する。対象と確認で�
 
 ```mermaid
 sequenceDiagram
-    participant I as ReportIngester
+    participant U as IngestReport（手順）
     participant E as EDINET API
     participant X as XBRLの読取
+    participant S as DocumentScreening（対象確認）
+    participant W as ReportWriter（保存）
     participant D as DB
-    I->>E: 書類IDで原本を取得
-    E-->>I: ZIP またはエラー応答
+    participant Y as Sentry
+    U->>E: 書類IDで原本を取得
+    E-->>U: ZIP またはエラー応答
     break 取得失敗
-        I-->>I: 呼出元へ例外を返す
+        U-->>U: 呼出元へ例外を返す
     end
     break 本文なし
-        I-->>I: 更新せず終了
+        U-->>U: 更新せず終了
     end
-    I->>X: 企業・会計期間・会計基準を読む
-    X-->>I: 原本と識別情報
+    U->>X: 企業・会計期間・会計基準を読む
+    X-->>U: 原本と識別情報
+    U->>S: 識別情報と一覧の証券コード
+    opt 企業の書類で、証券コードが空欄
+        S->>D: 書類IDで保存済みの書類を引く（IngestReportが渡した処理で）
+        D-->>S: 企業コード・会計期間が一致する保存済み書類があるか
+    end
+    S-->>U: 判定・照合と保存に使う証券コード・送る通知の種類
     alt ファンドの書類
-        I->>D: 同じ書類IDの保存済みデータを比較対象から外す
-        Note over I,D: 科目は残し、企業情報は更新しない。②へは進まない
-    else 企業の書類
-        opt 証券コードが空欄
-            I->>D: 書類ID・企業コード・会計期間を照合
-            D-->>I: 一致する保存済み書類があるか
+        U->>W: 同じ書類IDの保存済みデータを比較対象から外す
+        W->>D: 主の財務諸表を表示対象から外す
+        Note over W,D: 科目は残し、企業情報は更新しない。②へは進まない
+    else 取り込まない（証券コードを照合できない・会計基準不明・EDINETコード不正・一覧の証券コードと不一致）
+        opt 会計基準不明・EDINETコード不正・一覧の証券コードと不一致
+            U->>Y: 判定の通知
         end
-        I->>I: 識別情報を検証し、一覧の証券コードとも照合
-        Note over I: 対象と確認できた場合だけ②へ
+    else 取り込む
+        Note over U: 対象と確認できた場合だけ②へ
     end
 ```
 
@@ -90,13 +99,16 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant I as ReportIngester
-    participant X as Extractor
+    participant U as IngestReport（手順）
+    participant X as StatementExtractor
     participant P as ReportingPeriod
     participant A as 補正ルール
+    participant W as ReportWriter（保存）
     participant D as DB
-    Note over I,P: ①で確認した原本と識別情報
-    I->>X: 会計基準・開示形式ごとに科目と公表ROEを抽出
+    participant C as StatementInspection（点検）
+    participant Y as Sentry
+    Note over U,P: ①で確認した原本と識別情報
+    U->>X: 連結・単体ごとに形式を判定し、科目と公表ROEを抽出
     X->>P: 対応表の科目ごとに、取得式が期間・連結区分を指定してタグの値を引く
     P->>P: 企業・実日付・連結区分・通貨を照合
     P-->>X: 金額・開示精度
@@ -120,21 +132,41 @@ sequenceDiagram
         Note over A: 「－」なら売上と要約の売上を0にする
     end
     A-->>X: 補った・差し替えた科目
-    X-->>I: 科目・金額・開示精度・公表ROE
-    Note over I,D: 1有報の保存は1トランザクション。失敗時は巻き戻す
-    I->>D: 企業と会計期間をキーに書類を作成・更新
-    I->>D: 今回なくなった連結区分を削除
-    loop 連結 / 単体ごと
+    X-->>U: 区分ごとの値（StatementData：形式・科目・金額・開示精度・公表ROE）
+    Note over U,Y: 1有報の保存は1トランザクション。失敗時は巻き戻す（それまでに送った通知は残る）
+    U->>W: 区分ごとの値と、①の判定の証券コード
+    W->>D: 企業と会計期間をキーに書類を作成・更新
+    W->>D: 今回なくなった連結区分を削除し、新しい表示対象を立てる前に旧い表示対象を外す
+    loop 連結 / 単体ごと（保存の直後、トランザクションの中で通知）
         alt 当期科目が取れず、既存の科目がある
-            I->>I: その財務諸表の科目・形式・公表ROEを保持
+            W->>W: その財務諸表の科目・形式・公表ROEを保持
+            W-->>U: 既存を残した
+            U->>Y: 既存を残したことを通知
         else 保存できる抽出結果
-            I->>D: 科目を入れ替え、形式・公表ROE・表示対象を保存
+            W->>D: 科目を入れ替え、形式・公表ROE・表示対象を保存
+            W-->>U: 保存した
+            opt 表示対象の財務諸表
+                U->>C: 区分の値
+                C-->>U: 通知の並び（資産合計の欠落 → 売上 → PL → BS → CF の照合）
+                U->>Y: 通知
+            end
         end
     end
     Note over D: ③はこの保存済みデータを参照する
 ```
 
 照合で候補が決まらない科目は欠損のままにし、他の取得できた科目は保存する。CFの補完をROE・ROAの期首残高には流用しない。
+
+①②の担当は次のとおり。部品は判定・抽出・保存・点検の結果を値で返し、通知は `IngestReport` だけが送る。
+
+| 担当 | 役割 |
+|---|---|
+| `UseCases::IngestReport` | 原本の取得から点検までの順序、1有報のトランザクションの範囲、Sentryへの通知 |
+| `Ingestion::DocumentScreening` | 対象確認。取り込むか、照合と保存に使う証券コード（空欄を保存済みの書類から補ったときはその値）、送る通知の種類を返す |
+| `Ingestion::StatementExtractor` | 連結・単体ごとの形式判定・抽出・補正。DBを使わない |
+| `Disclosure::ReportWriter` | 1有報分の書き込み。区分ごとに、保存したか既存を残したかを返す |
+| `UseCases::StatementInspection` | 表示対象の財務諸表の点検（資産合計の欠落、売上の照合、チャートの検算）。取込の対応表とチャートの両方を使うため、ユースケースに置く |
+| `UseCases::IngestionNotices` | 通知の種類（文言・レベル・fingerprint）の定義 |
 
 <a id="sequence-display"></a>
 
@@ -195,15 +227,27 @@ flowchart LR
 
 ### 処理の分担
 
-取込・保存・チャート作成・描画の4つに分ける。
+取込・保存・チャート作成・描画の4つに分け、処理の順序はユースケースに置く。実線はデータの流れ、点線はユースケースが使う層を表す。
 
 ```mermaid
 flowchart LR
-    L1["① 取込層<br>形式判定 + Extractor（タグ → 科目コード）"]
-    L2["② 保存層<br>科目コード × 金額で保存（スキーマは形式に依存しない）"]
-    L3["③ 表示層<br>ChartBuilder（科目コード → チャート構造）+ GraphQL"]
+    L1["① 取込層（Ingestion）<br>対象確認・形式判定・対応表（タグ → 科目コード）"]
+    L2["② 保存層（Disclosure）<br>科目コード × 金額で保存（スキーマは形式に依存しない）"]
+    L3["③ 表示層（Charts・GraphQL）<br>Builder（科目コード → チャート構造）"]
     L4["④ フロントエンド<br>受け取った構造を描くだけ"]
     L1 --> L2 --> L3 --> L4
+    subgraph UC["ユースケース（UseCases）：順序・トランザクション・通知"]
+        IR["IngestReport<br>1有報の取込"]
+        SI["StatementInspection<br>取込の点検"]
+        LF["ListFinancialReports<br>一覧の取得"]
+    end
+    IR -.-> L1
+    IR -.-> L2
+    IR -.-> SI
+    SI -.->|"形式が作る科目"| L1
+    SI -.->|"チャートの検算"| L3
+    LF -.-> L2
+    LF -.-> L3
 ```
 
 ## XBRLとタクソノミの読み方
@@ -524,7 +568,7 @@ WebとChrome拡張にはBS・PL用とCF用のチャートデータを返す。We
 ```mermaid
 flowchart LR
     Reg["Charts::BuilderRegistry<br>形式 → Builder"] --> B["形式ごとのBuilder（12）"]
-    Rec["Ingestion::Reconciliation<br>取込の照合"] -->|mismatch| B
+    Rec["UseCases::StatementInspection<br>取込の点検"] -->|mismatch| B
     B -->|継承| Base["Builders::Base<br>金額の表の受け取り・既定の mismatch（nil）・no_data_note"]
     B -->|使う| T["TwoSidedChart<br>貸借2本の組み立てと照合"]
     B -->|使う| S["Segments<br>項目と比率"]
@@ -590,7 +634,7 @@ flowchart LR
 `jgaap_general` のPLは業種によって費用科目の組合せが違う。Builderは開示された科目だけを積み、費用を差額で求めることはしない。次の順に構成を選ぶ。
 
 1. 下表の4つの構成を順に試し、借方合計（費用+営業利益）が売上と[開示精度](#金額の開示精度)の範囲で一致する最初の構成で描く。
-2. 1で一致するものがなければ、下表の1〜3を順に試し、売上と1割以内で合う最初の構成で描く。左右が端数を超えてずれるため、取込のときに[Sentryに警告](05_development_operations.md#日次バッチの監視とリカバリ)を送る（`Ingestion::Reconciliation`）。
+2. 1で一致するものがなければ、下表の1〜3を順に試し、売上と1割以内で合う最初の構成で描く。左右が端数を超えてずれるため、取込のときに[Sentryに警告](05_development_operations.md#日次バッチの監視とリカバリ)を送る（`UseCases::StatementInspection`）。
 3. どちらもなければ描かない。
 
 | 順 | 構成 | 当てはまる業種 | この順に置く理由 |

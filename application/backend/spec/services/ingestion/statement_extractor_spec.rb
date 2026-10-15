@@ -61,4 +61,74 @@ RSpec.describe Ingestion::StatementExtractor do
     expect(Ingestion::Adjustments::ALL).to eq [ Ingestion::Adjustments::OpeningCash, Ingestion::Adjustments::CashFlowStatementBalance,
                                                 Ingestion::Adjustments::RevenueCandidate, Ingestion::Adjustments::ZeroRevenue ]
   end
+
+  describe "#extract" do
+    include SyntheticXbrl
+
+    # 形式判定の代役。受けた引数を記録し、連結区分の接尾辞ごとに決めた形式を返す
+    let(:detector_calls) { [] }
+
+    def detector(formats)
+      calls = detector_calls
+      Class.new do
+        define_method(:detect) do |xbrl, accounting_standard:, industry_code:, consolidation:|
+          calls << [ xbrl, accounting_standard, industry_code, consolidation ]
+          formats.fetch(consolidation)
+        end
+      end.new
+    end
+
+    def extract(dei:, facts:, formats:)
+      document = synthetic_xbrl_document(dei: dei, facts: facts)
+      parsed = Ingestion::DeiExtractor.new.extract(document)
+      @period = document.for_reporting_period(start_date: parsed.fiscal_year_start_date, end_date: parsed.fiscal_year_end_date)
+      described_class.new.extract(@period, parsed, detector: detector(formats))
+    end
+
+    it "連結を作成する書類は、連結（DEIの会計基準・連結の業種コード）→ 単体（日本基準・単体の業種コード）の順に、区分の形式の対応表で科目を、区分の会計基準で公表ROEを取る" do
+      statements = extract(
+        dei: { accounting_standard: "IFRS", has_consolidated: "true",
+               consolidated_industry_code: "cte", non_consolidated_industry_code: "bnk" },
+        facts: { [ "jpigp_cor:AssetsIFRS", "CurrentYearInstant" ] => 300,
+                 [ "jpcrp_cor:RateOfReturnOnEquityIFRSSummaryOfBusinessResults", "CurrentYearDuration" ] => "0.1",
+                 [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 100,
+                 [ "jpcrp_cor:RateOfReturnOnEquitySummaryOfBusinessResults", "CurrentYearDuration_NonConsolidatedMember" ] => "0.05" },
+        formats: { "" => "ifrs_classified", "_NonConsolidatedMember" => "jgaap_general" })
+
+      aggregate_failures do
+        expect(detector_calls).to eq [ [ @period, "ifrs", "cte", "" ], [ @period, "japan_gaap", "bnk", "_NonConsolidatedMember" ] ]
+        expect(statements.map { |data| [ data.consolidation_type, data.accounting_standard, data.presentation_format,
+                                         data.amounts.to_h, data.disclosed_roe, data.fiscal_year_end_date ] }).to eq [
+          [ :consolidated, "ifrs", "ifrs_classified", { "bs.assets" => 300 }, 0.1.to_d, nil ],
+          [ :non_consolidated, "japan_gaap", "jgaap_general", { "bs.assets" => 100 }, 0.05.to_d, nil ]
+        ]
+        expect(statements).to all(be_a(FinancialStatements::StatementData))
+        expect(statements.map(&:amounts)).to all(be_frozen)
+      end
+    end
+
+    it "連結を作成しない書類は、単体だけを取る" do
+      statements = extract(dei: { has_consolidated: "false" },
+                           facts: { [ "jppfs_cor:Assets", "CurrentYearInstant" ] => 300,
+                                    [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 100 },
+                           formats: { "_NonConsolidatedMember" => "jgaap_general" })
+
+      aggregate_failures do
+        expect(detector_calls.map(&:last)).to eq [ "_NonConsolidatedMember" ]
+        expect(statements.map { |data| [ data.consolidation_type, data.amounts.to_h ] })
+          .to eq [ [ :non_consolidated, { "bs.assets" => 100 } ] ]
+      end
+    end
+
+    it "形式に対応表がない区分（unsupported）は、科目を空にし、公表ROEは区分の会計基準で取る" do
+      statements = extract(
+        dei: { has_consolidated: "false" },
+        facts: { [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 100,
+                 [ "jpcrp_cor:RateOfReturnOnEquitySummaryOfBusinessResults", "CurrentYearDuration_NonConsolidatedMember" ] => "0.05" },
+        formats: { "_NonConsolidatedMember" => "unsupported" })
+
+      expect(statements.map { |data| [ data.presentation_format, data.amounts.to_h, data.amounts.rounding_errors, data.disclosed_roe ] })
+        .to eq [ [ "unsupported", {}, {}, 0.05.to_d ] ]
+    end
+  end
 end

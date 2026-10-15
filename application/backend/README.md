@@ -78,9 +78,10 @@ app/lib/
   xbrl/document.rb                     # XBRLのfact検索プリミティブ
 app/models/disclosure/                 # 現行テーブルのモデル
 app/services/
-  ingestion/                           # 形式判定・対応表・抽出・取得式・補正ルール・取込
-  use_cases/                           # 入口から呼ぶ処理の手順（日付・docID指定の取込、書類の逐次実行、一覧の取得）
+  ingestion/                           # 対象確認・形式判定・対応表・抽出・取得式・補正ルール
+  use_cases/                           # 入口から呼ぶ処理の手順（日付・docID指定の取込、1有報の取込と点検、書類の逐次実行、一覧の取得）
   charts/                              # ChartBuilder（チャート構造の組み立て）
+  disclosure/report_writer.rb          # 取り込んだ有報の保存（1有報分）
   disclosure/search_query.rb           # 一覧検索（CF符号・証券コード）
 app/graphql/
   financial_statement_schema.rb        # スキーマ（複雑度・深さの上限を含む）

@@ -8,12 +8,12 @@ module UseCases
     # デフォルトが当日でなく前日なのは、EDINETの書類一覧が提出日単位で、ジョブ実行時刻（深夜）には当日分がまだ出そろっていないため。
     # 前日分なら1回の実行でその日の提出書類を取り切れる
     def call(from_date: Time.zone.yesterday, to_date: Time.zone.yesterday)
-      ingester = Ingestion::ReportIngester.new(client: @client)
+      ingest_report = IngestReport.new(client: @client)
       Dir.mktmpdir("edinet") do |work_dir|
         (from_date.to_date..to_date.to_date).each do |date|
           SequentialRunner.each(@client.list_annual_reports(date: date), sleeper: @sleeper,
                                 on_success: method(:record_success), on_failure: method(:record_failure)) do |meta|
-            ingester.ingest(doc_id: meta.doc_id, work_dir: work_dir, expected_sec_code: meta.sec_code)
+            ingest_report.call(doc_id: meta.doc_id, work_dir: work_dir, expected_sec_code: meta.sec_code)
           end
         rescue => e
           # 一覧取得自体の失敗も日単位で隔離する。
