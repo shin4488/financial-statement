@@ -5,7 +5,7 @@ module Ingestion
     # （流動/固定の区分がなく、PLも売上高でなく経常収益から始まる金融機関の様式）。
     # ここに無い業種（建設・鉄道・電気・ガス・海運・電気通信・証券・特定金融・商品先物・投資業など）も
     # 業種別の勘定科目を持つが、骨格は一般と同じなので一般形式で扱い、タグ名の違いは
-    # Extractorのフォールバックで吸収する（タグの対応表は docs/guide にある）
+    # 対応表のフォールバックで吸収する（タグの対応表は docs/guide にある）
     FINANCIAL_INSTITUTION_FORMATS = {
       "bnk" => FormatRegistry::JGAAP_BANK,      # 銀行・信託業
       "ins" => FormatRegistry::JGAAP_INSURANCE  # 生命保険業・損害保険業
@@ -57,10 +57,10 @@ module Ingestion
         financial_formats.find { |candidate| ordinary_revenue?(xbrl, candidate, consolidation) } || format
       end
 
-      # 経常収益のタグは、その様式のExtractorのマッピングを使う（タグ名を二重に持たない）
+      # 経常収益のタグは、その様式の対応表を使う（タグ名を二重に持たない）。形式を決めるだけなので金額だけを読み、端数は読まない
       def ordinary_revenue?(xbrl, format, consolidation)
-        spec = FormatRegistry.extractor_for(format)::DURATION_MAPPING.fetch("pl.ordinary_revenue")
-        !Extractors::Base.wrap(spec).evaluate(xbrl, "CurrentYearDuration#{consolidation}").nil?
+        expression = Mappings.for(format).expression("pl.ordinary_revenue")
+        !expression.amount(xbrl, period: :duration, consolidation: Xbrl::ReportingPeriod::CONSOLIDATIONS[consolidation]).nil?
       end
   end
 end

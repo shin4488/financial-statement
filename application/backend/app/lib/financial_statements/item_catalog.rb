@@ -49,7 +49,7 @@ module FinancialStatements
       instant("bs.deferred_assets",                      "繰延資産（創立費・開業費・株式交付費・社債発行費など）"),
       # ---- IFRS・流動/非流動分類のみ（ifrs_classified が保存する。非流動資産の代表内訳）----
       instant("bs.property_plant_and_equipment",         "有形固定資産"),
-      instant("bs.goodwill_and_intangibles",             "のれん及び無形資産（別掲企業はExtractorが合算）"),
+      instant("bs.goodwill_and_intangibles",             "のれん及び無形資産（別掲企業は対応表で合算する）"),
       # ---- 銀行・保険（jgaap_bank / jgaap_insurance が保存する）----
       instant("bs.loans",                                "貸出金（保険では貸付金）"),
       instant("bs.securities",                           "有価証券"),

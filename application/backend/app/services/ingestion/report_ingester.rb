@@ -157,7 +157,7 @@ module Ingestion
         # 形式判定を空で上書きしないためのガード。空のまま新規作成するのは
         # 正常系（unsupported形式など）なのでスキップしない
         # 期首残高だけが取れる書類も、当期の財務諸表を置き換える根拠にはしない。
-        current_items = ext.items.except("bs.assets_begin", "bs.equity_attributable_to_owners_begin", "cf.cash_begin")
+        current_items = ext.items.except(*FinancialStatements::ItemCatalog.opening_codes)
         if current_items.empty? && fs.persisted? && fs.items.exists?
           Sentry.capture_message(
             "skip empty extraction for existing statement: #{doc_id} (#{ext.consolidation_type})",
@@ -185,13 +185,13 @@ module Ingestion
             rounding_error: items.respond_to?(:rounding_errors) ? items.rounding_errors[code] : nil,
             created_at: Time.current, updated_at: Time.current } }
         # insert_all!はモデルのバリデーションを通らないため、item_codeの正当性は
-        # Extractorのマッピング定数がItemCodes::ALLの範囲内であることをspecで担保する
+        # 対応表の科目が科目カタログ（ItemCatalog::ALL）にあること（対応表の読込時の確認と対応表の検査のspec）で担保する
         Disclosure::FinancialStatementItem.insert_all!(rows) if rows.any?
       end
 
       # 主対象なのに資産合計すら取れないのは形式判定ミスの可能性が高い。
       # 取込自体は継続する（unsupported形式や科目欠落はエラーではないため）。
-      # 「BSを抽出する形式か」は個別の形式名でなくExtractorのマッピングに聞く
+      # 「BSを抽出する形式か」は個別の形式名でなく形式の対応表に聞く
       # （BSを抽出しない形式を増やしてもここを触らずに済む）
       def warn_missing_assets(fs, ext, doc_id)
         return unless fs.is_primary && !ext.items.key?("bs.assets")
