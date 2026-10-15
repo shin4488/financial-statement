@@ -6,7 +6,7 @@ EDINETの原本を取得し、財務数値を保存して、グラフや指標�
 |---|---|
 | [全体像](#全体像-1つの科目が画面に届くまで) | 2系統の処理と、1つの科目が画面に届くまでの変換の全段階 |
 | [XBRLとタクソノミの読み方](#xbrlとタクソノミの読み方) | 名前空間・コンテキスト・企業拡張タグの扱い |
-| [取込](#取込-形式判定とextractorタグ--科目コード) | 形式判定と、Extractorによるタグ → 科目コードの変換 |
+| [取込](#取込-形式判定と対応表タグ--科目コード) | 形式判定と、対応表によるタグ → 科目コードの変換 |
 | [保存](#保存-dbのデータモデル) | データモデルと未取得の科目の扱い |
 | [チャート組み立て](#チャート組み立て-builder科目コード--チャート構造) | Builderによる科目コード → チャート構造の組み立て |
 | [GraphQL API](#graphql-api) | クエリと応答の形、検索の決まり |
@@ -31,7 +31,7 @@ flowchart LR
         D["パース後の辞書（タグ + コンテキスト → 値）<br>[jpigp_cor, CurrentAssetsIFRS, CurrentYearInstant] => 3090503000000"]
         R["financial_statement_items テーブルの1行<br>item_code: bs.current_assets / amount: 3,090,503,000,000"]
         F -->|"パース: XMLを辞書化（Xbrl::Document）"| D
-        D -->|"Extractorの対応表で科目コードへ<br>bs.current_assets => jpigp_cor:CurrentAssetsIFRS"| R
+        D -->|"形式の対応表で科目コードへ<br>bs.current_assets => jpigp_cor:CurrentAssetsIFRS"| R
     end
     subgraph Refer["参照系（画面アクセスのたび）"]
         S["GraphQL応答の1セグメント（借方バー内）<br>key: currentAssets / label: 流動資産 / amount: 3090503000000<br>ratio: 19.9 / colorRole: asset1"]
@@ -112,7 +112,7 @@ sequenceDiagram
         Note over A: CFの式が端数の範囲で成り立てば、期首残・期末残をその候補の値にする
     end
     opt 3. RevenueCandidate：売上が経営指標の要約の売上と一致しない
-        A->>P: 売上の取得候補（要約のタグを除く）を順に引く
+        A->>P: 売上の取得候補（要約のタグを除く）、差し替えのときだけ使う候補の順に引く
         Note over A: 要約と一致する最初の候補を売上にする
     end
     opt 4. ZeroRevenue：売上も要約の売上も取れず、損益の値がある
@@ -253,7 +253,7 @@ flowchart LR
     D["Xbrl::Document<br>XMLのfactとcontextを索引化"] --> P
     C["Xbrl::Context<br>企業・日付・ディメンションを解析"] --> P
     P["Xbrl::ReportingPeriod<br>連結／単体ごとに当期の期間を決め、<br>同じ意味のcontextからfactを選ぶ"]
-    P -->|"期間・連結区分を指定した<br>金額・開示精度"| X["Extractor<br>タグ → 科目コード"]
+    P -->|"期間・連結区分を指定した<br>金額・開示精度"| X["抽出器 StatementExtractor<br>対応表でタグ → 科目コード"]
     P -->|"当期の開始日より前の時点で、<br>企業・連結区分が一致するfactの一覧"| A["補正ルール<br>Ingestion::Adjustments::OpeningCash<br>CFの式で照合して期首残を補う"]
 ```
 
@@ -261,13 +261,13 @@ flowchart LR
 
 IFRS採用企業でも、単体財務諸表は日本基準の `jppfs_cor` + `_NonConsolidatedMember` でタグ付けされる。このため単体は常に日本基準として処理する。
 
-## 取込: 形式判定とExtractor（タグ → 科目コード）
+## 取込: 形式判定と対応表（タグ → 科目コード）
 
 原本の会計基準と開示様式を確認し、対応するタグから数値を取り出す。
 
 ### 形式判定
 
-形式によって、数値を取り出す処理（Extractor）とチャートを作る処理（Builder）を選ぶ。
+形式によって、タグと科目コードの対応表（`Ingestion::Mappings`）と、チャートを作る処理（Builder）を選ぶ。
 
 ```mermaid
 flowchart TB
@@ -292,15 +292,45 @@ flowchart TB
 
 | 1行に書くこと | 内容 | 例 |
 |---|---|---|
-| 期間 | `instant`（当期末の残高）か `duration`（当期の増減）。Extractorがその科目の値を引くコンテキストと同じにする | `bs.assets` は `instant`、`pl.revenue` は `duration` |
-| 期首の科目 | `opening`。`of:` の科目の、同じ有報の前期末の残高を、期首の科目として保存する | `bs.assets_begin` は `bs.assets` の前期末 |
+| 期間 | `instant`（当期末の残高）か `duration`（当期の増減）。抽出はこの期間で値を引く（対応表には期間を書かない） | `bs.assets` は `instant`、`pl.revenue` は `duration` |
+| 期首の科目 | `opening`。`of:` の科目の、同じ有報の前期末の残高を、期首の科目として保存する。対応表には書かず、`of:` の科目の取得式で前期末の値を引く | `bs.assets_begin` は `bs.assets` の前期末 |
 | 意味 | 科目の意味と、形式ごとの違い | `bs.cash_and_equivalents` は現金及び現金同等物（銀行は「現金預け金」、保険は「現金及び預貯金」） |
 
 形式名（`jgaap_general` など）の一覧は `app/lib/financial_statements/formats.rb` にある。
 
 ### タグから科目コードへの変換
 
-Extractorは、原本のタグと科目コードの対応表を使って数値を取り出す。企業・業種でタグ名が異なるため、次の書き方で指定する。書き方ごとに取得式（`app/services/ingestion/expressions/` の1クラス）があり、金額と開示精度を組で返す。
+形式ごとに、科目コードと原本のタグの対応表（`app/services/ingestion/mappings/`）がある。抽出器 `Ingestion::StatementExtractor` は、対応表のすべての科目を評価してから、補正ルールを適用する。
+
+```mermaid
+flowchart LR
+    CAT["科目カタログ ItemCatalog<br>科目ごとの期間・期首の科目"] -->|"期間"| MAP
+    subgraph MAP["形式の対応表 Mappings::Mapping"]
+        SH["共有する部品 Mappings::Section<br>JgaapCashFlow・IfrsProfitLoss など"]
+        OWN["形式に固有の部品"]
+    end
+    MAP -->|"科目・期間・取得式"| EXT["抽出器 StatementExtractor"]
+    EXT --> ADJ["補正ルール"]
+```
+
+| 決まり | 内容 |
+|---|---|
+| 組み立て方 | 形式の間で共有する部品と、その形式に固有の部品を組み合わせる（`Mapping.define(形式, 共有する部品, …) do … end`。ブロックの中が形式に固有の部品）。同じ科目を2つの部品に書くと、読込時に例外になる |
+| 期間と期首の科目 | 対応表には書かず、[科目カタログ](#科目コード--形式間で共通)から決まる |
+| 形式との対応 | `Ingestion::Mappings.for(形式)`。`unsupported` には対応表がなく、科目を取らない |
+
+| 部品 | 科目 | jgaap_general | jgaap_bank | jgaap_insurance | ifrs_classified | ifrs_liquidity | ifrs_summary | usgaap_summary |
+|---|---|---|---|---|---|---|---|---|
+| `JgaapEquity` | 自己資本 | ○ | ○ | ○ | | | | |
+| `JgaapCashFlow` | CFの期末残と、CF計算書の7行 | ○ | ○ | ○ | | | | |
+| `IfrsProfitLoss` | 損益計算書（要約の売上を除く） | | | | ○ | ○ | | |
+| `IfrsCashFlow` | CFの期末残と、CF計算書の4行 | | | | ○ | ○ | | |
+| `IfrsSummaryRevenue` | 経営指標の要約の売上 | | | | ○ | ○ | ○ | |
+| 形式に固有の部品 | 上にない科目 | ○ | ○ | ○ | ○ | ○ | ○ | ○ |
+
+公表ROEは、形式でなく区分の会計基準でタグを選ぶため、形式の対応表に含めず、部品 `Mappings::DisclosedRoe` に置く。対応する形式がない区分でも取る。
+
+企業・業種でタグ名が異なるため、取得するタグは次の書き方で指定する。書き方ごとに取得式（`app/services/ingestion/expressions/` の1クラス）があり、金額と開示精度を組で返す。
 
 | 記法 | 意味 | 例 |
 |---|---|---|
@@ -308,11 +338,12 @@ Extractorは、原本のタグと科目コードの対応表を使って数値�
 | `[ "…:A", "…:B", … ]` | フォールバック（先頭から順に探し、最初に取れた値を採用） | 売上高（営業収益・完成工事高などのゆれ） |
 | `sum("…:A", "…:B")` | 合算（存在するタグだけを足す。1つも無ければ「開示なし」） | 合計タグを持たず事業区分別に開示する鉄道単体・電気通信・海運の営業収益 |
 | `sum("…:A", "…:B", distinct_amounts: true)` | 合算。ただし同じ金額のタグは1回だけ数える | 一般事業会社の売上高+営業収入（下表の5） |
-| `sum("…:A", "…:B", all_present: true)` | 合算。ただしすべてのタグに値があるときだけ足す（1つでもなければ取らない） | 売上高の下に営業収入の内訳を並べる会社の、売上高と内訳の合計（要約の売上と照合して差し替える候補） |
+| `sum("…:A", "…:B", all_present: true)` | 合算。ただしすべてのタグに値があるときだけ足す（1つでもなければ取らない） | 売上高の下に営業収入の内訳を並べる会社の、売上高と内訳の合計（下の `replacements:` に書く） |
 | `max("…:A", sum("…:B", "…:C"))` | 最大値（総額の候補が複数併記されるとき、最も包括的な値を採る。内訳は総額を超えないことが根拠） | 一般事業会社の売上高: 営業収益 と 売上高+営業収入 のどちらが総額かは企業のタグ付けで揺れる（下記） |
 | `"filer_ext:BusinessRevenues"` | 企業拡張タグのうち、原本で意味を確かめた要素名 | 売上を企業拡張タグだけで開示する会社の売上 |
 | `filer_ext(/…SummaryOfBusinessResults\z/)` | 企業拡張タグのうち、要素名が正規表現に合うもの。合う要素の金額か精度が食い違えば取らない | 経営指標の要約の売上（要素名が会社ごとに違う） |
-| `ratio("…:RateOfReturnOnEquitySummaryOfBusinessResults")` | 比率。値の文字列を数値にし、有限の値だけを採る（空・不正・非有限の値は取らない） | 企業公表ROE（`DisclosedRoeExtractor` が会計基準ごとのタグを読み、科目コードでなく財務諸表の公表ROEに保存する。科目の対応表では使わない） |
+| `ratio("…:RateOfReturnOnEquitySummaryOfBusinessResults")` | 比率。値の文字列を数値にし、有限の値だけを採る（空・不正・非有限の値は取らない） | 企業公表ROE（部品 `Mappings::DisclosedRoe` が会計基準ごとのタグで読み、科目コードでなく財務諸表の公表ROEに保存する） |
+| `item "pl.revenue", [ … ], replacements: [ … ]` | 差し替えのときだけ使う候補。通常の取得では使わず、[経営指標の要約と照合](#売上と経営指標の要約の照合)して売上を差し替えるときに、通常の取得候補の後に試す | 売上高と、その下に並ぶ営業収入の内訳の合計（売上高がある会社は通常の取得候補で売上が取れる） |
 
 `max` が要るのは、制度上は「営業収益 = 売上高 + 営業収入」なのに、どのタグをどう付けるかが企業ごとに揺れるため。「先に見つかった方を採る」だけでは下表の2・3で総額を取り損ねるが、内訳は総額を超えないので「大きい方」ならどのパターンでも総額になる。
 
@@ -429,7 +460,7 @@ erDiagram
 | item_code | amount | 由来 |
 |---|---|---|
 | bs.assets | 15,511,506,000,000 | `jpigp_cor:AssetsIFRS` |
-| bs.goodwill_and_intangibles | 9,228,358,000,000 | のれん+無形の2タグをExtractorが合算 |
+| bs.goodwill_and_intangibles | 9,228,358,000,000 | のれん+無形の2タグを対応表の `sum` で合算 |
 | pl.profit_before_tax | -142,355,000,000 | 赤字は負の値のまま保存 |
 
 `pl.gross_profit` の行は存在しない（武田は売上総利益を開示していないため）。
@@ -454,7 +485,7 @@ erDiagram
 
 売上のタグに、合計ではなく内訳だけが付いた書類がある。スリー・ディー・マトリックスの2017年4月期は、標準タグの売上高 `NetSales` が製品売上高（107,127千円）だけで、合計の事業収益（615,852千円）は企業拡張タグに付いている。売上が内訳だと、売上高純利益率などの指標が実際と違ってしまう。
 
-そこで、経営指標の要約（主要な経営指標等の推移）の売上を `pl.summary_revenue` に保存し、`FinancialStatements::RevenueVerification` で売上と照合する。売上が要約と一致しないときは、取込のときに売上の取得候補（`pl.revenue` のフォールバックの各候補）を順に照合し、要約と一致する最初の候補を売上にする（補正ルール `Adjustments::RevenueCandidate`）。要約の値そのものを売上にすると照合にならないため、要約のタグ（`jpcrp_cor`）は候補にしない。どの候補も一致しなければ値を変えず、取込時に[Sentryに警告](05_development_operations.md#日次バッチの監視とリカバリ)を送る。
+そこで、経営指標の要約（主要な経営指標等の推移）の売上を `pl.summary_revenue` に保存し、`FinancialStatements::RevenueVerification` で売上と照合する。売上が要約と一致しないときは、取込のときに売上の取得候補（`pl.revenue` のフォールバックの各候補）と、差し替えのときだけ使う候補（対応表の `replacements:`）をこの順に照合し、要約と一致する最初の候補を売上にする（補正ルール `Adjustments::RevenueCandidate`）。要約の値そのものを売上にすると照合にならないため、要約のタグ（`jpcrp_cor`）は候補にしない。どの候補も一致しなければ値を変えず、取込時に[Sentryに警告](05_development_operations.md#日次バッチの監視とリカバリ)を送る。
 
 | 結果 | 条件 | 例 |
 |---|---|---|
@@ -666,15 +697,16 @@ APIは `asset1`（資産）や `profit`（利益）などの色の役割を返�
 
 | 変更の種類 | 主な変更箇所 |
 |---|---|
-| 取得するタグや優先順位の変更 | 対象形式のExtractor |
-| 新しい科目を保存する | `item_catalog.rb` に1行足し、対象形式のExtractorの、カタログの期間と同じ表（`INSTANT_MAPPING`・`DURATION_MAPPING`）に取得するタグを足す。期首の科目も保存するなら、`Extractors::Base::OPENING_ITEMS` と、`ReportIngester` が当期の科目の有無を確かめるときに除く科目にも足す。表示にも使うならBuilderを更新する |
-| 一般様式の業種を追加 | `JgaapGeneral` に業種のタグを追加する |
+| 取得するタグや優先順位の変更 | その科目を持つ対応表の部品（`app/services/ingestion/mappings/`。共有する部品か、形式の対応表のブロック） |
+| 差し替えのときだけ使う候補を足す | その科目の `replacements:` に1行足す |
+| 新しい科目を保存する | `item_catalog.rb` に1行（期間、期首の科目なら `opening` と `of:`）と、対応表の部品に取得するタグを1行足す。期首の科目は対応表に書かない。表示にも使うならBuilderを更新する |
+| 一般様式の業種を追加 | 一般事業会社の対応表 `Mappings::JgaapGeneral`（自己資本・CFは共有する部品）に業種のタグを追加する |
 | 新しい取得の書き方 | `app/services/ingestion/expressions/` に、`evaluate`・`amount`・`blank?` を持つクラスを1つ足し、書き方を `Ingestion::Expressions` に足す |
 | 新しい補正ルール | `app/services/ingestion/adjustments/` に、`apply` を持つクラスを1つ足し、`Adjustments::ALL` の適用の順の位置に1行足す |
-| 構成の異なる形式を追加 | Extractor・Builderを作成し、形式名を `formats.rb` に足して、形式判定と登録表に追加する |
+| 構成の異なる形式を追加 | 形式の対応表（`mappings/` の1ファイルと `Mappings::ALL`）とBuilderを作成し、形式名を `formats.rb` に足して、形式判定とBuilderの登録表に追加する。抽出の入口（`Extractors::*` のクラスと `FormatRegistry::EXTRACTORS`）にも足す |
 | 色の役割を追加 | バックエンド、Webの `colorRoles.ts`、Chrome拡張を揃えて変更する |
 
 タグを変更するときは、原本の数値で検証し、[タグ対応表](06_taxonomy_mapping.md)も更新する。
 
-- `mapping_consistency_spec.rb` で未定義の科目コードがないこと、`item_catalog_consistency_spec.rb` でカタログの期間・期首の科目がExtractorと合うことを確認する。業種を追加するときは、`industry_formats_spec.rb` に実XBRLのケースを加え、形式判定から描画まで検証する。
+- `mappings_spec.rb`（対応表の検査）で、対応表の科目がカタログにあること・部品の重複がないこと・形式の網羅・タグの形を確認する。`mapping_consistency_spec.rb` で抽出の出力に未定義の科目コードがないこと、`item_catalog_consistency_spec.rb` で抽出の出力がカタログの期間・期首の科目と合うことを確認する。業種を追加するときは、`industry_formats_spec.rb` に実XBRLのケースを加え、形式判定から描画まで検証する。
 - 既に `unsupported` で保存済みの有報は再取込タスクで取り直す（[05章](05_development_operations.md)）
