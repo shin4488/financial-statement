@@ -12,7 +12,7 @@ module Charts
       end
 
       # 描くグラフが、保存した科目どうしの式を端数の範囲で満たさないときの、式に使った金額（{科目コード => 金額}）。
-      # 取込のときの照合（Ingestion::Reconciliation）がSentryへの警告に使う。式どおりに描くか、描かないときはnil。
+      # 取込のときの点検（UseCases::StatementInspection）がSentryへの警告に使う。式どおりに描くか、描かないときはnil。
       # 照合する式は描き方で違うため、照合するBuilderが上書きする
       def mismatch = nil
 
