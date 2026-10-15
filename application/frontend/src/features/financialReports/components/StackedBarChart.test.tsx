@@ -1,5 +1,5 @@
 import React from 'react';
-import { cleanup, render } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import {
   colorByRole,
   StackedBarChart,
@@ -80,15 +80,31 @@ function verticalSpan(container: HTMLElement, fill: string) {
 
 it('表示中に積み上げの列が増えても、APIの並びのとおり上から積む', () => {
   const { container, rerender } = render(
-    <StackedBarChart chart={solvent} height={400} />,
+    <StackedBarChart chart={solvent} ariaLabel="例" height={400} />,
   );
 
-  rerender(<StackedBarChart chart={insolvent} height={400} />);
+  rerender(<StackedBarChart chart={insolvent} ariaLabel="例" height={400} />);
 
   const spacer = verticalSpan(container, colorByRole.spacer);
   const equity = verticalSpan(container, colorByRole.equity);
   expect(equity.top).toBeCloseTo(spacer.bottom);
   cleanup();
-  const fresh = render(<StackedBarChart chart={insolvent} height={400} />);
+  const fresh = render(
+    <StackedBarChart chart={insolvent} ariaLabel="例" height={400} />,
+  );
   expect(verticalSpan(fresh.container, colorByRole.equity)).toEqual(equity);
+});
+
+it('キーボードで操作できるグラフに、呼び出し元が決めた名前を付ける', () => {
+  render(
+    <StackedBarChart
+      chart={solvent}
+      ariaLabel="貸借対照表のグラフ"
+      height={400}
+    />,
+  );
+
+  expect(
+    screen.getByRole('application', { name: '貸借対照表のグラフ' }),
+  ).toBeTruthy();
 });

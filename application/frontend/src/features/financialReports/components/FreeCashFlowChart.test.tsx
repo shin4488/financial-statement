@@ -115,6 +115,20 @@ it('狭いカードで欠損年があっても、各年の金額をその年の�
   );
 });
 
+it('キーボードで操作できるグラフに、何のグラフかが分かる名前を付ける', () => {
+  stubChartWidth(600);
+
+  render(
+    <FreeCashFlowChart trend={{ renderable: true, note: null, points }} />,
+  );
+
+  expect(
+    screen.getByRole('application', {
+      name: 'フリーキャッシュフローの過去5年の棒グラフ',
+    }),
+  ).toBeTruthy();
+});
+
 it('全期間欠損時は説明を一文だけ表示する', () => {
   render(
     <FreeCashFlowChart

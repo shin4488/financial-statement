@@ -282,6 +282,7 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
             >
               <BarChart
                 data={rows}
+                aria-label="フリーキャッシュフローの過去5年の棒グラフ"
                 margin={{
                   top: compactLabels ? COMPACT_TOP_MARGIN : 25,
                   right: 4,

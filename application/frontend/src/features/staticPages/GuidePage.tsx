@@ -92,7 +92,11 @@ function SwitchableChartExample({
         <ToggleButton value={false}>{labels[0]}</ToggleButton>
         <ToggleButton value={true}>{labels[1]}</ToggleButton>
       </ToggleButtonGroup>
-      <StackedBarChart chart={charts[showAlternative ? 1 : 0]} height={320} />
+      <StackedBarChart
+        chart={charts[showAlternative ? 1 : 0]}
+        ariaLabel={`${title}（${labels[showAlternative ? 1 : 0]}）`}
+        height={320}
+      />
     </SampleChartCard>
   );
 }
@@ -229,7 +233,11 @@ export default function GuidePage() {
           現金の増減を示します。青系は増加、赤系は減少です。売上代金の入金時期などにより、PLの利益とは一致しません。
         </P>
         <SampleChartCard title="キャッシュフロー計算書の表示例">
-          <WaterfallChart chart={sampleCashFlow} height={320} />
+          <WaterfallChart
+            chart={sampleCashFlow}
+            ariaLabel="キャッシュフロー計算書の表示例"
+            height={320}
+          />
         </SampleChartCard>
         <SimpleTable
           head={['区分', '内容', 'プラスの意味', 'マイナスの意味']}

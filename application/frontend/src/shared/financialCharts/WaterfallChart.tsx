@@ -60,12 +60,15 @@ export function toWaterfallRows(steps: WaterfallStep[]): Row[] {
 
 export interface WaterfallChartProps {
   chart: WaterfallChartData;
+  // スクリーンリーダーが読み上げるグラフの名前。チャートはどの財務諸表かを知らないため、呼び出し元が決める
+  ariaLabel: string;
   width?: string | number;
   height?: string | number;
 }
 
 export function WaterfallChart({
   chart,
+  ariaLabel,
   width = '90%',
   height = 400,
 }: WaterfallChartProps) {
@@ -123,6 +126,7 @@ export function WaterfallChart({
             width={chartSize.width}
             height={chartSize.height}
             margin={{ top: 28, right: 5, bottom: 5, left: 5 }}
+            aria-label={ariaLabel}
           >
             <XAxis dataKey="name" />
             {/* domain自動: 累積が負になるケースで0より下も描画させる */}
