@@ -16,6 +16,7 @@ import {
   tooltipBackgroundColor,
 } from './colorRoles';
 import { ChartUnavailable } from './ChartUnavailable';
+import { pointerFocusOutlineHidden } from './chartFocus';
 import { formatAmount } from './formatAmount';
 import type { StackChart, Segment } from './types';
 
@@ -85,7 +86,7 @@ export function StackedBarChart({
   const { rows, columns } = toStackRows(chart);
 
   return (
-    <Box width={width} height={height} m="auto">
+    <Box width={width} height={height} m="auto" sx={pointerFocusOutlineHidden}>
       <ResponsiveContainer
         width="100%"
         height={typeof height === 'number' ? height : '100%'}

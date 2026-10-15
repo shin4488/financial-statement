@@ -11,6 +11,7 @@ import {
   YAxis,
 } from 'recharts';
 import { ChartUnavailable } from './ChartUnavailable';
+import { pointerFocusOutlineHidden } from './chartFocus';
 import { colorForRole, tooltipBackgroundColor } from './colorRoles';
 import { formatAmountInMillions } from './formatAmount';
 import type {
@@ -98,7 +99,12 @@ export function WaterfallChart({
   const rows = toWaterfallRows(chart.steps);
 
   return (
-    <Stack width={width} height={height} m="auto">
+    <Stack
+      width={width}
+      height={height}
+      m="auto"
+      sx={pointerFocusOutlineHidden}
+    >
       <Typography
         letterSpacing="inherit"
         fontFamily="inherit"

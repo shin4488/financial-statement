@@ -12,6 +12,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { pointerFocusOutlineHidden } from './chartFocus';
 import { colorByRole } from './colorRoles';
 import type { FreeCashFlowTrend } from './types';
 
@@ -273,7 +274,7 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
       </Stack>
       {trend.renderable ? (
         <>
-          <Box mt={1}>
+          <Box mt={1} sx={pointerFocusOutlineHidden}>
             <ResponsiveContainer
               width="100%"
               height={CHART_HEIGHT}
