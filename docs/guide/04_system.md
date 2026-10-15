@@ -40,7 +40,7 @@ sequenceDiagram
     participant F as IngestFilings
     participant E as EDINET API
     participant R as SequentialRunner
-    participant I as ReportIngester
+    participant I as IngestReport
     participant M as ログ / Sentry
     J->>F: 前日提出分の取込を開始
     F->>E: 日付ごとの書類一覧を取得
