@@ -4,6 +4,7 @@ import {
   Bar,
   BarChart,
   LabelList,
+  Rectangle,
   ResponsiveContainer,
   Tooltip,
   YAxis,
@@ -154,6 +155,8 @@ export function StackedBarChart({
               stackId="a"
               fill={colorForRole(colorRole)}
               isAnimationActive={false}
+              // rechartsは高さ0の棒を既定の形では描画対象から外し、ラベル（0%）も出さない。形を明示して残す
+              shape={<Rectangle />}
             >
               <LabelList
                 dataKey={`${key}Ratio`}

@@ -5,6 +5,7 @@ import {
   BarChart,
   Cell,
   LabelList,
+  Rectangle,
   Tooltip,
   XAxis,
   YAxis,
@@ -158,7 +159,13 @@ export function WaterfallChart({
               fill="transparent"
               isAnimationActive={false}
             />
-            <Bar dataKey="span" stackId="w" isAnimationActive={false}>
+            <Bar
+              dataKey="span"
+              stackId="w"
+              isAnimationActive={false}
+              // rechartsは高さ0の棒を既定の形では描画対象から外し、ラベル（0）も出さない。形を明示して残す
+              shape={<Rectangle />}
+            >
               {/* 単位はグラフ外に表示し、バー上には百万円単位の数値だけを出す */}
               <LabelList
                 dataKey="value"
