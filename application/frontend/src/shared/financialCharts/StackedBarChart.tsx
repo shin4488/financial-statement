@@ -159,7 +159,7 @@ export function StackedBarChart({
                 dataKey={`${key}Ratio`}
                 fill={stackLabelColor}
                 position="center"
-                formatter={(value: number) => `${label}: ${value}%`}
+                formatter={(value) => `${label}: ${value}%`}
               />
             </Bar>
           ))}

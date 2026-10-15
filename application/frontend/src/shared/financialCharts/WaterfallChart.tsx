@@ -163,7 +163,11 @@ export function WaterfallChart({
               <LabelList
                 dataKey="value"
                 position="top"
-                formatter={(value: number) => formatAmountInMillions(value)}
+                formatter={(value) =>
+                  typeof value === 'number'
+                    ? formatAmountInMillions(value)
+                    : null
+                }
               />
               {rows.map((row) => (
                 <Cell
