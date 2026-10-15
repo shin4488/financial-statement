@@ -91,7 +91,12 @@ export function StackedBarChart({
         width="100%"
         height={typeof height === 'number' ? height : '100%'}
       >
-        <BarChart data={rows}>
+        <BarChart
+          data={rows}
+          // rechartsは系列を登録した順に積むため、表示中に列が増えると新しい系列が末尾に積まれる。
+          // 列の構成が変わったらグラフを作り直し、columnsの順に積む
+          key={JSON.stringify(columns.map((column) => column.key))}
+        >
           {/* Y軸反転: 積み上げを「上から下」に描く（BSの「上=流動・下=純資産」の慣習を保つ）。
             domainのdataMaxで最も高いバーに全バーの縮尺を合わせる */}
           <YAxis reversed hide domain={[0, 'dataMax']} />
