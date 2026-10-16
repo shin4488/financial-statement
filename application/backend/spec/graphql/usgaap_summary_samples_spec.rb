@@ -21,7 +21,7 @@ RSpec.describe "米国基準の財務諸表（実XBRL）" do
   def report(doc_id)
     require_xbrl_fixture(doc_id)
     Dir.mktmpdir do |work_dir|
-      Ingestion::ReportIngester.new(client: FixtureEdinetClient.new).ingest(doc_id: doc_id, work_dir: work_dir)
+      UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: doc_id, work_dir: work_dir)
     end
     result = FinancialStatementSchema.execute(query).to_h
     expect(result["errors"]).to be_nil

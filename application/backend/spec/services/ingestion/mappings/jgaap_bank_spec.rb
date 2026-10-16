@@ -1,10 +1,10 @@
 require "rails_helper"
 
-RSpec.describe Ingestion::Extractors::JgaapBank do
-  describe "#extract（連結・S100YJQO）" do
+RSpec.describe "Ingestion::Mappings::JgaapBank" do
+  describe "抽出（連結・S100YJQO）" do
     subject(:items) do
-      described_class.new(load_xbrl_fixture("S100YJQO"),
-                          Ingestion::Extractors::Base::CONSOLIDATED).extract
+      Ingestion::StatementExtractor.amounts(Ingestion::Mappings::JgaapBank, source: load_xbrl_fixture("S100YJQO"),
+                                                                             consolidation: :consolidated)
     end
 
     it "銀行の骨格科目を期待値どおり抽出する" do

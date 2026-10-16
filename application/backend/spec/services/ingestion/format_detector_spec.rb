@@ -11,7 +11,7 @@ RSpec.describe Ingestion::FormatDetector do
     end
   end
 
-  def detect(xbrl, standard, industry, consolidation: "")
+  def detect(xbrl, standard, industry, consolidation: :consolidated)
     detector.detect(xbrl, accounting_standard: standard, industry_code: industry, consolidation: consolidation)
   end
 
@@ -70,8 +70,8 @@ RSpec.describe Ingestion::FormatDetector do
       xbrl = xbrl_with("jppfs_cor:CurrentAssets")
       allow(xbrl).to receive(:money).with("jppfs_cor:CurrentAssets", "CurrentYearInstant").and_return(nil)
       allow(xbrl).to receive(:money).with("jppfs_cor:CurrentAssets", "CurrentYearInstant_NonConsolidatedMember").and_return(1_000)
-      expect(detect(xbrl, "japan_gaap", "ins", consolidation: "")).to eq "jgaap_insurance"
-      expect(detect(xbrl, "japan_gaap", "ins", consolidation: "_NonConsolidatedMember")).to eq "jgaap_general"
+      expect(detect(xbrl, "japan_gaap", "ins", consolidation: :consolidated)).to eq "jgaap_insurance"
+      expect(detect(xbrl, "japan_gaap", "ins", consolidation: :non_consolidated)).to eq "jgaap_general"
     end
   end
 

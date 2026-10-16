@@ -83,6 +83,7 @@ app/services/
   charts/                              # ChartBuilder（チャート構造の組み立て）
   disclosure/report_writer.rb          # 取り込んだ有報の保存（1有報分）
   disclosure/search_query.rb           # 一覧検索（CF符号・証券コード）
+  disclosure/reingest_targets.rb       # 再取込タスク（rake ingestion:reingest_*）の対象の検索
 app/graphql/
   financial_statement_schema.rb        # スキーマ（複雑度・深さの上限を含む）
   resolvers/financial_reports.rb       # 現行クエリ financialReports

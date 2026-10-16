@@ -1,10 +1,10 @@
 require "rails_helper"
 
-RSpec.describe Ingestion::Extractors::JgaapInsurance do
-  describe "#extract（連結・S100YD29 かんぽ生命）" do
+RSpec.describe "Ingestion::Mappings::JgaapInsurance" do
+  describe "抽出（連結・S100YD29 かんぽ生命）" do
     subject(:items) do
-      described_class.new(load_xbrl_fixture("S100YD29"),
-                          Ingestion::Extractors::Base::CONSOLIDATED).extract
+      Ingestion::StatementExtractor.amounts(Ingestion::Mappings::JgaapInsurance, source: load_xbrl_fixture("S100YD29"),
+                                                                                  consolidation: :consolidated)
     end
 
     it "保険の骨格科目を期待値どおり抽出する（単位: 円）" do

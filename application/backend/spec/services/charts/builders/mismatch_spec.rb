@@ -1,6 +1,6 @@
 require "rails_helper"
 
-# 取込の照合（Ingestion::Reconciliation）が警告に使う、Builderごとの照合の担当
+# 取込の照合（UseCases::StatementInspection）が警告に使う、Builderごとの照合の担当
 RSpec.describe "Charts::Builders の照合（mismatch）" do
   no_data_note = "貸借対照表: データがない、または表示対応していないデータです。"
 

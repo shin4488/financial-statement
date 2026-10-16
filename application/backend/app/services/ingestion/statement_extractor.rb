@@ -20,20 +20,19 @@ module Ingestion
     def extract(period, dei, detector:)
       sections = []
       if dei.has_consolidated
-        sections << [ :consolidated, Extractors::Base::CONSOLIDATED, dei.accounting_standard, dei.consolidated_industry_code ]
+        sections << [ :consolidated, dei.accounting_standard, dei.consolidated_industry_code ]
       end
       # 単体は日本基準固定: IFRS・US GAAP適用企業でも単体財務諸表は日本基準（jppfs）で
       # タグ付けされるため
-      sections << [ :non_consolidated, Extractors::Base::NON_CONSOLIDATED, "japan_gaap", dei.non_consolidated_industry_code ]
+      sections << [ :non_consolidated, "japan_gaap", dei.non_consolidated_industry_code ]
 
-      sections.map do |type, suffix, standard, industry|
-        format = detector.detect(period, accounting_standard: standard, industry_code: industry, consolidation: suffix)
-        consolidation = Xbrl::ReportingPeriod::CONSOLIDATIONS[suffix]
+      sections.map do |consolidation, standard, industry|
+        format = detector.detect(period, accounting_standard: standard, industry_code: industry, consolidation: consolidation)
         mapping = Mappings.for(format)
         amounts = mapping ? self.class.amounts(mapping, source: period, consolidation: consolidation) : FinancialStatements::Amounts.new
         # 決算日は持たない。点検はグラフに決算日を渡さず、保存はDEIの会計期間を使う
         FinancialStatements::StatementData.new(
-          consolidation_type: type, accounting_standard: standard, presentation_format: format, amounts: amounts,
+          consolidation_type: consolidation, accounting_standard: standard, presentation_format: format, amounts: amounts,
           disclosed_roe: Mappings::DisclosedRoe.amount(period, accounting_standard: standard, consolidation: consolidation),
           fiscal_year_end_date: nil)
       end

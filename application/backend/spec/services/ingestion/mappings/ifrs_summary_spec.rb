@@ -1,10 +1,10 @@
 require "rails_helper"
 
-RSpec.describe Ingestion::Extractors::IfrsSummary do
-  describe "#extract（連結・S100SO41: 詳細タグ付け義務化前の有報）" do
+RSpec.describe "Ingestion::Mappings::IfrsSummary" do
+  describe "抽出（連結・S100SO41: 詳細タグ付け義務化前の有報）" do
     subject(:items) do
-      described_class.new(load_xbrl_fixture("S100SO41"),
-                          Ingestion::Extractors::Base::CONSOLIDATED).extract
+      Ingestion::StatementExtractor.amounts(Ingestion::Mappings::IfrsSummary, source: load_xbrl_fixture("S100SO41"),
+                                                                               consolidation: :consolidated)
     end
 
     it "経営指標サマリからPL・CFと指標用の利益・期首期末残高を抽出する" do

@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe "財務指標の実有報サンプル照合" do
   # 6対応形式 + 米国基準、連結/単体、損失、初年度連結、権利・非支配持分を含む33社。
-  # 期待値は本体のExtractorではなく、別欄の経営指標サマリをXMLから直接読み照合する。
+  # 期待値は本表から抽出した値ではなく、別欄の経営指標サマリをXMLから直接読み照合する。
   samples = %w[S100YB5L S100YB25 S100YCP3 S100XTNW S100YLS8 S100YJQO S100YQ6Y S100YR8L
                S100YDJC S100YIHR S100YC7N S100YE63 S100Y9T5 S100Y90D S100XTDX S100YANQ
                S100YI2V S100YJB4 S100Y0DB S100YD29 S100YCL0 S100YE7T S100SO41
@@ -24,7 +24,7 @@ RSpec.describe "財務指標の実有報サンプル照合" do
       path = require_xbrl_fixture(doc_id)
       @raw = File.open(path) { |f| Nokogiri::XML(f) { |config| config.huge } }.root.element_children
       Dir.mktmpdir do |dir|
-        Ingestion::ReportIngester.new(client: FixtureEdinetClient.new).ingest(doc_id: doc_id, work_dir: dir)
+        UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: doc_id, work_dir: dir)
       end
       report = Disclosure::Report.find_by!(edinet_document_id: doc_id)
       expect(report.financial_statements.size).to eq(report.has_consolidated_statement ? 2 : 1)

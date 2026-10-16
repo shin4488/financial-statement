@@ -1,34 +1,30 @@
 require "rails_helper"
 
-# マッピング表の記法（単一タグ / フォールバック / 合算 sum / 最大値 max）の評価規則を、
-# 実XBRLに依存しない最小のExtractorで検証する
-RSpec.describe Ingestion::Extractors::Base do
-  let(:extractor_class) do
-    # ブロック内の定数代入はレキシカルスコープ（このspec）に定義されてしまうため const_set で無名クラスに定義する
-    Class.new(described_class) do
-      const_set(:INSTANT_MAPPING, {
-        "bs.assets" => "t:Assets",
-        "bs.equity" => [ "t:EquityTotal", sum("t:EquityA", "t:EquityB") ],
-        "cf.cash_end" => "t:Cash"
-      }.freeze)
-      const_set(:DURATION_MAPPING, {
-        "pl.revenue" => [ "t:IndustryTotal", max("t:OperatingRevenue", sum("t:NetSales", "t:OperatingIncome2")),
-                          "jpcrp_cor:NetSalesSummaryOfBusinessResults", "filer_ext:BusinessRevenues" ],
-        "pl.sga" => sum("t:Selling", "t:Administrative", distinct_amounts: true),
-        "pl.summary_revenue" => [ "t:SummaryRevenue", filer_ext(/RevenueSummaryOfBusinessResults\z/) ],
-        "pl.operating_profit" => "t:OperatingIncome"
-      }.freeze)
+# 対応表の記法（単一タグ / フォールバック / 合算 sum / 最大値 max）の評価規則を、
+# 実XBRLに依存しない最小の対応表で検証する
+RSpec.describe "対応表の記法と補正ルールの評価" do
+  # 科目の期間は科目カタログで決まる（bs.assets・bs.equity・cf.cash_end は当期末、pl.* は当期）
+  let(:mapping) do
+    Ingestion::Mappings::Mapping.define("test") do
+      item "bs.assets", "t:Assets"
+      item "bs.equity", [ "t:EquityTotal", sum("t:EquityA", "t:EquityB") ]
+      item "cf.cash_end", "t:Cash"
+      item "pl.revenue", [ "t:IndustryTotal", max("t:OperatingRevenue", sum("t:NetSales", "t:OperatingIncome2")),
+                           "jpcrp_cor:NetSalesSummaryOfBusinessResults", "filer_ext:BusinessRevenues" ]
+      item "pl.sga", sum("t:Selling", "t:Administrative", distinct_amounts: true)
+      item "pl.summary_revenue", [ "t:SummaryRevenue", filer_ext(/RevenueSummaryOfBusinessResults\z/) ]
+      item "pl.operating_profit", "t:OperatingIncome"
     end
   end
 
   # facts: { [qname, context] => 値 } のスタブ。blanks: 値が空（表では「－」）のタグの [qname, context]
-  def extract_with(facts, errors: {}, filer_names: [], blanks: [], extractor: extractor_class)
+  def extract_with(facts, errors: {}, filer_names: [], blanks: [], mapping: self.mapping)
     xbrl = instance_double(Xbrl::Document)
     allow(xbrl).to receive(:element_names).with("filer_ext").and_return(Set.new(filer_names))
     allow(xbrl).to receive(:rounding_error) { |qname, ctx| errors[[ qname, ctx ]] }
     allow(xbrl).to receive(:money) { |qname, ctx| facts[[ qname, ctx ]] }
     allow(xbrl).to receive(:text) { |qname, ctx| blanks.include?([ qname, ctx ]) ? "" : facts[[ qname, ctx ]]&.to_s }
-    extractor.new(xbrl, "").extract
+    Ingestion::StatementExtractor.amounts(mapping, source: xbrl, consolidation: :consolidated)
   end
 
   it "単一タグは値をそのまま、無ければキー自体を作らない" do
@@ -118,27 +114,24 @@ RSpec.describe Ingestion::Extractors::Base do
 
   describe "すべてのタグに値があるときだけ足す合算" do
     let(:context) { "CurrentYearDuration" }
-    let(:extractor) do
-      Class.new(described_class) do
-        const_set(:INSTANT_MAPPING, {}.freeze)
-        const_set(:DURATION_MAPPING, {
-          "pl.revenue" => [ "t:NetSales", sum("t:NetSales", "t:RentIncome", all_present: true) ],
-          "pl.summary_revenue" => "t:SummaryRevenue",
-          "pl.sga" => sum("t:Selling", "t:Administrative", all_present: true)
-        }.freeze)
+    let(:all_present) do
+      Ingestion::Mappings::Mapping.define("test") do
+        item "pl.revenue", [ "t:NetSales", sum("t:NetSales", "t:RentIncome", all_present: true) ]
+        item "pl.summary_revenue", "t:SummaryRevenue"
+        item "pl.sga", sum("t:Selling", "t:Administrative", all_present: true)
       end
     end
 
     it "すべてのタグに値があれば足し、1つでもなければ合計として使わない" do
       aggregate_failures do
-        expect(extract_with({ [ "t:Selling", context ] => 30, [ "t:Administrative", context ] => 20 }, extractor: extractor)["pl.sga"]).to eq 50
-        expect(extract_with({ [ "t:Selling", context ] => 30 }, extractor: extractor)).not_to have_key("pl.sga")
+        expect(extract_with({ [ "t:Selling", context ] => 30, [ "t:Administrative", context ] => 20 }, mapping: all_present)["pl.sga"]).to eq 50
+        expect(extract_with({ [ "t:Selling", context ] => 30 }, mapping: all_present)).not_to have_key("pl.sga")
       end
     end
 
     it "売上高が要約の売上と合わず、売上高と内訳の行の合計が要約と一致すれば、その合計に差し替える" do
       facts = { [ "t:NetSales", context ] => 300, [ "t:RentIncome", context ] => 8, [ "t:SummaryRevenue", context ] => 308 }
-      expect(extract_with(facts, extractor: extractor)["pl.revenue"]).to eq 308
+      expect(extract_with(facts, mapping: all_present)["pl.revenue"]).to eq 308
     end
   end
 
@@ -198,16 +191,13 @@ RSpec.describe Ingestion::Extractors::Base do
     end
 
     it "売上の取得候補が要約のタグ（jpcrp_cor）だけの形式は、本表で売上がないことを確かめられないため保存しない" do
-      summary_only = Class.new(described_class) do
-        const_set(:INSTANT_MAPPING, {}.freeze)
-        const_set(:DURATION_MAPPING, {
-          "pl.revenue" => "jpcrp_cor:NetSalesSummaryOfBusinessResults",
-          "pl.summary_revenue" => "t:SummaryRevenue",
-          "pl.operating_profit" => "t:OperatingIncome"
-        }.freeze)
+      summary_only = Ingestion::Mappings::Mapping.define("test") do
+        item "pl.revenue", "jpcrp_cor:NetSalesSummaryOfBusinessResults"
+        item "pl.summary_revenue", "t:SummaryRevenue"
+        item "pl.operating_profit", "t:OperatingIncome"
       end
       blanks = [ [ "jpcrp_cor:NetSalesSummaryOfBusinessResults", context ], [ "t:SummaryRevenue", context ] ]
-      expect(extract_with(operating_loss, blanks: blanks, extractor: summary_only)).not_to have_key("pl.revenue")
+      expect(extract_with(operating_loss, blanks: blanks, mapping: summary_only)).not_to have_key("pl.revenue")
     end
 
     it "損益の値がなければ（連結初年度で連結の損益計算書を作っていない書類など）、売上の行が空でも保存しない" do

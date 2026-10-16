@@ -2,8 +2,8 @@ require "rails_helper"
 
 # 業種ごとに「取込（形式判定・抽出・保存）→ チャート組み立て」を実XBRLで通し、
 # 期待どおりの形式になり BS/PL/CF が描けることを確認する回帰テスト（取込〜表示の縦串）。
-# ReportIngester#ingest（公開API）を通すので、連結/単体それぞれの判定規則も実装側のものがそのまま検証される。
-# 個々のタグ選択の検証は各Extractorのspec、Builderの組み立てルールは各Builderのspecに置く
+# UseCases::IngestReport#call（公開API）を通すので、連結/単体それぞれの判定規則も実装側のものがそのまま検証される。
+# 個々のタグ選択の検証は形式ごとの対応表（Ingestion::Mappings）のspec、Builderの組み立てルールは各Builderのspecに置く
 RSpec.describe "業種別の形式判定と描画可否（実XBRL）" do
   # 期待値は { 連結/単体 => [形式, BS描画, PL描画] }。書いた区分だけ検証する
   # （単体はCFを作成しない企業が多いため、CFは連結だけ確認する）
@@ -46,8 +46,8 @@ RSpec.describe "業種別の形式判定と描画可否（実XBRL）" do
     it "#{name} → #{expectations.map { |c, (f, _, _)| "#{c == :consolidated ? '連結' : '単体'}=#{f}" }.join(' / ')}#{note && "（#{note}）"}" do
       require_xbrl_fixture(doc_id)
       Dir.mktmpdir do |work_dir|
-        Ingestion::ReportIngester.new(client: FixtureEdinetClient.new)
-                                 .ingest(doc_id: doc_id, work_dir: work_dir)
+        UseCases::IngestReport.new(client: FixtureEdinetClient.new)
+                              .call(doc_id: doc_id, work_dir: work_dir)
       end
 
       expectations.each do |consolidation_type, (expected_format, bs_ok, pl_ok)|

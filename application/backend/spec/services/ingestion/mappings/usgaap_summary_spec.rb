@@ -1,7 +1,9 @@
 require "rails_helper"
 
-RSpec.describe Ingestion::Extractors::UsgaapSummary do
-  def extract(doc_id) = described_class.new(load_xbrl_fixture(doc_id), Ingestion::Extractors::Base::CONSOLIDATED).extract
+RSpec.describe "Ingestion::Mappings::UsgaapSummary" do
+  def extract(doc_id)
+    Ingestion::StatementExtractor.amounts(Ingestion::Mappings::UsgaapSummary, source: load_xbrl_fixture(doc_id), consolidation: :consolidated)
+  end
 
   it "キヤノン 2025年12月期: 経営指標の要約から、CFと財務指標に使う残高・利益・売上を抽出する" do
     expect(extract("S100XTLJ")).to eq(

@@ -1,11 +1,12 @@
 require "rails_helper"
 
-RSpec.describe Ingestion::Extractors::JgaapGeneral do
-  describe "#extract（連結・S100YQ6Y: 営業収益型）" do
-    subject(:items) do
-      described_class.new(load_xbrl_fixture("S100YQ6Y"),
-                          Ingestion::Extractors::Base::CONSOLIDATED).extract
-    end
+RSpec.describe "Ingestion::Mappings::JgaapGeneral" do
+  def extract(source, consolidation)
+    Ingestion::StatementExtractor.amounts(Ingestion::Mappings::JgaapGeneral, source: source, consolidation: consolidation)
+  end
+
+  describe "抽出（連結・S100YQ6Y: 営業収益型）" do
+    subject(:items) { extract(load_xbrl_fixture("S100YQ6Y"), :consolidated) }
 
     it "売上高でなく営業収益・営業原価のペアで抽出する" do
       expect(items["pl.revenue"]).to eq 10_715_342_000_000       # OperatingRevenue1（NetSalesは9,355,439百万）
@@ -18,11 +19,8 @@ RSpec.describe Ingestion::Extractors::JgaapGeneral do
     end
   end
 
-  describe "#extract（単体・S100YR8L: 売上原価を当期製品製造原価で開示）" do
-    subject(:items) do
-      described_class.new(load_xbrl_fixture("S100YR8L"),
-                          Ingestion::Extractors::Base::NON_CONSOLIDATED).extract
-    end
+  describe "抽出（単体・S100YR8L: 売上原価を当期製品製造原価で開示）" do
+    subject(:items) { extract(load_xbrl_fixture("S100YR8L"), :non_consolidated) }
 
     it "CostOfProductsManufacturedフォールバックで原価が取れる" do
       expect(items["pl.revenue"]).to eq 2_478_950_000
@@ -35,14 +33,14 @@ RSpec.describe Ingestion::Extractors::JgaapGeneral do
     end
   end
 
-  describe "#extract（株主資本はあるが、評価・換算差額等のタグも純資産もない）" do
+  describe "抽出（株主資本はあるが、評価・換算差額等のタグも純資産もない）" do
     it "株主資本を自己資本と確かめられないため、期首・期末の自己資本を取らない" do
       xbrl = synthetic_xbrl_document(facts: {
         [ "jppfs_cor:ShareholdersEquity", "Prior1YearInstant" ] => 300,
         [ "jppfs_cor:ShareholdersEquity", "CurrentYearInstant" ] => 400,
         [ "jppfs_cor:Assets", "CurrentYearInstant" ] => 1_000
       })
-      items = described_class.new(xbrl, Ingestion::Extractors::Base::CONSOLIDATED).extract
+      items = extract(xbrl, :consolidated)
       expect(items).to include("bs.assets" => 1_000)
       expect(items).not_to have_key("bs.equity_attributable_to_owners")
       expect(items).not_to have_key("bs.equity_attributable_to_owners_begin")

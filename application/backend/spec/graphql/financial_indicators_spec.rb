@@ -35,8 +35,8 @@ RSpec.describe "財務指標の取込から公開APIまで" do
 
   def ingest_report
     Dir.mktmpdir do |dir|
-      Ingestion::ReportIngester.new(client: FakeEdinetClient.new("S0000001" => xml))
-                              .ingest(doc_id: "S0000001", work_dir: dir)
+      UseCases::IngestReport.new(client: FakeEdinetClient.new("S0000001" => xml))
+                            .call(doc_id: "S0000001", work_dir: dir)
     end
   end
 
@@ -92,8 +92,8 @@ RSpec.describe "財務指標の取込から公開APIまで" do
       [ "jpcrp_cor:RateOfReturnOnEquitySummaryOfBusinessResults", "CurrentYearDuration" ] => "0.372"
     })
     Dir.mktmpdir do |dir|
-      Ingestion::ReportIngester.new(client: FakeEdinetClient.new("S0000001" => disclosed_xml))
-                              .ingest(doc_id: "S0000001", work_dir: dir)
+      UseCases::IngestReport.new(client: FakeEdinetClient.new("S0000001" => disclosed_xml))
+                            .call(doc_id: "S0000001", work_dir: dir)
     end
     result = FinancialStatementSchema.execute(query, variables: { limit: 100, offset: 0 }).to_h
     expect(result["errors"]).to be_nil

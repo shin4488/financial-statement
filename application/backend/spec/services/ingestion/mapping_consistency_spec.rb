@@ -1,14 +1,16 @@
 require "rails_helper"
 
 # 取込はinsert_all!（モデルバリデーションを通らない）のため、
-# 「Extractorが生成し得る科目コードは必ずレジストリに存在する」ことをここで担保する。
-# マッピング定数を読み替えるのではなく、extract（公開API）を実際に走らせて出力・参照タグを観測する
-# （書き方が変わってもspecを直さずに済み、マッピング表に無い生成経路も漏れなく対象になる）
-RSpec.describe "Extractorの出力とItemCodesレジストリの整合" do
+# 「対応表から抽出し得る科目コードは必ず科目カタログに存在する」ことをここで担保する。
+# 対応表の定数を読むのではなく、抽出（Ingestion::StatementExtractor.amounts）を実際に走らせて出力・参照タグを観測する
+# （書き方が変わってもspecを直さずに済み、対応表に無い生成経路も漏れなく対象になる）
+RSpec.describe "対応表から抽出した科目と科目カタログの整合" do
   # 要素名の形で探す企業拡張タグの記法も、値を返して科目コードを生成させる
   def filer_names = Set.new(%w[BusinessRevenueSummaryOfBusinessResults OperatingRevenuesIFRSSummaryOfBusinessResults])
 
-  # 全タグに値がある書類: extractが生成し得る全キーを一度に出力させる
+  def extract(mapping, source) = Ingestion::StatementExtractor.amounts(mapping, source: source, consolidation: :consolidated)
+
+  # 全タグに値がある書類: 抽出が生成し得る全キーを一度に出力させる
   def xbrl_with_every_tag
     instance_double(Xbrl::Document).tap do |xbrl|
       allow(xbrl).to receive(:money).and_return(1)
@@ -29,17 +31,17 @@ RSpec.describe "Extractorの出力とItemCodesレジストリの整合" do
     end
   end
 
-  Ingestion::FormatRegistry::EXTRACTORS.each do |format, extractor_class|
-    describe format do
-      it "生成し得る全科目コードがItemCodesレジストリに存在する" do
-        codes = extractor_class.new(xbrl_with_every_tag, "").extract.keys
+  Ingestion::Mappings::ALL.each do |mapping|
+    describe mapping.format do
+      it "生成し得る全科目コードが科目カタログに存在する" do
+        codes = extract(mapping, xbrl_with_every_tag).keys
         expect(codes).not_to be_empty
-        expect(codes - FinancialStatements::ItemCodes::ALL).to be_empty
+        expect(codes - FinancialStatements::ItemCatalog::ALL).to be_empty
       end
 
       it "参照する全タグが解決可能なqname（既知の名前空間prefix:LocalName）である" do
         recorded = []
-        extractor_class.new(xbrl_recording_qnames(recorded), "").extract
+        extract(mapping, xbrl_recording_qnames(recorded))
         expect(recorded).not_to be_empty
         expect(recorded.uniq).to all(match(/\A(#{Xbrl::Document::NS.keys.join("|")}):[A-Za-z0-9]+\z/))
       end

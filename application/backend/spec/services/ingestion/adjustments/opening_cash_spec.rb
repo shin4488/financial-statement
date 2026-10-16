@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe Xbrl::CashFlowOpeningBalance do
+RSpec.describe Ingestion::Adjustments::OpeningCash do
   def money(value, decimals: "-3", unit: Xbrl::Fact::JPY)
     Xbrl::Fact.new(value: value.to_s, decimals: decimals, unit: unit)
   end

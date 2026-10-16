@@ -18,7 +18,7 @@ RSpec.describe "公表ROEと平均残高によるROEが異なる実有報" do
     it "#{doc_id} は公表値を保存しつつ、APIでは期首期末平均による計算値を返す", :aggregate_failures do
       require_xbrl_fixture(doc_id)
       Dir.mktmpdir do |dir|
-        Ingestion::ReportIngester.new(client: FixtureEdinetClient.new).ingest(doc_id: doc_id, work_dir: dir)
+        UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: doc_id, work_dir: dir)
       end
       fs = Disclosure::Report.find_by!(edinet_document_id: doc_id).primary_financial_statement
       profit_code = fs.consolidated? ? "pl.profit_attributable_to_owners" : "pl.profit"

@@ -1,6 +1,6 @@
 require "rails_helper"
 
-# ExtractorやFormatDetectorのspecはXbrl::Documentをスタブで置き換えているため、
+# 対応表・取得式やFormatDetectorのspecはXbrl::Documentをスタブで置き換えているため、
 # スタブが約束している振る舞い（qname+contextでの解決・値の正規化）はここで実物に対して固定する
 RSpec.describe Xbrl::Document do
   def document_from(xml)
