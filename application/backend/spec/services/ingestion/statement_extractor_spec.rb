@@ -65,7 +65,7 @@ RSpec.describe Ingestion::StatementExtractor do
   describe "#extract" do
     include SyntheticXbrl
 
-    # 形式判定の代役。受けた引数を記録し、連結区分の接尾辞ごとに決めた形式を返す
+    # 形式判定の代役。受けた引数を記録し、連結区分ごとに決めた形式を返す
     let(:detector_calls) { [] }
 
     def detector(formats)
@@ -93,10 +93,10 @@ RSpec.describe Ingestion::StatementExtractor do
                  [ "jpcrp_cor:RateOfReturnOnEquityIFRSSummaryOfBusinessResults", "CurrentYearDuration" ] => "0.1",
                  [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 100,
                  [ "jpcrp_cor:RateOfReturnOnEquitySummaryOfBusinessResults", "CurrentYearDuration_NonConsolidatedMember" ] => "0.05" },
-        formats: { "" => "ifrs_classified", "_NonConsolidatedMember" => "jgaap_general" })
+        formats: { consolidated: "ifrs_classified", non_consolidated: "jgaap_general" })
 
       aggregate_failures do
-        expect(detector_calls).to eq [ [ @period, "ifrs", "cte", "" ], [ @period, "japan_gaap", "bnk", "_NonConsolidatedMember" ] ]
+        expect(detector_calls).to eq [ [ @period, "ifrs", "cte", :consolidated ], [ @period, "japan_gaap", "bnk", :non_consolidated ] ]
         expect(statements.map { |data| [ data.consolidation_type, data.accounting_standard, data.presentation_format,
                                          data.amounts.to_h, data.disclosed_roe, data.fiscal_year_end_date ] }).to eq [
           [ :consolidated, "ifrs", "ifrs_classified", { "bs.assets" => 300 }, 0.1.to_d, nil ],
@@ -111,10 +111,10 @@ RSpec.describe Ingestion::StatementExtractor do
       statements = extract(dei: { has_consolidated: "false" },
                            facts: { [ "jppfs_cor:Assets", "CurrentYearInstant" ] => 300,
                                     [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 100 },
-                           formats: { "_NonConsolidatedMember" => "jgaap_general" })
+                           formats: { non_consolidated: "jgaap_general" })
 
       aggregate_failures do
-        expect(detector_calls.map(&:last)).to eq [ "_NonConsolidatedMember" ]
+        expect(detector_calls.map(&:last)).to eq [ :non_consolidated ]
         expect(statements.map { |data| [ data.consolidation_type, data.amounts.to_h ] })
           .to eq [ [ :non_consolidated, { "bs.assets" => 100 } ] ]
       end
@@ -125,7 +125,7 @@ RSpec.describe Ingestion::StatementExtractor do
         dei: { has_consolidated: "false" },
         facts: { [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 100,
                  [ "jpcrp_cor:RateOfReturnOnEquitySummaryOfBusinessResults", "CurrentYearDuration_NonConsolidatedMember" ] => "0.05" },
-        formats: { "_NonConsolidatedMember" => "unsupported" })
+        formats: { non_consolidated: "unsupported" })
 
       expect(statements.map { |data| [ data.presentation_format, data.amounts.to_h, data.amounts.rounding_errors, data.disclosed_roe ] })
         .to eq [ [ "unsupported", {}, {}, 0.05.to_d ] ]

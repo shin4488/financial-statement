@@ -1,6 +1,6 @@
 # 実XBRLフィクスチャ
 
-Extractor系スペックの入力に使う実際の有報XBRL。1件数MBあるためgit管理せず、
+対応表の抽出と、取込から表示までのスペックの入力に使う実際の有報XBRL。1件数MBあるためgit管理せず、
 必要なときに以下でEDINETから取得する（`EDINET_API_KEY` が必要）:
 
 ```bash
@@ -61,7 +61,7 @@ bundle exec rails runner '
 
 ## ROE・ROAの追加サンプル
 
-`spec/graphql/financial_indicators_samples_spec.rb` では上記と次の計33社・64財務諸表を、取込→DB→APIまで照合する。期待値にはExtractorとは別の経営指標サマリの金額・比率を使用する。銀行の比率の切捨て、ガス売上の内訳合算の丸め差は開示精度の範囲だけ許容する。
+`spec/graphql/financial_indicators_samples_spec.rb` では上記と次の計33社・64財務諸表を、取込→DB→APIまで照合する。期待値には、取込の抽出を通さずに原本から読んだ経営指標サマリの金額・比率を使用する。銀行の比率の切捨て、ガス売上の内訳合算の丸め差は開示精度の範囲だけ許容する。
 
 | docID | 企業 | 検証ポイント |
 |---|---|---|
@@ -141,7 +141,7 @@ bundle exec rails runner '
 
 ## 米国基準
 
-`spec/graphql/usgaap_summary_samples_spec.rb` は、米国基準の有報を取込からAPIまで通し、経営指標サマリからCFと財務指標だけを出し、BS・PLは説明文を返すことを検証する。`spec/services/ingestion/extractors/usgaap_summary_spec.rb` は取得する科目を検証する。
+`spec/graphql/usgaap_summary_samples_spec.rb` は、米国基準の有報を取込からAPIまで通し、経営指標サマリからCFと財務指標だけを出し、BS・PLは説明文を返すことを検証する。`spec/services/ingestion/mappings/usgaap_summary_spec.rb` は取得する科目を検証する。
 
 | docID | 企業 | 検証ポイント |
 |---|---|---|

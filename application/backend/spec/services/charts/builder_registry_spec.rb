@@ -1,8 +1,8 @@
 require "rails_helper"
 
 RSpec.describe Charts::BuilderRegistry do
-  it "FormatRegistryの全形式（unsupported以外）にBS/PLのBuilderが対応している" do
-    supported = Ingestion::FormatRegistry::ALL - [ Ingestion::FormatRegistry::UNSUPPORTED ]
+  it "Formatsの全形式（unsupported以外）にBS/PLのBuilderが対応している" do
+    supported = FinancialStatements::Formats::ALL - [ FinancialStatements::Formats::UNSUPPORTED ]
     expect(described_class::BS.keys).to match_array(supported)
     expect(described_class::PL.keys).to match_array(supported)
   end

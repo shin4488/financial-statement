@@ -8,7 +8,7 @@ RSpec.describe "実書類の報告期間に基づく取込" do
     it "#{doc_id}の連結期間を単体のDEI開始日で切り詰めず、損益・CF・公表ROEを保存する" do
       require_xbrl_fixture(doc_id)
       Dir.mktmpdir do |dir|
-        Ingestion::ReportIngester.new(client: FixtureEdinetClient.new).ingest(doc_id: doc_id, work_dir: dir)
+        UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: doc_id, work_dir: dir)
       end
       report = Disclosure::Report.find_by!(edinet_document_id: doc_id)
       expect(report.fiscal_year_start_date.to_s).to eq "2025-12-01"
@@ -21,7 +21,7 @@ RSpec.describe "実書類の報告期間に基づく取込" do
   it "S100Z0VFの実際の年度で連結・単体を保存し、再取込しても三表と公表ROEを保持する", :aggregate_failures do
     require_xbrl_fixture("S100Z0VF")
     Dir.mktmpdir do |dir|
-      2.times { Ingestion::ReportIngester.new(client: FixtureEdinetClient.new).ingest(doc_id: "S100Z0VF", work_dir: dir) }
+      2.times { UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: "S100Z0VF", work_dir: dir) }
     end
     report = Disclosure::Report.find_by!(edinet_document_id: "S100Z0VF")
     consolidated = report.primary_financial_statement

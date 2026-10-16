@@ -746,10 +746,10 @@ APIは `asset1`（資産）や `profit`（利益）などの色の役割を返�
 | 一般様式の業種を追加 | 一般事業会社の対応表 `Mappings::JgaapGeneral`（自己資本・CFは共有する部品）に業種のタグを追加する |
 | 新しい取得の書き方 | `app/services/ingestion/expressions/` に、`evaluate`・`amount`・`blank?` を持つクラスを1つ足し、書き方を `Ingestion::Expressions` に足す |
 | 新しい補正ルール | `app/services/ingestion/adjustments/` に、`apply` を持つクラスを1つ足し、`Adjustments::ALL` の適用の順の位置に1行足す |
-| 構成の異なる形式を追加 | 形式の対応表（`mappings/` の1ファイルと `Mappings::ALL`）とBuilderを作成し、形式名を `formats.rb` に足して、形式判定とBuilderの登録表に追加する。抽出の入口（`Extractors::*` のクラスと `FormatRegistry::EXTRACTORS`）にも足す |
+| 構成の異なる形式を追加 | 形式の対応表（`mappings/` の1ファイルと `Mappings::ALL`）とBuilderを作成し、形式名を `formats.rb` に足して、形式判定とBuilderの登録表に追加する |
 | 色の役割を追加 | バックエンド、Webの `colorRoles.ts`、Chrome拡張を揃えて変更する |
 
 タグを変更するときは、原本の数値で検証し、[タグ対応表](06_taxonomy_mapping.md)も更新する。
 
-- `mappings_spec.rb`（対応表の検査）で、対応表の科目がカタログにあること・部品の重複がないこと・形式の網羅・タグの形を確認する。`mapping_consistency_spec.rb` で抽出の出力に未定義の科目コードがないこと、`item_catalog_consistency_spec.rb` で抽出の出力がカタログの期間・期首の科目と合うことを確認する。業種を追加するときは、`industry_formats_spec.rb` に実XBRLのケースを加え、形式判定から描画まで検証する。
+- `mappings_spec.rb`（対応表の検査）で、対応表の科目がカタログにあること・部品の重複がないこと・形式の網羅・タグの形を確認する。`mapping_consistency_spec.rb` で抽出の出力に未定義の科目コードがないことを確認する。業種を追加するときは、`industry_formats_spec.rb` に実XBRLのケースを加え、形式判定から描画まで検証する。
 - 既に `unsupported` で保存済みの有報は再取込タスクで取り直す（[05章](05_development_operations.md)）

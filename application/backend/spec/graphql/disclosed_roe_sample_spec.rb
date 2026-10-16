@@ -4,7 +4,7 @@ RSpec.describe "シーラHD連結初年度の公表ROE" do
   it "平均残高を捏造せず、有報の公表37.2%を保存して表示する" do
     require_xbrl_fixture("S100YZFP")
     Dir.mktmpdir do |dir|
-      Ingestion::ReportIngester.new(client: FixtureEdinetClient.new).ingest(doc_id: "S100YZFP", work_dir: dir)
+      UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: "S100YZFP", work_dir: dir)
     end
     report = Disclosure::Report.find_by!(edinet_document_id: "S100YZFP")
     fs = report.primary_financial_statement

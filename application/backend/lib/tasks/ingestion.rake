@@ -1,83 +1,47 @@
 # rails cの手打ちにしない理由: 長時間ジョブは中断・再開が前提になるため、
 # コマンド1つで任意期間を再実行できる形にしておく（全処理が冪等のため重複実行は無害）
-module IngestionTasks
-  # docID列を上から順に取り込む（backfill以外のタスク共通の実行部）。
-  # 1件の失敗を他に波及させない（日次取込と同じ方針）。失敗分は出力を見て個別に再実行する。
-  # 待ち方には自分の sleep を渡す。このモジュールの sleep を差し替えると、書類間の待ち時間を記録・省略できる
-  def self.ingest_each(doc_ids)
-    UseCases::IngestDocuments.new(sleeper: ->(seconds) { sleep(seconds) }).call(doc_ids)
-  end
-end
-
 namespace :ingestion do
   desc "指定期間の有報をEDINETから取り込む 例: rake 'ingestion:backfill[2025-01-01,2025-12-31]'"
   task :backfill, [ :from, :to ] => :environment do |_, args|
     from = Date.parse(args.fetch(:from))
     to = Date.parse(args.fetch(:to))
-    # 日付・docIDはRails.loggerに出る。中断したらログの最終日付から再実行すればよい
-    Ingestion::DailyIngestionService.run(from_date: from, to_date: to)
+    # Rails.loggerには書類ごとのdocIDが出る（日付が出るのは一覧の取得に失敗した日だけ）。
+    # 中断したら、最後に出たdocIDの書類の提出日から再実行すればよい
+    UseCases::IngestFilings.new.call(from_date: from, to_date: to)
   end
 
   desc "docID指定で有報を取り込む 例: rake 'ingestion:documents[S100YB5L S100YB25]'"
   task :documents, [ :doc_ids ] => :environment do |_, args|
-    IngestionTasks.ingest_each(args.fetch(:doc_ids).split(/[,\s]+/))
+    UseCases::IngestDocuments.new.call(args.fetch(:doc_ids).split(/[,\s]+/))
   end
 
   desc "ROE・ROA用の期首残高・自己資本が不足する既存有報を再取込する"
   task reingest_indicators: :environment do
-    required_codes = %w[bs.assets_begin bs.equity_attributable_to_owners bs.equity_attributable_to_owners_begin]
-    complete_statement_ids = Disclosure::FinancialStatementItem
-                               .where(item_code: required_codes)
-                               .group(:financial_statement_id)
-                               .having("COUNT(DISTINCT item_code) = ?", required_codes.size)
-                               .select(:financial_statement_id)
-    target_statements = Disclosure::FinancialStatement.where(is_primary: true)
-                         .where.not(presentation_format: Ingestion::FormatRegistry::UNSUPPORTED)
-                         .where.not(id: complete_statement_ids)
-    doc_ids = Disclosure::Report.where(id: target_statements.select(:report_id))
-                                .order(:filing_date).pluck(:edinet_document_id)
+    doc_ids = Disclosure::ReingestTargets.indicators
     puts "reingest #{doc_ids.size} documents"
-    IngestionTasks.ingest_each(doc_ids)
+    UseCases::IngestDocuments.new.call(doc_ids)
   end
 
   desc "企業公表ROEが未抽出の既存有報を再取込する（未開示も確認済みとして記録）"
   task reingest_disclosed_roe: :environment do
-    report_ids = Disclosure::FinancialStatement.where(disclosed_roe_checked_at: nil).select(:report_id)
-    doc_ids = Disclosure::Report.where(id: report_ids).order(:filing_date).pluck(:edinet_document_id)
+    doc_ids = Disclosure::ReingestTargets.disclosed_roe
     puts "reingest #{doc_ids.size} documents"
-    IngestionTasks.ingest_each(doc_ids)
+    UseCases::IngestDocuments.new.call(doc_ids)
   end
 
-  # ifrs_summary形式の追加前に取り込まれ、詳細タグの無い有報が ifrs_liquidity として
-  # 保存されている既存データを取り直すためのタスク。対象を「primaryなのに資産合計が無い」に
-  # 絞るのは、正しく ifrs_liquidity と判定された有報を再取込せず EDINETへのリクエストを
-  # 最小にするため（移行完了後は対象0件になり、再実行しても何もしない）
   desc "BSが取れていないifrs_liquidityの有報を再取込する（ifrs_summaryへの移行）"
   task reingest_ifrs_summary: :environment do
-    target_statements = Disclosure::FinancialStatement
-                          .where(presentation_format: Ingestion::FormatRegistry::IFRS_LIQUIDITY,
-                                 is_primary: true)
-                          .where.not(id: Disclosure::FinancialStatementItem
-                                           .where(item_code: "bs.assets")
-                                           .select(:financial_statement_id))
-    doc_ids = Disclosure::Report.where(id: target_statements.select(:report_id))
-                                .order(:filing_date).pluck(:edinet_document_id)
+    doc_ids = Disclosure::ReingestTargets.ifrs_summary
     puts "reingest #{doc_ids.size} documents"
-    IngestionTasks.ingest_each(doc_ids)
+    UseCases::IngestDocuments.new.call(doc_ids)
   end
 
-  # 新しい形式（業種）に対応したあと、既に unsupported で保存済みの有報を取り直すためのタスク。
-  # 対象を unsupported に絞るのは、全期間のバックフィルより EDINET へのリクエストが桁違いに少なくて済むため
   desc "unsupported判定の財務諸表を含む有報（提出日の範囲指定）を再取込する 例: rake 'ingestion:reingest_unsupported[2025-08-01,2026-08-16]'"
   task :reingest_unsupported, [ :from, :to ] => :environment do |_, args|
     from = Date.parse(args.fetch(:from))
     to = Date.parse(args.fetch(:to))
-    unsupported_report_ids = Disclosure::FinancialStatement
-                               .where(presentation_format: Ingestion::FormatRegistry::UNSUPPORTED)
-                               .select(:report_id)
-    doc_ids = Disclosure::Report.where(id: unsupported_report_ids, filing_date: from..to)
-                                .order(:filing_date).pluck(:edinet_document_id)
+    doc_ids = Disclosure::ReingestTargets.unsupported(from, to)
     puts "reingest #{doc_ids.size} documents (filing_date #{from}..#{to})"
-    IngestionTasks.ingest_each(doc_ids)
+    UseCases::IngestDocuments.new.call(doc_ids)
   end
 end

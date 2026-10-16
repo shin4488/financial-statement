@@ -1,5 +1,5 @@
 module Xbrl
-  # 当期末・当期・期首のfactを、期間と連結区分を指定して引く。既存Extractorが渡す標準のコンテキストIDも同じ指定として読む。
+  # 当期末・当期・期首のfactを、期間と連結区分を指定して引く。取得式と形式判定が渡す標準のコンテキストIDも同じ指定として読む。
   # 元文書のIDへの別名付けではなく、全書類でcontextの内容を照合する読み取り専用ビュー。
   class ReportingPeriod
     CONSOLIDATIONS = { "" => :consolidated, "_NonConsolidatedMember" => :non_consolidated }.freeze
@@ -12,9 +12,6 @@ module Xbrl
 
     # 期間と連結区分を指す標準のコンテキストID。取得式は、標準のIDで答える文書（Xbrl::Document やspecの代役）にも同じ指定で問い合わせる
     def self.context_id(period, consolidation) = STANDARD_IDS.fetch([ period, consolidation ])
-
-    # 標準のコンテキストIDが指す期間と連結区分の組（標準でないIDは nil）。旧い入口が受けるIDを組に読み替える
-    def self.period_and_consolidation(context_id) = CONTEXT_IDS[context_id]
 
     def initialize(document, contexts:, start_date:, end_date:)
       @document = document

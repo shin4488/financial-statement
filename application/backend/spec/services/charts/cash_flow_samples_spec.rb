@@ -10,7 +10,7 @@ RSpec.describe "キャッシュ・フロー計算書のグラフ（実XBRL）" d
   def cash_flow(doc_id, consolidation_type)
     require_xbrl_fixture(doc_id)
     Dir.mktmpdir do |work_dir|
-      Ingestion::ReportIngester.new(client: FixtureEdinetClient.new).ingest(doc_id: doc_id, work_dir: work_dir)
+      UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: doc_id, work_dir: work_dir)
     end
     fs = Disclosure::FinancialStatement.find_by!(consolidation_type: consolidation_type)
     [ fs, Charts::BuilderRegistry.build_all(fs)[:cash_flow] ]

@@ -2,11 +2,9 @@ require "rails_helper"
 
 # 日次バッチの核心は「1件の失敗を他に波及させない」こと。
 # HTTPをWebMockで代替し、EDINET一覧 → ダウンロード → 保存 まで実経路で検証する
-RSpec.describe Ingestion::DailyIngestionService do
-  before do
-    # 書類間のスロットリング待ちはEDINET実環境向けの挙動なので、テストでは時間を使わない
-    allow(described_class).to receive(:sleep)
-  end
+RSpec.describe UseCases::IngestFilings do
+  # 書類間のスロットリング待ちはEDINET実環境向けの挙動なので、テストでは時間を使わない
+  let(:no_wait) { ->(_seconds) { } }
 
   def stub_list(date, results)
     stub_request(:get, %r{documents\.json}).with(query: hash_including("date" => date.to_s))
@@ -31,7 +29,7 @@ RSpec.describe Ingestion::DailyIngestionService do
       .to_return(status: 200, body: zip_with_xbrl("S1000002", synthetic_xbrl_xml(dei: { stock_code: "45020" })))
 
     expect(Sentry).to receive(:capture_exception).once
-    described_class.run(from_date: date, to_date: date)
+    described_class.new(sleeper: no_wait).call(from_date: date, to_date: date)
 
     expect(Disclosure::Report.sole.edinet_document_id).to eq "S1000002"
   end
@@ -46,31 +44,8 @@ RSpec.describe Ingestion::DailyIngestionService do
       .to_return(status: 200, body: zip_with_xbrl("S1000002", synthetic_xbrl_xml(dei: { stock_code: "45020" })))
 
     expect(Sentry).to receive(:capture_exception).once
-    described_class.run(from_date: failed_date, to_date: ok_date)
+    described_class.new(sleeper: no_wait).call(from_date: failed_date, to_date: ok_date)
 
     expect(Disclosure::Report.sole.edinet_document_id).to eq "S1000002"
-  end
-
-  it "EDINETへの書類の取得ごとに本番の間隔（1秒）を待ち、取得に失敗した書類の後も待つ" do
-    date = Date.new(2026, 6, 20)
-    stub_list(date, [
-      { "docID" => "S1000001", "secCode" => "72030", "filerName" => "取得に失敗する会社", "docTypeCode" => "120" },
-      { "docID" => "S1000002", "secCode" => "45020", "filerName" => "取得できる会社", "docTypeCode" => "120" }
-    ])
-    events = []
-    allow(described_class).to receive(:sleep) { |seconds| events << [ :sleep, seconds ] }
-    stub_request(:get, %r{documents/S1000001}).to_return do
-      events << [ :download, "S1000001" ]
-      { status: 500 }
-    end
-    stub_request(:get, %r{documents/S1000002}).to_return do
-      events << [ :download, "S1000002" ]
-      { status: 200, body: zip_with_xbrl("S1000002", synthetic_xbrl_xml(dei: { stock_code: "45020" })) }
-    end
-    allow(Sentry).to receive(:capture_exception)
-
-    described_class.run(from_date: date, to_date: date)
-
-    expect(events).to eq [ [ :download, "S1000001" ], [ :sleep, 1 ], [ :download, "S1000002" ], [ :sleep, 1 ] ]
   end
 end

@@ -1,11 +1,12 @@
 require "rails_helper"
 
-RSpec.describe Ingestion::Extractors::IfrsLiquidity do
-  describe "#extract（連結・S100XTNW: 流動性配列 + 営業費用一括）" do
-    subject(:items) do
-      described_class.new(load_xbrl_fixture("S100XTNW"),
-                          Ingestion::Extractors::Base::CONSOLIDATED).extract
-    end
+RSpec.describe "Ingestion::Mappings::IfrsLiquidity" do
+  def extract(source, consolidation)
+    Ingestion::StatementExtractor.amounts(Ingestion::Mappings::IfrsLiquidity, source: source, consolidation: consolidation)
+  end
+
+  describe "抽出（連結・S100XTNW: 流動性配列 + 営業費用一括）" do
+    subject(:items) { extract(load_xbrl_fixture("S100XTNW"), :consolidated) }
 
     it "合計科目と営業費用一括を期待値どおり抽出する" do
       expect(items).to include(
@@ -23,10 +24,9 @@ RSpec.describe Ingestion::Extractors::IfrsLiquidity do
     end
   end
 
-  describe "#extract（連結・S100YLS8: 収益が標準タグにない保険IFRS）" do
+  describe "抽出（連結・S100YLS8: 収益が標準タグにない保険IFRS）" do
     it "pl.revenueは取れないがBS・CFは取れる（PL表示不可の正常系）" do
-      items = described_class.new(load_xbrl_fixture("S100YLS8"),
-                                  Ingestion::Extractors::Base::CONSOLIDATED).extract
+      items = extract(load_xbrl_fixture("S100YLS8"), :consolidated)
       expect(items).not_to have_key("pl.revenue")
       expect(items["bs.assets"]).to eq 33_002_651_000_000
       expect(items["pl.profit_before_tax"]).to eq 750_700_000_000

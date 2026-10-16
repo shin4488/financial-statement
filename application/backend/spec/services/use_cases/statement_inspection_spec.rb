@@ -82,4 +82,32 @@ RSpec.describe UseCases::StatementInspection do
       expect(notices.map { |notice| notice.extra[:consolidation_type] }).to eq [ "consolidated" ]
     end
   end
+
+  describe ".mismatches" do
+    describe "CFの照合" do
+      # 期首残＋営業CF＋投資CF＋財務CF＝期末残が、換算差額の分（10）だけ合わないCF
+      let(:items) do
+        FinancialStatements::Amounts.new.merge!(
+          "cf.cash_begin" => 100, "cf.operating" => 50, "cf.investing" => -30, "cf.financing" => -20, "cf.cash_end" => 110)
+      end
+
+      def cash_flow_mismatches(format)
+        described_class.mismatches(items, format).select { |kind, _| UseCases::IngestionNotices.text(kind).start_with?("cash flow") }
+      end
+
+      it "換算差額などの行を読む形式は、式が合わなければCFの照合の警告の種類と、照合に使った金額を返す" do
+        aggregate_failures do
+          expect(cash_flow_mismatches("jgaap_general")).to eq [ [ :cash_flow_mismatch, items.to_h ] ]
+          expect(UseCases::IngestionNotices.text(:cash_flow_mismatch)).to eq "cash flow does not reconcile with closing balance"
+        end
+      end
+
+      it "経営指標の要約だけで作る形式は、換算差額などの行がないため照合しない" do
+        aggregate_failures do
+          expect(cash_flow_mismatches("ifrs_summary")).to be_empty
+          expect(cash_flow_mismatches("usgaap_summary")).to be_empty
+        end
+      end
+    end
+  end
 end

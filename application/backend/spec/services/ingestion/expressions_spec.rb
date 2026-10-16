@@ -1,6 +1,6 @@
 require "rails_helper"
 
-# 取得式を、期間と連結区分のシンボルで評価する。記法ごとの取り方は extractors/base_spec が旧い入口から確かめる
+# 取得式を、期間と連結区分のシンボルで評価する。記法ごとの取り方は mappings/notation_spec が対応表からの抽出で確かめる
 RSpec.describe Ingestion::Expressions do
   # facts・errors・texts: { [qname, 標準のコンテキストID] => 値 }。texts にないタグの文字列は金額から作る
   def source_with(facts = {}, errors: {}, texts: {}, filer_names: [])

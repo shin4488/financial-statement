@@ -4,7 +4,7 @@ RSpec.describe "開示精度の保存" do
   it "取込とDB再読込を経ても金額と開示精度を保持する" do
     require_xbrl_fixture("S100YD29")
     Dir.mktmpdir do |dir|
-      Ingestion::ReportIngester.new(client: FixtureEdinetClient.new).ingest(doc_id: "S100YD29", work_dir: dir)
+      UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: "S100YD29", work_dir: dir)
     end
     fs = Disclosure::FinancialStatement.find_by!(consolidation_type: :consolidated)
     amounts = fs.reload.items_hash

@@ -18,7 +18,9 @@ RSpec.describe "ingestion:reingest_indicators" do
     create(:disclosure_financial_statement, is_primary: false)
     create(:disclosure_financial_statement, presentation_format: "unsupported")
 
-    expect(IngestionTasks).to receive(:ingest_each).with(match_array([
+    ingest_documents = instance_double(UseCases::IngestDocuments)
+    expect(UseCases::IngestDocuments).to receive(:new).with(no_args).and_return(ingest_documents)
+    expect(ingest_documents).to receive(:call).with(match_array([
       legacy.report.edinet_document_id, partial.report.edinet_document_id
     ]))
     Rake::Task["ingestion:reingest_indicators"].reenable
@@ -37,7 +39,9 @@ RSpec.describe "ingestion:reingest_disclosed_roe" do
     unsupported = create(:disclosure_financial_statement, presentation_format: "unsupported")
     create(:disclosure_financial_statement, disclosed_roe: nil, disclosed_roe_checked_at: Time.current)
     create(:disclosure_financial_statement, disclosed_roe: 0.12, disclosed_roe_checked_at: Time.current)
-    expect(IngestionTasks).to receive(:ingest_each).with(match_array([
+    ingest_documents = instance_double(UseCases::IngestDocuments)
+    expect(UseCases::IngestDocuments).to receive(:new).with(no_args).and_return(ingest_documents)
+    expect(ingest_documents).to receive(:call).with(match_array([
       unchecked.report.edinet_document_id, unsupported.report.edinet_document_id
     ]))
     Rake::Task["ingestion:reingest_disclosed_roe"].reenable
@@ -53,10 +57,8 @@ RSpec.describe "ingestion の書類を取り込むタスク" do
   # EDINETへの一覧の取得・書類の取得と、書類の間の待ち時間を順に記録する
   let(:events) { [] }
 
-  before do
-    allow(IngestionTasks).to receive(:sleep) { |seconds| events << [ :sleep, seconds ] }
-    allow(Ingestion::DailyIngestionService).to receive(:sleep) { |seconds| events << [ :sleep, seconds ] }
-  end
+  # タスクは待ち方を渡さずに取込を作るため、既定の待ち方（Kernel.sleep）を差し替えて、待った秒数を記録する
+  before { allow(Kernel).to receive(:sleep) { |seconds| events << [ :sleep, seconds ] } }
 
   def run_task(name, *args)
     Rake::Task[name].reenable

@@ -7,7 +7,7 @@ RSpec.describe "売上高を取得できない実有報の財務指標" do
     it "#{doc_id} は売上関連の欠損があってもROE・ROA・レバレッジを返す", :aggregate_failures do
       require_xbrl_fixture(doc_id)
       Dir.mktmpdir do |dir|
-        Ingestion::ReportIngester.new(client: FixtureEdinetClient.new).ingest(doc_id: doc_id, work_dir: dir)
+        UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: doc_id, work_dir: dir)
       end
       fs = Disclosure::Report.find_by!(edinet_document_id: doc_id).primary_financial_statement
       expect(fs.items_hash["pl.revenue"]).to be_nil

@@ -1,11 +1,12 @@
 require "rails_helper"
 
-RSpec.describe Ingestion::Extractors::IfrsClassified do
-  describe "#extract（連結・S100YB5L: 税引前損失 + のれん別掲）" do
-    subject(:items) do
-      described_class.new(load_xbrl_fixture("S100YB5L"),
-                          Ingestion::Extractors::Base::CONSOLIDATED).extract
-    end
+RSpec.describe "Ingestion::Mappings::IfrsClassified" do
+  def extract(source, consolidation)
+    Ingestion::StatementExtractor.amounts(Ingestion::Mappings::IfrsClassified, source: source, consolidation: consolidation)
+  end
+
+  describe "抽出（連結・S100YB5L: 税引前損失 + のれん別掲）" do
+    subject(:items) { extract(load_xbrl_fixture("S100YB5L"), :consolidated) }
 
     it "BS/PL/CFの骨格科目を期待値どおり抽出する" do
       expect(items).to include(
@@ -28,18 +29,16 @@ RSpec.describe Ingestion::Extractors::IfrsClassified do
     end
   end
 
-  describe "#extract（連結・S100YCP3: 収益が企業拡張タグの企業）" do
+  describe "抽出（連結・S100YCP3: 収益が企業拡張タグの企業）" do
     it "経営指標サマリへのフォールバックで収益が取れる" do
-      items = described_class.new(load_xbrl_fixture("S100YCP3"),
-                                  Ingestion::Extractors::Base::CONSOLIDATED).extract
+      items = extract(load_xbrl_fixture("S100YCP3"), :consolidated)
       expect(items["pl.revenue"]).to eq 14_409_121_000_000
     end
   end
 
-  describe "#extract（連結・S100YB25: 合算のれんタグ + Revenue2IFRS）" do
+  describe "抽出（連結・S100YB25: 合算のれんタグ + Revenue2IFRS）" do
     it "収益がRevenue2IFRSフォールバックで取れ、資産が一致する" do
-      items = described_class.new(load_xbrl_fixture("S100YB25"),
-                                  Ingestion::Extractors::Base::CONSOLIDATED).extract
+      items = extract(load_xbrl_fixture("S100YB25"), :consolidated)
       expect(items["bs.assets"]).to eq 24_151_695_000_000
       expect(items["pl.revenue"]).to eq 18_915_995_000_000
     end
