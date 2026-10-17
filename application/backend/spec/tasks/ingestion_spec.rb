@@ -106,6 +106,28 @@ RSpec.describe "ingestion の書類を取り込むタスク" do
       expect(Sentry).to have_received(:capture_exception).once
       expect(Sentry).to have_received(:capture_exception).with(having_attributes(message: "500 Internal Server Error"))
     end
+
+    it "コマンドラインでカンマと空白で区切ったdocIDは、rakeがカンマで分けた2つ目以降も含めて、すべて順に取り込む" do
+      stub_documents
+      Rake::Task["ingestion:documents"].reenable
+
+      # rake 'ingestion:documents[S1000001,S1000002 S1000003]' と同じく、rakeがコマンドラインの文字列を引数に分けてから実行する
+      expect { Rake.application.invoke_task("ingestion:documents[S1000001,S1000002 S1000003]") }.to output(<<~OUT).to_stdout
+        ingested S1000001
+        ingested S1000002
+        ingested S1000003
+      OUT
+
+      expect(events).to eq [ [ :download, "S1000001" ], [ :sleep, 1 ], [ :download, "S1000002" ], [ :sleep, 1 ],
+                             [ :download, "S1000003" ], [ :sleep, 1 ] ]
+    end
+
+    it "docIDを渡さなければ、何も取り込まずに止まる" do
+      stub_documents
+
+      expect { run_task("ingestion:documents") }.to raise_error(KeyError)
+      expect(events).to be_empty
+    end
   end
 
   describe "ingestion:backfill" do
