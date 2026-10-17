@@ -22,7 +22,7 @@ RSpec.describe "公表ROEと平均残高によるROEが異なる実有報" do
       end
       fs = Disclosure::Report.find_by!(edinet_document_id: doc_id).primary_financial_statement
       profit_code = fs.consolidated? ? "pl.profit_attributable_to_owners" : "pl.profit"
-      expect(fs.items_hash.to_h).to include(
+      expect(fs.amounts.to_h).to include(
         profit_code => profit,
         "bs.equity_attributable_to_owners_begin" => opening_equity,
         "bs.equity_attributable_to_owners" => closing_equity)

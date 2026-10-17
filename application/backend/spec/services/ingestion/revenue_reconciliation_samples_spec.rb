@@ -12,7 +12,7 @@ RSpec.describe "売上と経営指標の要約の照合（実XBRL）" do
     Dir.mktmpdir do |work_dir|
       UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: doc_id, work_dir: work_dir)
     end
-    Disclosure::FinancialStatement.find_by!(is_primary: true).items_hash
+    Disclosure::FinancialStatement.find_by!(is_primary: true).amounts
   end
 
   it "スリー・ディー・マトリックス 2017年4月期: 売上高が製品売上高だけのため、要約の事業収益と一致する事業収益に差し替え、警告しない" do

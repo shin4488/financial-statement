@@ -12,7 +12,7 @@ RSpec.describe FinancialStatements::FreeCashFlowTrends do
     items["cf.operating"] = operating unless operating.nil?
     items["cf.investing"] = investing unless investing.nil?
     create(:disclosure_financial_statement, report: report,
-           consolidation_type: consolidation_type, items_hash: items)
+           consolidation_type: consolidation_type, amounts: items)
     report
   end
 
@@ -61,7 +61,7 @@ RSpec.describe FinancialStatements::FreeCashFlowTrends do
                         consolidation_type: :non_consolidated)
     create(:disclosure_financial_statement, report: earlier,
            consolidation_type: :consolidated, is_primary: false,
-           items_hash: { "cf.operating" => 80_000_000, "cf.investing" => 20_000_000 })
+           amounts: { "cf.operating" => 80_000_000, "cf.investing" => 20_000_000 })
 
     trend = trend_of(current)
 
@@ -98,13 +98,13 @@ RSpec.describe FinancialStatements::FreeCashFlowTrends do
                    fiscal_year_end_date: Date.new(2024, 12, 31),
                    filing_date: Date.new(2025, 2, 20))
     create(:disclosure_financial_statement, report: later,
-           items_hash: { "cf.operating" => 6_000_000, "cf.investing" => -1_000_000 })
+           amounts: { "cf.operating" => 6_000_000, "cf.investing" => -1_000_000 })
     future = create(:disclosure_report, company: company,
                     fiscal_year_start_date: Date.new(2025, 4, 1),
                     fiscal_year_end_date: Date.new(2025, 12, 31),
                     filing_date: Date.new(2026, 2, 20))
     create(:disclosure_financial_statement, report: future,
-           items_hash: { "cf.operating" => 99_000_000, "cf.investing" => 0 })
+           amounts: { "cf.operating" => 99_000_000, "cf.investing" => 0 })
 
     trend = trend_of(current)
 

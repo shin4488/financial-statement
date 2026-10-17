@@ -142,12 +142,12 @@ RSpec.describe Ingestion::Expressions do
     end
   end
 
-  describe ".candidates・.statement_candidates" do
+  describe ".statement_candidates" do
     it "フォールバックは要素を、ほかの取得式はそれ自身を候補にする" do
       sum = described_class.sum("t:A", "t:B")
       aggregate_failures do
-        expect(described_class.candidates(described_class.wrap([ "t:A", sum ]))).to eq [ tag("t:A"), sum ]
-        expect(described_class.candidates(sum)).to eq [ sum ]
+        expect(described_class.statement_candidates(described_class.wrap([ "t:A", sum ]))).to eq [ tag("t:A"), sum ]
+        expect(described_class.statement_candidates(sum)).to eq [ sum ]
       end
     end
 

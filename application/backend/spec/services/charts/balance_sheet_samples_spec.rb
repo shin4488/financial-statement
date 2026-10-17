@@ -30,7 +30,7 @@ RSpec.describe "貸借対照表のグラフ（実XBRL）" do
       debit, credit = charts[:balance_sheet].bars
       aggregate_failures do
         expect(fs.presentation_format).to eq "jgaap_bank"
-        expect(fs.items_hash["bs.deposits"]).to eq 184_652_065_000_000
+        expect(fs.amounts["bs.deposits"]).to eq 184_652_065_000_000
         expect(segments(debit)).to eq [
           [ "現金預け金", 57_012_194_000_000 ], [ "貸出金", 6_434_130_000_000 ], [ "有価証券", 191_440_416_000_000 ],
           [ "その他資産", 289_864_524_000_000 - 57_012_194_000_000 - 6_434_130_000_000 - 191_440_416_000_000 ]

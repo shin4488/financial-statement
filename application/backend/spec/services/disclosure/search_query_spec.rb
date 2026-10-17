@@ -8,14 +8,14 @@ RSpec.describe Disclosure::SearchQuery do
            report: create(:disclosure_report,
                           company: create(:disclosure_company, stock_code: "72030"),
                           filing_date: Date.new(2026, 6, 25)),
-           items_hash: { "cf.operating" => 100, "cf.investing" => -50, "cf.financing" => -30 }).report
+           amounts: { "cf.operating" => 100, "cf.investing" => -50, "cf.financing" => -30 }).report
   end
   let!(:negative_cf_report) do
     create(:disclosure_financial_statement,
            report: create(:disclosure_report,
                           company: create(:disclosure_company, stock_code: "45020"),
                           filing_date: Date.new(2026, 6, 20)),
-           items_hash: { "cf.operating" => -200, "cf.investing" => 80, "cf.financing" => 40 }).report
+           amounts: { "cf.operating" => -200, "cf.investing" => 80, "cf.financing" => 40 }).report
   end
 
   it "is_primaryな財務諸表を持つ有報だけが返る" do
@@ -45,14 +45,14 @@ RSpec.describe Disclosure::SearchQuery do
   end
 
   it "CF科目の行がない有報は符号フィルタにかからない" do
-    create(:disclosure_financial_statement, items_hash: { "bs.assets" => 1 })
+    create(:disclosure_financial_statement, amounts: { "bs.assets" => 1 })
     results = query.call(limit: 10, offset: 0, cf_signs: { operating: :positive })
     expect(results).to contain_exactly(positive_cf_report)
   end
 
   it "一部の符号だけ一致する有報は全符号指定のフィルタにかからない" do
     create(:disclosure_financial_statement,
-           items_hash: { "cf.operating" => 100, "cf.investing" => -50, "cf.financing" => 30 })
+           amounts: { "cf.operating" => 100, "cf.investing" => -50, "cf.financing" => 30 })
     results = query.call(limit: 10, offset: 0,
                          cf_signs: { operating: :positive, investing: :negative, financing: :negative })
     expect(results).to contain_exactly(positive_cf_report)

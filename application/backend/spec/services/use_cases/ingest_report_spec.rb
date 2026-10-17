@@ -145,7 +145,7 @@ RSpec.describe UseCases::IngestReport do
           end
           ingest("S0000001", xml)
           fs = Disclosure::FinancialStatement.sole
-          expect(fs.items_hash.to_h).to include("bs.assets" => 100 + index, "bs.assets_begin" => 80,
+          expect(fs.amounts.to_h).to include("bs.assets" => 100 + index, "bs.assets_begin" => 80,
                                                "pl.revenue" => 200, "pl.profit" => 20,
                                                "cf.cash_begin" => 8, "cf.cash_end" => 10, "cf.operating" => 2)
           expect(fs.disclosed_roe).to eq "0.25".to_d
@@ -396,7 +396,7 @@ RSpec.describe UseCases::IngestReport do
         ingest("S0000001", synthetic_xbrl_xml(dei: { stock_code: "" }, facts: {
           [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 200
         }))
-        expect(Disclosure::FinancialStatement.sole.items_hash["bs.assets"]).to eq 200
+        expect(Disclosure::FinancialStatement.sole.amounts["bs.assets"]).to eq 200
         expect(company.reload.stock_code).to eq "45020"
       end
 
@@ -407,7 +407,7 @@ RSpec.describe UseCases::IngestReport do
         ingest("S0000001", synthetic_xbrl_xml(dei: { stock_code: "" }, facts: {
           [ "jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember" ] => 200
         }))
-        expect(Disclosure::FinancialStatement.sole.items_hash["bs.assets"]).to eq 200
+        expect(Disclosure::FinancialStatement.sole.amounts["bs.assets"]).to eq 200
         expect(company.reload.stock_code).to eq ""
         expect(Disclosure::Company.count).to eq 1
       end
@@ -417,7 +417,7 @@ RSpec.describe UseCases::IngestReport do
         Disclosure::Company.sole.update!(stock_code: "")
         expect(Sentry).to receive(:capture_message).with(/sec code mismatch/, level: :error, fingerprint: [ "sec code mismatch" ])
         ingest("S0000001", synthetic_xbrl_xml(dei: { stock_code: "" }), expected_sec_code: "45020")
-        expect(Disclosure::FinancialStatement.sole.items_hash["bs.assets"]).to eq 100
+        expect(Disclosure::FinancialStatement.sole.amounts["bs.assets"]).to eq 100
       end
 
       it "証券コード欠損時、企業や会計期間が違う書類を既存有報に紐付けない" do
@@ -426,7 +426,7 @@ RSpec.describe UseCases::IngestReport do
           ingest("S0000001", synthetic_xbrl_xml(dei: mismatch.merge(stock_code: "")))
         end
         expect(Disclosure::Report.count).to eq 1
-        expect(Disclosure::FinancialStatement.sole.items_hash["bs.assets"]).to eq 100
+        expect(Disclosure::FinancialStatement.sole.amounts["bs.assets"]).to eq 100
       end
 
       it "過去に誤登録したファンドは企業比較から外し、保存済み科目と企業を保持する" do
@@ -457,7 +457,7 @@ RSpec.describe UseCases::IngestReport do
         fund = create(:disclosure_report, company: company, edinet_document_id: "S100YZ8K",
                       fiscal_year_start_date: Date.new(2025, 6, 13), fiscal_year_end_date: Date.new(2026, 5, 31))
         create(:disclosure_financial_statement, report: fund, consolidation_type: :non_consolidated, is_primary: false,
-               items_hash: { "bs.assets" => 1_000 })
+               amounts: { "bs.assets" => 1_000 })
 
         ingest("S100YCDE", File.read(require_xbrl_fixture("S100YCDE")))
 

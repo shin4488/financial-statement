@@ -15,7 +15,7 @@ RSpec.describe "売上を企業拡張タグだけで開示する会社（実XBRL
     Dir.mktmpdir do |work_dir|
       UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: doc_id, work_dir: work_dir)
     end
-    Disclosure::FinancialStatement.find_by!(is_primary: true).items_hash
+    Disclosure::FinancialStatement.find_by!(is_primary: true).amounts
   end
 
   {

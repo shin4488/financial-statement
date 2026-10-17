@@ -12,9 +12,9 @@ RSpec.describe "ingestion:reingest_indicators" do
       "bs.equity_attributable_to_owners" => 600,
       "bs.equity_attributable_to_owners_begin" => 400
     }
-    legacy = create(:disclosure_financial_statement, items_hash: { "bs.assets" => 1_500 })
-    partial = create(:disclosure_financial_statement, items_hash: complete_items.except("bs.equity_attributable_to_owners_begin"))
-    create(:disclosure_financial_statement, items_hash: complete_items)
+    legacy = create(:disclosure_financial_statement, amounts: { "bs.assets" => 1_500 })
+    partial = create(:disclosure_financial_statement, amounts: complete_items.except("bs.equity_attributable_to_owners_begin"))
+    create(:disclosure_financial_statement, amounts: complete_items)
     create(:disclosure_financial_statement, is_primary: false)
     create(:disclosure_financial_statement, presentation_format: "unsupported")
 
@@ -147,10 +147,10 @@ RSpec.describe "ingestion の書類を取り込むタスク" do
     it "資産合計のない主のifrs_liquidityの有報だけを、提出日の順に再取込する" do
       later = create(:disclosure_financial_statement, presentation_format: "ifrs_liquidity",
                      report: create(:disclosure_report, filing_date: Date.new(2026, 6, 25)),
-                     items_hash: { "bs.cash_and_equivalents" => 100 })
+                     amounts: { "bs.cash_and_equivalents" => 100 })
       earlier = create(:disclosure_financial_statement, presentation_format: "ifrs_liquidity",
                        report: create(:disclosure_report, filing_date: Date.new(2026, 6, 20)))
-      create(:disclosure_financial_statement, presentation_format: "ifrs_liquidity", items_hash: { "bs.assets" => 1_000 })
+      create(:disclosure_financial_statement, presentation_format: "ifrs_liquidity", amounts: { "bs.assets" => 1_000 })
       create(:disclosure_financial_statement, presentation_format: "ifrs_liquidity", is_primary: false)
       create(:disclosure_financial_statement, presentation_format: "ifrs_summary")
       stub_documents
