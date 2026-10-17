@@ -20,7 +20,7 @@
 
 ```mermaid
 flowchart TD
-    Browser["ブラウザ<br>React / MUI / recharts"] --> Nginx["nginx<br>リバースプロキシ"]
+    Browser["ブラウザ<br>React / MUI / recharts"] -->|"画面の読み込み・GraphQL"| Nginx["nginx<br>リバースプロキシ"]
 
     subgraph Frontend["フロントエンド (React SPA)"]
         Static["ビルド済み静的ファイル<br>(開発時は Vite devサーバ)"]
