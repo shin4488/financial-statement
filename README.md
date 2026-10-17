@@ -41,7 +41,7 @@ flowchart TD
     Nginx -->|"/api (GraphQL)"| API
     API --> PG
     Batch --> PG
-    Batch -.-> Redis
+    Batch -->|"ジョブ・スケジュール"| Redis
 ```
 
 ---

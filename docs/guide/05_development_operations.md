@@ -77,7 +77,7 @@ flowchart TB
     Nginx -->|"/api → localhost:30000"| Puma["puma（Rails・production）"]
     Puma --> PG[("PostgreSQL")]
     Sidekiq["Sidekiq（systemd管理）<br>毎日2:00の日次取込"] --> PG
-    Sidekiq -.-> Redis[("Redis（専用ポート）")]
+    Sidekiq -->|"ジョブ・スケジュール"| Redis[("Redis（専用ポート）")]
     Sidekiq -->|"取込"| EDINET["EDINET API"]
 ```
 

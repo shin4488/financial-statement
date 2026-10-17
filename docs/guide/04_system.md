@@ -21,7 +21,7 @@ flowchart LR
         Web["web（nginx）"] -->|"/ へのアクセス"| Front["appfront（Vite devサーバ）"]
         Web -->|"/api へのアクセス"| Server["appserver（Rails + Sidekiq）"]
         Server --> Database[("database<br>PostgreSQL")]
-        Server -.-> Cache[("cache<br>Redis")]
+        Server -->|"ジョブ・スケジュール"| Cache[("cache<br>Redis")]
     end
     Browser2["動作確認用<br>localhost:20000"] --> Server
 ```
