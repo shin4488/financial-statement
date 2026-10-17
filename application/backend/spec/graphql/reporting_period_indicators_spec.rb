@@ -13,7 +13,7 @@ RSpec.describe "実書類の報告期間に基づく取込" do
       report = Disclosure::Report.find_by!(edinet_document_id: doc_id)
       expect(report.fiscal_year_start_date.to_s).to eq "2025-12-01"
       consolidated = report.primary_financial_statement
-      expect(consolidated.items_hash.to_h).to include("pl.revenue" => expected[:revenue], "cf.cash_begin" => expected[:cash_begin])
+      expect(consolidated.amounts.to_h).to include("pl.revenue" => expected[:revenue], "cf.cash_begin" => expected[:cash_begin])
       expect(consolidated.disclosed_roe).to eq expected[:roe].to_d
     end
   end
@@ -28,13 +28,13 @@ RSpec.describe "実書類の報告期間に基づく取込" do
     single = report.financial_statements.find_by!(consolidation_type: :non_consolidated)
     expect(report.fiscal_year_start_date.to_s).to eq "2025-01-01"
     expect(report.fiscal_year_end_date.to_s).to eq "2025-12-31"
-    expect(consolidated.items_hash.to_h).to include(
+    expect(consolidated.amounts.to_h).to include(
       "bs.assets" => 191_166_000_000, "pl.revenue" => 303_926_000_000,
       "pl.profit_attributable_to_owners" => 3_096_000_000, "cf.cash_begin" => 0,
       "bs.equity_attributable_to_owners" => 66_602_000_000)
-    expect(consolidated.items_hash.to_h).not_to have_key("bs.assets_begin")
+    expect(consolidated.amounts.to_h).not_to have_key("bs.assets_begin")
     expect(consolidated.disclosed_roe).to eq "0.093".to_d
-    expect(single.items_hash.to_h).to include("bs.assets" => 157_557_000_000, "bs.assets_begin" => 0)
+    expect(single.amounts.to_h).to include("bs.assets" => 157_557_000_000, "bs.assets_begin" => 0)
     expect(single.disclosed_roe).to eq "0.054".to_d
     expect(report.financial_statements.all? { |fs| fs.disclosed_roe_checked_at.present? }).to be true
 

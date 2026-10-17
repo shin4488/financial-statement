@@ -15,7 +15,7 @@ RSpec.describe UseCases::ListFinancialReports do
     report = create(:disclosure_report, company: company,
                     fiscal_year_start_date: Date.new(year - 1, 4, 1), fiscal_year_end_date: Date.new(year, 3, 31),
                     filing_date: Date.new(year, 6, 20))
-    create(:disclosure_financial_statement, report: report, consolidation_type: consolidation_type, items_hash: items)
+    create(:disclosure_financial_statement, report: report, consolidation_type: consolidation_type, amounts: items)
   end
 
   def call(limit: 10, offset: 0, stock_codes: nil, cf_signs: {}, with_trend: true)
@@ -33,9 +33,9 @@ RSpec.describe UseCases::ListFinancialReports do
     expect(entry.statement.amounts.to_h).to eq items
     # 保存した科目の表と決算日を、形式のBuilderに直接渡して組み立てたグラフと同じ
     date = Date.new(2025, 3, 31)
-    expect(entry.charts).to eq(balance_sheet: Charts::Builders::BsIfrsClassified.new(fs.items_hash, fiscal_year_end_date: date).build,
-                               profit_loss: Charts::Builders::PlIfrs.new(fs.items_hash, fiscal_year_end_date: date).build,
-                               cash_flow: Charts::Builders::CashFlow.new(fs.items_hash).build)
+    expect(entry.charts).to eq(balance_sheet: Charts::Builders::BsIfrsClassified.new(fs.amounts, fiscal_year_end_date: date).build,
+                               profit_loss: Charts::Builders::PlIfrs.new(fs.amounts, fiscal_year_end_date: date).build,
+                               cash_flow: Charts::Builders::CashFlow.new(fs.amounts).build)
     metric = ->(value) { FinancialStatements::Indicators::Metric.new(value: value, status: "available", source: "calculated") }
     expect(entry.indicators).to eq(roe: metric.(0.16), roa: metric.(0.08), net_profit_margin: metric.(0.04),
                                    asset_turnover: metric.(2.0), financial_leverage: metric.(2.0))

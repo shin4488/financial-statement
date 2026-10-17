@@ -103,7 +103,7 @@ RSpec.describe "財務指標の取込から公開APIまで" do
   end
 
   it "データ欠損と分母0以下を別の状態で返し、カード全体をエラーにしない" do
-    create(:disclosure_financial_statement, items_hash: {
+    create(:disclosure_financial_statement, amounts: {
       "bs.assets_begin" => 1_000, "bs.assets" => 1_500,
       "bs.equity_attributable_to_owners_begin" => -100, "bs.equity_attributable_to_owners" => 100,
       "pl.profit_attributable_to_owners" => 80

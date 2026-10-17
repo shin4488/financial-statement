@@ -23,10 +23,10 @@ FactoryBot.define do
     is_primary { true }
 
     # 科目をtransientで渡せるようにしてテストを読みやすくする:
-    #   create(:disclosure_financial_statement, items_hash: { "bs.assets" => 100, ... })
-    transient { items_hash { {} } }
+    #   create(:disclosure_financial_statement, amounts: { "bs.assets" => 100, ... })
+    transient { amounts { {} } }
     after(:create) do |fs, evaluator|
-      evaluator.items_hash.each do |code, amount|
+      evaluator.amounts.each do |code, amount|
         create(:disclosure_financial_statement_item,
                financial_statement: fs, item_code: code, amount: amount)
       end

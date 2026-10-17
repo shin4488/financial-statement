@@ -24,7 +24,7 @@ RSpec.describe "financialReports query" do
            report: create(:disclosure_report,
                           company: create(:disclosure_company, stock_code: "45020", name_ja: "現在の社名"),
                           company_name_ja: "提出時点の社名"),
-           items_hash: {
+           amounts: {
              "bs.current_assets" => 3_090_503_000_000, "bs.non_current_assets" => 12_421_004_000_000,
              "bs.assets" => 15_511_506_000_000, "bs.current_liabilities" => 2_832_074_000_000,
              "bs.non_current_liabilities" => 5_248_784_000_000, "bs.equity" => 7_430_649_000_000,

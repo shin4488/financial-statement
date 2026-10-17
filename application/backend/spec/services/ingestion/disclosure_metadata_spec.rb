@@ -7,7 +7,7 @@ RSpec.describe "開示精度の保存" do
       UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: "S100YD29", work_dir: dir)
     end
     fs = Disclosure::FinancialStatement.find_by!(consolidation_type: :consolidated)
-    amounts = fs.reload.items_hash
+    amounts = fs.reload.amounts
     expect(amounts["bs.assets"]).to eq 58_442_160_000_000
     expect(amounts.rounding_errors["bs.assets"]).to eq 1_000_000
   end

@@ -9,8 +9,8 @@ RSpec.describe "シーラHD連結初年度の公表ROE" do
     report = Disclosure::Report.find_by!(edinet_document_id: "S100YZFP")
     fs = report.primary_financial_statement
     expect(fs.disclosed_roe).to eq 0.372.to_d
-    expect(fs.items_hash["bs.assets_begin"]).to be_nil
-    expect(fs.items_hash["bs.equity_attributable_to_owners_begin"]).to be_nil
+    expect(fs.amounts["bs.assets_begin"]).to be_nil
+    expect(fs.amounts["bs.equity_attributable_to_owners_begin"]).to be_nil
     metrics = FinancialStatements::Indicators.build(fs.to_statement_data)
     expect(metrics[:roe].value).to eq 0.372
     expect(metrics[:roe].source).to eq "disclosed"

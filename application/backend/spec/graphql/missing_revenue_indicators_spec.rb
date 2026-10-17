@@ -10,7 +10,7 @@ RSpec.describe "売上高を取得できない実有報の財務指標" do
         UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: doc_id, work_dir: dir)
       end
       fs = Disclosure::Report.find_by!(edinet_document_id: doc_id).primary_financial_statement
-      expect(fs.items_hash["pl.revenue"]).to be_nil
+      expect(fs.amounts["pl.revenue"]).to be_nil
 
       result = FinancialStatementSchema.execute(<<~GRAPHQL).to_h
         query { financialReports(limit: 1, offset: 0) { financialIndicators {

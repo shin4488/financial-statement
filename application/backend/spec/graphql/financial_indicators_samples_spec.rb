@@ -68,7 +68,7 @@ RSpec.describe "財務指標の実有報サンプル照合" do
       "NetIncomeLoss"
     end
     profit = summary(profit_name, duration).fetch(:value)
-    items = statement.items_hash
+    items = statement.amounts
     expect(items[statement.consolidated? ? "pl.profit_attributable_to_owners" : "pl.profit"]).to eq profit
     asset_name = usgaap ? "TotalAssetsUSGAAP" : ifrs ? "TotalAssetsIFRS" : "TotalAssets"
     balances = %w[Prior1YearInstant CurrentYearInstant].map { |period| summary(asset_name, "#{period}#{suffix}")&.fetch(:value) }
