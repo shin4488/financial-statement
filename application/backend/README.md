@@ -80,7 +80,7 @@ app/models/disclosure/                 # 現行テーブルのモデル
 app/services/
   ingestion/                           # 対象確認・形式判定・対応表・抽出・取得式・補正ルール
   use_cases/                           # 入口から呼ぶ処理の手順（日付・docID指定の取込、1有報の取込と点検、書類の逐次実行、一覧の取得）
-  charts/                              # ChartBuilder（チャート構造の組み立て）
+  charts/                              # 形式ごとのBuilderと部品（チャート構造の組み立て）
   disclosure/report_writer.rb          # 取り込んだ有報の保存（1有報分）
   disclosure/search_query.rb           # 一覧検索（CF符号・証券コード）
   disclosure/reingest_targets.rb       # 再取込タスク（rake ingestion:reingest_*）の対象の検索
