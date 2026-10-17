@@ -17,10 +17,11 @@ RSpec.describe FinancialStatements::PastStatement do
 
   it "金額と端数を持ち、作った後は書き換えられない" do
     statement = build
-    expect(statement.amounts).to eq("cf.operating" => 30_000_000)
+    expect(statement.amounts.to_h).to eq("cf.operating" => 30_000_000)
     expect(statement.amounts.rounding_errors).to eq("cf.operating" => 1_000_000.to_d)
-    expect { statement.amounts["cf.operating"] = 1 }.to raise_error(FrozenError)
-    expect { statement.amounts.rounding_errors["cf.operating"] = 1.to_d }.to raise_error(FrozenError)
+    expect(statement.amounts).to be_frozen
+    expect { statement.amounts.store("cf.operating", 1, 1.to_d) }.to raise_error(FrozenError)
+    expect(statement.amounts.rounding_errors).to be_frozen
   end
 
   it "渡した金額は凍結せず、作った後に書き換えても値に伝わらない" do
@@ -30,7 +31,7 @@ RSpec.describe FinancialStatements::PastStatement do
     expect(source.rounding_errors).not_to be_frozen
 
     source.store("cf.operating", 1, 1.to_d)
-    expect(statement.amounts).to eq("cf.operating" => 30_000_000)
+    expect(statement.amounts.to_h).to eq("cf.operating" => 30_000_000)
     expect(statement.amounts.rounding_errors).to eq("cf.operating" => 1_000_000.to_d)
   end
 end

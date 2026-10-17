@@ -30,7 +30,7 @@ RSpec.describe UseCases::ListFinancialReports do
     expect(entry.report).to eq fs.report
     expect(entry.statement).to have_attributes(consolidation_type: :consolidated, accounting_standard: "ifrs",
                                                presentation_format: "ifrs_classified", fiscal_year_end_date: Date.new(2025, 3, 31))
-    expect(entry.statement.amounts).to eq items
+    expect(entry.statement.amounts.to_h).to eq items
     # 保存した科目の表と決算日を、形式のBuilderに直接渡して組み立てたグラフと同じ
     date = Date.new(2025, 3, 31)
     expect(entry.charts).to eq(balance_sheet: Charts::Builders::BsIfrsClassified.new(fs.items_hash, fiscal_year_end_date: date).build,

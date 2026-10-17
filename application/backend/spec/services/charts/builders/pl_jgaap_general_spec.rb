@@ -4,8 +4,7 @@ RSpec.describe Charts::Builders::PlJgaapGeneral do
   # 取込で保存する科目と同じく、各金額に表示単位の端数（1単位）を持たせる
   def amounts(values)
     FinancialStatements::Amounts.new.tap do |items|
-      items.merge!(values)
-      values.each_key { |code| items.rounding_errors[code] = 1.to_d }
+      values.each { |code, amount| items.store(code, amount, 1.to_d) }
     end
   end
 

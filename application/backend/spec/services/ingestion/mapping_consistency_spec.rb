@@ -34,7 +34,7 @@ RSpec.describe "対応表から抽出した科目と科目カタログの整合"
   Ingestion::Mappings::ALL.each do |mapping|
     describe mapping.format do
       it "生成し得る全科目コードが科目カタログに存在する" do
-        codes = extract(mapping, xbrl_with_every_tag).keys
+        codes = extract(mapping, xbrl_with_every_tag).codes
         expect(codes).not_to be_empty
         expect(codes - FinancialStatements::ItemCatalog::ALL).to be_empty
       end

@@ -25,11 +25,11 @@ RSpec.describe "指標用の期首・期末データの抽出" do
       facts[[ "jppfs_cor:ShareholdersEquity", "CurrentYearInstant_NonConsolidatedMember" ]] = 10
       facts[[ "jppfs_cor:NetAssets", "CurrentYearInstant_NonConsolidatedMember" ]] = 10
       xbrl = synthetic_xbrl_document(facts: facts)
-      expect(extract(mapping, xbrl)).to include(
+      expect(extract(mapping, xbrl).to_h).to include(
         "bs.equity_attributable_to_owners" => 380, "bs.equity_attributable_to_owners_begin" => 350)
       standalone = extract(mapping, xbrl, :non_consolidated)
       expect(standalone["bs.equity_attributable_to_owners"]).to eq 10
-      expect(standalone).not_to have_key("bs.equity_attributable_to_owners_begin")
+      expect(standalone.to_h).not_to have_key("bs.equity_attributable_to_owners_begin")
     end
   end
 
@@ -40,8 +40,8 @@ RSpec.describe "指標用の期首・期末データの抽出" do
       [ "jppfs_cor:ValuationAndTranslationAdjustments", "Prior1YearInstant" ] => 20
     })
     items = extract(Ingestion::Mappings::JgaapGeneral, xbrl)
-    expect(items).not_to have_key("bs.equity_attributable_to_owners")
-    expect(items).not_to have_key("bs.equity_attributable_to_owners_begin")
+    expect(items.to_h).not_to have_key("bs.equity_attributable_to_owners")
+    expect(items.to_h).not_to have_key("bs.equity_attributable_to_owners_begin")
   end
 
   it "銀行の会員勘定合計も自己資本の基礎とし、残高0を欠損にしない" do
@@ -51,16 +51,16 @@ RSpec.describe "指標用の期首・期末データの抽出" do
       [ "jppfs_cor:ShareholdersEquityShinkinBNK", "CurrentYearInstant" ] => 0,
       [ "jppfs_cor:NetAssets", "CurrentYearInstant" ] => 0
     })
-    expect(extract(Ingestion::Mappings::JgaapBank, xbrl)).to include(
+    expect(extract(Ingestion::Mappings::JgaapBank, xbrl).to_h).to include(
       "bs.equity_attributable_to_owners_begin" => 250, "bs.equity_attributable_to_owners" => 0)
   end
 
   it "信金中央金庫の実XBRLで会員勘定と評価差額から連結・単体の自己資本を取る" do
     xbrl = load_xbrl_fixture("S100YRHX")
-    expect(extract(Ingestion::Mappings::JgaapBank, xbrl)).to include(
+    expect(extract(Ingestion::Mappings::JgaapBank, xbrl).to_h).to include(
       "bs.equity_attributable_to_owners_begin" => 1_498_222_000_000,
       "bs.equity_attributable_to_owners" => 1_622_898_000_000)
-    expect(extract(Ingestion::Mappings::JgaapBank, xbrl, :non_consolidated)).to include(
+    expect(extract(Ingestion::Mappings::JgaapBank, xbrl, :non_consolidated).to_h).to include(
       "bs.equity_attributable_to_owners_begin" => 1_455_165_000_000,
       "bs.equity_attributable_to_owners" => 1_581_127_000_000)
   end
@@ -109,7 +109,7 @@ RSpec.describe "指標用の期首・期末データの抽出" do
 
   it "実XBRLの日本基準連結から期首・期末の自己資本を取る" do
     items = extract(Ingestion::Mappings::JgaapGeneral, load_xbrl_fixture("S100XTDX"))
-    expect(items).to include(
+    expect(items.to_h).to include(
       "bs.assets_begin" => 170_202_000_000, "bs.assets" => 195_873_000_000,
       "bs.equity_attributable_to_owners_begin" => 118_112_000_000,
       "bs.equity_attributable_to_owners" => 131_294_000_000)
@@ -117,7 +117,7 @@ RSpec.describe "指標用の期首・期末データの抽出" do
 
   it "実XBRLのIFRSから期首・期末の親会社所有者帰属持分を取る" do
     items = extract(Ingestion::Mappings::IfrsClassified, load_xbrl_fixture("S100YB5L"))
-    expect(items).to include(
+    expect(items.to_h).to include(
       "bs.assets_begin" => 14_248_344_000_000, "bs.assets" => 15_511_506_000_000,
       "bs.equity_attributable_to_owners_begin" => 6_935_084_000_000,
       "bs.equity_attributable_to_owners" => 7_429_441_000_000)
@@ -125,14 +125,14 @@ RSpec.describe "指標用の期首・期末データの抽出" do
 
   it "調整差額0・新株予約権ありの単体でも、純資産の内訳と開示精度を検算して自己資本を取る" do
     items = extract(Ingestion::Mappings::JgaapGeneral, load_xbrl_fixture("S100YR8L"), :non_consolidated)
-    expect(items).to include(
+    expect(items.to_h).to include(
       "bs.equity_attributable_to_owners_begin" => 748_162_000,
       "bs.equity_attributable_to_owners" => 825_018_000)
   end
 
   it "株式引受権と新株予約権を自己資本に混ぜず、評価差額0の単体も取得する" do
     items = extract(Ingestion::Mappings::JgaapGeneral, load_xbrl_fixture("S100YCL0"), :non_consolidated)
-    expect(items).to include(
+    expect(items.to_h).to include(
       "bs.equity_attributable_to_owners_begin" => 407_400_000_000,
       "bs.equity_attributable_to_owners" => 350_255_000_000)
   end

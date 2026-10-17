@@ -17,7 +17,7 @@ RSpec.describe FinancialStatements::StatementData do
     expect(data).to have_attributes(consolidation_type: :consolidated, accounting_standard: "ifrs",
                                     presentation_format: "ifrs_classified", disclosed_roe: BigDecimal("0.081"),
                                     fiscal_year_end_date: Date.new(2026, 3, 31))
-    expect(data.amounts).to eq("bs.assets" => 100_000_000)
+    expect(data.amounts.to_h).to eq("bs.assets" => 100_000_000)
     expect(data.amounts.rounding_errors).to eq("bs.assets" => 1_000_000.to_d)
   end
 
@@ -42,9 +42,9 @@ RSpec.describe FinancialStatements::StatementData do
   describe "金額" do
     it "作った後は、金額も端数も書き換えられない" do
       data = build
-      expect { data.amounts["bs.assets"] = 1 }.to raise_error(FrozenError)
+      expect(data.amounts).to be_frozen
       expect { data.amounts.store("bs.assets", 1, 1.to_d) }.to raise_error(FrozenError)
-      expect { data.amounts.rounding_errors["bs.assets"] = 1.to_d }.to raise_error(FrozenError)
+      expect(data.amounts.rounding_errors).to be_frozen
     end
 
     it "渡した金額は凍結せず、作った後に書き換えても値に伝わらない" do
@@ -54,7 +54,7 @@ RSpec.describe FinancialStatements::StatementData do
       expect(source.rounding_errors).not_to be_frozen
 
       source.store("bs.assets", 1, 1.to_d)
-      expect(data.amounts).to eq("bs.assets" => 100_000_000)
+      expect(data.amounts.to_h).to eq("bs.assets" => 100_000_000)
       expect(data.amounts.rounding_errors).to eq("bs.assets" => 1_000_000.to_d)
     end
 
@@ -80,6 +80,13 @@ RSpec.describe FinancialStatements::StatementData do
     it "金額や連結区分が違えば等しくない" do
       expect(build(amounts: amounts(100_000_001))).not_to eq build
       expect(build(consolidation_type: :non_consolidated)).not_to eq build
+    end
+
+    it "金額が同じでも、端数が違えば等しくなく、Hashのキーとしても別のものになる" do
+      other = build(amounts: FinancialStatements::Amounts.new.tap { |result| result.store("bs.assets", 100_000_000, 1_000.to_d) })
+      expect(other).not_to eq build
+      expect(other).not_to eql build
+      expect({ build => 1 }).not_to have_key(other)
     end
   end
 end

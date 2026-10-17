@@ -40,7 +40,7 @@ RSpec.describe Ingestion::StatementExtractor do
     rules = %w[first second].map do |name|
       Module.new do
         define_singleton_method(:apply) do |amounts, mapping:, source:, consolidation:|
-          calls << [ name, amounts.keys, mapping, source, consolidation ]
+          calls << [ name, amounts.codes, mapping, source, consolidation ]
           amounts.store("pl.#{name}", 1, nil)
         end
       end
@@ -53,7 +53,7 @@ RSpec.describe Ingestion::StatementExtractor do
     aggregate_failures do
       expect(calls).to eq [ [ "first", %w[bs.assets pl.revenue], mapping, source, :consolidated ],
                             [ "second", %w[bs.assets pl.revenue pl.first], mapping, source, :consolidated ] ]
-      expect(amounts.keys).to eq %w[bs.assets pl.revenue pl.first pl.second]
+      expect(amounts.codes).to eq %w[bs.assets pl.revenue pl.first pl.second]
     end
   end
 
