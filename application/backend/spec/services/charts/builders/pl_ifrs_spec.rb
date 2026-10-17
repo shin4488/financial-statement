@@ -19,7 +19,7 @@ RSpec.describe Charts::Builders::PlIfrs do
       { "pl.revenue" => 4_505_720_000_000, "pl.cost_of_sales" => 1_571_588_000_000,
         "pl.sga" => 1_084_215_000_000, "pl.profit_before_tax" => -142_355_000_000 }
     end
-    subject(:chart) { described_class.new(items).build }
+    subject(:chart) { described_class.new(amounts_of_unknown_precision(items)).build }
 
     it "借方=原価+販管費+差額、貸方=収益+税引前損失になる" do
       debit, credit = chart.bars
@@ -48,7 +48,7 @@ RSpec.describe Charts::Builders::PlIfrs do
       { "pl.revenue" => 18_915_995_000_000, "pl.cost_of_sales" => 16_386_035_000_000,
         "pl.sga" => 2_218_395_000_000, "pl.profit_before_tax" => 1_096_094_000_000 }
     end
-    subject(:chart) { described_class.new(items).build }
+    subject(:chart) { described_class.new(amounts_of_unknown_precision(items)).build }
 
     it "貸方にotherNet、借方に税引前利益が積まれ貸借一致する" do
       debit, credit = chart.bars
@@ -69,7 +69,7 @@ RSpec.describe Charts::Builders::PlIfrs do
       { "pl.revenue" => 2_496_575_000_000, "pl.operating_expenses" => 2_395_113_000_000,
         "pl.profit_before_tax" => -29_550_000_000 }
     end
-    subject(:chart) { described_class.new(items).build }
+    subject(:chart) { described_class.new(amounts_of_unknown_precision(items)).build }
 
     it "借方はoperatingExpensesで始まり貸借一致する" do
       debit, credit = chart.bars
@@ -85,7 +85,7 @@ RSpec.describe Charts::Builders::PlIfrs do
         "pl.sga" => 1_429_465_000_000, "pl.operating_expenses" => 4_773_120_000_000,
         "pl.profit_before_tax" => 1_073_418_000_000 }
     end
-    subject(:chart) { described_class.new(items).build }
+    subject(:chart) { described_class.new(amounts_of_unknown_precision(items)).build }
 
     it "営業費用は積まず、費用を二重に数えない" do
       debit, credit = chart.bars
@@ -99,7 +99,7 @@ RSpec.describe Charts::Builders::PlIfrs do
     end
 
     it "営業費用が合計と符号だけ逆に付いていても積まない" do
-      chart = described_class.new(items.merge("pl.operating_expenses" => -4_773_120_000_000)).build
+      chart = described_class.new(amounts_of_unknown_precision(items.merge("pl.operating_expenses" => -4_773_120_000_000))).build
       expect(chart.bars.first.segments.map(&:key)).to eq %w[costOfSales sga profitBeforeTax]
     end
   end
@@ -147,8 +147,8 @@ RSpec.describe Charts::Builders::PlIfrs do
 
   describe "差額（その他の収益・費用の純額）がちょうど0" do
     it "差額のセグメントを積まず、借方は費用と税引前利益、貸方は収益だけになる" do
-      debit, credit = described_class.new({ "pl.revenue" => 1_000, "pl.cost_of_sales" => 600, "pl.sga" => 300,
-                                            "pl.profit_before_tax" => 100 }).build.bars
+      debit, credit = described_class.new(amounts_of_unknown_precision({ "pl.revenue" => 1_000, "pl.cost_of_sales" => 600, "pl.sga" => 300,
+                                                                         "pl.profit_before_tax" => 100 })).build.bars
       expect(labeled(debit)).to eq [ [ "売上原価", 600 ], [ "販売費及び一般管理費", 300 ], [ "税引前利益", 100 ] ]
       expect(labeled(credit)).to eq [ [ "収益", 1_000 ] ]
     end
@@ -157,7 +157,7 @@ RSpec.describe Charts::Builders::PlIfrs do
   describe "表示した費用がない（売上原価・販管費・営業費用のタグがない）" do
     it "差額が費用側なら、通常の費用がすべて入るため「費用（純額）」になる" do
       # HOYA 2026年3月期
-      debit, credit = described_class.new({ "pl.revenue" => 947_749_000_000, "pl.profit_before_tax" => 327_668_000_000 }).build.bars
+      debit, credit = described_class.new(amounts_of_unknown_precision({ "pl.revenue" => 947_749_000_000, "pl.profit_before_tax" => 327_668_000_000 })).build.bars
       aggregate_failures do
         expect(labeled(debit)).to eq [ [ "費用（純額）", -620_081_000_000 ], [ "税引前利益", 327_668_000_000 ] ]
         expect(labeled(credit)).to eq [ [ "収益", 947_749_000_000 ] ]
@@ -165,7 +165,7 @@ RSpec.describe Charts::Builders::PlIfrs do
     end
 
     it "税引前利益が収益より大きく、差額が収益側なら「その他の収益（純額）」になる" do
-      debit, credit = described_class.new({ "pl.revenue" => 100, "pl.profit_before_tax" => 130 }).build.bars
+      debit, credit = described_class.new(amounts_of_unknown_precision({ "pl.revenue" => 100, "pl.profit_before_tax" => 130 })).build.bars
       aggregate_failures do
         expect(labeled(debit)).to eq [ [ "税引前利益", 130 ] ]
         expect(labeled(credit)).to eq [ [ "収益", 100 ], [ "その他の収益（純額）", 30 ] ]
@@ -205,20 +205,20 @@ RSpec.describe Charts::Builders::PlIfrs do
     end
 
     it "内訳の科目がなければ、営業費用と営業損失で描く" do
-      chart = described_class.new({ "pl.revenue" => 0, "pl.operating_expenses" => 500, "pl.operating_profit" => -500 }).build
+      chart = described_class.new(amounts_of_unknown_precision({ "pl.revenue" => 0, "pl.operating_expenses" => 500, "pl.operating_profit" => -500 })).build
       expect(chart.bars.map { |bar| labeled(bar) }).to eq [ [ [ "営業費用", 500 ] ], [ [ "営業損失", -500 ] ] ]
     end
 
     it "営業損失がなければ描かない" do
       aggregate_failures do
-        expect(described_class.new(values.except("pl.operating_profit")).build.renderable).to be false
-        expect(described_class.new(values.merge("pl.operating_profit" => 3_288_407_000)).build.renderable).to be false
+        expect(described_class.new(amounts_of_unknown_precision(values.except("pl.operating_profit"))).build.renderable).to be false
+        expect(described_class.new(amounts_of_unknown_precision(values.merge("pl.operating_profit" => 3_288_407_000))).build.renderable).to be false
       end
     end
 
     it "費用のタグが負の値なら、符号の付け間違いを確かめられないため描かない" do
-      chart = described_class.new(values.merge("pl.research_and_development" => -2_756_331_000,
-                                               "pl.general_and_administrative_expenses" => 6_044_738_000)).build
+      chart = described_class.new(amounts_of_unknown_precision(values.merge("pl.research_and_development" => -2_756_331_000,
+                                                                            "pl.general_and_administrative_expenses" => 6_044_738_000))).build
       expect(chart.renderable).to be false
     end
   end
@@ -233,8 +233,8 @@ RSpec.describe Charts::Builders::PlIfrs do
 
     it "積まなかった営業費用が売上原価・販管費の合計と一致すれば（符号だけが逆でも）、警告しない" do
       aggregate_failures do
-        expect(described_class.new(values).mismatch).to be_nil
-        expect(described_class.new(values.merge("pl.operating_expenses" => -4_773_120_000_000)).mismatch).to be_nil
+        expect(described_class.new(amounts_of_unknown_precision(values)).mismatch).to be_nil
+        expect(described_class.new(amounts_of_unknown_precision(values.merge("pl.operating_expenses" => -4_773_120_000_000))).mismatch).to be_nil
       end
     end
 
@@ -255,29 +255,29 @@ RSpec.describe Charts::Builders::PlIfrs do
       # Jトラスト 2020年12月期
       jtrust = { "pl.revenue" => 32_652_000_000, "pl.sga" => 19_643_000_000, "pl.operating_expenses" => 17_653_000_000,
                  "pl.profit_before_tax" => -2_978_000_000 }
-      expect(described_class.new(jtrust).mismatch).to eq("pl.sga" => 19_643_000_000, "pl.operating_expenses" => 17_653_000_000)
+      expect(described_class.new(amounts_of_unknown_precision(jtrust)).mismatch).to eq("pl.sga" => 19_643_000_000, "pl.operating_expenses" => 17_653_000_000)
     end
 
     it "営業費用を積むとき（内訳がない）と、表示した費用がないとき（要約形式など）は、照合する式がないため警告しない" do
       aggregate_failures do
-        expect(described_class.new(values.except("pl.cost_of_sales", "pl.sga")).mismatch).to be_nil
-        expect(described_class.new(values.slice("pl.revenue", "pl.profit_before_tax")).mismatch).to be_nil
+        expect(described_class.new(amounts_of_unknown_precision(values.except("pl.cost_of_sales", "pl.sga"))).mismatch).to be_nil
+        expect(described_class.new(amounts_of_unknown_precision(values.slice("pl.revenue", "pl.profit_before_tax"))).mismatch).to be_nil
       end
     end
 
     it "描かないPL（売上0、収益か税引前利益がない）は照合しない" do
       mismatched = values.merge("pl.operating_expenses" => 1)
       aggregate_failures do
-        expect(described_class.new(mismatched.except("pl.revenue")).mismatch).to be_nil
-        expect(described_class.new(mismatched.except("pl.profit_before_tax")).mismatch).to be_nil
-        expect(described_class.new(mismatched.merge("pl.revenue" => 0)).mismatch).to be_nil
+        expect(described_class.new(amounts_of_unknown_precision(mismatched.except("pl.revenue"))).mismatch).to be_nil
+        expect(described_class.new(amounts_of_unknown_precision(mismatched.except("pl.profit_before_tax"))).mismatch).to be_nil
+        expect(described_class.new(amounts_of_unknown_precision(mismatched.merge("pl.revenue" => 0))).mismatch).to be_nil
       end
     end
   end
 
   describe "収益が取得できない（保険IFRS等）" do
     it "unrenderableになりnoteが入る" do
-      chart = described_class.new({ "pl.profit_before_tax" => 750_700_000_000 }).build
+      chart = described_class.new(amounts_of_unknown_precision({ "pl.profit_before_tax" => 750_700_000_000 })).build
       expect(chart.renderable).to be false
       expect(chart.note).to include("表示に対応していません")
       expect(chart.bars).to be_empty

@@ -16,9 +16,8 @@ module Disclosure
     # グラフの説明文を年度で分ける形式があるため、グラフ作成処理に決算日を渡す
     delegate :fiscal_year_end_date, to: :report
 
-    # {item_code => amount} のハッシュ。ChartBuilderへの入力形式。
-    # メモ化する理由: 1つの財務諸表からBS/PL/CFの3つのBuilderが呼ばれるため、
-    # クエリを1回に抑える（preload済みなら科目と精度をメモリから取得する）
+    # {item_code => amount} の金額の表（科目ごとの端数も持つ）。グラフ・指標へは to_statement_data で複製して渡す。
+    # preload済みなら科目と精度をメモリから取得する
     def items_hash
       @items_hash ||= items.each_with_object(FinancialStatements::Amounts.new) do |item, amounts|
         amounts[item.item_code] = item.amount

@@ -1,10 +1,10 @@
 require "rails_helper"
 
-# 貸借2本を描くBS Builderは共通基盤（two_sided_chart）の上の宣言なので、
+# 貸借2本を描くBS Builderは部品（Charts::TwoSidedChart）の上の宣言なので、
 # 「正常系 / 債務超過 / 貸借乖離」の3観点を形式ごとに検証する
 RSpec.describe "Charts::Builders BS各種" do
   describe Charts::Builders::BsIfrsSummary do
-    def note(date) = described_class.new({ "bs.assets" => 1_000 }, fiscal_year_end_date: date).build.note
+    def note(date) = described_class.new(amounts_of_unknown_precision({ "bs.assets" => 1_000 }), fiscal_year_end_date: date).build.note
 
     it "詳細タグ付けが義務になる前（2019年3月31日より前に終わる年度）は、年度を理由に表示不可とする" do
       aggregate_failures do
@@ -30,7 +30,7 @@ RSpec.describe "Charts::Builders BS各種" do
     end
 
     it "借方4段・貸方3段で、比率の分母は表示科目の合計になる" do
-      chart = described_class.new(items).build
+      chart = described_class.new(amounts_of_unknown_precision(items)).build
       expect(chart.renderable).to be true
       debit, credit = chart.bars
       expect(debit.segments.map(&:key)).to eq %w[currentAssets tangible intangible investments]
@@ -39,8 +39,8 @@ RSpec.describe "Charts::Builders BS各種" do
     end
 
     it "債務超過では3本目バーにspacer + マイナス資本が入る" do
-      chart = described_class.new(items.merge(
-        "bs.equity" => -100, "bs.current_liabilities" => 700, "bs.non_current_liabilities" => 400)).build
+      chart = described_class.new(amounts_of_unknown_precision(items.merge(
+        "bs.equity" => -100, "bs.current_liabilities" => 700, "bs.non_current_liabilities" => 400))).build
       expect(chart.bars.size).to eq 3
       spacer, equity = chart.bars.last.segments
       expect(spacer.color_role).to eq "spacer"
@@ -51,12 +51,12 @@ RSpec.describe "Charts::Builders BS各種" do
     end
 
     it "貸借が1割超乖離したらunrenderable" do
-      chart = described_class.new(items.merge("bs.current_assets" => 4_000)).build
+      chart = described_class.new(amounts_of_unknown_precision(items.merge("bs.current_assets" => 4_000))).build
       expect(chart.renderable).to be false
     end
 
     it "繰延資産があれば借方の最後に積み、比率の分母に含める" do
-      chart = described_class.new(items.merge("bs.deferred_assets" => 100, "bs.equity" => 500)).build
+      chart = described_class.new(amounts_of_unknown_precision(items.merge("bs.deferred_assets" => 100, "bs.equity" => 500))).build
       debit, = chart.bars
       aggregate_failures do
         expect(debit.segments.map { |s| [ s.label, s.amount, s.color_role ] }.last).to eq [ "繰延資産", 100, "asset5" ]
@@ -71,7 +71,7 @@ RSpec.describe "Charts::Builders BS各種" do
       end
 
       it "負債と同じ額の債務超過なら、借方に何も積まず、負債を分母にして描く" do
-        chart = described_class.new(zero_assets).build
+        chart = described_class.new(amounts_of_unknown_precision(zero_assets)).build
         debit, credit, insolvency = chart.bars
         aggregate_failures do
           expect(chart.renderable).to be true
@@ -83,7 +83,7 @@ RSpec.describe "Charts::Builders BS各種" do
       end
 
       it "負債＋純資産が負債の1割を超えて0から離れていれば描かない（資産0で貸借が合わない）" do
-        chart = described_class.new(zero_assets.merge("bs.equity" => -300)).build
+        chart = described_class.new(amounts_of_unknown_precision(zero_assets.merge("bs.equity" => -300))).build
         expect(chart.renderable).to be false
       end
     end
@@ -92,23 +92,23 @@ RSpec.describe "Charts::Builders BS各種" do
       let(:balanced) { items.merge("bs.assets" => 1_000, "bs.liabilities" => 600) }
 
       it "借方の科目の合計が資産合計と、資産合計が負債合計＋純資産合計と一致すればnil" do
-        expect(described_class.new(balanced).mismatch).to be_nil
+        expect(described_class.new(amounts_of_unknown_precision(balanced)).mismatch).to be_nil
       end
 
       it "借方に描いていない資産が残っていれば、照合に使った金額を返す" do
-        amounts = described_class.new(balanced.merge("bs.assets" => 1_011, "bs.equity" => 411)).mismatch
+        amounts = described_class.new(amounts_of_unknown_precision(balanced.merge("bs.assets" => 1_011, "bs.equity" => 411))).mismatch
         expect(amounts).to eq("bs.current_assets" => 400, "bs.tangible_fixed_assets" => 300,
                               "bs.intangible_fixed_assets" => 100, "bs.investments_and_other_assets" => 200,
                               "bs.assets" => 1_011, "bs.liabilities" => 600, "bs.equity" => 411)
       end
 
       it "繰延資産を借方に積めば、資産合計と一致する" do
-        expect(described_class.new(balanced.merge("bs.deferred_assets" => 11, "bs.assets" => 1_011, "bs.equity" => 411)).mismatch)
+        expect(described_class.new(amounts_of_unknown_precision(balanced.merge("bs.deferred_assets" => 11, "bs.assets" => 1_011, "bs.equity" => 411))).mismatch)
           .to be_nil
       end
 
       it "資産合計が負債合計＋純資産合計と一致しなければ、金額を返す" do
-        expect(described_class.new(balanced.merge("bs.liabilities" => 610)).mismatch).to include("bs.liabilities" => 610)
+        expect(described_class.new(amounts_of_unknown_precision(balanced.merge("bs.liabilities" => 610))).mismatch).to include("bs.liabilities" => 610)
       end
 
       it "差が各金額の端数の範囲に収まれば一致とみなす" do
@@ -121,7 +121,7 @@ RSpec.describe "Charts::Builders BS各種" do
       end
 
       it "描かないBSは照合しない" do
-        expect(described_class.new(balanced.merge("bs.current_assets" => 4_000)).mismatch).to be_nil
+        expect(described_class.new(amounts_of_unknown_precision(balanced.merge("bs.current_assets" => 4_000))).mismatch).to be_nil
       end
     end
 
@@ -135,7 +135,7 @@ RSpec.describe "Charts::Builders BS各種" do
       end
 
       it "内訳の合計が固定資産に合わないときは固定資産合計の1段で描く" do
-        chart = described_class.new(utility_items).build
+        chart = described_class.new(amounts_of_unknown_precision(utility_items)).build
         expect(chart.renderable).to be true
         debit, = chart.bars
         expect(debit.segments.map(&:key)).to eq %w[currentAssets fixedAssets]
@@ -144,8 +144,8 @@ RSpec.describe "Charts::Builders BS各種" do
 
       it "内訳の合計が固定資産に合う一般事業会社は内訳のまま（無形固定資産を開示しない企業も残り2つで合えば内訳）" do
         # 無形100を除き、固定資産合計=有形300+投資その他200、負債側も100減らして貸借を合わせる
-        chart = described_class.new(items.except("bs.intangible_fixed_assets")
-                                         .merge("bs.non_current_assets" => 500, "bs.current_liabilities" => 250)).build
+        chart = described_class.new(amounts_of_unknown_precision(items.except("bs.intangible_fixed_assets")
+                                                                      .merge("bs.non_current_assets" => 500, "bs.current_liabilities" => 250))).build
         expect(chart.bars.first.segments.map(&:key)).to eq %w[currentAssets tangible investments]
       end
     end
@@ -161,7 +161,7 @@ RSpec.describe "Charts::Builders BS各種" do
     end
 
     it "借方[現金及び預貯金, 有価証券, 貸付金, その他資産] / 貸方[保険契約準備金, その他負債, 純資産] で残差が導出される" do
-      chart = described_class.new(items).build
+      chart = described_class.new(amounts_of_unknown_precision(items)).build
       debit, credit = chart.bars
       expect(debit.segments.map(&:key)).to eq %w[cash securities loans otherAssets]
       expect(credit.segments.map(&:key)).to eq %w[policyReserves otherLiabilities equity]
@@ -171,24 +171,24 @@ RSpec.describe "Charts::Builders BS各種" do
     end
 
     it "保険契約準備金が欠けるとunrenderable（負債全額をその他負債として描くと誤ったグラフになるため）" do
-      chart = described_class.new(items.except("bs.policy_reserves")).build
+      chart = described_class.new(amounts_of_unknown_precision(items.except("bs.policy_reserves"))).build
       expect(chart.renderable).to be false
     end
 
     it "資産合計がなければその他資産を積まず、比率を出さない。貸借の差が1割以内なら描き、超えれば描かない" do
-      chart = described_class.new({ "bs.cash_and_equivalents" => 100, "bs.securities" => 700, "bs.loans" => 150,
-                                    "bs.policy_reserves" => 800, "bs.liabilities" => 900, "bs.equity" => 100 }).build
+      chart = described_class.new(amounts_of_unknown_precision({ "bs.cash_and_equivalents" => 100, "bs.securities" => 700, "bs.loans" => 150,
+                                                                 "bs.policy_reserves" => 800, "bs.liabilities" => 900, "bs.equity" => 100 })).build
       debit, credit = chart.bars
       expect(chart.renderable).to be true
       expect(debit.segments.map(&:key)).to eq %w[cash securities loans]
       expect(credit.segments.map(&:key)).to eq %w[policyReserves otherLiabilities equity]
       expect((debit.segments + credit.segments).map(&:ratio)).to all(be_nil)
-      expect(described_class.new(items.except("bs.assets")).build.renderable).to be false
+      expect(described_class.new(amounts_of_unknown_precision(items.except("bs.assets"))).build.renderable).to be false
     end
 
     it "負債合計がなければその他負債を積まない" do
-      chart = described_class.new({ "bs.assets" => 1_000, "bs.cash_and_equivalents" => 100, "bs.securities" => 700,
-                                    "bs.loans" => 150, "bs.policy_reserves" => 900, "bs.equity" => 100 }).build
+      chart = described_class.new(amounts_of_unknown_precision({ "bs.assets" => 1_000, "bs.cash_and_equivalents" => 100, "bs.securities" => 700,
+                                                                 "bs.loans" => 150, "bs.policy_reserves" => 900, "bs.equity" => 100 })).build
       debit, credit = chart.bars
       expect(debit.segments.map { |s| [ s.key, s.amount ] })
         .to eq [ [ "cash", 100 ], [ "securities", 700 ], [ "loans", 150 ], [ "otherAssets", 50 ] ]
@@ -204,7 +204,7 @@ RSpec.describe "Charts::Builders BS各種" do
     end
 
     it "借方2段・貸方3段で貸借一致する（単位: 百万円）" do
-      chart = described_class.new(items).build
+      chart = described_class.new(amounts_of_unknown_precision(items)).build
       debit, credit = chart.bars
       expect(debit.segments.map(&:key)).to eq %w[currentAssets nonCurrentAssets]
       expect(credit.segments.map(&:key)).to eq %w[currentLiabilities nonCurrentLiabilities equity]
@@ -219,14 +219,14 @@ RSpec.describe "Charts::Builders BS各種" do
     end
 
     it "現金とその他資産（導出）の2段になる" do
-      chart = described_class.new(items).build
+      chart = described_class.new(amounts_of_unknown_precision(items)).build
       debit, = chart.bars
       expect(debit.segments.map(&:key)).to eq %w[cash otherAssets]
       expect(debit.segments.last.amount).to eq 28_804_400 - 7_034_795
     end
 
     it "現金が欠けるとその他資産が導出できずunrenderable" do
-      chart = described_class.new(items.except("bs.cash_and_equivalents")).build
+      chart = described_class.new(amounts_of_unknown_precision(items.except("bs.cash_and_equivalents"))).build
       expect(chart.renderable).to be false
     end
   end
@@ -240,7 +240,7 @@ RSpec.describe "Charts::Builders BS各種" do
     end
 
     it "その他資産・その他負債が残差で導出される（単位: 百万円）" do
-      chart = described_class.new(items).build
+      chart = described_class.new(amounts_of_unknown_precision(items)).build
       debit, credit = chart.bars
       other_assets = debit.segments.find { |s| s.key == "otherAssets" }
       other_liabilities = credit.segments.find { |s| s.key == "otherLiabilities" }
@@ -250,33 +250,33 @@ RSpec.describe "Charts::Builders BS各種" do
     end
 
     it "預金が欠けるとunrenderable（負債全額をその他負債として描くと預金0%の誤ったグラフになるため）" do
-      chart = described_class.new(items.except("bs.deposits")).build
+      chart = described_class.new(amounts_of_unknown_precision(items.except("bs.deposits"))).build
       expect(chart.renderable).to be false
     end
 
     it "預金が負債合計を超えるときは描かない（その他負債を差額で求めるため、取り違えた預金に貸借の照合で気づけない）" do
-      chart = described_class.new(items.merge("bs.deposits" => 407_987_397)).build
+      chart = described_class.new(amounts_of_unknown_precision(items.merge("bs.deposits" => 407_987_397))).build
       expect(chart.renderable).to be false
     end
 
     it "その他資産・その他負債を合計から求めるため、合計行どうしが合えば照合の警告はない" do
-      expect(described_class.new(items).mismatch).to be_nil
+      expect(described_class.new(amounts_of_unknown_precision(items)).mismatch).to be_nil
     end
 
     it "資産合計がなければその他資産を積まず、比率を出さない。貸借の差が1割以内なら描き、超えれば描かない" do
-      chart = described_class.new({ "bs.cash_and_equivalents" => 100, "bs.loans" => 500, "bs.securities" => 350,
-                                    "bs.deposits" => 800, "bs.liabilities" => 900, "bs.equity" => 100 }).build
+      chart = described_class.new(amounts_of_unknown_precision({ "bs.cash_and_equivalents" => 100, "bs.loans" => 500, "bs.securities" => 350,
+                                                                 "bs.deposits" => 800, "bs.liabilities" => 900, "bs.equity" => 100 })).build
       debit, credit = chart.bars
       expect(chart.renderable).to be true
       expect(debit.segments.map(&:key)).to eq %w[cash loans securities]
       expect(credit.segments.map(&:key)).to eq %w[deposits otherLiabilities equity]
       expect((debit.segments + credit.segments).map(&:ratio)).to all(be_nil)
-      expect(described_class.new(items.except("bs.assets")).build.renderable).to be false
+      expect(described_class.new(amounts_of_unknown_precision(items.except("bs.assets"))).build.renderable).to be false
     end
 
     it "負債合計がなければその他負債を積まない" do
-      chart = described_class.new({ "bs.assets" => 1_000, "bs.cash_and_equivalents" => 100, "bs.loans" => 500,
-                                    "bs.securities" => 350, "bs.deposits" => 900, "bs.equity" => 100 }).build
+      chart = described_class.new(amounts_of_unknown_precision({ "bs.assets" => 1_000, "bs.cash_and_equivalents" => 100, "bs.loans" => 500,
+                                                                 "bs.securities" => 350, "bs.deposits" => 900, "bs.equity" => 100 })).build
       debit, credit = chart.bars
       expect(debit.segments.map { |s| [ s.key, s.amount ] })
         .to eq [ [ "cash", 100 ], [ "loans", 500 ], [ "securities", 350 ], [ "otherAssets", 50 ] ]

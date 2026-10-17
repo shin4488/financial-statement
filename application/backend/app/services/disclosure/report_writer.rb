@@ -94,7 +94,7 @@ module Disclosure
         fs.items.delete_all
         rows = items.map { |code, amount|
           { financial_statement_id: fs.id, item_code: code, amount: amount,
-            rounding_error: items.respond_to?(:rounding_errors) ? items.rounding_errors[code] : nil,
+            rounding_error: items.rounding_errors[code],
             created_at: Time.current, updated_at: Time.current } }
         # insert_all!はモデルのバリデーションを通らないため、item_codeの正当性は
         # 対応表の科目が科目カタログ（ItemCatalog::ALL）にあること（対応表の読込時の確認と対応表の検査のspec）で担保する

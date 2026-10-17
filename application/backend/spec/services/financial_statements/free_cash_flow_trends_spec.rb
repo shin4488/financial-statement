@@ -16,6 +16,13 @@ RSpec.describe FinancialStatements::FreeCashFlowTrends do
     report
   end
 
+  # 一覧（UseCases::ListFinancialReports）と同じく、有報から推移を作る有報の値を作り、同じ企業の過去の主の財務諸表を読んでから組み立てる
+  def trend_of(report)
+    target = FinancialStatements::TrendTarget.new(report_id: report.id, company_id: report.company_id,
+                                                   fiscal_year_end_date: report.fiscal_year_end_date)
+    described_class.build([ target ], Disclosure::CashFlowHistory.new.load([ target ])).fetch(report.id)
+  end
+
   it "対象期を含む5年を古い順に返し、欠損・0円・負値を区別する" do
     current = statement(2025, operating: 30_000_000, investing: -10_000_000)
     statement(2024, operating: -3_000_000, investing: -2_000_000)
@@ -23,7 +30,7 @@ RSpec.describe FinancialStatements::FreeCashFlowTrends do
     statement(2021, operating: 0, investing: 0)
     statement(2026, operating: 99_000_000, investing: 0)
 
-    trend = described_class.build([ current ]).fetch(current.id)
+    trend = trend_of(current)
 
     expect(trend.renderable).to be true
     expect(trend.points.map(&:year)).to eq [ 2021, 2022, 2023, 2024, 2025 ]
@@ -41,7 +48,7 @@ RSpec.describe FinancialStatements::FreeCashFlowTrends do
              consolidation_type: :non_consolidated)
     statement(2022, operating: 50_000_000, investing: -20_000_000)
 
-    trend = described_class.build([ current ]).fetch(current.id)
+    trend = trend_of(current)
 
     expect(trend.renderable).to be true
     expect(trend.points.map(&:amount)).to eq [ nil, 30_000_000, 30_000_000, 100_000_000, 20_000_000 ]
@@ -56,7 +63,7 @@ RSpec.describe FinancialStatements::FreeCashFlowTrends do
            consolidation_type: :consolidated, is_primary: false,
            items_hash: { "cf.operating" => 80_000_000, "cf.investing" => 20_000_000 })
 
-    trend = described_class.build([ current ]).fetch(current.id)
+    trend = trend_of(current)
 
     expect(trend.renderable).to be false
     expect(trend.note).to eq "過去5年のデータがありません"
@@ -77,7 +84,7 @@ RSpec.describe FinancialStatements::FreeCashFlowTrends do
       end
     end
 
-    trend = described_class.build([ current ]).fetch(current.id)
+    trend = trend_of(current)
 
     expect(trend.points[4]).to have_attributes(operating_cf: 30_000_000, investing_cf: 0, amount: 30_000_000)
     expect(trend.points[3]).to have_attributes(operating_cf: 30_000_000, investing_cf: nil, amount: nil)
@@ -99,7 +106,7 @@ RSpec.describe FinancialStatements::FreeCashFlowTrends do
     create(:disclosure_financial_statement, report: future,
            items_hash: { "cf.operating" => 99_000_000, "cf.investing" => 0 })
 
-    trend = described_class.build([ current ]).fetch(current.id)
+    trend = trend_of(current)
 
     expect(trend.points[3].fiscal_year_end_date).to eq "2024-12-31"
     expect(trend.points[3].amount).to eq 5_000_000
@@ -110,7 +117,7 @@ RSpec.describe FinancialStatements::FreeCashFlowTrends do
     current = statement(2025, operating: 30_000_000, investing: -10_000_000)
     current.primary_financial_statement.update!(is_primary: false)
 
-    trend = described_class.build([ current ]).fetch(current.id)
+    trend = trend_of(current)
 
     expect(trend.renderable).to be false
     expect(trend.note).to eq "過去5年のデータがありません"

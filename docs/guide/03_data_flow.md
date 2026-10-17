@@ -201,9 +201,9 @@ sequenceDiagram
 | 担当 | 役割 |
 |---|---|
 | `Resolvers::FinancialReports` | 引数の検証、FCF推移を要求されたかの判定、応答の形への変換 |
-| `UseCases::ListFinancialReports` | 検索と組み立ての順序。FCF推移は要求されたときだけ作る |
+| `UseCases::ListFinancialReports` | 検索と組み立ての順序。財務諸表を `StatementData` に、書類をFCF推移の対象（`TrendTarget`）にする。FCF推移は要求されたときだけ作る |
 | `Disclosure::SearchQuery`・`CashFlowHistory` | DBの検索。書類の件数によらず、問い合わせの回数を一定にする |
-| `Charts::BuilderRegistry`・`FinancialStatements::Indicators`・`FreeCashFlowTrends` | 受け取った値からチャート・指標・FCF推移を組み立てる。DBを使わない |
+| `Charts::BuilderRegistry`・`FinancialStatements::Indicators`・`FreeCashFlowTrends` | 受け取った値からチャート・指標・FCF推移を組み立てる。チャートと指標は `StatementData`、FCF推移は `TrendTarget` と過去の財務諸表（`PastStatement`）を受け、DBを使わない |
 
 ### 形式の違いは、取込とチャートの組み立てで扱う
 
@@ -568,7 +568,7 @@ WebとChrome拡張にはBS・PL用とCF用のチャートデータを返す。We
 flowchart LR
     Reg["Charts::BuilderRegistry<br>形式 → Builder"] --> B["形式ごとのBuilder（12）"]
     Rec["UseCases::StatementInspection<br>取込の点検"] -->|mismatch| B
-    B -->|継承| Base["Builders::Base<br>金額の表の受け取り・既定の mismatch（nil）・no_data_note"]
+    B -->|継承| Base["Builders::Base<br>金額の表（Amounts）の受け取り・既定の mismatch（nil）・no_data_note"]
     B -->|使う| T["TwoSidedChart<br>貸借2本の組み立てと照合"]
     B -->|使う| S["Segments<br>項目と比率"]
     B -->|使う| Tol["Tolerance<br>許容差と端数の判定"]

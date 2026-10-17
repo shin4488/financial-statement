@@ -9,7 +9,7 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
       UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: doc_id, work_dir: work_dir)
     end
     fs = Disclosure::FinancialStatement.find_by!(consolidation_type: consolidation_type, is_primary: true)
-    [ fs, Charts::BuilderRegistry.build_all(fs)[:profit_loss] ]
+    [ fs, Charts::BuilderRegistry.build_all(fs.to_statement_data)[:profit_loss] ]
   end
 
   def segments(bar) = bar.segments.map { |segment| [ segment.label, segment.signed_amount ] }
@@ -188,7 +188,7 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
         fs = Disclosure::FinancialStatement.find_by!(is_primary: true)
         aggregate_failures do
           expect(fs.items_hash["pl.revenue"]).to be_present
-          expect(Charts::BuilderRegistry.build_all(fs)[:profit_loss].renderable).to be false
+          expect(Charts::BuilderRegistry.build_all(fs.to_statement_data)[:profit_loss].renderable).to be false
         end
       end
     end

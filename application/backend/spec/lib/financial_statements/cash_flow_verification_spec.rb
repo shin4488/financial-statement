@@ -64,8 +64,8 @@ RSpec.describe FinancialStatements::CashFlowVerification do
       # 差は1千円（各金額の千円未満の端数）。精度が分かれば端数の範囲に収まる
       aggregate_failures do
         expect(described_class.mismatch(amounts(without_financing))).to be_nil
-        expect(described_class.mismatch(without_financing)).to eq without_financing
-        expect(described_class.mismatch(without_financing.merge("cf.cash_end" => 318_778_000))).to be_nil
+        expect(described_class.mismatch(amounts_of_unknown_precision(without_financing))).to eq without_financing
+        expect(described_class.mismatch(amounts_of_unknown_precision(without_financing.merge("cf.cash_end" => 318_778_000)))).to be_nil
       end
     end
   end

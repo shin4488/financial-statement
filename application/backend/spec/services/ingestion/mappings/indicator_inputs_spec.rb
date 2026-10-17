@@ -5,6 +5,14 @@ RSpec.describe "指標用の期首・期末データの抽出" do
     Ingestion::StatementExtractor.amounts(mapping, source: source, consolidation: consolidation)
   end
 
+  # 日本基準の一般事業会社の抽出結果から指標を作る。公表ROEは渡さない
+  def indicators(items, consolidation)
+    FinancialStatements::Indicators.build(FinancialStatements::StatementData.new(
+      consolidation_type: consolidation, accounting_standard: "japan_gaap",
+      presentation_format: FinancialStatements::Formats::JGAAP_GENERAL, amounts: items, disclosed_roe: nil,
+      fiscal_year_end_date: nil))
+  end
+
   [ Ingestion::Mappings::JgaapGeneral, Ingestion::Mappings::JgaapBank,
     Ingestion::Mappings::JgaapInsurance ].each do |mapping|
     it "#{mapping.format}は新株予約権・非支配持分を含めず、区分ごとに自己資本を取る" do
@@ -143,8 +151,7 @@ RSpec.describe "指標用の期首・期末データの抽出" do
     items = extract(Ingestion::Mappings::JgaapGeneral, load_xbrl_fixture("S100YGFN"), :non_consolidated)
     # 飯野海運: 海運104,979百万円 + 不動産11,909百万円。総額は標準サマリにも開示される。
     expect(items["pl.revenue"]).to eq 116_888_000_000
-    metrics = FinancialStatements::Indicators.build(instance_double(Disclosure::FinancialStatement,
-                                                                    items_hash: items, consolidated?: false, disclosed_roe: nil))
+    metrics = indicators(items, :non_consolidated)
     expect(metrics[:net_profit_margin].value).to be_within(1e-12).of(12_756.0 / 116_888)
     expect(metrics[:asset_turnover].value).to be_within(1e-12).of(116_888.0 / ((228_116 + 243_418) / 2.0))
   end
@@ -157,8 +164,7 @@ RSpec.describe "指標用の期首・期末データの抽出" do
       [ "jppfs_cor:Assets", "CurrentYearInstant" ] => 1_500
     })
     items = extract(Ingestion::Mappings::JgaapGeneral, xbrl)
-    metrics = FinancialStatements::Indicators.build(instance_double(Disclosure::FinancialStatement,
-                                                                    items_hash: items, consolidated?: true, disclosed_roe: nil))
+    metrics = indicators(items, :consolidated)
     expect(metrics[:net_profit_margin].value).to eq 0.08
     expect(metrics[:asset_turnover].value).to eq 0.8
   end
@@ -166,8 +172,7 @@ RSpec.describe "指標用の期首・期末データの抽出" do
   it "丸井グループの実XBRLの収益を取り、純利益率と回転率を算出する" do
     items = extract(Ingestion::Mappings::JgaapGeneral, load_xbrl_fixture("S100YWE4"))
     expect(items["pl.revenue"]).to eq 276_862_000_000
-    metrics = FinancialStatements::Indicators.build(instance_double(Disclosure::FinancialStatement,
-                                                                    items_hash: items, consolidated?: true, disclosed_roe: nil))
+    metrics = indicators(items, :consolidated)
     expect(metrics[:net_profit_margin].value).to be_within(1e-12).of(28_476.0 / 276_862)
     expect(metrics[:asset_turnover].value).to be_within(1e-12).of(276_862.0 / ((1_053_352 + 1_141_276) / 2.0))
   end

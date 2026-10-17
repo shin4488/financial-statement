@@ -31,9 +31,20 @@ RSpec.describe UseCases::ListFinancialReports do
     expect(entry.statement).to have_attributes(consolidation_type: :consolidated, accounting_standard: "ifrs",
                                                presentation_format: "ifrs_classified", fiscal_year_end_date: Date.new(2025, 3, 31))
     expect(entry.statement.amounts).to eq items
-    expect(entry.charts).to eq Charts::BuilderRegistry.build_all(fs)
-    expect(entry.indicators).to eq FinancialStatements::Indicators.build(fs)
-    expect(entry.free_cash_flow_trend).to eq FinancialStatements::FreeCashFlowTrends.build([ fs.report ]).fetch(fs.report.id)
+    # 保存した科目の表と決算日を、形式のBuilderに直接渡して組み立てたグラフと同じ
+    date = Date.new(2025, 3, 31)
+    expect(entry.charts).to eq(balance_sheet: Charts::Builders::BsIfrsClassified.new(fs.items_hash, fiscal_year_end_date: date).build,
+                               profit_loss: Charts::Builders::PlIfrs.new(fs.items_hash, fiscal_year_end_date: date).build,
+                               cash_flow: Charts::Builders::CashFlow.new(fs.items_hash).build)
+    metric = ->(value) { FinancialStatements::Indicators::Metric.new(value: value, status: "available", source: "calculated") }
+    expect(entry.indicators).to eq(roe: metric.(0.16), roa: metric.(0.08), net_profit_margin: metric.(0.04),
+                                   asset_turnover: metric.(2.0), financial_leverage: metric.(2.0))
+    point = FinancialStatements::FreeCashFlowTrends::Point
+    expect(entry.free_cash_flow_trend).to eq FinancialStatements::FreeCashFlowTrends::Trend.new(
+      renderable: true, note: nil,
+      points: (2021..2024).map { |year| point.new(year: year) } +
+              [ point.new(year: 2025, fiscal_year_start_date: "2024-04-01", fiscal_year_end_date: "2025-03-31",
+                          operating_cf: 50, investing_cf: -20, amount: 30, consolidation_type: :consolidated) ])
     expect(entry.free_cash_flow_trend.points.last.amount).to eq 30
   end
 

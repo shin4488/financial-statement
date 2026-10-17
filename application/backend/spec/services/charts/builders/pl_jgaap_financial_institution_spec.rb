@@ -7,7 +7,7 @@ RSpec.describe Charts::Builders::PlJgaapFinancialInstitution do
         "pl.ordinary_expenses" => 11_210_651_000_000,
         "pl.ordinary_profit" => 3_410_192_000_000 }
     end
-    subject(:chart) { described_class.new(items).build }
+    subject(:chart) { described_class.new(amounts_of_unknown_precision(items)).build }
 
     it "借方[経常費用, 経常利益] / 貸方[経常収益] で貸借一致する" do
       debit, credit = chart.bars
@@ -24,13 +24,13 @@ RSpec.describe Charts::Builders::PlJgaapFinancialInstitution do
     end
 
     it "経常損失は貸方に積まれる" do
-      debit, credit = described_class.new(items).build.bars
+      debit, credit = described_class.new(amounts_of_unknown_precision(items)).build.bars
       expect(credit.segments.map(&:key)).to eq %w[ordinaryRevenue ordinaryLoss]
       expect(debit.segments.sum(&:amount)).to eq credit.segments.sum(&:amount)
     end
   end
 
   it "経常収益・費用・利益のどれかが欠ければunrenderable" do
-    expect(described_class.new({ "pl.ordinary_revenue" => 1, "pl.ordinary_expenses" => 1 }).build.renderable).to be false
+    expect(described_class.new(amounts_of_unknown_precision({ "pl.ordinary_revenue" => 1, "pl.ordinary_expenses" => 1 })).build.renderable).to be false
   end
 end
