@@ -41,9 +41,9 @@ RSpec.describe "Ingestion::Mappings::JgaapGeneral" do
         [ "jppfs_cor:Assets", "CurrentYearInstant" ] => 1_000
       })
       items = extract(xbrl, :consolidated)
-      expect(items).to include("bs.assets" => 1_000)
-      expect(items).not_to have_key("bs.equity_attributable_to_owners")
-      expect(items).not_to have_key("bs.equity_attributable_to_owners_begin")
+      expect(items.to_h).to include("bs.assets" => 1_000)
+      expect(items.to_h).not_to have_key("bs.equity_attributable_to_owners")
+      expect(items.to_h).not_to have_key("bs.equity_attributable_to_owners_begin")
     end
   end
 end

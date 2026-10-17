@@ -8,7 +8,7 @@ RSpec.describe "Ingestion::Mappings::IfrsSummary" do
     end
 
     it "経営指標サマリからPL・CFと指標用の利益・期首期末残高を抽出する" do
-      expect(items).to eq(
+      expect(items.to_h).to eq(
         "bs.assets" => 72_459_000_000,
         "bs.assets_begin" => 71_409_000_000,
         "bs.equity_attributable_to_owners" => 18_706_000_000,

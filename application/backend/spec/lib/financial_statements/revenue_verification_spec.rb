@@ -5,8 +5,7 @@ RSpec.describe FinancialStatements::RevenueVerification do
   def status(values)
     amounts = FinancialStatements::Amounts.new
     values.each do |code, (amount, error)|
-      amounts[code] = amount
-      amounts.rounding_errors[code] = error&.to_d
+      amounts.store(code, amount, error&.to_d)
     end
     described_class.status(amounts)
   end
@@ -50,8 +49,8 @@ RSpec.describe FinancialStatements::RevenueVerification do
     # スリー・ディー・マトリックス 2017年4月期: 売上は製品売上高107,127千円、要約の事業収益615,852千円
     let(:items) do
       FinancialStatements::Amounts.new.tap do |amounts|
-        amounts.merge!("pl.revenue" => 107_127_000, "pl.summary_revenue" => 615_852_000)
-        amounts.rounding_errors.merge!("pl.revenue" => 1_000.to_d, "pl.summary_revenue" => 1_000.to_d)
+        amounts.store("pl.revenue", 107_127_000, 1_000.to_d)
+        amounts.store("pl.summary_revenue", 615_852_000, 1_000.to_d)
       end
     end
 

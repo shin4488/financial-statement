@@ -57,6 +57,6 @@ RSpec.describe Ingestion::Adjustments::CashFlowStatementBalance do
 
   it "期末残を取れていなければ差し替えない" do
     source = source_with({ [ "t:CfCash", "CurrentYearInstant" ] => 950, [ "t:CfCash", "Prior1YearInstant" ] => 800 })
-    expect(apply(extracted(except: "cf.cash_end"), source)).not_to have_key("cf.cash_end")
+    expect(apply(extracted(except: "cf.cash_end"), source).to_h).not_to have_key("cf.cash_end")
   end
 end

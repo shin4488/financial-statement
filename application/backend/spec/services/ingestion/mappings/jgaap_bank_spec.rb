@@ -8,7 +8,7 @@ RSpec.describe "Ingestion::Mappings::JgaapBank" do
     end
 
     it "銀行の骨格科目を期待値どおり抽出する" do
-      expect(items).to include(
+      expect(items.to_h).to include(
         "bs.assets" => 431_731_548_000_000,
         "bs.equity" => 23_744_152_000_000,
         "bs.loans" => 133_799_490_000_000,
@@ -20,7 +20,7 @@ RSpec.describe "Ingestion::Mappings::JgaapBank" do
     end
 
     it "売上高（pl.revenue）は保存しない（銀行のトップラインは経常収益）" do
-      expect(items).not_to have_key("pl.revenue")
+      expect(items.to_h).not_to have_key("pl.revenue")
     end
   end
 end

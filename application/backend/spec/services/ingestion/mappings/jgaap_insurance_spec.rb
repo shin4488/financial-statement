@@ -8,7 +8,7 @@ RSpec.describe "Ingestion::Mappings::JgaapInsurance" do
     end
 
     it "保険の骨格科目を期待値どおり抽出する（単位: 円）" do
-      expect(items).to include(
+      expect(items.to_h).to include(
         "bs.assets" => 58_442_160_000_000,
         "bs.cash_and_equivalents" => 1_752_984_000_000, # 現金及び預貯金
         "bs.securities" => 44_931_286_000_000,
@@ -22,7 +22,7 @@ RSpec.describe "Ingestion::Mappings::JgaapInsurance" do
     end
 
     it "売上高（pl.revenue）は保存しない（保険のトップラインは経常収益）" do
-      expect(items).not_to have_key("pl.revenue")
+      expect(items.to_h).not_to have_key("pl.revenue")
     end
   end
 end

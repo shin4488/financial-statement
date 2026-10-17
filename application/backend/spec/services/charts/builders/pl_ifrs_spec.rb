@@ -5,8 +5,7 @@ RSpec.describe Charts::Builders::PlIfrs do
   def amounts(values, rounding_error)
     FinancialStatements::Amounts.new.tap do |amounts|
       values.each do |code, value|
-        amounts[code] = value
-        amounts.rounding_errors[code] = rounding_error.to_d
+        amounts.store(code, value, rounding_error.to_d)
       end
     end
   end

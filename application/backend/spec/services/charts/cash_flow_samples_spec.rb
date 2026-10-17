@@ -24,7 +24,7 @@ RSpec.describe "キャッシュ・フロー計算書のグラフ（実XBRL）" d
     it "ぷらっとホーム 2021年3月期: 財務CFの行がなく、換算差額を含めた式が端数の範囲で成り立つため、財務CFを0として描く" do
       fs, chart = cash_flow("S100LR17", :non_consolidated)
       aggregate_failures do
-        expect(fs.items_hash).not_to have_key("cf.financing") # 保存する値は変えない
+        expect(fs.items_hash.to_h).not_to have_key("cf.financing") # 保存する値は変えない
         expect(steps(chart)).to eq("cashBegin" => 334_170_000, "operating" => -12_047_000, "investing" => -3_400_000,
                                    "financing" => 0, "cashEnd" => 318_777_000)
         expect(cash_flow_warnings).to be_empty

@@ -5,8 +5,7 @@ RSpec.describe FinancialStatements::CashFlowVerification do
   def amounts(values)
     FinancialStatements::Amounts.new.tap do |result|
       values.each do |code, amount|
-        result[code] = amount
-        result.rounding_errors[code] = 1_000.to_d
+        result.store(code, amount, 1_000.to_d)
       end
     end
   end

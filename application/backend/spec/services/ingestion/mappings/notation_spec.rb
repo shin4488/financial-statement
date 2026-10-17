@@ -28,7 +28,7 @@ RSpec.describe "対応表の記法と補正ルールの評価" do
   end
 
   it "単一タグは値をそのまま、無ければキー自体を作らない" do
-    expect(extract_with({ [ "t:Assets", "CurrentYearInstant" ] => 100 })).to eq("bs.assets" => 100)
+    expect(extract_with({ [ "t:Assets", "CurrentYearInstant" ] => 100 }).to_h).to eq("bs.assets" => 100)
   end
 
   it "フォールバックは先に取れた値を採用し、合算は存在するタグだけを足す（1つも無ければ「開示なし」）" do
@@ -36,7 +36,7 @@ RSpec.describe "対応表の記法と補正ルールの評価" do
       expect(extract_with({ [ "t:EquityTotal", "CurrentYearInstant" ] => 50, [ "t:EquityA", "CurrentYearInstant" ] => 999 })["bs.equity"]).to eq 50
       expect(extract_with({ [ "t:EquityA", "CurrentYearInstant" ] => 30, [ "t:EquityB", "CurrentYearInstant" ] => 20 })["bs.equity"]).to eq 50
       expect(extract_with({ [ "t:EquityB", "CurrentYearInstant" ] => 20 })["bs.equity"]).to eq 20
-      expect(extract_with({})).not_to have_key("bs.equity")
+      expect(extract_with({}).to_h).not_to have_key("bs.equity")
     end
   end
 
@@ -108,7 +108,7 @@ RSpec.describe "対応表の記法と補正ルールの評価" do
       facts = { [ "filer_ext:BusinessRevenueSummaryOfBusinessResults", context ] => 615,
                 [ "filer_ext:OperatingRevenueSummaryOfBusinessResults", context ] => 251 }
       names = %w[BusinessRevenueSummaryOfBusinessResults OperatingRevenueSummaryOfBusinessResults]
-      expect(extract_with(facts, filer_names: names)).not_to have_key("pl.summary_revenue")
+      expect(extract_with(facts, filer_names: names).to_h).not_to have_key("pl.summary_revenue")
     end
   end
 
@@ -125,7 +125,7 @@ RSpec.describe "対応表の記法と補正ルールの評価" do
     it "すべてのタグに値があれば足し、1つでもなければ合計として使わない" do
       aggregate_failures do
         expect(extract_with({ [ "t:Selling", context ] => 30, [ "t:Administrative", context ] => 20 }, mapping: all_present)["pl.sga"]).to eq 50
-        expect(extract_with({ [ "t:Selling", context ] => 30 }, mapping: all_present)).not_to have_key("pl.sga")
+        expect(extract_with({ [ "t:Selling", context ] => 30 }, mapping: all_present).to_h).not_to have_key("pl.sga")
       end
     end
 
@@ -177,12 +177,12 @@ RSpec.describe "対応表の記法と補正ルールの評価" do
     end
 
     it "要約の売上の行がなければ、売上が一覧にない要素名で開示されているおそれがあるため保存しない" do
-      expect(extract_with(operating_loss, blanks: [ [ "t:NetSales", context ] ])).not_to have_key("pl.revenue")
+      expect(extract_with(operating_loss, blanks: [ [ "t:NetSales", context ] ]).to_h).not_to have_key("pl.revenue")
     end
 
     it "要約に売上の値があれば保存しない" do
       amounts = extract_with(operating_loss.merge([ "t:SummaryRevenue", context ] => 615), blanks: [ [ "t:NetSales", context ] ])
-      expect(amounts).not_to have_key("pl.revenue")
+      expect(amounts.to_h).not_to have_key("pl.revenue")
     end
 
     it "本表に売上の行がなくても（前期も売上がない会社）、要約の売上が空なら、売上0として保存する" do
@@ -197,23 +197,23 @@ RSpec.describe "対応表の記法と補正ルールの評価" do
         item "pl.operating_profit", "t:OperatingIncome"
       end
       blanks = [ [ "jpcrp_cor:NetSalesSummaryOfBusinessResults", context ], [ "t:SummaryRevenue", context ] ]
-      expect(extract_with(operating_loss, blanks: blanks, mapping: summary_only)).not_to have_key("pl.revenue")
+      expect(extract_with(operating_loss, blanks: blanks, mapping: summary_only).to_h).not_to have_key("pl.revenue")
     end
 
     it "損益の値がなければ（連結初年度で連結の損益計算書を作っていない書類など）、売上の行が空でも保存しない" do
       blanks = [ [ "t:NetSales", context ], [ "t:SummaryRevenue", context ], [ "t:OperatingIncome", context ] ]
-      expect(extract_with({}, blanks: blanks)).not_to have_key("pl.revenue")
+      expect(extract_with({}, blanks: blanks).to_h).not_to have_key("pl.revenue")
     end
   end
 
   describe "CF期首残高の導出" do
     it "期末残高（cf.cash_end）と同じタグを前期末（Prior1YearInstant）から引く" do
       facts = { [ "t:Cash", "CurrentYearInstant" ] => 120, [ "t:Cash", "Prior1YearInstant" ] => 100 }
-      expect(extract_with(facts)).to include("cf.cash_end" => 120, "cf.cash_begin" => 100)
+      expect(extract_with(facts).to_h).to include("cf.cash_end" => 120, "cf.cash_begin" => 100)
     end
 
     it "前期末の値が無ければcf.cash_beginのキー自体を作らない" do
-      expect(extract_with({ [ "t:Cash", "CurrentYearInstant" ] => 120 })).not_to have_key("cf.cash_begin")
+      expect(extract_with({ [ "t:Cash", "CurrentYearInstant" ] => 120 }).to_h).not_to have_key("cf.cash_begin")
     end
   end
   it "合算の丸め精度は入力の和、未知が混ざれば未知のまま保存する" do

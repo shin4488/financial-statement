@@ -7,7 +7,7 @@ module Charts
 
       # fiscal_year_end_date: 決算日（Date）。説明文を年度で分ける形式だけが使う。分からなければnil
       def initialize(items, fiscal_year_end_date: nil)
-        @items = items # {item_code => amount} (FinancialStatements::StatementData#amounts など)
+        @items = items # 金額の表（FinancialStatements::Amounts。StatementData#amounts など）
         @fiscal_year_end_date = fiscal_year_end_date
       end
 

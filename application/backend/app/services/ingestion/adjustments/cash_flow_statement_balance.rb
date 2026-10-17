@@ -20,7 +20,7 @@ module Ingestion
           end
           # 試算は端数を比べず、金額が変わらなければ差し替えない
           next if trial.same_values?(amounts) || FinancialStatements::CashFlowVerification.mismatch(trial)
-          trial.slice(*BALANCES.keys).each { |code, amount| amounts.store(code, amount, trial.rounding_errors[code]) }
+          trial.slice(*BALANCES.keys).each { |code, amount| amounts.store(code, amount, trial.rounding_error(code)) }
           return
         end
       end

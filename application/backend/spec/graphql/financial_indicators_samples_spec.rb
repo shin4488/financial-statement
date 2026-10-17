@@ -83,7 +83,7 @@ RSpec.describe "財務指標の実有報サンプル照合" do
     # ガス等の内訳合算とサマリの総額は、切捨て単位の合計だけ差が出る。
     revenue_error = revenue && (items.rounding_errors.fetch("pl.revenue") + revenue_fact[:precision])
     if revenue
-      expect((items.fetch("pl.revenue") - revenue).abs).to be < revenue_error
+      expect((items.to_h.fetch("pl.revenue") - revenue).abs).to be < revenue_error
     else
       expect(items["pl.revenue"]).to be_nil
     end

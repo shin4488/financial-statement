@@ -9,7 +9,7 @@ RSpec.describe "Ingestion::Mappings::IfrsClassified" do
     subject(:items) { extract(load_xbrl_fixture("S100YB5L"), :consolidated) }
 
     it "BS/PL/CFの骨格科目を期待値どおり抽出する" do
-      expect(items).to include(
+      expect(items.to_h).to include(
         "bs.assets" => 15_511_506_000_000,
         "bs.equity" => 7_430_649_000_000,
         "pl.revenue" => 4_505_720_000_000,
@@ -24,8 +24,8 @@ RSpec.describe "Ingestion::Mappings::IfrsClassified" do
     end
 
     it "非開示の科目はキー自体を作らない" do
-      expect(items).not_to have_key("pl.gross_profit")       # 売上総利益は非開示
-      expect(items).not_to have_key("pl.operating_expenses") # 営業費用一括型でもない
+      expect(items.to_h).not_to have_key("pl.gross_profit")       # 売上総利益は非開示
+      expect(items.to_h).not_to have_key("pl.operating_expenses") # 営業費用一括型でもない
     end
   end
 

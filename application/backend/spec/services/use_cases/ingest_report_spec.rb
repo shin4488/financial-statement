@@ -145,9 +145,9 @@ RSpec.describe UseCases::IngestReport do
           end
           ingest("S0000001", xml)
           fs = Disclosure::FinancialStatement.sole
-          expect(fs.items_hash).to include("bs.assets" => 100 + index, "bs.assets_begin" => 80,
-                                          "pl.revenue" => 200, "pl.profit" => 20,
-                                          "cf.cash_begin" => 8, "cf.cash_end" => 10, "cf.operating" => 2)
+          expect(fs.items_hash.to_h).to include("bs.assets" => 100 + index, "bs.assets_begin" => 80,
+                                               "pl.revenue" => 200, "pl.profit" => 20,
+                                               "cf.cash_begin" => 8, "cf.cash_end" => 10, "cf.operating" => 2)
           expect(fs.disclosed_roe).to eq "0.25".to_d
         end
       end

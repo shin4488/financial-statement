@@ -114,8 +114,7 @@ RSpec.describe "Charts::Builders BS各種" do
       it "差が各金額の端数の範囲に収まれば一致とみなす" do
         amounts = FinancialStatements::Amounts.new
         balanced.merge("bs.assets" => 1_001).each do |code, value|
-          amounts[code] = value
-          amounts.rounding_errors[code] = 1.to_d
+          amounts.store(code, value, 1.to_d)
         end
         expect(described_class.new(amounts).mismatch).to be_nil
       end

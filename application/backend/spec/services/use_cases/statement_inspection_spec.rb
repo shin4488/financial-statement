@@ -87,7 +87,7 @@ RSpec.describe UseCases::StatementInspection do
     describe "CFの照合" do
       # 期首残＋営業CF＋投資CF＋財務CF＝期末残が、換算差額の分（10）だけ合わないCF
       let(:items) do
-        FinancialStatements::Amounts.new.merge!(
+        amounts_of_unknown_precision(
           "cf.cash_begin" => 100, "cf.operating" => 50, "cf.investing" => -30, "cf.financing" => -20, "cf.cash_end" => 110)
       end
 
