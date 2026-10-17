@@ -4,7 +4,7 @@
 
 金融庁の開示システム（EDINET）から有価証券報告書のXBRLデータを取得・解析し、積み上げグラフやウォーターフォールグラフとして表示します。
 
-- **本番サービス**: [https://investee.info](https://investee.info)
+**本番サービス**: [https://investee.info](https://investee.info)
 
 ---
 
@@ -20,32 +20,28 @@
 
 ```mermaid
 flowchart TD
-    subgraph Data["外部データ連携"]
-        EDINET["金融庁 EDINET API v2<br>(有報 XBRL データ)"]
+    Browser["ブラウザ<br>React / MUI / recharts"] -->|"画面の読み込み・GraphQL"| Nginx["nginx<br>リバースプロキシ"]
+
+    subgraph Frontend["フロントエンド (React SPA)"]
+        Static["ビルド済み静的ファイル<br>(開発時は Vite devサーバ)"]
     end
 
     subgraph Backend["バックエンド (Rails 7 / GraphQL)"]
+        API["GraphQL API サーバ"]
         Batch["Sidekiq バッチ<br>(日次取込 / パース処理)"]
-        API["GraphQL API サーバ<br>(スキーマ・クエリ配信)"]
     end
 
     subgraph Storage["データストア"]
-        PG[("PostgreSQL<br>(財務・企業データ)")]
+        PG[("PostgreSQL")]
         Redis[("Redis<br>(ジョブキュー)")]
     end
 
-    subgraph Frontend["フロントエンド (React SPA)"]
-        Web["Nginx リバースプロキシ<br>(:10000)"]
-        Client["React / MUI / recharts<br>(グラフ描画 & 検索)"]
-    end
-
-    EDINET --> Batch
-    Batch --> PG
-    Batch -.-> Redis
+    EDINET["金融庁 EDINET API v2"] --> Batch
+    Nginx -->|"/"| Static
+    Nginx -->|"/api (GraphQL)"| API
     API --> PG
-    Web --> Client
-    Client -->|"GraphQL Query"| Web
-    Web --> API
+    Batch --> PG
+    Batch -->|"ジョブ・スケジュール"| Redis
 ```
 
 ---
@@ -57,7 +53,7 @@ flowchart TD
 | **フロントエンド** | React, TypeScript, Apollo Client, Redux Toolkit, Material-UI, recharts |
 | **バックエンド** | Ruby 3.4, Ruby on Rails 7, GraphQL (graphql-ruby), Sidekiq |
 | **データベース / キャッシュ** | PostgreSQL 12, Redis |
-| **インフラ / 実行環境** | Docker, Docker Compose, Nginx |
+| **インフラ / 実行環境** | Docker, Docker Compose, nginx |
 | **外部連携** | 金融庁 EDINET API v2 |
 
 ---
@@ -131,7 +127,7 @@ financial-statement/
 ├── application/
 │   ├── backend/             # Rails API サーバ（モデル、バッチ、GraphQLスキーマ）
 │   └── frontend/            # React SPA（UIコンポーネント、チャート描画）
-├── web/                     # Nginx のリバースプロキシ設定
+├── web/                     # nginx のリバースプロキシ設定
 ├── database/                # PostgreSQL の初期化スクリプト
 ├── cache/                   # Redis のコンテナ定義
 ├── docs/                    # 会計基準別の変換仕様や運用設計ドキュメント
