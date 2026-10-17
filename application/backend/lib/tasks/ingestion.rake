@@ -12,7 +12,9 @@ namespace :ingestion do
 
   desc "docID指定で有報を取り込む 例: rake 'ingestion:documents[S100YB5L S100YB25]'"
   task :documents, [ :doc_ids ] => :environment do |_, args|
-    UseCases::IngestDocuments.new.call(args.fetch(:doc_ids).split(/[,\s]+/))
+    # rakeはコマンドラインの引数をカンマで分けるため、カンマで区切ったdocIDの2つ目以降は args.extras に入る
+    doc_ids = [ args.fetch(:doc_ids), *args.extras ].join(",").split(/[,\s]+/)
+    UseCases::IngestDocuments.new.call(doc_ids)
   end
 
   desc "ROE・ROA用の期首残高・自己資本が不足する既存有報を再取込する"
