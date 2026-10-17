@@ -4,7 +4,7 @@
 
 金融庁の開示システム（EDINET）から有価証券報告書のXBRLデータを取得・解析し、積み上げグラフやウォーターフォールグラフとして表示します。
 
-- **本番サービス**: [https://investee.info](https://investee.info)
+**本番サービス**: [https://investee.info](https://investee.info)
 
 ---
 
