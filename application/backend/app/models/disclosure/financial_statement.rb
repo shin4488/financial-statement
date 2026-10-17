@@ -14,7 +14,7 @@ module Disclosure
     validates :presentation_format, inclusion: { in: FinancialStatements::Formats::ALL }
 
     # グラフの説明文を年度で分ける形式があるため、グラフ作成処理に決算日を渡す
-    delegate :fiscal_year_end_date, to: :report
+    delegate :fiscal_year_end_date, to: :report, private: true
 
     # 科目ごとの金額と端数の表（FinancialStatements::Amounts）。グラフ・指標へは to_statement_data で複製して渡す。
     # preload済みなら科目と精度をメモリから取得する

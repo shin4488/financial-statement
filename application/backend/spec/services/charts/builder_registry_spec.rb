@@ -52,7 +52,7 @@ RSpec.describe Charts::BuilderRegistry do
         statement_data = fs.to_statement_data
         expect(statement_data.amounts).to be_frozen
         expect(fs.amounts).not_to be_frozen
-        expect(described_class.build_all(statement_data)).to eq(charts_from(fs.amounts, format, fs.fiscal_year_end_date)), format
+        expect(described_class.build_all(statement_data)).to eq(charts_from(fs.amounts, format, fs.report.fiscal_year_end_date)), format
       end
     end
 

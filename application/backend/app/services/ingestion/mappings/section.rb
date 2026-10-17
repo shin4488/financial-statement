@@ -16,8 +16,6 @@ module Ingestion
         @entries = entries.freeze
       end
 
-      def codes = entries.map(&:code)
-
       class Definition
         attr_reader :entries
 

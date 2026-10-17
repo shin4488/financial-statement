@@ -46,7 +46,7 @@ module Ingestion
         end.uniq
         matches.first if matches.one?
       end
-      private_class_method :find_opening
+      private_class_method :reconcile, :find_opening
     end
   end
 end

@@ -5,11 +5,8 @@ module Edinet
     # HTTP 200でも、本文のmetadata.status / StatusCodeで取得失敗が返ることがある。
     # APIキーを含むURLや応答本文を例外に載せない。
     class ApiError < StandardError
-      attr_reader :status
-
       def initialize(status)
-        @status = status.to_s
-        super("EDINET API failed: #{@status}")
+        super("EDINET API failed: #{status}")
       end
     end
     # API仕様書記載の公式ホスト。閲覧サイト側ホスト（disclosure.edinet-fsa.go.jp）の
