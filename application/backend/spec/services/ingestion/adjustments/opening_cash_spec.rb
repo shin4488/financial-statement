@@ -33,6 +33,14 @@ RSpec.describe Ingestion::Adjustments::OpeningCash do
     expect(supplemented_opening(closing: money(37_621_000))).to be_nil
   end
 
+  it "連結範囲変更の増減が外貨・不正な数値のときや、精度不明で差があるときは補完しない" do
+    # 連結範囲変更等を式から除いて照合しても、式が合う入力にする
+    expect(supplemented_opening(adjustments: [ money(0, unit: "USD") ])).to be_nil
+    expect(supplemented_opening(adjustments: [ money("invalid") ])).to be_nil
+    # 差が0なら精度によらず一致とするため、期末残を1,000ずらし、ほかの金額の端数の範囲内の差を作る
+    expect(supplemented_opening(closing: money(36_622_000), adjustments: [ money(0, decimals: nil) ])).to be_nil
+  end
+
   it "開示精度の上限に達する差や、精度不明の金額を含む差を許容しない" do
     expect(supplemented_opening(closing: money(36_624_000))).to be_nil
     expect(supplemented_opening(opening: money(23_236_000, decimals: nil), closing: money(36_622_000))).to be_nil
@@ -43,6 +51,11 @@ RSpec.describe Ingestion::Adjustments::OpeningCash do
     expect(supplemented_opening(opening: money("invalid"))).to be_nil
     expect(supplemented_opening(change: money(13_385_000, unit: "USD"))).to be_nil
     expect(supplemented_opening(opening: money(-1))).to be_nil
+  end
+
+  it "式が合っても、期首残や期末残がマイナスなら補完しない" do
+    expect(supplemented_opening(opening: money(-1_000_000), change: money(37_621_000))).to be_nil
+    expect(supplemented_opening(closing: money(-1_000_000), change: money(-24_236_000))).to be_nil
   end
 
   it "厳密な0も開示値として扱う" do
