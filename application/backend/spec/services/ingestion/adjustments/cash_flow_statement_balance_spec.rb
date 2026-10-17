@@ -50,6 +50,17 @@ RSpec.describe Ingestion::Adjustments::CashFlowStatementBalance do
     end
   end
 
+  # 試算は端数を比べない。端数だけが広い候補で、CFの式を成り立たせない
+  it "候補の金額が期首残・期末残と同じなら、端数を広げればCFの式が成り立つときも、端数を変えない" do
+    source = source_with({ [ "t:CfCash", "CurrentYearInstant" ] => 1_000, [ "t:CfCash", "Prior1YearInstant" ] => 800 },
+                         errors: { [ "t:CfCash", "CurrentYearInstant" ] => 100.to_d, [ "t:CfCash", "Prior1YearInstant" ] => 100.to_d })
+    amounts = apply(extracted, source)
+    aggregate_failures do
+      expect(amounts.values_at("cf.cash_begin", "cf.cash_end")).to eq [ 800, 1_000 ]
+      expect(amounts.rounding_errors.values_at("cf.cash_begin", "cf.cash_end")).to eq [ 1.to_d, 1.to_d ]
+    end
+  end
+
   it "経営指標の要約のタグは本表の残高ではないため、CFの式が成り立っても使わない" do
     source = source_with({ [ "jpcrp_cor:CashSummary", "CurrentYearInstant" ] => 950 })
     expect(apply(extracted, source)["cf.cash_end"]).to eq 1_000
