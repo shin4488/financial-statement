@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_09_19_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_17_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -26,7 +26,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_19_000001) do
 
   create_table "financial_statement_items", comment: "財務諸表科目（正規化・縦持ち）", force: :cascade do |t|
     t.bigint "financial_statement_id", null: false
-    t.string "item_code", null: false, comment: "正規化科目コード（FinancialStatements::ItemCodesレジストリで管理）"
+    t.string "item_code", null: false, comment: "正規化科目コード（FinancialStatements::ItemCatalogで管理）"
     t.bigint "amount", null: false, comment: "金額（円）。取得できなかった科目は行を作らない"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -39,7 +39,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_19_000001) do
     t.bigint "report_id", null: false, comment: "有報id"
     t.integer "consolidation_type", null: false, comment: "0:consolidated 1:non_consolidated"
     t.integer "accounting_standard", null: false, comment: "この財務諸表の会計基準（有報全体と異なり得る）"
-    t.string "presentation_format", null: false, comment: "表示形式（値の一覧はコードの Ingestion::FormatRegistry::ALL を参照）"
+    t.string "presentation_format", null: false, comment: "表示形式（値の一覧はコードの FinancialStatements::Formats::ALL を参照）"
     t.boolean "is_primary", default: false, null: false, comment: "表示・検索の主対象（連結があれば連結）"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
