@@ -52,7 +52,7 @@ RSpec.describe "業種別の形式判定と描画可否（実XBRL）" do
 
       expectations.each do |consolidation_type, (expected_format, bs_ok, pl_ok)|
         fs = Disclosure::FinancialStatement.find_by!(consolidation_type: consolidation_type)
-        charts = Charts::BuilderRegistry.build_all(fs)
+        charts = Charts::BuilderRegistry.build_all(fs.to_statement_data)
         aggregate_failures("#{consolidation_type}") do
           expect(fs.presentation_format).to eq expected_format
           expect(charts[:balance_sheet].renderable).to be(bs_ok), "BS: #{charts[:balance_sheet].note}"

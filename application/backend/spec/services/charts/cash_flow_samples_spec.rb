@@ -13,7 +13,7 @@ RSpec.describe "キャッシュ・フロー計算書のグラフ（実XBRL）" d
       UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: doc_id, work_dir: work_dir)
     end
     fs = Disclosure::FinancialStatement.find_by!(consolidation_type: consolidation_type)
-    [ fs, Charts::BuilderRegistry.build_all(fs)[:cash_flow] ]
+    [ fs, Charts::BuilderRegistry.build_all(fs.to_statement_data)[:cash_flow] ]
   end
 
   def steps(chart) = chart.steps.to_h { |step| [ step.key, step.amount ] }
@@ -32,8 +32,9 @@ RSpec.describe "キャッシュ・フロー計算書のグラフ（実XBRL）" d
     end
 
     it "キャンバス 2026年6月期: 投資CF・財務CFが「－」で、FCF推移も投資CFを0として営業CFだけになる" do
-      fs, chart = cash_flow("S100Z4G9", :non_consolidated)
-      trend = FinancialStatements::FreeCashFlowTrends.build([ fs.report ]).fetch(fs.report.id)
+      _, chart = cash_flow("S100Z4G9", :non_consolidated)
+      trend = UseCases::ListFinancialReports.new.call(limit: 10, offset: 0, stock_codes: nil, cf_signs: {}, with_trend: true)
+                                            .sole.free_cash_flow_trend
       aggregate_failures do
         expect(steps(chart)).to eq("cashBegin" => 2_827_879_000, "operating" => -1_424_017_000, "investing" => 0,
                                    "financing" => 0, "cashEnd" => 1_445_095_000)

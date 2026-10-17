@@ -11,7 +11,7 @@ RSpec.describe Charts::BuilderRegistry do
     fs = create(:disclosure_financial_statement, presentation_format: "unsupported",
                 items_hash: { "cf.cash_begin" => 1, "cf.operating" => 2, "cf.investing" => 3,
                               "cf.financing" => 4, "cf.cash_end" => 10 })
-    charts = described_class.build_all(fs)
+    charts = described_class.build_all(fs.to_statement_data)
     expect(charts[:balance_sheet].renderable).to be false
     expect(charts[:profit_loss].renderable).to be false
     expect(charts[:cash_flow].renderable).to be true
@@ -21,7 +21,7 @@ RSpec.describe Charts::BuilderRegistry do
     report = create(:disclosure_report, fiscal_year_start_date: Date.new(2017, 4, 1), fiscal_year_end_date: Date.new(2018, 3, 31))
     fs = create(:disclosure_financial_statement, report: report, presentation_format: "ifrs_summary",
                 items_hash: { "bs.assets" => 1_000 })
-    expect(described_class.build_all(fs)[:balance_sheet].note).to eq "財政状態計算書: 2019年3月末より前のIFRSは非対応です。"
+    expect(described_class.build_all(fs.to_statement_data)[:balance_sheet].note).to eq "財政状態計算書: 2019年3月末より前のIFRSは非対応です。"
   end
 
   describe "StatementData を受ける" do
@@ -38,12 +38,21 @@ RSpec.describe Charts::BuilderRegistry do
       }
     end
 
-    it "凍結した金額から、どの形式でもARモデルを渡したときと同じグラフを組み立てる" do
+    # 凍結していない金額の表と決算日を、形式のBuilderに直接渡して組み立てたグラフ
+    def charts_from(items, format, date)
+      unrenderable = Charts::StackChart.unrenderable(described_class::UNSUPPORTED_NOTE)
+      { balance_sheet: described_class::BS[format]&.new(items, fiscal_year_end_date: date)&.build || unrenderable,
+        profit_loss: described_class::PL[format]&.new(items, fiscal_year_end_date: date)&.build || unrenderable,
+        cash_flow: Charts::Builders::CashFlow.new(items).build }
+    end
+
+    it "凍結した金額から、どの形式でも凍結していない金額の表をBuilderに渡したときと同じグラフを組み立てる" do
       FinancialStatements::Formats::ALL.each do |format|
         fs = create(:disclosure_financial_statement, presentation_format: format, items_hash: items)
         statement_data = fs.to_statement_data
         expect(statement_data.amounts).to be_frozen
-        expect(described_class.build_all(statement_data)).to eq(described_class.build_all(fs)), format
+        expect(fs.items_hash).not_to be_frozen
+        expect(described_class.build_all(statement_data)).to eq(charts_from(fs.items_hash, format, fs.fiscal_year_end_date)), format
       end
     end
 

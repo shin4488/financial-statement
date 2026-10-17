@@ -33,7 +33,7 @@ RSpec.describe "財務指標の実有報サンプル照合" do
       response = FinancialStatementSchema.execute(query).to_h
       expect(response["errors"]).to be_nil
       expect(response.dig("data", "financialReports").size).to eq 1
-      metrics = FinancialStatements::Indicators.build(report.primary_financial_statement)
+      metrics = FinancialStatements::Indicators.build(report.primary_financial_statement.to_statement_data)
       expected = metrics.to_h do |key, metric|
         [ key.to_s.camelize(:lower), { "value" => metric.value, "status" => metric.status.upcase } ]
       end
@@ -52,7 +52,7 @@ RSpec.describe "財務指標の実有報サンプル照合" do
   end
 
   def verify_statement(statement, doc_id)
-    metrics = FinancialStatements::Indicators.build(statement)
+    metrics = FinancialStatements::Indicators.build(statement.to_statement_data)
     suffix = statement.consolidated? ? "" : "_NonConsolidatedMember"
     ifrs = statement.accounting_standard_ifrs?
     # 米国基準の連結は、経営指標の要約の米国基準の欄だけで照合する

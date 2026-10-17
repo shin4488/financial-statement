@@ -10,10 +10,14 @@ RSpec.describe FinancialStatements::Indicators do
     }
   end
   let(:disclosed_roe) { nil }
-  let(:consolidated) { true }
-  subject(:indicators) do
-    described_class.build(instance_double(Disclosure::FinancialStatement,
-                                         items_hash: items, consolidated?: consolidated, disclosed_roe: disclosed_roe))
+  let(:consolidation_type) { :consolidated }
+  subject(:indicators) { described_class.build(statement_data(consolidation_type, disclosed_roe: disclosed_roe)) }
+
+  def statement_data(consolidation_type, disclosed_roe: nil)
+    FinancialStatements::StatementData.new(
+      consolidation_type: consolidation_type, accounting_standard: "ifrs", presentation_format: "ifrs_classified",
+      amounts: amounts_of_unknown_precision(items), disclosed_roe: disclosed_roe,
+      fiscal_year_end_date: Date.new(2026, 3, 31))
   end
 
   it "期首期末平均と親会社帰属利益を使い、丸め前の分解式が一致する" do
@@ -67,7 +71,7 @@ RSpec.describe FinancialStatements::Indicators do
 
   context "単体" do
     let(:disclosed_roe) { nil }
-  let(:consolidated) { false }
+  let(:consolidation_type) { :non_consolidated }
     it "親会社帰属利益ではなく当期純利益を使う" do
       expect(indicators[:roe].value).to eq 0.2
       expect(indicators[:roa].value).to eq 0.08
@@ -132,15 +136,12 @@ RSpec.describe FinancialStatements::Indicators do
   end
 
   describe "StatementData から作る" do
-    def statement_data(consolidation_type, disclosed_roe: nil)
-      FinancialStatements::StatementData.new(
-        consolidation_type: consolidation_type, accounting_standard: "ifrs", presentation_format: "ifrs_classified",
-        amounts: FinancialStatements::Amounts.new.merge!(items), disclosed_roe: disclosed_roe,
-        fiscal_year_end_date: Date.new(2026, 3, 31))
-    end
-
-    it "凍結した金額から、ARモデルなどを渡したときと同じ指標を作る" do
-      expect(described_class.build(statement_data(:consolidated))).to eq indicators
+    it "凍結した金額から指標を作る" do
+      statement = statement_data(:consolidated)
+      expect(statement.amounts).to be_frozen
+      metric = ->(value) { FinancialStatements::Indicators::Metric.new(value: value, status: "available", source: "calculated") }
+      expect(described_class.build(statement)).to eq(roe: metric.(0.16), roa: metric.(0.064), net_profit_margin: metric.(0.08),
+                                                     asset_turnover: metric.(0.8), financial_leverage: metric.(2.5))
     end
 
     it "単体は、親会社帰属利益ではなく当期純利益を使う" do

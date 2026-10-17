@@ -8,22 +8,10 @@ module FinancialStatements
     Trend = Struct.new(:renderable, :note, :points, keyword_init: true)
 
     # targets は推移を作る有報（[TrendTarget]）、history は同じ企業の過去の主の財務諸表（[PastStatement]）。
-    # 有報のid → Trend を返す。history を省くと、targets に有報（ARモデル）を受け、過去の財務諸表も読む
-    def self.build(targets, history = nil)
-      return from_reports(targets) if history.nil?
-
+    # 有報のid → Trend を返す。DBは読まない
+    def self.build(targets, history)
       new(targets, history).build
     end
-
-    def self.from_reports(reports)
-      return {} if reports.empty?
-
-      targets = reports.map do |report|
-        TrendTarget.new(report_id: report.id, company_id: report.company_id, fiscal_year_end_date: report.fiscal_year_end_date)
-      end
-      new(targets, Disclosure::CashFlowHistory.new.load(targets)).build
-    end
-    private_class_method :from_reports
 
     def initialize(targets, history)
       @targets = targets

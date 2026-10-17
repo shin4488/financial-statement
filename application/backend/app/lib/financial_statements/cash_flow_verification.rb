@@ -29,10 +29,7 @@ module FinancialStatements
       codes = FLOWS + ADJUSTMENTS + [ CLOSING ]
       difference = items[CLOSING] - (FLOWS + ADJUSTMENTS).sum { |code| items[code] || 0 }
       # 行がない項目は0と開示されたものとして扱い、端数を持たない。行がある項目の精度が分からなければ、差が0のときだけ成り立つ
-      errors = codes.map do |code|
-        next 0 if items[code].nil?
-        items.respond_to?(:rounding_errors) ? items.rounding_errors[code] : nil
-      end
+      errors = codes.map { |code| items[code].nil? ? 0 : items.rounding_errors[code] }
       RoundingRange.within?(difference, errors)
     end
     private_class_method :balanced?

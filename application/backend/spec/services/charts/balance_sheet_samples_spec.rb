@@ -17,7 +17,7 @@ RSpec.describe "貸借対照表のグラフ（実XBRL）" do
   def charts(doc_id, consolidation_type)
     ingest(doc_id)
     fs = Disclosure::FinancialStatement.find_by!(consolidation_type: consolidation_type)
-    [ fs, Charts::BuilderRegistry.build_all(fs) ]
+    [ fs, Charts::BuilderRegistry.build_all(fs.to_statement_data) ]
   end
 
   def segments(bar) = bar.segments.map { |segment| [ segment.label, segment.signed_amount ] }
@@ -48,7 +48,7 @@ RSpec.describe "貸借対照表のグラフ（実XBRL）" do
       aggregate_failures do
         { consolidated: 186_108_700_000_000, non_consolidated: 186_113_094_000_000 }.each do |type, deposits|
           fs = Disclosure::FinancialStatement.find_by!(consolidation_type: type)
-          chart = Charts::BuilderRegistry.build_all(fs)[:balance_sheet]
+          chart = Charts::BuilderRegistry.build_all(fs.to_statement_data)[:balance_sheet]
           expect(chart.renderable).to be(true), "#{type}: #{chart.note}"
           expect(chart.bars.last.segments.first).to have_attributes(label: "預金", signed_amount: deposits)
         end

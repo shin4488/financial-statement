@@ -4,20 +4,10 @@ module FinancialStatements
   class Indicators
     Metric = Struct.new(:value, :status, :source, keyword_init: true)
 
-    # StatementData を受ける。items_hash・consolidated?・disclosed_roe を持つ値（ARモデルなど）も受け、その3つだけを読む
+    # statement は StatementData。読むのは金額・公表ROE・連結区分だけ
     def self.build(statement)
-      new(statement.is_a?(StatementData) ? statement : statement_data_from(statement)).build
+      new(statement).build
     end
-
-    def self.statement_data_from(source)
-      items = source.items_hash
-      # StatementData は端数の表を持つ Amounts を受けるため、普通のHashは端数の表が空の Amounts に詰め替える
-      amounts = items.is_a?(Amounts) ? items : Amounts.new.merge!(items)
-      StatementData.new(consolidation_type: source.consolidated? ? :consolidated : :non_consolidated,
-                        accounting_standard: nil, presentation_format: nil, amounts: amounts,
-                        disclosed_roe: source.disclosed_roe, fiscal_year_end_date: nil)
-    end
-    private_class_method :statement_data_from
 
     def initialize(statement)
       @items = statement.amounts
