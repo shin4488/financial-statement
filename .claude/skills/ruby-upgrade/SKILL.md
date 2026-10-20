@@ -35,4 +35,4 @@ docker compose run --rm appserver bash -c 'BUNDLE_PATH=vendor/bundle bundle upda
 
 PR作成を依頼された場合は共通 `create-pr` skillを使い、選定理由・検証結果・Bundlerの制約を記載する。
 
-本番反映を行う場合だけ [本番手順](references/production.md) を読む。新Rubyの導入、転送、gemの再ビルド、ユーザーによる再起動、稼働Rubyの確認の順序を守る。旧版はロールバック用に残し、削除はユーザーへの確認後に行う。
+本番反映は依頼された場合だけ行い、更新方針への合意だけで本番反映や旧版の削除を始めない。手順はgit管理外の `/deploy` skillにある。`/deploy` skillを使えなければ、接続先・事前確認・実行担当をユーザーに確認し、推測で操作しない。
