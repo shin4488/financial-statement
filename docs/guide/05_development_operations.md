@@ -77,7 +77,7 @@ flowchart TB
     Nginx -->|"/api → localhost:30000"| Puma["puma（Rails・production）"]
     Puma --> PG[("PostgreSQL")]
     Sidekiq["Sidekiq（systemd管理）<br>毎日2:00の日次取込"] --> PG
-    Sidekiq -->|"ジョブ・スケジュール"| Redis[("Redis（専用ポート）")]
+    Sidekiq -->|"スケジュール"| Redis[("Redis（専用ポート）")]
     Sidekiq -->|"取込"| EDINET["EDINET API"]
 ```
 
@@ -85,7 +85,7 @@ flowchart TB
 |---|---|
 | 本番nginxの設定 | **リポジトリ外**（サーバ上の `/etc/nginx/` 直下）にあり、rsyncデプロイの対象外。変更はサーバ上で直接行う |
 | フロントエンド | devサーバではなく、ビルド済み静的ファイルをnginxが直接配信する。SPAのフォールバック設定（未知パス→index.html）は本番nginx側の責務 |
-| セキュリティヘッダ | nginxで一元管理し、Rails側のヘッダ出力は明示的に止めている（二重出力防止）。CSPはReport-Onlyで運用（AdSenseとMUIがインラインコードを要求するため強制モードにできない） |
+| セキュリティヘッダ | nginxで一元管理し、Rails側のヘッダ出力は明示的に止めている（二重出力防止） |
 | HTTPS | Certbot（Let's Encrypt）による301リダイレクトとTLS終端。Railsの `force_ssl` は使わない（nginxが `X-Forwarded-Proto` を転送しておらず、有効化すると無限リダイレクトになる） |
 | レート制限 | `/api/` に対して2リクエスト/秒（バースト20、超過は429）。未認証・公開APIの防御の一部 |
 

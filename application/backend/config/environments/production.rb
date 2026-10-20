@@ -33,7 +33,7 @@ Rails.application.configure do
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   # 有効にしないこと: リダイレクトは前段のnginxが既に301しており、このアプリはCookieを
   # 発行しないためセキュアCookieも無意味。一方nginxはX-Forwarded-Protoを転送していないため、
-  # 有効にすると無限リダイレクトでサイトが停止する（Rails 7.0にassume_sslは無い）
+  # 有効にすると無限リダイレクトでサイトが停止する
   # config.force_ssl = true
 
   # セキュリティヘッダは前段のnginxで一元管理する。Railsの既定値を残すと同じヘッダが

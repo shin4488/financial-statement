@@ -21,12 +21,12 @@ flowchart LR
         Web["web（nginx）"] -->|"/ へのアクセス"| Front["appfront（Vite devサーバ）"]
         Web -->|"/api へのアクセス"| Server["appserver（Rails + Sidekiq）"]
         Server --> Database[("database<br>PostgreSQL")]
-        Server -->|"ジョブ・スケジュール"| Cache[("cache<br>Redis")]
+        Server -->|"スケジュール"| Cache[("cache<br>Redis")]
     end
     Browser2["動作確認用<br>localhost:20000"] --> Server
 ```
 
-Redisは取込ジョブのキューとスケジュールを保持する。財務データのキャッシュには使わない。
+Redisは取込ジョブのスケジュールを保持する。財務データのキャッシュには使わない。
 
 ## 取込ジョブの信頼性
 
