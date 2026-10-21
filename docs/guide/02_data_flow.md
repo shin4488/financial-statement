@@ -112,7 +112,7 @@ sequenceDiagram
         X->>P: 科目の期間・連結区分を指定
         P->>P: 企業・実日付・連結区分・通貨を照合
         P-->>X: 金額・開示精度
-        X->>A: 全科目を取った後に、下表の順に適用
+        X->>A: 全科目を取った後に、下図の順に適用
         A->>P: 補正に使う値を引く
         A-->>X: 補った・差し替えた科目
     end
@@ -123,12 +123,44 @@ sequenceDiagram
 
 ##### 補正
 
-| 順 | 補正ルール | 条件 | すること |
-|---|---|---|---|
-| 1 | `OpeningCash` | CFの期首残がなく、期末残がある | 日本基準のタグの期末残・当期増減・調整額と、当期の開始日より前の時点の残高（企業・連結区分が一致するfact）を引く。期首＋当期増減＋調整額＝期末が円・開示精度の範囲で成り立つ、一意の期首額だけを使う |
-| 2 | `CashFlowStatementBalance` | CFの期末残がある | 期末残の2番目以降の取得候補（要約のタグを除く）で期末残・期首残を引き、CFの式が端数の範囲で成り立てば、その候補の値にする |
-| 3 | `RevenueCandidate` | 売上が経営指標の要約の売上と一致しない | 要約と一致する最初の取得候補を売上にする（[照合の詳細](#売上と経営指標の要約の照合)） |
-| 4 | `ZeroRevenue` | 売上も要約の売上も取れず、損益の値がある | 要約の売上の行が「－」なら、売上と要約の売上を0にする（[条件の詳細](#取得できない科目は保存しない)） |
+補正ルールは、同じ書類のほかの値と照合して科目を補う・差し替えるクラス。基底クラスは持たず、同じ形の `apply` を揃える。`StatementExtractor` が全科目を取った後に①〜④の順に適用する。前のルールの結果を次のルールが使うため、この順は `Ingestion::Adjustments::ALL` で固定する。
+
+```mermaid
+classDiagram
+    direction LR
+    class Rule["補正ルール"] {
+        apply(amounts, mapping, source, consolidation)
+    }
+    class OpeningCash["① OpeningCash"] {
+        条件：CFの期首残がなく、期末残がある
+        同じ企業・連結区分の、当期の開始日より前の残高を探す
+        対象は日本基準のタグ・円の残高
+        期首＋当期増減＋調整額＝期末が開示精度の範囲で成り立つ
+        一意に決まる期首額だけを期首残にする
+    }
+    class CashFlowStatementBalance["② CashFlowStatementBalance"] {
+        条件：CFの期末残がある
+        期末残の2番目以降の取得候補で、期末残・期首残を引く
+        要約のタグは候補にしない
+        CFの式が端数の範囲で成り立てば、その値にする
+    }
+    class RevenueCandidate["③ RevenueCandidate"] {
+        条件：売上が経営指標の要約の売上と一致しない
+        取得候補、差し替えのときだけ使う候補の順に試す
+        要約のタグは候補にしない
+        要約と一致する最初の候補を売上にする
+    }
+    class ZeroRevenue["④ ZeroRevenue"] {
+        条件：売上も要約の売上も取れず、損益の値がある
+        要約の売上の行が「－」なら、売上と要約の売上を0にする
+    }
+    Rule <|.. OpeningCash
+    Rule <|.. CashFlowStatementBalance
+    Rule <|.. RevenueCandidate
+    Rule <|.. ZeroRevenue
+```
+
+当てはまらないルールは何もせず、当てはまるルールは金額の表（`amounts`）を直接更新する。`RevenueCandidate` の照合は[売上と経営指標の要約の照合](#売上と経営指標の要約の照合)、`ZeroRevenue` の条件は[取得できない科目は保存しない](#取得できない科目は保存しない)に書いている。
 
 照合で候補が決まらない科目は欠損のままにし、他の取得できた科目は保存する。CFの補完をROE・ROAの期首残高には流用しない。
 
@@ -251,6 +283,9 @@ classDiagram
     class Mappings["Ingestion::Mappings"] {
         形式ごとの対応表
     }
+    class Adjustments["Ingestion::Adjustments"] {
+        補正ルール4つ
+    }
     class ReportWriter["Disclosure::ReportWriter"] {
         1有報分の書き込み
     }
@@ -275,6 +310,7 @@ classDiagram
     IngestReport --> StatementInspection
     IngestReport --> IngestionNotices
     StatementExtractor --> Mappings
+    StatementExtractor --> Adjustments
     StatementInspection --> Mappings : 形式が作る科目
     StatementInspection --> BuilderRegistry : チャートの検算
     StatementInspection --> IngestionNotices
