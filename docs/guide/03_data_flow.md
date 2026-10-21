@@ -96,76 +96,70 @@ sequenceDiagram
 
 #### ② 科目抽出・保存
 
-①の原本を企業・期間・連結区分で読み分ける。保存した科目と企業公表ROEが、③の入力になる。
+①の原本を企業・期間・連結区分で読み分ける。保存した科目と企業公表ROEが、③の入力になる。抽出、補正、保存・点検の順に進む。
+
+##### 抽出
 
 ```mermaid
 sequenceDiagram
-    participant U as IngestReport（手順）
+    participant U as IngestReport
     participant X as StatementExtractor
     participant P as ReportingPeriod
     participant A as 補正ルール
-    participant W as ReportWriter（保存）
-    participant D as DB
-    participant C as StatementInspection（点検）
-    participant Y as Sentry
-    Note over U,P: ①で確認した原本と識別情報
-    U->>X: 連結・単体ごとに形式を判定し、科目と公表ROEを抽出
-    X->>P: 対応表の科目ごとに、取得式が期間・連結区分を指定してタグの値を引く
-    P->>P: 企業・実日付・連結区分・通貨を照合
-    P-->>X: 金額・開示精度
-    X->>A: すべての科目を取った後に、一覧の順に適用する
-    opt 1. OpeningCash：CFの期首残がなく、期末残がある
-        A->>P: 日本基準のタグの期末残・当期増減・調整額と、当期の開始日より前の時点の残高
-        P-->>A: 企業・連結区分が一致するfact（値・開示精度・単位）
-        A->>A: 期首＋当期増減＋調整額＝期末を、円・開示精度の範囲で照合
-        Note over A: 一意で金額が整合する原本の期首額だけ使う
+    U->>X: ①で確認した原本
+    loop 連結・単体ごと
+        X->>X: 形式を判定
+        X->>P: 科目の期間・連結区分を指定
+        P->>P: 企業・実日付・連結区分・通貨を照合
+        P-->>X: 金額・開示精度
+        X->>A: 全科目を取った後に、下表の順に適用
+        A->>P: 補正に使う値を引く
+        A-->>X: 補った・差し替えた科目
     end
-    opt 2. CashFlowStatementBalance：CFの期末残がある
-        A->>P: 期末残の2番目以降の取得候補（要約のタグを除く）で、期末残・期首残を引く
-        Note over A: CFの式が端数の範囲で成り立てば、期首残・期末残をその候補の値にする
-    end
-    opt 3. RevenueCandidate：売上が経営指標の要約の売上と一致しない
-        A->>P: 売上の取得候補（要約のタグを除く）、差し替えのときだけ使う候補の順に引く
-        Note over A: 要約と一致する最初の候補を売上にする
-    end
-    opt 4. ZeroRevenue：売上も要約の売上も取れず、損益の値がある
-        A->>P: 要約の売上の行が「－」か
-        Note over A: 「－」なら売上と要約の売上を0にする
-    end
-    A-->>X: 補った・差し替えた科目
-    X-->>U: 区分ごとの値（StatementData：形式・科目・金額・開示精度・公表ROE）
-    Note over U,Y: 1有報の保存は1トランザクション。失敗時は巻き戻す（それまでに送った通知は残る）
-    U->>W: 区分ごとの値と、①の判定の証券コード
-    W->>D: 企業と会計期間をキーに書類を作成・更新
-    W->>D: 今回なくなった連結区分を削除し、新しい表示対象を立てる前に旧い表示対象を外す
-    loop 連結 / 単体ごと（保存の直後、トランザクションの中で通知）
-        alt 当期科目が取れず、既存の科目がある
-            W->>W: その財務諸表の科目・形式・公表ROEを保持
-            W-->>U: 既存を残した
-            U->>Y: 既存を残したことを通知
-        else 保存できる抽出結果
-            W->>D: 科目を入れ替え、形式・公表ROE・表示対象を保存
-            W-->>U: 保存した
-            U->>C: 区分の値と、表示対象か
-            C-->>U: 通知の並び（表示対象のときだけ。資産合計の欠落 → 売上 → PL → BS → CF の照合）
-            U->>Y: 通知
-        end
-    end
-    Note over D: ③はこの保存済みデータを参照する
+    X-->>U: 区分ごとの値（StatementData）
 ```
+
+`StatementData` は、区分ごとの形式・科目・金額・開示精度・公表ROEを持つ。
+
+##### 補正
+
+| 順 | 補正ルール | 条件 | すること |
+|---|---|---|---|
+| 1 | `OpeningCash` | CFの期首残がなく、期末残がある | 日本基準のタグの期末残・当期増減・調整額と、当期の開始日より前の時点の残高（企業・連結区分が一致するfact）を引く。期首＋当期増減＋調整額＝期末が円・開示精度の範囲で成り立つ、一意の期首額だけを使う |
+| 2 | `CashFlowStatementBalance` | CFの期末残がある | 期末残の2番目以降の取得候補（要約のタグを除く）で期末残・期首残を引き、CFの式が端数の範囲で成り立てば、その候補の値にする |
+| 3 | `RevenueCandidate` | 売上が経営指標の要約の売上と一致しない | 要約と一致する最初の取得候補を売上にする（[照合の詳細](#売上と経営指標の要約の照合)） |
+| 4 | `ZeroRevenue` | 売上も要約の売上も取れず、損益の値がある | 要約の売上の行が「－」なら、売上と要約の売上を0にする（[条件の詳細](#取得できない科目は保存しない)） |
 
 照合で候補が決まらない科目は欠損のままにし、他の取得できた科目は保存する。CFの補完をROE・ROAの期首残高には流用しない。
 
-①②の担当は次のとおり。部品は判定・抽出・点検の結果を値で返し、保存は区分ごとの結果をブロックへ渡す。通知は `IngestReport` だけが送る。
+##### 保存・点検
 
-| 担当 | 役割 |
-|---|---|
-| `UseCases::IngestReport` | 原本の取得から点検までの順序、1有報のトランザクションの範囲、Sentryへの通知 |
-| `Ingestion::DocumentScreening` | 対象確認。取り込むか、照合と保存に使う証券コード（空欄を保存済みの書類から補ったときはその値）、送る通知の種類を返す |
-| `Ingestion::StatementExtractor` | 連結・単体ごとの形式判定・抽出・補正。DBを使わない |
-| `Disclosure::ReportWriter` | 1有報分の書き込み（`IngestReport` が開いたトランザクションの中で呼ぶ）。区分ごとに、保存したか既存を残したかを、その区分を書いた直後にブロックへ渡す |
-| `UseCases::StatementInspection` | 表示対象の財務諸表の点検（資産合計の欠落、売上の照合、チャートの検算）。取込の対応表とチャートの両方を使うため、ユースケースに置く |
-| `UseCases::IngestionNotices` | 通知の種類（文言・レベル・fingerprint）の定義 |
+```mermaid
+sequenceDiagram
+    participant U as IngestReport
+    participant W as ReportWriter
+    participant D as DB
+    participant C as StatementInspection
+    Note over U,C: 1有報で1トランザクション。失敗したら巻き戻す（送った通知は残る）
+    U->>W: 区分ごとの値・証券コード
+    W->>D: 書類を作成・更新
+    W->>D: なくなった区分を削除
+    W->>D: 旧い表示対象を外す
+    loop 連結・単体ごと（保存の直後に通知）
+        alt 当期の科目がなく、保存済みの科目がある
+            W-->>U: 保存済みを残した
+            U->>U: Sentryへ通知
+        else それ以外
+            W->>D: 科目・形式・公表ROE・表示対象を保存
+            W-->>U: 保存した
+            U->>C: 区分の値・表示対象か
+            C-->>U: 通知の並び
+            U->>U: Sentryへ通知
+        end
+    end
+```
+
+書類は企業と会計期間をキーに作成・更新し、旧い表示対象は新しい表示対象を立てる前に外す。当期の科目が取れなかった区分は、保存済みの科目・形式・公表ROEを残す。点検は表示対象の区分だけで行い、資産合計の欠落 → 売上 → PL → BS → CF の照合の順に通知する。
 
 <a id="sequence-display"></a>
 
@@ -198,12 +192,7 @@ sequenceDiagram
     U->>U: グラフ・指標、または表示できない理由を描画
 ```
 
-| 担当 | 役割 |
-|---|---|
-| `Resolvers::FinancialReports` | 引数の検証、FCF推移を要求されたかの判定、応答の形への変換 |
-| `UseCases::ListFinancialReports` | 検索と組み立ての順序。財務諸表を `StatementData` に、書類をFCF推移の対象（`TrendTarget`）にする。FCF推移は要求されたときだけ作る |
-| `Disclosure::SearchQuery`・`CashFlowHistory` | DBの検索。書類の件数によらず、問い合わせの回数を一定にする |
-| `Charts::BuilderRegistry`・`FinancialStatements::Indicators`・`FreeCashFlowTrends` | 受け取った値からチャート・指標・FCF推移を組み立てる。チャートと指標は `StatementData`、FCF推移は `TrendTarget` と過去の財務諸表（`PastStatement`）を受け、DBを使わない |
+①〜③を担うクラスは[処理の分担](#処理の分担)に示す。
 
 ### 形式の違いは、取込とチャートの組み立てで扱う
 
@@ -226,28 +215,78 @@ flowchart LR
 
 ### 処理の分担
 
-取込・保存・チャート作成・描画の4つに分け、処理の順序はユースケースに置く。実線はデータの流れ、点線はユースケースが使う層を表す。
+取込（`Ingestion`）・保存（`Disclosure`）・チャート作成（`Charts`）に分け、処理の順序・トランザクション・通知はユースケース（`UseCases`）に置く。判定・抽出・点検を担うクラスは結果を値で返し、`ReportWriter` は区分ごとの保存結果をブロックへ渡す。Sentryへ通知するのは `IngestReport` だけ。
 
 ```mermaid
-flowchart LR
-    L1["① 取込層（Ingestion）<br>対象確認・形式判定・対応表（タグ → 科目コード）"]
-    L2["② 保存層（Disclosure）<br>科目コード × 金額で保存（スキーマは形式に依存しない）"]
-    L3["③ 表示層（Charts・GraphQL）<br>Builder（科目コード → チャート構造）"]
-    L4["④ フロントエンド<br>受け取った構造を描くだけ"]
-    L1 --> L2 --> L3 --> L4
-    subgraph UC["ユースケース（UseCases）：順序・トランザクション・通知"]
-        IR["IngestReport<br>1有報の取込"]
-        SI["StatementInspection<br>取込の点検"]
-        LF["ListFinancialReports<br>一覧の取得"]
-    end
-    IR -.-> L1
-    IR -.-> L2
-    IR -.-> SI
-    SI -.->|"形式が作る科目"| L1
-    SI -.->|"チャートの検算"| L3
-    LF -.-> L2
-    LF -.-> L3
+classDiagram
+    direction LR
+    class FinancialReports["Resolvers::FinancialReports"] {
+        引数の検証
+        FCF推移の要否
+        応答の形への変換
+    }
+    class ListFinancialReports["UseCases::ListFinancialReports"] {
+        検索と組み立ての順序
+    }
+    class IngestReport["UseCases::IngestReport"] {
+        原本の取得から点検までの順序
+        1有報のトランザクション
+        Sentryへの通知
+    }
+    class StatementInspection["UseCases::StatementInspection"] {
+        表示対象の財務諸表の点検
+    }
+    class IngestionNotices["UseCases::IngestionNotices"] {
+        通知の文言・レベル
+        fingerprint
+    }
+    class DocumentScreening["Ingestion::DocumentScreening"] {
+        取り込むか
+        使う証券コード
+        送る通知の種類
+    }
+    class StatementExtractor["Ingestion::StatementExtractor"] {
+        形式判定・抽出・補正
+    }
+    class Mappings["Ingestion::Mappings"] {
+        形式ごとの対応表
+    }
+    class ReportWriter["Disclosure::ReportWriter"] {
+        1有報分の書き込み
+    }
+    class SearchQuery["Disclosure::SearchQuery"] {
+        表示対象の書類の検索
+    }
+    class CashFlowHistory["Disclosure::CashFlowHistory"] {
+        過去5年のCFの科目
+    }
+    class BuilderRegistry["Charts::BuilderRegistry"] {
+        形式ごとのBuilderを選ぶ
+    }
+    class Indicators["FinancialStatements::Indicators"] {
+        ROE・ROAと内訳
+    }
+    class FreeCashFlowTrends["FinancialStatements::FreeCashFlowTrends"] {
+        FCF推移
+    }
+    IngestReport --> DocumentScreening
+    IngestReport --> StatementExtractor
+    IngestReport --> ReportWriter
+    IngestReport --> StatementInspection
+    IngestReport --> IngestionNotices
+    StatementExtractor --> Mappings
+    StatementInspection --> Mappings : 形式が作る科目
+    StatementInspection --> BuilderRegistry : チャートの検算
+    StatementInspection --> IngestionNotices
+    FinancialReports --> ListFinancialReports
+    ListFinancialReports --> SearchQuery
+    ListFinancialReports --> CashFlowHistory
+    ListFinancialReports --> BuilderRegistry
+    ListFinancialReports --> Indicators
+    ListFinancialReports --> FreeCashFlowTrends
 ```
+
+`StatementExtractor`・`Charts`・`FinancialStatements` はDBを使わず、受け取った値から結果を返す。チャートと指標は `StatementData` から、FCF推移は対象の書類（`TrendTarget`）と過去の財務諸表（`PastStatement`）から組み立てる。`Disclosure` の検索は、書類の件数によらず問い合わせの回数を一定にする。
 
 ## XBRLとタクソノミの読み方
 
@@ -420,18 +459,6 @@ flowchart LR
 | 合計がなければ、その内訳を足す | 開示様式で「内訳の合計が求める金額になる」と分かる項目だけを足す | 鉄道事業の収益と関連事業の収益を足して、全社の営業収益を求める |
 | 費用と利益から収益を逆算しない | 営業収益がなくても、「営業費＋営業利益」で埋めない | 収益の内訳を足すことと、別の数値から収益を求めることは区別する |
 
-### 形式による取得結果の違い
-
-同じ抽出処理でも、形式によって取得できる科目は異なる。
-
-| 科目コード | 武田薬品（ifrs_classified） | 三菱UFJ FG（jgaap_bank） |
-|---|---|---|
-| bs.assets | 15.5兆 | 431.7兆 |
-| bs.current_assets | 3.09兆 | 該当科目なし（銀行に流動区分がない） |
-| bs.loans / bs.deposits | 該当科目なし | 133.8兆 / 239.4兆 |
-| pl.revenue | 4.5兆 | 該当科目なし（銀行に売上高がない） |
-| pl.ordinary_revenue | 該当科目なし | 14.6兆 |
-
 ## 保存: DBのデータモデル
 
 書類や企業情報は、次のように保存する。
@@ -562,29 +589,61 @@ WebとChrome拡張にはBS・PL用とCF用のチャートデータを返す。We
 
 形式とBuilderの割り当ては `Charts::BuilderRegistry` の表にあり、キーは `FinancialStatements::Formats` の形式名。BSは1形式1クラス、PLは骨格が同じ形式どうし（銀行と保険、IFRSの3形式）で1クラスを共有し、CFは全形式で `CashFlow` を使う。
 
-各Builderは最小の基底クラス `Charts::Builders::Base` を継承し、組み立ての補助は部品として呼ぶ。補助の一部だけを使うBuilderが、使わない組み立てや照合まで受け継がないようにするため。
+各Builderは最小の基底クラス `Charts::Builders::Base` を継承し、組み立ての補助は部品として呼ぶ。補助の一部だけを使うBuilderが、使わない組み立てや照合まで受け継がないようにするため。`mismatch` は、描いたグラフが科目どうしの式を端数の範囲で満たさないときに式の金額を返し、取込の点検（`StatementInspection`）が警告に使う。
 
 ```mermaid
-flowchart LR
-    Reg["Charts::BuilderRegistry<br>形式 → Builder"] --> B["形式ごとのBuilder（12）"]
-    Rec["UseCases::StatementInspection<br>取込の点検"] -->|mismatch| B
-    B -->|継承| Base["Builders::Base<br>金額の表（Amounts）の受け取り・既定の mismatch（nil）・no_data_note"]
-    B -->|使う| T["TwoSidedChart<br>貸借2本の組み立てと照合"]
-    B -->|使う| S["Segments<br>項目と比率"]
-    B -->|使う| Tol["Tolerance<br>許容差と端数の判定"]
-    T --> S
-    T --> Tol
+classDiagram
+    direction LR
+    class Base {
+        金額の表（Amounts）
+        mismatch() nil
+        no_data_note()
+    }
+    class BsTwoSided["BSの5形式"] {
+        BsJgaapGeneral
+        BsJgaapBank
+        BsJgaapInsurance
+        BsIfrsClassified
+        BsIfrsLiquidity
+        mismatch() TwoSidedChartの照合の結果
+    }
+    class PlChecked["照合するPL"] {
+        PlJgaapGeneral
+        PlIfrs
+        mismatch() 描き方に合わせた式
+    }
+    class CashFlow {
+        mismatch() CashFlowVerificationの式
+    }
+    class PlJgaapFinancialInstitution
+    class NoteOnly["説明文だけを返す"] {
+        BsIfrsSummary
+        BsUsgaapSummary
+        PlUsgaapSummary
+    }
+    class TwoSidedChart {
+        貸借2本の組み立てと照合
+    }
+    class Segments {
+        項目と比率
+    }
+    class Tolerance {
+        許容差と端数の判定
+    }
+    Base <|-- BsTwoSided
+    Base <|-- PlChecked
+    Base <|-- CashFlow
+    Base <|-- PlJgaapFinancialInstitution
+    Base <|-- NoteOnly
+    BsTwoSided ..> TwoSidedChart
+    PlChecked ..> Segments
+    PlChecked ..> Tolerance
+    PlJgaapFinancialInstitution ..> Segments
+    TwoSidedChart ..> Segments
+    TwoSidedChart ..> Tolerance
 ```
 
-| Builder | 使う部品 | 照合（`mismatch`） |
-|---|---|---|
-| `BsJgaapGeneral`・`BsJgaapBank`・`BsJgaapInsurance`・`BsIfrsClassified`・`BsIfrsLiquidity` | `TwoSidedChart`（`BsJgaapGeneral` は固定資産の内訳の判定に `Tolerance` も） | `TwoSidedChart` の照合の結果を返す |
-| `PlJgaapGeneral`・`PlIfrs` | `Segments`・`Tolerance` | 描き方に合わせて上書きする |
-| `CashFlow` | なし | `FinancialStatements::CashFlowVerification` の式で上書きする |
-| `PlJgaapFinancialInstitution` | `Segments` | 上書きしない（nil） |
-| `BsIfrsSummary`・`BsUsgaapSummary`・`PlUsgaapSummary` | なし（説明文だけを返す） | 上書きしない（nil） |
-
-照合する式は、IFRSのPLは[赤字と差額の表示](#赤字と差額の表示武田薬品のpl)の営業費用の段落に、日本基準のPLは[業種による費用の違い](#業種による費用の違い日本基準のpl)に、BS・CFは[表示前の確認](#表示前の確認)にある。
+`BsJgaapGeneral` は、固定資産の内訳を描くかの判定にも `Tolerance` を使う。照合する式は、IFRSのPLは[赤字と差額の表示](#赤字と差額の表示武田薬品のpl)の営業費用の段落に、日本基準のPLは[業種による費用の違い](#業種による費用の違い日本基準のpl)に、BS・CFは[表示前の確認](#表示前の確認)にある。
 
 ### 赤字と差額の表示：武田薬品のPL
 
@@ -651,13 +710,20 @@ BSも同様に、固定資産は「有形・無形・投資その他の3分類�
 
 ### 表示前の確認
 
-- **借方合計と貸方合計の乖離が1割を超えたら描かない**（誤ったグラフより出さない方を選ぶ）。日本基準のPLを端数を超えるずれのまま描くときは、取込のときにSentryに警告する
-- 必須科目が欠けたら描かない。銀行BSは預金がなければ、保険BSは保険契約準備金がなければ描かず（「預金0%の銀行」を出さない）、CFは5点すべて揃わなければ描かない。ただしCFで活動がなく「－」の項目は、0とみなして「期首残＋各CF＋換算差額など＝期末残」が端数の範囲で成り立つときだけ0として描く（FCF推移も同じ判定。期末残がないCFは描かない）
-- CFは、取込のときに同じ式を確かめ、期末残があるのに成り立たなければSentryに警告する（経営指標の要約だけで作る形式は、要約に換算差額などの行がないため照合しない）
-- 銀行BSは、預金が負債合計を超えるときも描かない。その他負債を「負債合計−預金」で求めるため、預金の値が誤っていても左右の高さでは気づけない
+誤ったグラフを出すより、描かない方を選ぶ。描いたうえで式が合わないものは、取込のときにSentryへ警告する。
+
+| 対象 | 描かない条件 | 描いて警告する条件 |
+|---|---|---|
+| BS・PL共通 | 借方合計と貸方合計の差が1割を超える。必須科目が欠けている | — |
+| 日本基準のPL | — | 費用＋営業利益が売上と端数を超えてずれる（[業種による費用の違い](#業種による費用の違い日本基準のpl)） |
+| IFRSのPL | — | 積まなかった営業費用が売上原価＋販管費と一致しない（[赤字と差額の表示](#赤字と差額の表示武田薬品のpl)） |
+| BS | — | 借方の科目の合計＝資産合計、資産合計＝負債合計＋純資産合計 が端数の範囲で成り立たない |
+| 銀行のBS | 預金がない（「預金0%の銀行」を出さない）。預金が負債合計を超える（その他負債を「負債合計−預金」で求めるため、預金の誤りに左右の高さでは気づけない） | 同上 |
+| 保険のBS | 保険契約準備金がない | 同上 |
+| CF（FCF推移も同じ） | 期首残・営業・投資・財務・期末残の5点が揃わない。ただし「－」の項目は、0とみなして 期首残＋各CF＋換算差額など＝期末残 が端数の範囲で成り立てば0で描く。期末残がなければ描かない | 期末残があるのに、同じ式が成り立たない。経営指標の要約だけで作る形式は、要約に換算差額などの行がないため照合しない |
+
 - 資産合計が0の会社（統合の準備会社など）は、負債＋純資産がほぼ0（負債の1割以内）のときだけ、借方に何も積まず、負債を比率の分母にして描く
-- 描くBSは、取込のときに「借方の科目の合計＝資産合計」「資産合計＝負債合計＋純資産合計」を端数の範囲で確かめ、合わなければSentryに警告する
-- 比率はBigDecimalで計算して小数1桁に切り捨て（「19.900000000000002%」や合計100%超を防ぐ）
+- 比率はBigDecimalで計算し、小数1桁に切り捨てる（「19.900000000000002%」や合計100%超を防ぐ）
 
 ## ROE・ROAの組み立て
 
@@ -675,7 +741,7 @@ ROEは計算値を優先し、データ不足の場合に限って同じ決算�
 
 ## GraphQL API
 
-GraphQLは、画面側が必要な項目を指定してデータを取得するAPI。`POST /graphql` の `financialReports` で検索条件と取得件数を渡すと、企業情報・チャート・指標をJSONで返す。
+`POST /graphql` の `financialReports` に検索条件と取得件数を渡すと、画面側が指定した項目（企業情報・チャート・指標）をJSONで返す。
 
 ```graphql
 query {
@@ -692,64 +758,41 @@ query {
 
 | 項目 | 扱い |
 |---|---|
-| 金額は独自スカラ `Money`（JSON数値のまま返す） | 標準のBigInt型は文字列になり、Web・Chrome拡張の両方に変換処理が必要になる。日本企業の最大級の総資産400兆円=4×10^14はJavaScriptの安全整数9×10^15に収まる |
-| 検索は提出日降順 | 保存した提出日の新しい順に返す |
-| CFパターンは科目行の符号で判定 | 絞り込み対象は `is_primary`（連結優先）の財務諸表だけ |
-| FCF推移は要求されたときだけ作る | `freeCashFlowTrend` を選んだときだけ、同じ企業の過去5年の財務諸表を読む。選んだかはリゾルバが判定し、[`ListFinancialReports`](#sequence-display) には要否だけを渡す |
-| 連結区分は文字列で返す | `consolidationType` は `"consolidated"`・`"non_consolidated"`。内部の値（`StatementData`）はシンボルで持ち、リゾルバが文字列にする |
+| 金額 | 独自スカラ `Money` で、JSONの数値のまま返す。標準のBigIntは文字列になり、Web・Chrome拡張の両方で変換が要るため。最大級の総資産400兆円（4×10^14）も、JavaScriptの安全整数（約9×10^15）に収まる |
+| 並び順 | 保存した提出日の新しい順 |
+| CFパターンの絞り込み | 表示対象（連結優先）の財務諸表の、科目の符号で判定する |
 
 ## 描画: チャート構造 → recharts → 画面
 
-BS・PL・CF・フリーCFの描画には、Chrome拡張との共有元である `shared/financialCharts/` を使う。APIが指定した順序で項目を並べ、数値に応じた高さと色で描く。
+BS・PL・CF・フリーCFは、Chrome拡張と共有する `shared/financialCharts/` で描く。項目の順序・色の役割・高さはAPIが決め、画面は[全体像](#全体像-1つの科目が画面に届くまで)の変換をして描くだけ。
 
-### 積み上げ棒（`StackedBarChart`）
-
-APIの `bars × segments` を、rechartsが要求する「行 × 列」の表に変換する（`toStackRows`）。行=バー、列=全バーに登場するセグメントkeyの和集合。
-
-```
-API（bars × segments）              recharts（rows × columns）
-借方: [原価, 販管費]        →       { name: "借方", costOfSales: 60, sga: 30 }
-貸方: [収益]                        { name: "貸方", revenue: 100 }
-                                   ※ あるバーに無い列はundefinedになり、その行には描かれない
-```
-
-- Y軸を反転して上から積み上げ、`spacer`（債務超過の高さ合わせ）はツールチップにも出さない
-- ツールチップの金額は符号つきの `signedAmount` を使う（描画高さの `amount` は絶対値）。表示は `formatAmount` で百万円単位（有報の慣行どおり百万円未満切捨て）にし、百万円未満の値だけ千円単位で出す（千円単位で開示する小規模企業の科目を「0百万円」に潰さないため）
-
-### ウォーターフォール（`WaterfallChart`）
-
-rechartsにウォーターフォール専用の部品はないため、積み上げ棒を流用し、各ステップを「位置合わせ用の透明な棒 + 金額を表す棒」の2段積みで表現している。単位「百万円」はグラフ外に置き、棒上の数値も百万円単位で表示する。
-
-| 項目 | 描き方 |
+| 部品 | 描き方 |
 |---|---|
-| `kind: "balance"`（期首残・期末残） | 累積をリセットして0起点で描く（為替の影響などで期首+増減と期末が一致しない場合があるため） |
-| `kind: "flow"`（営業・投資・財務） | 直前の累積から浮かせて増減分だけ描く |
-| 色 | バックエンドが `colorRole`（cashIncrease / cashDecrease）で指定（増加=青系・減少=赤系） |
-
-### 色の指定（`colorRoles.ts`）
-
-APIは `asset1`（資産）や `profit`（利益）などの色の役割を返し、`colorRoles.ts` が実際の色に変換する。未定義の役割はグレーで表示し、開発者向けに警告を出す。
-
-### 表示不可（`ChartUnavailable`）
-
-`renderable: false` のとき、チャートと同じ寸法の枠に説明文（`note`、なければ既定文言）を表示する。寸法を揃えるのはカルーセルの高さが跳ねないようにするため。
+| `StackedBarChart`（BS・PL） | `toStackRows` で、APIの `bars × segments` をrechartsの「行＝バー、列＝セグメントのkey」の表に変える。あるバーにないkeyの列は空になり、その行には描かれない。Y軸を反転して上から積む。`spacer`（債務超過の高さ合わせ）はツールチップに出さない |
+| `WaterfallChart`（CF） | rechartsにウォーターフォールの部品がないため、各ステップを透明な棒と金額の棒の2段で積む。期首残・期末残（`kind: "balance"`）は0から描く（為替の影響などで、期首＋増減が期末と一致しないことがあるため）。営業・投資・財務（`"flow"`）は直前の累積から増減分だけ描く |
+| `colorRoles.ts` | APIの色の役割（`asset1`・`profit`、CFの増加 `cashIncrease`＝青系・減少 `cashDecrease`＝赤系など）を色に変える。未定義の役割はグレーで描き、開発者向けに警告する |
+| `ChartUnavailable` | `renderable: false` のとき、チャートと同じ大きさの枠に `note`（なければ既定の文言）を出す。カルーセルの高さを変えないため |
+| 金額の表示（`formatAmount`） | ツールチップは符号付きの `signedAmount` を使う（棒の高さの `amount` は絶対値）。百万円単位で、百万円未満を切り捨てる。百万円未満の値だけ千円単位で出す（千円単位で開示する小規模企業の科目を「0百万円」にしないため）。CFは単位「百万円」をグラフの外に置き、棒の上の数値も百万円単位で出す |
 
 ## 変更ガイド: どの層を触るか
 
-既存の保存形式とチャート構造で表せる変更は、主に取込とチャート作成の処理で対応する。
-
-| 変更の種類 | 主な変更箇所 |
+| 変更 | 変更するファイル |
 |---|---|
-| 取得するタグや優先順位の変更 | その科目を持つ対応表の部品（`app/services/ingestion/mappings/`。共有する部品か、形式の対応表のブロック） |
-| 差し替えのときだけ使う候補を足す | その科目の `replacements:` に1行足す |
-| 新しい科目を保存する | `item_catalog.rb` に1行（期間、期首の科目なら `opening` と `of:`）と、対応表の部品に取得するタグを1行足す。期首の科目は対応表に書かない。表示にも使うならBuilderを更新する |
-| 一般様式の業種を追加 | 一般事業会社の対応表 `Mappings::JgaapGeneral`（自己資本・CFは共有する部品）に業種のタグを追加する |
-| 新しい取得の書き方 | `app/services/ingestion/expressions/` に、`evaluate`・`amount`・`blank?` を持つクラスを1つ足し、書き方を `Ingestion::Expressions` に足す |
-| 新しい補正ルール | `app/services/ingestion/adjustments/` に、`apply` を持つクラスを1つ足し、`Adjustments::ALL` の適用の順の位置に1行足す |
-| 構成の異なる形式を追加 | 形式の対応表（`mappings/` の1ファイルと `Mappings::ALL`）とBuilderを作成し、形式名を `formats.rb` に足して、形式判定とBuilderの登録表に追加する |
-| 色の役割を追加 | バックエンド、Webの `colorRoles.ts`、Chrome拡張を揃えて変更する |
+| 取得するタグ・優先順位 | その科目を持つ対応表の部品（`app/services/ingestion/mappings/` の共有する部品か、形式の対応表のブロック） |
+| 差し替えのときだけ使う候補 | その科目の `replacements:` |
+| 新しい科目 | `item_catalog.rb`（期間。期首の科目は `opening` と `of:`）と、対応表の部品（期首の科目は書かない）。表示にも使うならBuilder |
+| 一般様式の業種 | `Mappings::JgaapGeneral`（自己資本・CFは共有する部品） |
+| 取得の書き方 | `app/services/ingestion/expressions/` に `evaluate`・`amount`・`blank?` を持つクラスを足し、`Ingestion::Expressions` に登録する |
+| 補正ルール | `app/services/ingestion/adjustments/` に `apply` を持つクラスを足し、`Adjustments::ALL` の適用順の位置に加える |
+| 構成の違う形式 | 対応表（`mappings/` と `Mappings::ALL`）・Builder・`formats.rb`・形式判定・Builderの登録表 |
+| 色の役割 | バックエンド・Webの `colorRoles.ts`・Chrome拡張を同時に |
 
-タグを変更するときは、原本の数値で検証し、[タグ対応表](06_taxonomy_mapping.md)も更新する。
+タグを変えたら、原本の数値で確かめ、[タグ対応表](06_taxonomy_mapping.md)も更新する。対応表は次のspecで確かめる。
 
-- `mappings_spec.rb`（対応表の検査）で、対応表の科目がカタログにあること・部品の重複がないこと・形式の網羅・タグの形を確認する。`mapping_consistency_spec.rb` で抽出の出力に未定義の科目コードがないことを確認する。業種を追加するときは、`industry_formats_spec.rb` に実XBRLのケースを加え、形式判定から描画まで検証する。
-- 既に `unsupported` で保存済みの有報は再取込タスクで取り直す（[05章](05_development_operations.md)）
+| spec | 確かめること |
+|---|---|
+| `mappings_spec.rb` | 対応表の科目がカタログにある、部品の重複がない、形式を網羅している、タグの形が正しい |
+| `mapping_consistency_spec.rb` | 抽出の出力に未定義の科目コードがない |
+| `industry_formats_spec.rb` | 業種を追加したときに、実XBRLで形式判定から描画まで |
+
+`unsupported` で保存済みの有報は、[再取込タスク](05_development_operations.md#形式の対応を広げた後の再取込)で取り直す。
