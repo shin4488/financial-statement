@@ -40,7 +40,7 @@
     "eslint-plugin-react": "^7.32.2",
     "jsdom": "^30.0.1",
     "prettier": "^2.8.8",
-    "vite": "^8.2.2",
+    "vite": "^8.2.4",
     "vitest": "^4.1.11"
   },
   "resolutions": {
