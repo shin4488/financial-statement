@@ -33,7 +33,7 @@ flowchart TD
 
     subgraph Storage["データストア"]
         PG[("PostgreSQL")]
-        Redis[("Redis<br>(ジョブキュー)")]
+        Redis[("Redis")]
     end
 
     EDINET["金融庁 EDINET API v2"] --> Batch
@@ -41,7 +41,7 @@ flowchart TD
     Nginx -->|"/api (GraphQL)"| API
     API --> PG
     Batch --> PG
-    Batch -->|"ジョブ・スケジュール"| Redis
+    Batch -->|"スケジュール"| Redis
 ```
 
 ---
@@ -113,9 +113,6 @@ cd application/frontend && npm run compile
 
 # バックエンドのテスト実行
 docker compose exec appserver bundle exec rspec
-
-# フロントエンドのテスト実行
-docker compose exec appserver yarn --cwd application/frontend test
 ```
 
 ---
