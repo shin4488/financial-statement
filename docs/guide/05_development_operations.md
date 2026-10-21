@@ -74,7 +74,7 @@ DBマイグレーションだけでは、既存書類の追加科目は埋まら
 flowchart TB
     User["ブラウザ"] -->|https 443| Nginx["nginx<br>TLS終端（Certbot）・セキュリティヘッダ・レート制限"]
     Nginx -->|"/ （静的ファイル）"| Static["Reactビルド成果物<br>（build/ を配置）"]
-    Nginx -->|"/api → localhost:30000"| Puma["puma（Rails・production）"]
+    Nginx -->|"/api"| Puma["puma（Rails・production）"]
     Puma --> PG[("PostgreSQL")]
     Sidekiq["Sidekiq（systemd管理）<br>毎日2:00の日次取込"] --> PG
     Sidekiq -->|"スケジュール"| Redis[("Redis（専用ポート）")]
@@ -87,7 +87,7 @@ flowchart TB
 | フロントエンド | devサーバではなく、ビルド済み静的ファイルをnginxが直接配信する。SPAのフォールバック設定（未知パス→index.html）は本番nginx側の責務 |
 | セキュリティヘッダ | nginxで一元管理し、Rails側のヘッダ出力は明示的に止めている（二重出力防止） |
 | HTTPS | Certbot（Let's Encrypt）による301リダイレクトとTLS終端。Railsの `force_ssl` は使わない（nginxが `X-Forwarded-Proto` を転送しておらず、有効化すると無限リダイレクトになる） |
-| レート制限 | `/api/` に対して2リクエスト/秒（バースト20、超過は429）。未認証・公開APIの防御の一部 |
+| レート制限 | `/api/` が対象。未認証・公開APIの防御の一部 |
 
 ## デプロイ
 
