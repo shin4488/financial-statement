@@ -56,7 +56,7 @@ bundle exec rails runner '
 | S100YE7T | 日本郵政 | 複数業種コード（bnk,ins）→ 銀行の経常収益があるため銀行 / 貯金を企業拡張タグから取りBSを描く |
 | S100SO41 | クリエイト・レストランツHD | ifrs_summary判定（2019年2月期=詳細タグ義務化前でjpigp_corが無い）/ 経営指標サマリからPL骨格+CF5点 |
 
-期待値の出典はリポジトリルートの docs/guide/06_taxonomy_mapping.md（「実地調査の記録」）の実測表。
+期待値の出典はリポジトリルートの docs/guide/05_taxonomy_mapping.md（「実地調査の記録」）の実測表。
 フィクスチャが存在しない場合、該当スペックはskipされる。
 
 ## ROE・ROAの追加サンプル
@@ -103,7 +103,7 @@ bundle exec rails runner '
 | S100YTAR | ユビテック | 小数第1位までの0方向の切捨てで再現できる（赤字） |
 | S100YTAL | プレミアアンチエイジング | 公表比率の桁数より本表の金額の精度が粗い |
 
-上表は数値の再現条件であり、各企業の内部の計算方法を断定するものではない。金額と差の根拠は [タグ対応表の実地調査](../../../../../docs/guide/06_taxonomy_mapping.md#公表roeと計算値の差の追加照合) を参照。
+上表は数値の再現条件であり、各企業の内部の計算方法を断定するものではない。金額と差の根拠は [タグ対応表の実地調査](../../../../../docs/guide/05_taxonomy_mapping.md#公表roeと計算値の差の追加照合) を参照。
 
 `spec/graphql/missing_revenue_indicators_spec.rb` は三菱UFJ FG・かんぽ生命・東京海上HDで、売上関連の欠損がROE・ROA・レバレッジに波及しないことをAPIまで検証する。経常収益や保険収益を売上高に読み替えない。
 

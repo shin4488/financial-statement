@@ -1,4 +1,4 @@
-# 05. 開発と運用
+# 04. 開発と運用
 
 この章では、変更時の検証、本番への反映、取込障害からの復旧を扱う。
 
@@ -203,11 +203,11 @@ EDINETの応答が原因のときは、続けて再試行しない。メンテ�
 | 通知 | 内容 | 直す場所 |
 |---|---|---|
 | `primary statement missing bs.assets` | 資産合計が取れていない | 対応表か形式判定 |
-| `revenue does not match summary of business results` | 売上が[経営指標の要約の売上](03_data_flow.md#売上と経営指標の要約の照合)と一致せず、一致する取得候補もない。売上のタグが内訳だけか、取り違えている | 売上の取得候補（差し替えのときだけ使う候補は `replacements:`） |
-| `revenue missing although summary of business results has revenue` | 要約に売上があるのに、損益計算書の売上が取れない | 売上の取得候補（企業拡張タグなら[売上の一覧](06_taxonomy_mapping.md#売上収益)） |
-| `profit and loss chart expenses do not reconcile` | 費用の科目が、日本基準は[売上と](03_data_flow.md#業種による費用の違い日本基準のpl)、IFRSは[売上原価＋販管費と](03_data_flow.md#赤字と差額の表示武田薬品のpl)一致しないまま描いた | 費用の取得候補 |
+| `revenue does not match summary of business results` | 売上が[経営指標の要約の売上](02_data_flow.md#売上と経営指標の要約の照合)と一致せず、一致する取得候補もない。売上のタグが内訳だけか、取り違えている | 売上の取得候補（差し替えのときだけ使う候補は `replacements:`） |
+| `revenue missing although summary of business results has revenue` | 要約に売上があるのに、損益計算書の売上が取れない | 売上の取得候補（企業拡張タグなら[売上の一覧](05_taxonomy_mapping.md#売上収益)） |
+| `profit and loss chart expenses do not reconcile` | 費用の科目が、日本基準は[売上と](02_data_flow.md#業種による費用の違い日本基準のpl)、IFRSは[売上原価＋販管費と](02_data_flow.md#赤字と差額の表示武田薬品のpl)一致しないまま描いた | 費用の取得候補 |
 | `balance sheet chart does not reconcile with totals` | 借方の科目の合計が資産合計と、または資産合計が負債合計＋純資産合計と一致しないまま描いた。前者は描いていない資産の科目があり、後者はタグを取り違えたおそれがある | 取得候補と借方の科目 |
-| `cash flow does not reconcile with closing balance` | [CFの式](03_data_flow.md#表示前の確認)が成り立たない。原本の行のうち、式に入っていないものがある | 取得候補と式 |
+| `cash flow does not reconcile with closing balance` | [CFの式](02_data_flow.md#表示前の確認)が成り立たない。原本の行のうち、式に入っていないものがある | 取得候補と式 |
 
 企業拡張タグにしかない費用・CFの行や、差額でしか描けないBSの科目は、今のまま描く。
 
