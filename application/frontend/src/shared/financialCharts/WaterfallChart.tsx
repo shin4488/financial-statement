@@ -56,6 +56,28 @@ export function toWaterfallRows(steps: WaterfallStep[]): Row[] {
   });
 }
 
+export function stepTickFontSize(labels: string[], chartWidth: number): number {
+  if (chartWidth <= 0 || labels.length === 0) {
+    return 16;
+  }
+  // rechartsは既定で重なる目盛りを間引き、狭い幅では区分名が欠ける。
+  // 全区分を並べられるよう、左右の余白を除いた1区分の幅にラベル間の隙間を残して収まる最大サイズにする。
+  // 全角は1文字1em、半角は英大文字（CF）の幅を見込む
+  const widestLabelEm = Math.max(
+    ...labels.map((label) =>
+      [...label].reduce(
+        (width, char) => width + (char.charCodeAt(0) > 0xff ? 1 : 0.72),
+        0,
+      ),
+    ),
+  );
+  const slotWidth = (chartWidth - 10) / labels.length;
+  return Math.max(
+    10,
+    Math.min(16, Math.floor((slotWidth - 4) / widestLabelEm)),
+  );
+}
+
 export interface WaterfallChartProps {
   chart: WaterfallChartData;
   width?: string | number;
@@ -117,7 +139,16 @@ export function WaterfallChart({
             height={chartSize.height}
             margin={{ top: 28, right: 5, bottom: 5, left: 5 }}
           >
-            <XAxis dataKey="name" />
+            <XAxis
+              dataKey="name"
+              interval={0}
+              tick={{
+                fontSize: stepTickFontSize(
+                  rows.map((row) => row.name),
+                  chartSize.width,
+                ),
+              }}
+            />
             {/* domain自動: 累積が負になるケースで0より下も描画させる */}
             <YAxis hide domain={['auto', 'auto']} />
             <Tooltip

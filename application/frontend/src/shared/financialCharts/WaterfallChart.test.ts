@@ -1,4 +1,4 @@
-import { toWaterfallRows } from './WaterfallChart';
+import { stepTickFontSize, toWaterfallRows } from './WaterfallChart';
 import type { WaterfallStep } from './types';
 
 const step = (key: string, amount: number, kind: string): WaterfallStep => ({
@@ -41,5 +41,30 @@ describe('toWaterfallRows', () => {
       step('operating', -300, 'flow'),
     ]);
     expect(rows[1]).toMatchObject({ base: -200, span: 300, value: -300 });
+  });
+});
+
+describe('stepTickFontSize', () => {
+  const cashFlowLabels = ['期首残', '営業CF', '投資CF', '財務CF', '期末残'];
+  // 最も幅をとる「投資CF」を、16pxのRobotoでブラウザ描画したときの幅（55px）
+  const widestLabelEm = 55 / 16;
+
+  it('幅に余裕があれば16pxで表示する', () => {
+    expect(stepTickFontSize(cashFlowLabels, 736)).toBe(16);
+  });
+
+  it('狭い幅では、全区分のラベルが1区分の幅に収まるまで縮める', () => {
+    // 293pxは16pxのままでは目盛りが重なる幅
+    for (const chartWidth of [211, 293]) {
+      const fontSize = stepTickFontSize(cashFlowLabels, chartWidth);
+      expect(fontSize).toBeLessThan(16);
+      expect(fontSize * widestLabelEm).toBeLessThanOrEqual(
+        (chartWidth - 10) / cashFlowLabels.length,
+      );
+    }
+  });
+
+  it('読めなくならないよう10pxより小さくしない', () => {
+    expect(stepTickFontSize(cashFlowLabels, 120)).toBe(10);
   });
 });
