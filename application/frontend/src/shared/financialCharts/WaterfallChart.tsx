@@ -5,11 +5,13 @@ import {
   BarChart,
   Cell,
   LabelList,
+  Rectangle,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts';
 import { ChartUnavailable } from './ChartUnavailable';
+import { pointerFocusOutlineHidden } from './chartFocus';
 import { colorForRole, tooltipBackgroundColor } from './colorRoles';
 import { formatAmountInMillions } from './formatAmount';
 import type {
@@ -80,12 +82,15 @@ export function stepTickFontSize(labels: string[], chartWidth: number): number {
 
 export interface WaterfallChartProps {
   chart: WaterfallChartData;
+  // スクリーンリーダーが読み上げるグラフの名前。チャートはどの財務諸表かを知らないため、呼び出し元が決める
+  ariaLabel: string;
   width?: string | number;
   height?: string | number;
 }
 
 export function WaterfallChart({
   chart,
+  ariaLabel,
   width = '90%',
   height = 400,
 }: WaterfallChartProps) {
@@ -119,7 +124,12 @@ export function WaterfallChart({
   const rows = toWaterfallRows(chart.steps);
 
   return (
-    <Stack width={width} height={height} m="auto">
+    <Stack
+      width={width}
+      height={height}
+      m="auto"
+      sx={pointerFocusOutlineHidden}
+    >
       <Typography
         letterSpacing="inherit"
         fontFamily="inherit"
@@ -138,6 +148,7 @@ export function WaterfallChart({
             width={chartSize.width}
             height={chartSize.height}
             margin={{ top: 28, right: 5, bottom: 5, left: 5 }}
+            aria-label={ariaLabel}
           >
             <XAxis
               dataKey="name"
@@ -189,12 +200,22 @@ export function WaterfallChart({
               fill="transparent"
               isAnimationActive={false}
             />
-            <Bar dataKey="span" stackId="w" isAnimationActive={false}>
+            <Bar
+              dataKey="span"
+              stackId="w"
+              isAnimationActive={false}
+              // rechartsは高さ0の棒を既定の形では描画対象から外し、ラベル（0）も出さない。形を明示して残す
+              shape={<Rectangle />}
+            >
               {/* 単位はグラフ外に表示し、バー上には百万円単位の数値だけを出す */}
               <LabelList
                 dataKey="value"
                 position="top"
-                formatter={(value: number) => formatAmountInMillions(value)}
+                formatter={(value) =>
+                  typeof value === 'number'
+                    ? formatAmountInMillions(value)
+                    : null
+                }
               />
               {rows.map((row) => (
                 <Cell

@@ -12,6 +12,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { pointerFocusOutlineHidden } from './chartFocus';
 import { colorByRole } from './colorRoles';
 import type { FreeCashFlowTrend } from './types';
 
@@ -70,29 +71,32 @@ type ValueLabelProps = {
   y?: number;
   width?: number;
   height?: number;
-  value?: number | null;
-  index?: number;
+  // LabelListのdataKeyに指定した年
+  value?: number | string | null;
+  rows?: Row[];
   compact?: boolean;
   compactPositions?: { x: number; y: number }[];
 };
 
 function ValueLabel(props: ValueLabelProps) {
-  const { x, y, width, height, value, index, compact, compactPositions } =
-    props;
-  if (x == null || y == null || width == null || value == null) {
+  const { x, y, width, height, value, rows, compact, compactPositions } = props;
+  // rechartsは金額のない年の棒を描かず、LabelListのindexは描いた棒の番号になる。
+  // 金額と狭いカードでの位置は、年で元の行から引く
+  const rowIndex = rows?.findIndex((row) => row.year === value) ?? -1;
+  const amount = rowIndex >= 0 ? rows?.[rowIndex]?.amount : null;
+  if (x == null || y == null || width == null || amount == null) {
     return null;
   }
-  const labelY = value < 0 && height != null ? y + height - 7 : y - 7;
-  const label = amountLabel(value);
-  const compactPosition =
-    compact && index != null ? compactPositions?.[index] : null;
+  const labelY = amount < 0 && height != null ? y + height - 7 : y - 7;
+  const label = amountLabel(amount);
+  const compactPosition = compact ? compactPositions?.[rowIndex] : null;
   return (
     <text
       x={compactPosition?.x ?? x + width / 2}
       y={compactPosition?.y ?? labelY}
       textAnchor="middle"
       fontSize={16}
-      fill={value < 0 ? colorByRole.cashDecrease : colorByRole.cashIncrease}
+      fill={amount < 0 ? colorByRole.cashDecrease : colorByRole.cashIncrease}
     >
       {label}
     </text>
@@ -270,7 +274,7 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
       </Stack>
       {trend.renderable ? (
         <>
-          <Box mt={1}>
+          <Box mt={1} sx={pointerFocusOutlineHidden}>
             <ResponsiveContainer
               width="100%"
               height={CHART_HEIGHT}
@@ -278,6 +282,7 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
             >
               <BarChart
                 data={rows}
+                aria-label="フリーキャッシュフローの過去5年の棒グラフ"
                 margin={{
                   top: compactLabels ? COMPACT_TOP_MARGIN : 25,
                   right: 4,
@@ -317,9 +322,10 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
                   isAnimationActive={false}
                 >
                   <LabelList
-                    dataKey="amount"
+                    dataKey="year"
                     content={
                       <ValueLabel
+                        rows={rows}
                         compact={compactLabels}
                         compactPositions={compactPositions}
                       />

@@ -4,6 +4,7 @@ import {
   Bar,
   BarChart,
   LabelList,
+  Rectangle,
   ResponsiveContainer,
   Tooltip,
   YAxis,
@@ -15,6 +16,7 @@ import {
   tooltipBackgroundColor,
 } from './colorRoles';
 import { ChartUnavailable } from './ChartUnavailable';
+import { pointerFocusOutlineHidden } from './chartFocus';
 import { formatAmount } from './formatAmount';
 import type { StackChart, Segment } from './types';
 
@@ -68,12 +70,15 @@ export function toStackRows(chart: StackChart): {
 
 export interface StackedBarChartProps {
   chart: StackChart;
+  // スクリーンリーダーが読み上げるグラフの名前。チャートはどの財務諸表かを知らないため、呼び出し元が決める
+  ariaLabel: string;
   width?: string | number;
   height?: string | number;
 }
 
 export function StackedBarChart({
   chart,
+  ariaLabel,
   width = '90%',
   height = 400,
 }: StackedBarChartProps) {
@@ -84,12 +89,18 @@ export function StackedBarChart({
   const { rows, columns } = toStackRows(chart);
 
   return (
-    <Box width={width} height={height} m="auto">
+    <Box width={width} height={height} m="auto" sx={pointerFocusOutlineHidden}>
       <ResponsiveContainer
         width="100%"
         height={typeof height === 'number' ? height : '100%'}
       >
-        <BarChart data={rows}>
+        <BarChart
+          data={rows}
+          // rechartsは系列を登録した順に積むため、表示中に列が増えると新しい系列が末尾に積まれる。
+          // 列の構成が変わったらグラフを作り直し、columnsの順に積む
+          key={JSON.stringify(columns.map((column) => column.key))}
+          aria-label={ariaLabel}
+        >
           {/* Y軸反転: 積み上げを「上から下」に描く（BSの「上=流動・下=純資産」の慣習を保つ）。
             domainのdataMaxで最も高いバーに全バーの縮尺を合わせる */}
           <YAxis reversed hide domain={[0, 'dataMax']} />
@@ -154,12 +165,14 @@ export function StackedBarChart({
               stackId="a"
               fill={colorForRole(colorRole)}
               isAnimationActive={false}
+              // rechartsは高さ0の棒を既定の形では描画対象から外し、ラベル（0%）も出さない。形を明示して残す
+              shape={<Rectangle />}
             >
               <LabelList
                 dataKey={`${key}Ratio`}
                 fill={stackLabelColor}
                 position="center"
-                formatter={(value: number) => `${label}: ${value}%`}
+                formatter={(value) => `${label}: ${value}%`}
               />
             </Bar>
           ))}
