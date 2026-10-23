@@ -27,6 +27,10 @@ beforeEach(() => {
     configurable: true,
     get: () => slideWidth,
   });
+  Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {
+    configurable: true,
+    get: () => slideWidth * slideNames.length,
+  });
   HTMLElement.prototype.scrollTo = function (
     options?: ScrollToOptions | number,
   ) {
@@ -65,6 +69,15 @@ function renderCarousel(isAutoPlay = false) {
   );
   // スライドを横に並べてスクロールする要素
   return screen.getByText('BS').parentElement?.parentElement as HTMLElement;
+}
+
+// 指を1本置いて動かし、離す
+function swipe(target: Element, dx: number, dy = 0) {
+  fireEvent.touchStart(target, { touches: [{ clientX: 200, clientY: 300 }] });
+  fireEvent.touchEnd(target, {
+    touches: [],
+    changedTouches: [{ clientX: 200 + dx, clientY: 300 + dy }],
+  });
 }
 
 // スクロールの吸着が終わるまで待つ
@@ -182,4 +195,64 @@ it('最初は表示中と隣のスライドだけを描き、表示が進むと�
     'PL',
     'CF',
   ]);
+});
+
+it('先頭で右へ、最後で左へスワイプすると、反対の端へ移る', () => {
+  const scroller = renderCarousel();
+  swipe(scroller, 80);
+  settle();
+  expect(currentSlide()).toBe('ROE・ROA');
+  swipe(scroller, -80);
+  settle();
+  expect(currentSlide()).toBe('BS');
+  expect(navigatedCharts()).toEqual(['indicators', 'bs']);
+});
+
+it('端でも、横の動きが50px未満か、縦の動き以下なら反対の端へ移らない', () => {
+  const scroller = renderCarousel();
+  swipe(scroller, 49);
+  swipe(scroller, 80, 80);
+  swipe(scroller, 80, -80);
+  settle();
+  expect(navigatedCharts()).toEqual([]);
+  swipe(scroller, 50);
+  settle();
+  expect(navigatedCharts()).toEqual(['indicators']);
+});
+
+it('端以外から始めたスワイプや、端から内側へのスワイプでは、反対の端へ移らない', () => {
+  const scroller = renderCarousel();
+  // 内側へのスワイプはブラウザがスクロールするため、ここでは何もしない
+  swipe(scroller, -80);
+  settle();
+  expect(navigatedCharts()).toEqual([]);
+  scrollTo(scroller, slideWidth);
+  settle();
+  // 2枚目から右へ大きく動かし、指を離すまでに先頭まで戻っても、最後へは移らない
+  fireEvent.touchStart(scroller, {
+    touches: [{ clientX: 200, clientY: 300 }],
+  });
+  scrollTo(scroller, 0);
+  fireEvent.touchEnd(scroller, {
+    touches: [],
+    changedTouches: [{ clientX: 600, clientY: 300 }],
+  });
+  settle();
+  expect(currentSlide()).toBe('BS');
+  expect(navigatedCharts()).toEqual(['pl', 'bs']);
+});
+
+it('2本指の操作は、端でも反対の端へ移らない', () => {
+  const scroller = renderCarousel();
+  fireEvent.touchStart(scroller, {
+    touches: [
+      { clientX: 200, clientY: 300 },
+      { clientX: 260, clientY: 300 },
+    ],
+  });
+  fireEvent.touchEnd(scroller, {
+    changedTouches: [{ clientX: 300, clientY: 300 }],
+  });
+  settle();
+  expect(navigatedCharts()).toEqual([]);
 });

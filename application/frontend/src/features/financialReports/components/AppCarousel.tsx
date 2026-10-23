@@ -12,6 +12,8 @@ const navRowHeight = 40;
 const autoPlayInterval = 6000;
 // 指を離した後の慣性・吸着のスクロールが終わってから、表示したスライドを確定する
 const scrollSettleDelay = 150;
+// 端で外側へこれ以上動かしたら、反対の端へ移す
+const edgeSwipeDistance = 50;
 const chartTypes: ProductParams['chart_type'][] = [
   'bs',
   'pl',
@@ -45,6 +47,11 @@ export default function AppCarousel({
   });
   const settledIndex = useRef(0);
   const autoScrolling = useRef(false);
+  const touchStart = useRef<{
+    x: number;
+    y: number;
+    scrollLeft: number;
+  } | null>(null);
   const settleTimer = useRef<number>();
   const isAutoPlay = useSelector(
     (state: RootState) => state.autoPlayStatus.isAutoPlay,
@@ -100,9 +107,33 @@ export default function AppCarousel({
     }, scrollSettleDelay);
   };
 
-  // ナビボタンと自動切替は、端では反対の端へ移る
+  // ナビボタン・自動切替・スワイプは、端では反対の端へ移る
   const previous = active === 0 ? last : active - 1;
   const following = active === last ? 0 : active + 1;
+
+  // ブラウザは端より外へスクロールしないため、端で外側へのスワイプだけをここで判定する。
+  // 縦のスクロールで移らないよう、横の動きが縦より大きいときに限る
+  const handleTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    pause('touch', false);
+    const start = touchStart.current;
+    touchStart.current = null;
+    const touch = event.changedTouches[0];
+    if (!start || !touch) {
+      return;
+    }
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    if (Math.abs(dx) < edgeSwipeDistance || Math.abs(dx) <= Math.abs(dy)) {
+      return;
+    }
+    const element = event.currentTarget;
+    const maxScrollLeft = element.scrollWidth - element.clientWidth;
+    if (dx > 0 && start.scrollLeft <= 1) {
+      scrollToSlide(last);
+    } else if (dx < 0 && start.scrollLeft >= maxScrollLeft - 1) {
+      scrollToSlide(0);
+    }
+  };
   const paused = pausedBy.hover || pausedBy.focus || pausedBy.touch;
   useEffect(() => {
     if (!isAutoPlay || paused || last === 0) {
@@ -129,12 +160,25 @@ export default function AppCarousel({
       <Box
         ref={scroller}
         onScroll={handleScroll}
-        onTouchStart={() => {
+        onTouchStart={(event) => {
           autoScrolling.current = false;
           pause('touch', true);
+          // 2本指（拡大操作）は端のスワイプとして扱わない
+          const touch = event.touches[0];
+          touchStart.current =
+            event.touches.length === 1
+              ? {
+                  x: touch.clientX,
+                  y: touch.clientY,
+                  scrollLeft: event.currentTarget.scrollLeft,
+                }
+              : null;
         }}
-        onTouchEnd={() => pause('touch', false)}
-        onTouchCancel={() => pause('touch', false)}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={() => {
+          touchStart.current = null;
+          pause('touch', false);
+        }}
         // 横に並べたスライドは一番高いスライドの高さにそろい、切り替えでカードの高さが変わって下のカードが動くことがない
         display="flex"
         sx={{
