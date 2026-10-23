@@ -2,7 +2,9 @@
 
 PROJECT_ROOT_DIR=/home/app/financialStatement
 
-bundle install --path vendor/bundle
+# Bundlerの設定はコンテナの中（BUNDLE_APP_CONFIG）にだけ保存され、作り直したコンテナには残らないため、起動のたびに設定する
+bundle config set --local path vendor/bundle
+bundle install
 
 if [ -f $PROJECT_ROOT_DIR/tmp/pids/server.pid ]; then
   rm $PROJECT_ROOT_DIR/tmp/pids/server.pid
