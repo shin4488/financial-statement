@@ -18,7 +18,7 @@ EDINETの財務データを可視化する。Rails API: `application/backend/`�
 - frontend変更時は、[frontend README](application/frontend/README.md)・同ディレクトリの `package.json` に従いlint・型・テスト・ビルドを確認する。
 - GraphQL変更時はschemaと生成型を更新・コミットする。
 - CIのskipを実行済みと扱わない。
-- backendとfrontendの両方を変更する場合は同じPRにまとめる。ローカル検証とCIが通ったら、head SHAを固定してマージする。デプロイはbackend → frontendの順。
+- backendとfrontendの両方を変更する場合は同じPRにまとめる。仕様が変わるPRはユーザーがマージを判断し、指示があればマージする。仕様が変わらないPRは、ローカル検証とCIが通ったらhead SHAを固定してマージする。デプロイはbackend → frontendの順。
 - `.claude/hooks/post-edit.sh` はRuby・ESLint・Prettier・型検査を行う。編集前に対象側の依存を用意し、共通Biomeは適用しない。
 
 ## 作業の進め方
