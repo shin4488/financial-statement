@@ -58,7 +58,7 @@ module FinancialStatements
       # ---- 保険のみ（jgaap_insurance が保存する）----
       instant("bs.policy_reserves",                      "保険契約準備金"),
 
-      # ---- 追加で保存する損益科目（ガスの2科目は jgaap_general、ほかは ifrs_classified / ifrs_liquidity が保存する）----
+      # ---- 日本基準のガスとIFRSのみ（ガスの2科目は jgaap_general、ほかは ifrs_classified / ifrs_liquidity が保存する）----
       duration("pl.gas_miscellaneous_expenses",          "ガス雑営業費用"),
       duration("pl.gas_incidental_expenses",             "ガス附帯事業費用"),
       duration("pl.other_operating_income",              "その他収益（IFRS）"),

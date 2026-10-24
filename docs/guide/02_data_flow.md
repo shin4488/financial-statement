@@ -616,7 +616,7 @@ WebとChrome拡張には、BS・PL用とCF用のチャートデータと、過�
 |---|---|---|
 | `StackChart` | BS・PL | 棒の一覧（`bars`）と、各棒を構成する項目（`segments`） |
 | `WaterfallChart` | CF | 期首残高、営業・投資・財務の増減、期末残高の5項目（`steps`） |
-| `FreeCashFlowTrend` | FCF推移 | 対象期を含む5年の、各年の営業CF・投資CF・FCF（`points`）。値がない年は `amount` が null |
+| `FreeCashFlowTrend` | FCF推移 | 対象期を含む5年の、各年の営業CF・投資CF・FCF（`points`）。値がない年は `amount` が null。年によって連結と単体が切り替わるときは、年ごとの連結区分を `note` に書く |
 
 BS・PL・CFの各項目には表示名・金額・色の役割を付ける。BS・PLには割合も付け、棒の高さには金額の絶対値、金額表示には元の符号付きの値を使う。
 
