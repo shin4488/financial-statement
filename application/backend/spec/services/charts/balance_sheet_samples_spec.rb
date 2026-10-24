@@ -106,7 +106,7 @@ RSpec.describe "貸借対照表のグラフ（実XBRL）" do
       renderable: false, note: "財政状態計算書: 2019年3月末より前のIFRSは非対応です。")
   end
 
-  it "いちよし証券 2025年3月期: 流動負債・固定負債のほかの負債（特別法上の準備金）は今のまま描かず、警告もしない" do
+  it "いちよし証券 2025年3月期: 流動負債・固定負債のほかの負債（特別法上の準備金）は差額でしか求められないため貸方に積まず、BSの照合でも警告しない" do
     _, charts = charts("S100Y87F", :consolidated)
     debit, credit = charts[:balance_sheet].bars
     aggregate_failures do

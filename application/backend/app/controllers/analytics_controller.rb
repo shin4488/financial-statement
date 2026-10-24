@@ -4,6 +4,7 @@ class AnalyticsController < ApplicationController
     return head :unsupported_media_type unless request.media_type == "application/json"
     return head :payload_too_large if request.content_length.to_i > 2048
 
+    # Content-Lengthがないか実際と違っても上限を守れるよう、上限＋1バイトまで読んで超過を判定する
     body = request.body.read(2049)
     return head :payload_too_large if body.bytesize > 2048
 

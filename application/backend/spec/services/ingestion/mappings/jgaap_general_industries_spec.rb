@@ -1,7 +1,7 @@
 require "rails_helper"
 
 # 業種別の勘定科目を持つ業種が jgaap_general のフォールバックで抽出できることの実測検証。
-# 期待値は各社の有報XBRLの実測値（spec/fixtures/xbrl/README.md）。単位: 円
+# 期待値は各社の有報XBRLの実測値。単位: 円
 RSpec.describe "Ingestion::Mappings::JgaapGeneral" do
   def extract(doc_id, consolidation)
     Ingestion::StatementExtractor.amounts(Ingestion::Mappings::JgaapGeneral, source: load_xbrl_fixture(doc_id), consolidation: consolidation)

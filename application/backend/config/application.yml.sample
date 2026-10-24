@@ -9,7 +9,7 @@
 # EDINET API v2 のAPIキー。EDINETのAPI利用登録ページで各自発行する
 EDINET_API_KEY: "your-edinet-api-key"
 
-# PostgreSQL接続情報（以下はdocker composeのdatabaseサービス用のデフォルト値）
+# PostgreSQL接続情報（パスワード以外はdocker composeのdatabaseサービス用のデフォルト値）
 POSTGRES_DATABASE_NAME: "financial_statement_development"
 POSTGRES_HOST_NAME: "database"
 POSTGRES_PORT: "5432"

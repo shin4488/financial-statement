@@ -32,7 +32,7 @@ GA4 Web プロパティ: `407300014`（測定 ID `G-ZCJ8NTQ6KY`）。
 |---|---|
 | `result_status` | `success`：表示成功、`empty`：0件、`error`：取得失敗 |
 | `search_mode` | `browse`：条件なし、`stock`：証券コード、`cash_flow`：CFパターン、`combined`：両方 |
-| `chart_type` | `bs`：貸借対照表、`pl`：損益計算書、`cf`：キャッシュフロー計算書、`indicators`：財務指標 |
+| `chart_type` | `bs`：貸借対照表、`pl`：損益計算書、`cf`：キャッシュフロー計算書、`fcf`：フリーキャッシュフローの推移、`indicators`：財務指標 |
 | `unavailable_count` | 3表のうち1つ以上が表示できないレポート数。通信失敗数ではない |
 
 この定義は `analytics_version=2`。過去のclickや旧イベントとは集計条件が異なるため、件数の増減を直接比較しない。

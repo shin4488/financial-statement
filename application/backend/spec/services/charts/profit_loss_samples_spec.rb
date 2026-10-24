@@ -94,7 +94,7 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
       end
     end
 
-    it "ローソン 2023年2月期: 企業拡張タグの収益で、今までの差額の描き方で描く" do
+    it "ローソン 2023年2月期: 企業拡張タグの収益で、ほかのIFRSの会社と同じく差額を含めて描く" do
       _, chart = profit_loss("S100QTB3", :consolidated)
       debit, credit = chart.bars
       aggregate_failures do
