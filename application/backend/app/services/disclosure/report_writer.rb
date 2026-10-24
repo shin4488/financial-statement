@@ -14,14 +14,15 @@ module Disclosure
       report.financial_statements
             .where.not(consolidation_type: statements.map(&:consolidation_type))
             .destroy_all
-      # 主とする区分が単体から連結に替わる再取込（連結を含む訂正有報など）では、新しい主を立てる前に旧い主を外す。
+      # 主とする区分が替わる再取込（連結を含む訂正有報など）では、新しい主を立てる前に旧い主を外す。
       # 区分ごとに更新する途中で主が2つになり、1有報1主の一意制約に反するため
-      primary_types = statements.select { |statement_data| primary?(statement_data, dei) }.map(&:consolidation_type)
+      primary_type = primary_consolidation_type(statements, dei)
       report.financial_statements.where(is_primary: true)
-            .where.not(consolidation_type: primary_types)
+            .where.not(consolidation_type: primary_type)
             .update_all(is_primary: false)
       statements.each do |statement_data|
-        financial_statement, event = upsert_statement(report, statement_data, dei)
+        financial_statement, event = upsert_statement(report, statement_data,
+                                                      primary: statement_data.consolidation_type == primary_type)
         yield event, statement_data, financial_statement
       end
     end
@@ -66,7 +67,7 @@ module Disclosure
       end
 
       # 財務諸表（ARモデル）と、:saved か :skipped を返す
-      def upsert_statement(report, statement_data, dei)
+      def upsert_statement(report, statement_data, primary:)
         fs = Disclosure::FinancialStatement.find_or_initialize_by(
           report: report, consolidation_type: statement_data.consolidation_type)
         # 当期科目が取れない再取込は既存行を保持してスキップする。
@@ -82,7 +83,7 @@ module Disclosure
           presentation_format: statement_data.presentation_format,
           disclosed_roe: statement_data.disclosed_roe,
           disclosed_roe_checked_at: Time.current,
-          is_primary: primary?(statement_data, dei))
+          is_primary: primary)
         replace_items(fs, statement_data.amounts)
         [ fs, :saved ]
       end
@@ -102,10 +103,26 @@ module Disclosure
       end
 
       # is_primary = 一覧表示・検索の対象。投資判断では連結が重要のため連結を優先し、
-      # 連結を作成しない企業のみ単体を主とする
-      def primary?(statement_data, dei)
-        dei.has_consolidated ? statement_data.consolidation_type == :consolidated
-                             : statement_data.consolidation_type == :non_consolidated
+      # 連結を作成しない企業のみ単体を主とする。
+      # 連結初年度で、その期の子会社の損益を連結しない書類（みなし取得日を期末にした・子会社の決算日がまだ来ていないなど）は、
+      # 連結貸借対照表だけを作り、その期の損益・CFを単体で開示する。
+      # 連結に貸借対照表だけがあり、単体に当期の損益・CFがあるときは、1枚のカードのBS・PL・CF・指標を同じ区分の値にそろえるため単体を主とする
+      def primary_consolidation_type(statements, dei)
+        return :non_consolidated unless dei.has_consolidated
+
+        consolidated, non_consolidated = %i[consolidated non_consolidated].map do |type|
+          statements.find { |statement_data| statement_data.consolidation_type == type }
+        end
+        balance_sheet_only?(consolidated) && flows?(non_consolidated) ? :non_consolidated : :consolidated
+      end
+
+      def balance_sheet_only?(statement_data)
+        statement_data&.amounts&.key?("bs.assets") && !flows?(statement_data)
+      end
+
+      # 当期の損益・CFの科目（期間の科目）があるか
+      def flows?(statement_data)
+        statement_data && (statement_data.amounts.codes & FinancialStatements::ItemCatalog.duration_codes).any?
       end
 
       # この有報がその企業の最新会計期か（同じ期の再取込・訂正有報も最新扱い）。

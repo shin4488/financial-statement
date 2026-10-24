@@ -166,6 +166,38 @@ RSpec.describe "ingestion の書類を取り込むタスク" do
     end
   end
 
+  describe "ingestion:reingest_balance_sheet_only_consolidated" do
+    it "連結に貸借対照表だけがあり、単体に当期の損益・CFがあるのに連結を主にしている有報だけを、提出日の順に再取込する" do
+      targets = [ Date.new(2026, 6, 25), Date.new(2026, 6, 20) ].map do |filing_date|
+        report = create(:disclosure_report, filing_date: filing_date)
+        create(:disclosure_financial_statement, report: report, amounts: { "bs.assets" => 1_000 })
+        create(:disclosure_financial_statement, report: report, consolidation_type: :non_consolidated, is_primary: false,
+               amounts: { "bs.assets" => 900, "pl.profit" => 10 })
+        report
+      end
+      {
+        "連結に当期の損益がある" => [ { "bs.assets" => 1_000, "pl.profit" => 20 }, { "bs.assets" => 900, "pl.profit" => 10 } ],
+        "単体に当期の損益・CFがない" => [ { "bs.assets" => 1_000 }, { "bs.assets" => 900 } ],
+        "連結に資産合計がない" => [ {}, { "bs.assets" => 900, "pl.profit" => 10 } ]
+      }.each_value do |consolidated, non_consolidated|
+        report = create(:disclosure_report)
+        create(:disclosure_financial_statement, report: report, amounts: consolidated)
+        create(:disclosure_financial_statement, report: report, consolidation_type: :non_consolidated, is_primary: false,
+               amounts: non_consolidated)
+      end
+      stub_documents
+      doc_ids = targets.reverse.map(&:edinet_document_id)
+
+      expect { run_task("ingestion:reingest_balance_sheet_only_consolidated") }.to output(<<~OUT).to_stdout
+        reingest 2 documents
+        ingested #{doc_ids[0]}
+        ingested #{doc_ids[1]}
+      OUT
+
+      expect(events).to eq doc_ids.flat_map { |doc_id| [ [ :download, doc_id ], [ :sleep, 1 ] ] }
+    end
+  end
+
   describe "ingestion:reingest_unsupported" do
     it "unsupportedの財務諸表を含む有報（主でない財務諸表を含む）のうち、提出日が範囲内（両端を含む）の有報を一度ずつ提出日の順に再取込する" do
       first_day = create(:disclosure_report, filing_date: Date.new(2026, 6, 1))

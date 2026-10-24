@@ -20,7 +20,7 @@ bundle exec rails runner '
      S100LR17 S100YCOW S100YLVF S100DGXR S100AQXU S1009DYN S100YCDE
      S100XRWN S100YM3K S100YZB3 S100YGCZ S100X5NI S100X7D9 S100YIVJ
      S100Y3VC S100YD39 S100Y5IT S100YA84 S100YM8I
-     S100QTR5 S100ABBU].each do |doc_id|
+     S100QTR5 S100ABBU S100Z8TU].each do |doc_id|
     path = client.download_xbrl(doc_id: doc_id, work_dir: dir)
     puts "#{doc_id}: #{path}"
     sleep 2
@@ -88,6 +88,8 @@ bundle exec rails runner '
 `S100YWE4`（丸井グループ）は、日本基準の収益が標準の `jppfs_cor:Revenue` で開示される例。収益276,862百万円を使い、売上関連の指標を欠損にしないことを検証する。
 
 `S100YZFP`（シーラHD）は連結初年度の公表ROE37.2%を保存・補完する回帰例。前年単体と当年連結の残高を混ぜず、ROA・レバレッジの欠損を残す。
+
+`spec/graphql/balance_sheet_only_consolidation_spec.rb` の `S100Z8TU`（シルバーライフ 2026年7月期）と `S100QBCW`（クックビズ 2022年11月期）は、連結初年度で連結貸借対照表だけを作り、損益・CFを単体で開示する有報。単体を主にし、BS・PL・CFと指標を単体の値で返すことを検証する。
 
 `spec/graphql/disclosed_roe_differences_spec.rb` は、公表ROEと平均残高での計算値が異なる8件を取込→保存→APIまで検証する。本表の利益・期首期末自己資本、公表ROEをそれぞれ独立した期待値で確認し、公表値に合わせて計算式を変更しないことを保証する。
 

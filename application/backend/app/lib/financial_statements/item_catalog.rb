@@ -113,5 +113,6 @@ module FinancialStatements
     ALL = ITEMS.map(&:code).freeze
 
     def self.opening_codes = ITEMS.select(&:opening?).map(&:code)
+    def self.duration_codes = ITEMS.select { |item| item.period == :duration }.map(&:code)
   end
 end
