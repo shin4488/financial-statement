@@ -35,7 +35,6 @@ output=$({
 } 2>&1)
 
 if [ -n "$output" ]; then
-  # 編集済みのコードは残し、診断を追加コンテキストとして返す既存の運用を維持する。
   jq -n --arg ctx "format-lint hook: 自動修正後も残った指摘（CIで失敗し得るため対処すること）
 $output" '{hookSpecificOutput: {hookEventName: "PostToolUse", additionalContext: $ctx}}'
 fi

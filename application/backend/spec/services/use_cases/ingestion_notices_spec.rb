@@ -23,7 +23,7 @@ RSpec.describe UseCases::IngestionNotices do
       end
     end
 
-    it "書類ごとの値がnilでも、今の文言と同じく空として埋め込む" do
+    it "書類ごとの値がnilなら、空として文言に埋め込む" do
       notice = described_class.build(:sec_code_mismatch, doc_id: "S0000001", expected_sec_code: "45020", stock_code: nil)
       expect(notice.message).to eq "sec code mismatch: S0000001 (list=45020 dei=)"
     end

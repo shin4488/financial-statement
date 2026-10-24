@@ -3,7 +3,7 @@ require "json"
 require "digest"
 
 module Analytics
-  # 公開API。計測先・イベント・値を固定し、任意のMPプロキシにしない。
+  # 公開API。計測先・イベント・値を固定し、Measurement Protocolへの任意の中継にしない。
   # IP、閲覧URL、証券コード、例外本文はGoogleに送信しない。
   class ExtensionEvent
     class Invalid < StandardError; end
@@ -18,12 +18,14 @@ module Analytics
       "chart_type" => %w[bs pl cf fcf indicators],
       "link_domain" => %w[kabutan.jp investee.info]
     }.freeze
+    # engagement_time_msec は、拡張機能が前のイベントからの経過時間を1ミリ秒〜1時間に収めて送る
     NUMBERS = { "result_count" => 0..1000, "unavailable_count" => 0..1000, "engagement_time_msec" => 1..3_600_000 }.freeze
     UUID = /\A[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/i
 
     def initialize(input)
       raise Invalid unless input.is_a?(Hash) && (input.keys - %w[client_id session_id name params]).empty?
       raise Invalid unless input["client_id"].is_a?(String) && input["client_id"].match?(UUID)
+      # session_id は、拡張機能がセッションの開始時刻（Unix時間の秒。10桁まで）で作る
       raise Invalid unless input["session_id"].is_a?(Integer) && input["session_id"].between?(1, 9_999_999_999)
       raise Invalid unless EVENTS.include?(input["name"])
       params = input["params"]
@@ -43,8 +45,7 @@ module Analytics
       raise Invalid unless params.key?("engagement_time_msec") && params.key?("extension_version")
 
       @payload = {
-        # GA web streams require <number>.<number>; preserve a stable pseudonymous
-        # identifier without exposing the extension's stored UUID.
+        # GA4のWebストリームはclient_idに「数値.数値」の形を求める。拡張機能が保存したUUIDは送らず、同じUUIDなら大文字小文字によらず同じ値になる識別子に変える
         client_id: Digest::SHA256.digest(input["client_id"].downcase).unpack("N2").join("."),
         consent: { ad_user_data: "DENIED", ad_personalization: "DENIED" },
         events: [ { name: input["name"], params: params.merge("session_id" => input["session_id"], "analytics_version" => "2") } ]

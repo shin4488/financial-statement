@@ -36,8 +36,7 @@ export default defineConfig({
     target: browserslistToEsbuild(),
     rolldownOptions: {
       output: {
-        // 第三者ライブラリのライセンス表記（@license / /*! …）はminify後も残す。
-        // CRA(terser)はLICENSE.txtに抽出して配布していたが、Viteの既定はminify時に全削除するため明示する
+        // 第三者ライブラリのライセンス表記（@license / /*! …）はminify後も残す。Viteの既定ではminify時に削除されるため明示する
         comments: { legal: true },
         entryFileNames: 'static/js/main.[hash].js',
         chunkFileNames: 'static/js/[name].[hash].js',

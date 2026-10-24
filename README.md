@@ -1,20 +1,18 @@
 # financial-statement (investee)
 
-上場企業の財務三表（貸借対照表・損益計算書・キャッシュフロー計算書）をグラフで直感的に可視化するWebアプリケーションです。
+上場企業の財務三表（貸借対照表・損益計算書・キャッシュフロー計算書）をグラフで表示するWebアプリケーションです。
 
 金融庁の開示システム（EDINET）から有価証券報告書のXBRLデータを取得・解析し、積み上げグラフやウォーターフォールグラフとして表示します。
 
-**本番サービス**: [https://investee.info](https://investee.info)
-
----
+本番: [https://investee.info](https://investee.info)
 
 ## 主な機能
 
-- **財務三表のビジュアル表示**: 貸借対照表（BS）、損益計算書（PL）、キャッシュフロー計算書（CF）を視覚的なグラフで比較・分析。
-- **銘柄検索・絞り込み**: 証券コードや企業名による検索、キャッシュフローのパターン（営業・投資・財務CFの正負の組み合わせ）によるスクリーニング。
-- **自動データ更新**: EDINET APIと連携し、提出された有価証券報告書を日次バッチで自動取り込み。
-
----
+| 機能 | 内容 |
+|---|---|
+| グラフ | 企業の会計期間ごとのカードに、BS・PL・CFのグラフ、フリーキャッシュフローの過去5年の推移、ROE・ROAを表示する |
+| 絞り込み | 証券コード（複数可）と、キャッシュフローのパターン（営業・投資・財務CFの正負の組み合わせ）で絞り込む |
+| データの更新 | EDINET APIから、前日に提出された有価証券報告書を日次バッチで取り込む |
 
 ## システム構成
 
@@ -44,19 +42,15 @@ flowchart TD
     Batch -->|"スケジュール"| Redis
 ```
 
----
-
 ## 技術スタック
 
 | レイヤー | 技術・ライブラリ |
 |---|---|
-| **フロントエンド** | React, TypeScript, Apollo Client, Redux Toolkit, Material-UI, recharts |
-| **バックエンド** | Ruby 3.4, Ruby on Rails 7, GraphQL (graphql-ruby), Sidekiq |
-| **データベース / キャッシュ** | PostgreSQL 12, Redis |
-| **インフラ / 実行環境** | Docker, Docker Compose, nginx |
-| **外部連携** | 金融庁 EDINET API v2 |
-
----
+| フロントエンド | React, TypeScript, Apollo Client, Redux Toolkit, MUI, recharts |
+| バックエンド | Ruby 3.4, Ruby on Rails 7, GraphQL (graphql-ruby), Sidekiq |
+| データベース / キャッシュ | PostgreSQL 12, Redis |
+| インフラ / 実行環境 | Docker, Docker Compose, nginx |
+| 外部連携 | 金融庁 EDINET API v2 |
 
 ## 開発環境のセットアップ
 
@@ -85,11 +79,12 @@ SENTRY_DSN: "" # 任意（エラー監視を使用する場合のみ）
 docker compose up
 ```
 
-起動後、以下のURLから各サービスにアクセスできます：
-- **フロントエンド画面**: `http://localhost:10000`
-- **GraphQL エンドポイント**: `http://localhost:20000/graphql`
+起動後は、次のURLで動作を確認できます。
 
----
+| 対象 | URL |
+|---|---|
+| 画面 | `http://localhost:10000` |
+| GraphQL エンドポイント | `http://localhost:20000/graphql` |
 
 ## データの取り込み（有報インポート）
 
@@ -103,8 +98,6 @@ docker compose exec appserver bundle exec rake 'ingestion:backfill[2026-06-20,20
 docker compose exec appserver bundle exec rake 'ingestion:documents[S100YB5L S100YB25]'
 ```
 
----
-
 ## 主な開発コマンド
 
 ```bash
@@ -114,8 +107,6 @@ cd application/frontend && npm run compile
 # バックエンドのテスト実行
 docker compose exec appserver bundle exec rspec
 ```
-
----
 
 ## リポジトリ構成
 

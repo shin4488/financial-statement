@@ -4,7 +4,7 @@ module Ingestion
     # （流動/固定の区分がなく、PLも売上高でなく経常収益から始まる金融機関の様式）。
     # ここに無い業種（建設・鉄道・電気・ガス・海運・電気通信・証券・特定金融・商品先物・投資業など）も
     # 業種別の勘定科目を持つが、骨格は一般と同じなので一般形式で扱い、タグ名の違いは
-    # 対応表のフォールバックで吸収する（タグの対応表は docs/guide にある）
+    # 対応表のフォールバックで吸収する
     FINANCIAL_INSTITUTION_FORMATS = {
       "bnk" => FinancialStatements::Formats::JGAAP_BANK,      # 銀行・信託業
       "ins" => FinancialStatements::Formats::JGAAP_INSURANCE  # 生命保険業・損害保険業

@@ -15,8 +15,7 @@ import type { FinancialReport } from '../api/types';
 
 // 会計基準は日本基準以外のみサブヘッダに表示する（判断材料として意味を持つのは
 // 「日本基準とは表示形式が違う」ことを示す場合だけのため）。
-// accountingStandardを描画分岐に使わないことがこの設計の規律
-// （書き始めたらチャート契約で吸収できていないサイン）
+// accountingStandardでグラフの描き方を分けない。分ける必要が出たときは、形式の違いをバックエンドのチャート構造で吸収できていない
 const nonJgaapBadge: Record<string, string> = {
   ifrs: 'IFRS',
   us_gaap: '米国基準',
