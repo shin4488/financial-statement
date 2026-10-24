@@ -1,4 +1,4 @@
-# EDINET API v2 の薄いラッパ。外部I/Oをここに集約する。
+# EDINET API v2 の薄いラッパ。EDINETとの通信をここに集約する。
 # レート制限（リクエスト過多で403）のため同期・逐次実行が前提（並列化しない）
 module Edinet
   class Client

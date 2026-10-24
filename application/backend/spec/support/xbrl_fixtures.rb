@@ -1,6 +1,4 @@
-# 実XBRLフィクスチャ（数MB/件）はリポジトリにコミットしない前提のため、
-# 存在しない環境ではspecをskipする（CI等で必要になったら取得タスクを実行する）。
-# 取得方法は spec/fixtures/xbrl/README.md を参照
+# 実XBRLフィクスチャ（数MB/件）はリポジトリにコミットしないため、取得していない環境（CIなど）ではspecをskipする
 module XbrlFixtures
   DIR = File.expand_path("../fixtures/xbrl", __dir__)
 

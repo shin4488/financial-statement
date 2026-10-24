@@ -55,6 +55,10 @@ npx tsc --noEmit && npx eslint 'src/**/*.{ts,tsx}' && npx prettier --check 'src/
 ```
 
 ```bash
+yarn test --run
+```
+
+```bash
 yarn build
 ```
 

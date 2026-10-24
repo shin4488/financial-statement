@@ -131,8 +131,6 @@ function FinancialReportList() {
   );
 }
 
-// 専用のApolloクライアントをこのページ配下だけに提供する
-// （共有シングルトンのキャッシュ設定に手を入れず、他ページと独立に保つため）
 export default function FinancialReportListPage() {
   return (
     <ApolloProvider client={financialReportsClient}>

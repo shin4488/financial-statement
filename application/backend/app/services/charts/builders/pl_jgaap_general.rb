@@ -1,5 +1,4 @@
-# PLは貸借バランスが定義的に成立する（導出項目が差分を埋める）ため、
-# 貸借2本の部品（TwoSidedChart）は使わずBuilderごとに組み立てる
+# 貸借2本の部品（TwoSidedChart）は純資産・債務超過と資産合計との照合を扱うBS用のため、PLはBuilderごとに組み立てる
 class Charts::Builders::PlJgaapGeneral < Charts::Builders::Base
   # 費用の構成は業種で異なる。開示されている科目だけを積み、費用を差額で求めることはしない。
   # 各要素は [科目コード, key, ラベル, 色の役割, ツールチップ表示名（labelと同じならnil）]:

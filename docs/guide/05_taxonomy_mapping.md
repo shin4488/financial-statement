@@ -119,12 +119,12 @@
 | `bs.securities` | 有価証券 | 銀行・保険 | 銀行 `jppfs_cor:SecuritiesAssetsBNK`<br>保険 `jppfs_cor:SecuritiesAssetsINS` | 銀行・保険 |
 | `bs.deposits` | 預金 | 銀行 | `jppfs_cor:DepositsLiabilitiesBNK` → 企業拡張タグ `DepositsLiabilities` | 銀行 |
 | `bs.policy_reserves` | 保険契約準備金 | 保険 | `jppfs_cor:ReserveForInsurance` `PolicyLiabilitiesLiabilitiesINS` | 保険 |
-
-日本郵政とゆうちょ銀行は、貯金を企業拡張タグ `DepositsLiabilities` で開示している（日本郵政の2017年・2026年、ゆうちょ銀行の2018年・2026年の有報で確認）。標準タグで取れないときだけ使う。
 | `bs.property_plant_and_equipment` | 有形固定資産 | 分類 | `jpigp_cor:PropertyPlantAndEquipmentIFRS` | — |
 | `bs.goodwill_and_intangibles` | のれん及び無形資産 | 分類 | `jpigp_cor:GoodwillAndIntangibleAssetsIFRS` → なければ `GoodwillIFRS` + `IntangibleAssetsIFRS` | — |
 | `bs.equity_attributable_to_owners` | 自己資本 / 親会社所有者帰属持分 | 全対応形式 | 上記「ROE・ROAの期首・期末残高」参照 | 指標 |
 | `bs.non_controlling_interests` | 非支配持分 | 分類・配列 | `jpigp_cor:NonControllingInterestsIFRS` | — |
+
+日本郵政とゆうちょ銀行は、貯金を企業拡張タグ `DepositsLiabilities` で開示している（日本郵政の2017年・2026年、ゆうちょ銀行の2018年・2026年の有報で確認）。標準タグで取れないときだけ使う。
 
 ## PL（損益計算書）
 
@@ -221,7 +221,7 @@
 | `pl.operating_expenses` | 営業費用（一括計上） | フォールバック10件（下記） | `jpigp_cor:OperatingExpensesIFRS` | 一般・IFRS |
 | `pl.gross_profit` | 売上総利益 | `jppfs_cor:GrossProfit` → `OperatingGrossProfit`（営業総利益）→ `OperatingGrossProfitWAT` | `jpigp_cor:GrossProfitIFRS` | 分類・配列（負の値の費用の確認） |
 | `pl.operating_profit` | 営業利益 | `jppfs_cor:OperatingIncome` → `OperatingIncomeTotalBusiness`（全事業営業利益。鉄道単体） | `jpigp_cor:OperatingProfitLossIFRS` | 一般・IFRS（売上0の会社だけ） |
-| `pl.ordinary_profit` | 経常利益 | `jppfs_cor:OrdinaryIncome` | 存在しない | 銀行 |
+| `pl.ordinary_profit` | 経常利益 | `jppfs_cor:OrdinaryIncome` | 存在しない | 銀行・保険 |
 | `pl.non_operating_income` | 営業外収益 | `jppfs_cor:NonOperatingIncome` | 存在しない | — |
 | `pl.non_operating_expenses` | 営業外費用 | `jppfs_cor:NonOperatingExpenses` | 存在しない | — |
 | `pl.extraordinary_income` | 特別利益 | `jppfs_cor:ExtraordinaryIncome` | 存在しない | — |

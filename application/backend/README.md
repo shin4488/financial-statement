@@ -74,7 +74,7 @@ bundle exec rspec
 ```
 app/lib/
   financial_statements/item_catalog.rb # 科目カタログ（唯一の科目一覧。科目ごとの期間・期首の科目・意味）
-  edinet/client.rb                     # EDINET API（外部I/Oはここだけ）
+  edinet/client.rb                     # EDINET API（EDINETとの通信はここだけ）
   xbrl/document.rb                     # XBRLのfact検索プリミティブ
 app/models/disclosure/                 # 現行テーブルのモデル
 app/services/
