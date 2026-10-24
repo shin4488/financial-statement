@@ -41,7 +41,7 @@
     "jsdom": "^30.0.1",
     "prettier": "^2.8.8",
     "vite": "^8.2.4",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.12"
   },
   "resolutions": {
     "undici": "^6.28.1",
