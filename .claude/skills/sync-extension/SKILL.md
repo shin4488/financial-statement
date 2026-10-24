@@ -31,7 +31,15 @@ diff -r application/frontend/src/shared/financialCharts "$EXT/src/shared/financi
 diff -r application/frontend/src/shared/financialIndicators "$EXT/src/shared/financialIndicators"
 ```
 
-拡張側の prettier 整形差分（行幅の設定が違うことによる改行の位置と、それに伴う末尾のカンマ・括弧・セミコロンの有無）は許容。それ以外の差分が未反映分。
+拡張側の prettier 整形差分は許容。それ以外の差分が未反映分。拡張側の prettier は行幅の設定と版がコピー元と違うため、改行の位置や入れ子の三項演算子の字下げなどが変わる。整形差分だけかどうかは、拡張側のファイルをコピー元の prettier で整形し直し、コピー元と一致するかで確かめる:
+
+```bash
+tmp=$(mktemp -d)
+cp -R "$EXT/src/shared/financialCharts" "$EXT/src/shared/financialIndicators" "$tmp/"
+(cd application/frontend && npx prettier --config .prettierrc --write "$tmp/**/*.{ts,tsx}" >/dev/null)
+diff -r application/frontend/src/shared/financialCharts "$tmp/financialCharts"
+diff -r application/frontend/src/shared/financialIndicators "$tmp/financialIndicators"
+```
 
 ## 同期手順
 
