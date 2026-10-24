@@ -31,7 +31,7 @@ diff -r application/frontend/src/shared/financialCharts "$EXT/src/shared/financi
 diff -r application/frontend/src/shared/financialIndicators "$EXT/src/shared/financialIndicators"
 ```
 
-拡張側の prettier 整形差分（行幅の設定が違うことによる改行の位置）は許容。それ以外の差分が未反映分。
+拡張側の prettier 整形差分（行幅の設定が違うことによる改行の位置と、それに伴う末尾のカンマ・括弧・セミコロンの有無）は許容。それ以外の差分が未反映分。
 
 ## 同期手順
 
