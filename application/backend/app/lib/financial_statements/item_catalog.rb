@@ -98,7 +98,7 @@ module FinancialStatements
       # ---- 営業費用一括型（ifrs_classified / ifrs_liquidity と、日本基準の電気・鉄道・特定金融・商品先物など該当タグがあれば保存する）----
       duration("pl.operating_expenses",                  "営業費用（原価/販管費に分解されない一括計上。売上原価を別掲する商品先物ではその控除後）"),
 
-      # ---- CF（期首残・3区分・期末残は全形式が保存する。式に足す調整の行は、換算差額を日本基準とIFRS（ifrs_classified / ifrs_liquidity）、新規連結・連結範囲の変更・合併を日本基準だけが保存する）----
+      # ---- CF（期首残・3区分・期末残は全形式が保存する。「期首残＋3区分＋調整＝期末残」の式に足す調整の行のうち、換算差額は日本基準と ifrs_classified / ifrs_liquidity が、新規連結・連結範囲の変更・合併は日本基準だけが保存する）----
       duration("cf.new_consolidation",                   "新規連結に伴う現金残高の増加"),
       duration("cf.consolidation_change",                "連結範囲変更による現金残高の増減"),
       duration("cf.merger",                              "合併に伴う現金及び現金同等物の増減"),

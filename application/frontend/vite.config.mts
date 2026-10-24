@@ -48,8 +48,7 @@ export default defineConfig({
     },
   },
   test: {
-    // 共有チャートキット(shared/financialCharts)のテストはChrome拡張側(jest)と同じ書き方を保つため、
-    // describe/it/expectをimportせずグローバルで使う
+    // 共有コード（src/shared）のテストは拡張機能へそのままコピーするため、両方で同じ書き方（describe/it/expectをimportせずグローバルで使う）にそろえる
     globals: true,
     environment: 'jsdom',
   },

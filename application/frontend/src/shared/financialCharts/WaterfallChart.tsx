@@ -88,7 +88,7 @@ export function stepTickFontSize(labels: string[], chartWidth: number): number {
 }
 
 // 金額ラベルの位置を計算できるよう、縦の表示範囲を自前で決める。累積が負になるケースでは0より下も含める。
-// バーの高さを自動で決めていたときと変えないよう、rechartsと同じく、0を含む5本の目盛りが切りのよい値になるまで広げる
+// rechartsに表示範囲を任せたときと同じ範囲になるよう、0を含む5本の目盛りが切りのよい値になるまで広げる
 export function waterfallDomain(rows: Row[]): [number, number] {
   const low = Math.min(0, ...rows.map((row) => row.base));
   const high = Math.max(0, ...rows.map((row) => row.base + row.span));

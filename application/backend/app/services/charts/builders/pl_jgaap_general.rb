@@ -1,4 +1,4 @@
-# 貸借2本の部品（TwoSidedChart）は純資産・債務超過と資産合計との照合を扱うBS用のため、PLはBuilderごとに組み立てる
+# 貸借2本の部品（TwoSidedChart）は、債務超過の表示と「資産合計＝負債合計＋純資産合計」の照合を扱うBS用の部品のため、PLはBuilderごとに組み立てる
 class Charts::Builders::PlJgaapGeneral < Charts::Builders::Base
   # 費用の構成は業種で異なる。開示されている科目だけを積み、費用を差額で求めることはしない。
   # 各要素は [科目コード, key, ラベル, 色の役割, ツールチップ表示名（labelと同じならnil）]:

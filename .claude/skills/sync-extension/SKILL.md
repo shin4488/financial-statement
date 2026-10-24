@@ -31,7 +31,7 @@ diff -r application/frontend/src/shared/financialCharts "$EXT/src/shared/financi
 diff -r application/frontend/src/shared/financialIndicators "$EXT/src/shared/financialIndicators"
 ```
 
-拡張側の prettier 整形差分（日本語と英単語の間のスペース・行幅）と、拡張側 README の「## コピー元」節の追記は許容。それ以外の差分が未反映分。
+拡張側の prettier 整形差分（日本語と英単語の間のスペース・行幅）は許容。それ以外の差分が未反映分。
 
 ## 同期手順
 
@@ -40,10 +40,9 @@ diff -r application/frontend/src/shared/financialIndicators "$EXT/src/shared/fin
    ```bash
    cp application/frontend/src/shared/financialCharts/* "$EXT/src/shared/financialCharts/"
    ```
-3. 拡張側 README に「## コピー元」節（コピー運用の説明）を復元する（コピーで消えるため。内容は拡張側の git 履歴を参照）
-4. 拡張側の prettier で整形する: `(cd "$EXT" && npx prettier --write "src/shared/financialCharts/**")`
-5. 下の「ローカルでの動作確認」を全て通す
-6. PR 作成まで依頼されている場合は push して PR を作る。マージはユーザーが行う。
+3. 拡張側の prettier で整形する: `(cd "$EXT" && npx prettier --write "src/shared/financialCharts/**")`
+4. 下の「ローカルでの動作確認」を全て通す
+5. PR 作成まで依頼されている場合は push して PR を作る。マージはユーザーが行う。
 
 ## ローカルでの動作確認
 

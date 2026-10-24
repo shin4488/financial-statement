@@ -44,10 +44,8 @@ module Charts
 
         bars = [ Bar.new(label: "借方", segments: debit) ]
         if equity.negative?
-          # 債務超過: 貸方は負債のみ（負債合計 > 資産合計の状態）。3本目のバーで
-          # 「資産と負債の差 = マイナスの純資産」を可視化する。
-          # spacer = 資産合計と同じ高さまで透明で詰めて、負債を超えた部分にだけ
-          # 赤いセグメントが現れるようにする位置合わせ
+          # 債務超過: 貸方は負債のみ（負債合計 > 資産合計の状態）。3本目のバーで「資産と負債の差 = マイナスの純資産」を可視化する。
+          # spacer = 資産合計と同じ高さまで透明で詰め、資産合計から負債合計までの高さにだけ純資産のセグメントが現れるようにする位置合わせ
           bars << Bar.new(label: "貸方", segments: credit)
           spacer_amount = credit.sum(&:amount) + equity # = 負債合計 - |純資産| = 資産合計
           bars << Bar.new(label: "債務超過", segments: [

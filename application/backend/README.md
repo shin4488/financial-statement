@@ -75,7 +75,7 @@ app/lib/
   financial_statements/item_catalog.rb # 科目カタログ（唯一の科目一覧。科目ごとの期間・期首の科目・意味）
   edinet/client.rb                     # EDINET API（EDINETとの通信はここだけ）
   xbrl/document.rb                     # XBRLのfact検索プリミティブ
-app/models/disclosure/                 # 現行テーブルのモデル
+app/models/disclosure/                 # テーブルのモデル
 app/services/
   ingestion/                           # 対象確認・形式判定・対応表・抽出・取得式・補正ルール
   use_cases/                           # 入口から呼ぶ処理の手順（日付・docID指定の取込、1有報の取込と点検、書類の逐次実行、一覧の取得）
@@ -85,7 +85,7 @@ app/services/
   disclosure/reingest_targets.rb       # 再取込タスク（rake ingestion:reingest_*）の対象の検索
 app/graphql/
   financial_statement_schema.rb        # スキーマ（複雑度・深さの上限を含む）
-  resolvers/financial_reports.rb       # 現行クエリ financialReports
+  resolvers/financial_reports.rb       # クエリ financialReports
 ```
 
 設計意図・XBRLの形式ごとの差異はリポジトリルートの `docs/guide/`（02〜03章に設計解説）を参照。

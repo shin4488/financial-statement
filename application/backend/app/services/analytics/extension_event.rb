@@ -3,13 +3,14 @@ require "json"
 require "digest"
 
 module Analytics
-  # 公開API。計測先・イベント・値を固定し、Measurement Protocolへの任意の中継にしない。
+  # 公開API。計測先・イベント・値を固定し、受け取った内容をそのままMeasurement Protocolへ送る中継にしない。
   # IP、閲覧URL、証券コード、例外本文はGoogleに送信しない。
   class ExtensionEvent
     class Invalid < StandardError; end
     class Unavailable < StandardError; end
 
     EVENTS = %w[popup_open report_result analysis_interaction outbound_click].freeze
+    # site_domain_name の値。拡張機能が対応する証券サイトのホスト名と、銘柄ページを特定できないときに拡張機能が送る unknown
     DOMAINS = %w[www.buffett-code.com minkabu.jp kabutan.jp www.rakuten-sec.co.jp member.rakuten-sec.co.jp shikiho.toyokeizai.net finance.yahoo.co.jp unknown].freeze
     PARAMS = {
       "site_domain_name" => DOMAINS,

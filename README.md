@@ -48,7 +48,7 @@ flowchart TD
 |---|---|
 | フロントエンド | React, TypeScript, Apollo Client, Redux Toolkit, MUI, recharts |
 | バックエンド | Ruby 3.4, Ruby on Rails 7, GraphQL (graphql-ruby), Sidekiq |
-| データベース / キャッシュ | PostgreSQL 12, Redis |
+| データストア | PostgreSQL 12, Redis（Sidekiqのジョブとスケジュール） |
 | インフラ / 実行環境 | Docker, Docker Compose, nginx |
 | 外部連携 | 金融庁 EDINET API v2 |
 
