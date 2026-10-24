@@ -211,9 +211,10 @@ EDINETの応答が原因のときは、続けて再試行しない。メンテ�
 
 企業拡張タグにしかない費用・CFの行や、差額でしか描けないBSの科目は、今のまま描く。
 
-### 形式の対応を広げた後の再取込
+### 取込の対応を広げた後の再取込
 
 | きっかけ | コマンド | 対象 |
 |---|---|---|
 | 新しい業種・形式に対応した | `rake 'ingestion:reingest_unsupported[提出日from,提出日to]'` | `unsupported` の財務諸表を含む有報 |
 | 詳細タグ義務化前のIFRS有報が `ifrs_liquidity` のまま残っている | `rake ingestion:reingest_ifrs_summary` | 表示対象の `ifrs_liquidity` なのに資産合計がない有報。移行が終われば0件になり、再実行しても何もしない |
+| 連結に貸借対照表だけがある有報で、単体を表示するようにした | `rake ingestion:reingest_balance_sheet_only_consolidated` | 連結を表示しているが、連結に当期の損益・CFの科目がなく、単体にはある有報。移行が終われば0件になり、再実行しても何もしない |

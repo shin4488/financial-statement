@@ -851,4 +851,4 @@ BS・PL・CF・フリーCFは、Chrome拡張と共有する `shared/financialCha
 | `mapping_consistency_spec.rb` | 抽出の出力に未定義の科目コードがない |
 | `industry_formats_spec.rb` | 業種を追加したときに、実XBRLで形式判定から描画まで |
 
-`unsupported` で保存済みの有報は、[再取込タスク](04_development_operations.md#形式の対応を広げた後の再取込)で取り直す。
+`unsupported` で保存済みの有報は、[再取込タスク](04_development_operations.md#取込の対応を広げた後の再取込)で取り直す。

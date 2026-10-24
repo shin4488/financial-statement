@@ -38,6 +38,13 @@ namespace :ingestion do
     UseCases::IngestDocuments.new.call(doc_ids)
   end
 
+  desc "連結に貸借対照表だけがあるのに連結を主にしている有報を再取込する（単体を主にする）"
+  task reingest_balance_sheet_only_consolidated: :environment do
+    doc_ids = Disclosure::ReingestTargets.balance_sheet_only_consolidated
+    puts "reingest #{doc_ids.size} documents"
+    UseCases::IngestDocuments.new.call(doc_ids)
+  end
+
   desc "unsupported判定の財務諸表を含む有報（提出日の範囲指定）を再取込する 例: rake 'ingestion:reingest_unsupported[2025-08-01,2026-08-16]'"
   task :reingest_unsupported, [ :from, :to ] => :environment do |_, args|
     from = Date.parse(args.fetch(:from))
