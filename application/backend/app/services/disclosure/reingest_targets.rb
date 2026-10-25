@@ -33,6 +33,19 @@ module Disclosure
       doc_ids_of(target_statements)
     end
 
+    # 連結に貸借対照表だけがあり（当期の損益・CFの科目がない）、単体に当期の損益・CFがあるのに、連結を主にしている有報。
+    # 主の選び方（Disclosure::ReportWriter）を変える前に取り込んだもので、取り直すと単体が主になる（移行が終われば0件）
+    def balance_sheet_only_consolidated
+      with_flows = FinancialStatementItem.where(item_code: FinancialStatements::ItemCatalog.duration_codes)
+                                         .select(:financial_statement_id)
+      with_assets = FinancialStatementItem.where(item_code: "bs.assets").select(:financial_statement_id)
+      report_ids_with_flows = FinancialStatement.where(consolidation_type: :non_consolidated, id: with_flows).select(:report_id)
+      target_statements = FinancialStatement.where(is_primary: true, consolidation_type: :consolidated, id: with_assets)
+                            .where.not(id: with_flows)
+                            .where(report_id: report_ids_with_flows)
+      doc_ids_of(target_statements)
+    end
+
     # unsupported と判定した財務諸表を含む有報のうち、提出日が from..to（両端を含む）のもの。
     # 新しい形式（業種）に対応したあとに取り直す。対象を unsupported に絞るのは、全期間のバックフィルより
     # EDINETへのリクエストが桁違いに少なくて済むため
