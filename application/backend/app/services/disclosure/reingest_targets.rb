@@ -35,13 +35,16 @@ module Disclosure
 
     # 連結に貸借対照表だけがあり（当期の損益・CFの科目がない）、単体に当期の損益・CFがあるのに、連結を主にしている有報。
     # 主の選び方（Disclosure::ReportWriter）を変える前に取り込んだもので、取り直すと単体が主になる（移行が終われば0件）
+    # 科目の表は大きく、「科目がない」を NOT IN の部分問い合わせで書くと、PostgreSQLが1行ずつ照合する実行計画になって終わらない。
+    # 財務諸表ごとに索引（financial_statement_id, item_code）で確かめる NOT EXISTS で書く
     def balance_sheet_only_consolidated
-      with_flows = FinancialStatementItem.where(item_code: FinancialStatements::ItemCatalog.duration_codes)
-                                         .select(:financial_statement_id)
+      flows = FinancialStatementItem.where(item_code: FinancialStatements::ItemCatalog.duration_codes)
+      flows_of_statement = flows.where(FinancialStatementItem.arel_table[:financial_statement_id].eq(FinancialStatement.arel_table[:id]))
       with_assets = FinancialStatementItem.where(item_code: "bs.assets").select(:financial_statement_id)
-      report_ids_with_flows = FinancialStatement.where(consolidation_type: :non_consolidated, id: with_flows).select(:report_id)
+      report_ids_with_flows = FinancialStatement.where(consolidation_type: :non_consolidated, id: flows.select(:financial_statement_id))
+                                                .select(:report_id)
       target_statements = FinancialStatement.where(is_primary: true, consolidation_type: :consolidated, id: with_assets)
-                            .where.not(id: with_flows)
+                            .where.not(flows_of_statement.arel.exists)
                             .where(report_id: report_ids_with_flows)
       doc_ids_of(target_statements)
     end
