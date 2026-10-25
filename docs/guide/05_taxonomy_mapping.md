@@ -324,11 +324,11 @@ IFRSの期首残高・期末残高は、財政状態計算書の現金及び現�
 
 ### サマリ（ifrs_summary）のタグ
 
-詳細タグの無い有報は、経営指標サマリ（`jpcrp_cor`）の標準タグからPL・CFと指標用の残高・利益を取得する。総資産・自己資本は保存するが、負債やBS内訳を導出してチャートを描くことはしない。
+詳細タグの無い有報は、経営指標サマリ（`jpcrp_cor`）の標準タグからPL・CFと指標用の残高・利益を取得する。総資産だけは、標準タグがなければ企業拡張タグも使う。総資産・自己資本は保存するが、負債やBS内訳を導出してチャートを描くことはしない。
 
-| 科目コード | XBRLタグ（すべて `jpcrp_cor`） |
+| 科目コード | XBRLタグ（企業拡張タグと書いたもの以外は `jpcrp_cor`） |
 |---|---|
-| `bs.assets` / `bs.assets_begin` | `TotalAssetsIFRSSummaryOfBusinessResults`（期首は `Prior1YearInstant`） |
+| `bs.assets` / `bs.assets_begin` | `TotalAssetsIFRSSummaryOfBusinessResults` → 企業拡張タグ `TotalAssets`（期首は `Prior1YearInstant`）。企業拡張タグは、ファーストリテイリング 2016〜2018年8月期で、要約の親会社所有者帰属持分比率と合う連結の総資産と確かめた |
 | `bs.equity_attributable_to_owners` / `bs.equity_attributable_to_owners_begin` | `EquityAttributableToOwnersOfParentIFRSSummaryOfBusinessResults`（期首は `Prior1YearInstant`） |
 | `pl.profit_attributable_to_owners` | `ProfitLossAttributableToOwnersOfParentIFRSSummaryOfBusinessResults` |
 | `pl.revenue` | `RevenueIFRS` `SummaryOfBusinessResults` |

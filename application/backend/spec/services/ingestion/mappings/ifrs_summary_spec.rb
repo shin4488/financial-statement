@@ -25,4 +25,18 @@ RSpec.describe "Ingestion::Mappings::IfrsSummary" do
         "cf.cash_end" => 13_248_000_000)
     end
   end
+
+  describe "抽出（連結・S100ENUV: 総資産を企業拡張タグ TotalAssets だけで開示する有報）" do
+    subject(:items) do
+      Ingestion::StatementExtractor.amounts(Ingestion::Mappings::IfrsSummary, source: load_xbrl_fixture("S100ENUV"),
+                                                                               consolidation: :consolidated)
+    end
+
+    it "期首・期末の総資産を企業拡張タグから取り、要約の親会社所有者帰属持分比率（0.442）と合う" do
+      aggregate_failures do
+        expect(items.values_at("bs.assets", "bs.assets_begin")).to eq [ 1_953_466_000_000, 1_388_486_000_000 ]
+        expect((items["bs.equity_attributable_to_owners"] / items["bs.assets"].to_d).round(3)).to eq 0.442.to_d
+      end
+    end
+  end
 end
