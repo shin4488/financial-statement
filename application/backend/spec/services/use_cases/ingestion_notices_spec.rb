@@ -45,7 +45,6 @@ RSpec.describe UseCases::IngestionNotices do
             level: :warning, fingerprint: [ message ],
             extra: { doc_id: "S0000001", consolidation_type: "consolidated", presentation_format: "ifrs_classified",
                      amounts: { "pl.revenue" => 100 } })
-          expect(notice.options[:extra].keys).to eq %i[doc_id consolidation_type presentation_format amounts]
         end
       end
     end

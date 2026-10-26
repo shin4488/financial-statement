@@ -8,11 +8,16 @@ RSpec.describe "Extension analytics", type: :request do
   end
   let(:endpoint) { "https://www.google-analytics.com/mp/collect?measurement_id=G-TEST123456&api_secret=test-secret" }
 
-  before do
-    host! ENV.fetch("SERVER_HOST_NAME", "www.example.com")
-    allow(ENV).to receive(:[]).and_call_original
-    allow(ENV).to receive(:[]).with("EXTENSION_GA_MEASUREMENT_ID").and_return("G-TEST123456")
-    allow(ENV).to receive(:[]).with("EXTENSION_GA_API_SECRET").and_return("test-secret")
+  before { host! ENV.fetch("SERVER_HOST_NAME", "www.example.com") }
+
+  # Set the deployment configuration for each example and restore the original values afterwards
+  around do |example|
+    keys = %w[EXTENSION_GA_MEASUREMENT_ID EXTENSION_GA_API_SECRET]
+    original = ENV.to_h.slice(*keys)
+    ENV.update("EXTENSION_GA_MEASUREMENT_ID" => "G-TEST123456", "EXTENSION_GA_API_SECRET" => "test-secret")
+    example.run
+  ensure
+    keys.each { |key| original.key?(key) ? ENV[key] = original[key] : ENV.delete(key) }
   end
 
   it "forwards only the bounded event to the fixed GA destination" do
@@ -83,7 +88,7 @@ RSpec.describe "Extension analytics", type: :request do
   end
 
   it "fails closed when deployment configuration is missing" do
-    allow(ENV).to receive(:[]).with("EXTENSION_GA_API_SECRET").and_return(nil)
+    ENV.delete("EXTENSION_GA_API_SECRET")
     post "/analytics/extension", params: payload, as: :json
     expect(response).to have_http_status(:service_unavailable)
     expect(a_request(:post, /google-analytics/)).not_to have_been_made

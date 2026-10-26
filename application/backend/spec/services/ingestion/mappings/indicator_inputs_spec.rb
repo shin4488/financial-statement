@@ -74,12 +74,11 @@ RSpec.describe "指標用の期首・期末データの抽出" do
   end
 
   it "純資産の差が開示精度を超える場合は、調整差額0と推測しない" do
-    xbrl = instance_double(Xbrl::Document)
-    facts = { "jppfs_cor:ShareholdersEquity" => 100_000,
-              "jppfs_cor:SubscriptionRightsToShares" => 10_000,
-              "jppfs_cor:NetAssets" => 113_000 }
-    allow(xbrl).to receive(:money) { |tag, _context| facts[tag] }
-    allow(xbrl).to receive(:rounding_error).and_return(1_000.to_d)
+    # 千円単位の開示で、差は3,000（3つの金額の端数の上限の合計）
+    facts = { [ "jppfs_cor:ShareholdersEquity", "CurrentYearInstant" ] => 100_000,
+              [ "jppfs_cor:SubscriptionRightsToShares", "CurrentYearInstant" ] => 10_000,
+              [ "jppfs_cor:NetAssets", "CurrentYearInstant" ] => 113_000 }
+    xbrl = synthetic_xbrl_document(facts: facts, decimals: facts.keys.to_h { |key| [ key, "-3" ] })
     expect(Ingestion::Expressions::JgaapOwnersEquity.new.amount(xbrl, period: :instant, consolidation: :consolidated)).to be_nil
   end
 

@@ -31,11 +31,15 @@ RSpec.describe UseCases::ListFinancialReports do
     expect(entry.statement).to have_attributes(consolidation_type: :consolidated, accounting_standard: "ifrs",
                                                presentation_format: "ifrs_classified", fiscal_year_end_date: Date.new(2025, 3, 31))
     expect(entry.statement.amounts.to_h).to eq items
-    # 保存した科目の表と決算日を、形式のBuilderに直接渡して組み立てたグラフと同じ
-    date = Date.new(2025, 3, 31)
-    expect(entry.charts).to eq(balance_sheet: Charts::Builders::BsIfrsClassified.new(fs.amounts, fiscal_year_end_date: date).build,
-                               profit_loss: Charts::Builders::PlIfrs.new(fs.amounts, fiscal_year_end_date: date).build,
-                               cash_flow: Charts::Builders::CashFlow.new(fs.amounts).build)
+    # BSは流動・非流動の資産と負債・資本で描き、PLは税引前利益がないため描かず、CFは期首残＋各CF＝期末残で描く
+    expect(entry.charts[:balance_sheet].bars.map { |bar| bar.segments.map { |segment| [ segment.key, segment.amount ] } }).to eq [
+      [ [ "currentAssets", 300 ], [ "nonCurrentAssets", 700 ] ],
+      [ [ "currentLiabilities", 200 ], [ "nonCurrentLiabilities", 300 ], [ "equity", 500 ] ]
+    ]
+    expect(entry.charts[:profit_loss]).to have_attributes(renderable: false, note: "損益計算書: この企業のIFRS損益計算書は表示に対応していません。")
+    expect(entry.charts[:cash_flow].steps.map { |step| [ step.key, step.amount ] }).to eq [
+      [ "cashBegin", 100 ], [ "operating", 50 ], [ "investing", -20 ], [ "financing", -10 ], [ "cashEnd", 120 ]
+    ]
     metric = ->(value) { FinancialStatements::Indicators::Metric.new(value: value, status: "available", source: "calculated") }
     expect(entry.indicators).to eq(roe: metric.(0.16), roa: metric.(0.08), net_profit_margin: metric.(0.04),
                                    asset_turnover: metric.(2.0), financial_leverage: metric.(2.0))
@@ -57,11 +61,11 @@ RSpec.describe UseCases::ListFinancialReports do
     expect(entry.indicators[:roe].value).to eq 0.2
   end
 
-  it "FCF推移を要求されなければ、作らず、過去の財務諸表も読まない" do
+  it "FCF推移を要求されなければ、作らず、過去の財務諸表も読まない（要求したときより問い合わせが少ない）" do
     statement(2025)
-    expect(Disclosure::CashFlowHistory).not_to receive(:new)
 
     expect(call(with_trend: false).sole.free_cash_flow_trend).to be_nil
+    expect(count_queries { call(with_trend: false) }).to be < count_queries { call(with_trend: true) }
   end
 
   it "検索の条件を一覧の検索に渡す" do

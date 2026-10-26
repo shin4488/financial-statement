@@ -3,12 +3,11 @@ require "rails_helper"
 RSpec.describe Ingestion::FormatDetector do
   subject(:detector) { described_class.new }
 
-  # FormatDetectorがxbrlに要求するのはmoneyだけなので最小のスタブで足りる。
-  # present_tags: 「実在する」とみなすタグ名の一覧（それ以外はnil = タグなし）
-  def xbrl_with(*present_tags)
-    instance_double(Xbrl::Document).tap do |xbrl|
-      allow(xbrl).to receive(:money) { |qname, _ctx| present_tags.include?(qname) ? 1_000 : nil }
-    end
+  # 連結の当期の値があるタグだけを持つXBRL（ほかのタグはない）。instant は当期末の残高のタグ、duration は当期の損益のタグ
+  def xbrl_with(*instant, duration: [])
+    facts = instant.to_h { |qname| [ [ qname, "CurrentYearInstant" ], 1_000 ] }
+              .merge(duration.to_h { |qname| [ [ qname, "CurrentYearDuration" ], 1_000 ] })
+    synthetic_xbrl_document(facts: facts)
   end
 
   def detect(xbrl, standard, industry, consolidation: :consolidated)
@@ -52,9 +51,9 @@ RSpec.describe Ingestion::FormatDetector do
 
     it "銀行と保険を並べる会社は、経常収益のタグがある業種の様式になる（先頭が銀行でも、保険の経常収益だけなら保険）" do
       aggregate_failures do
-        expect(detect(xbrl_with("jppfs_cor:OperatingIncomeINS"), "japan_gaap", "BNK,INS")).to eq "jgaap_insurance"
-        expect(detect(xbrl_with("jppfs_cor:OrdinaryIncomeBNK"), "japan_gaap", "bnk,ins")).to eq "jgaap_bank"
-        expect(detect(xbrl_with("jppfs_cor:OrdinaryIncomeBNK", "jppfs_cor:OperatingIncomeINS"), "japan_gaap", "bnk,ins"))
+        expect(detect(xbrl_with(duration: %w[jppfs_cor:OperatingIncomeINS]), "japan_gaap", "BNK,INS")).to eq "jgaap_insurance"
+        expect(detect(xbrl_with(duration: %w[jppfs_cor:OrdinaryIncomeBNK]), "japan_gaap", "bnk,ins")).to eq "jgaap_bank"
+        expect(detect(xbrl_with(duration: %w[jppfs_cor:OrdinaryIncomeBNK jppfs_cor:OperatingIncomeINS]), "japan_gaap", "bnk,ins"))
           .to eq "jgaap_bank"
       end
     end
@@ -67,9 +66,8 @@ RSpec.describe Ingestion::FormatDetector do
     end
 
     it "流動資産タグは判定対象の連結/単体コンテキストで探す" do
-      xbrl = xbrl_with("jppfs_cor:CurrentAssets")
-      allow(xbrl).to receive(:money).with("jppfs_cor:CurrentAssets", "CurrentYearInstant").and_return(nil)
-      allow(xbrl).to receive(:money).with("jppfs_cor:CurrentAssets", "CurrentYearInstant_NonConsolidatedMember").and_return(1_000)
+      # 流動資産は単体にだけある
+      xbrl = synthetic_xbrl_document(facts: { [ "jppfs_cor:CurrentAssets", "CurrentYearInstant_NonConsolidatedMember" ] => 1_000 })
       expect(detect(xbrl, "japan_gaap", "ins", consolidation: :consolidated)).to eq "jgaap_insurance"
       expect(detect(xbrl, "japan_gaap", "ins", consolidation: :non_consolidated)).to eq "jgaap_general"
     end

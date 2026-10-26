@@ -502,16 +502,17 @@ RSpec.describe "期間と連結区分のシンボルによる検索と、CFの�
 end
 
 RSpec.describe "期間・連結区分と標準のコンテキストIDの読み替え" do
-  it "期間と連結区分の組ごとに、その組を指す標準のIDを求める" do
-    pairs = Xbrl::ReportingPeriod::PERIODS.keys.product(Xbrl::ReportingPeriod::CONSOLIDATIONS.values)
-    ids = pairs.to_h { |period, consolidation| [ [ period, consolidation ], Xbrl::ReportingPeriod.context_id(period, consolidation) ] }
-    expect(ids).to eq(
+  it "期間と連結区分の組ごとに、その組を指すEDINETの標準のコンテキストIDを求める" do
+    {
       [ :instant, :consolidated ] => "CurrentYearInstant",
       [ :duration, :consolidated ] => "CurrentYearDuration",
       [ :prior_instant, :consolidated ] => "Prior1YearInstant",
       [ :instant, :non_consolidated ] => "CurrentYearInstant_NonConsolidatedMember",
       [ :duration, :non_consolidated ] => "CurrentYearDuration_NonConsolidatedMember",
-      [ :prior_instant, :non_consolidated ] => "Prior1YearInstant_NonConsolidatedMember")
+      [ :prior_instant, :non_consolidated ] => "Prior1YearInstant_NonConsolidatedMember"
+    }.each do |(period, consolidation), id|
+      expect(Xbrl::ReportingPeriod.context_id(period, consolidation)).to eq id
+    end
   end
 
   it "決めていない期間・連結区分は例外にする" do
