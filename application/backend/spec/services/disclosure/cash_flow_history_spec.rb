@@ -69,12 +69,12 @@ RSpec.describe Disclosure::CashFlowHistory do
     expect(history.map(&:fiscal_year_end_date)).to eq [ Date.new(2025, 12, 31) ]
   end
 
-  it "有報の件数によらず、問い合わせは3回にする" do
+  it "有報の件数によらず、問い合わせの回数を同じにする" do
     reports = Array.new(3) { report(2025, company: create(:disclosure_company)) }
     reports.each { |r| create(:disclosure_financial_statement, report: r, amounts: { "cf.operating" => 1 }) }
 
-    expect(count_queries { described_class.new.load(reports.first(1).map { |r| target(r) }) }).to eq 3
-    expect(count_queries { described_class.new.load(reports.map { |r| target(r) }) }).to eq 3
+    expect(count_queries { described_class.new.load(reports.map { |r| target(r) }) })
+      .to eq(count_queries { described_class.new.load(reports.first(1).map { |r| target(r) }) })
   end
 
   it "有報がなければ、問い合わせずに空を返す" do

@@ -1,22 +1,42 @@
 require "rails_helper"
 
 RSpec.describe Ingestion::Adjustments::OpeningCash do
-  def money(value, decimals: "-3", unit: Xbrl::Fact::JPY)
-    Xbrl::Fact.new(value: value.to_s, decimals: decimals, unit: unit)
+  # 開示した金額。decimals は開示の精度（-3なら千円単位。nilなら精度不明）、unit は通貨
+  def money(value, decimals: "-3", unit: "JPY") = { value: value, decimals: decimals, unit: unit }
+
+  # 当期（2025年）の現金及び現金同等物の期末残・当期増減・新規連結による増加（adjustments）と、当期の期首より前の時点（2023年末）の
+  # 残高（opening）を開示したXBRLから、期末残だけを抽出した金額の表に補正ルールを適用し、補った期首残を返す（補わなければ nil）。
+  # 期首（2024年末）の残高は開示していないため、期首残は取得式では取れない
+  def supplemented_opening(opening: money(23_236_000), closing: money(36_621_000), change: money(13_385_000), adjustments: [])
+    facts = { [ "jppfs_cor:CashAndCashEquivalents", "CurrentYearInstant" ] => closing,
+              [ "jppfs_cor:NetIncreaseDecreaseInCashAndCashEquivalents", "CurrentYearDuration" ] => change,
+              [ "jppfs_cor:IncreaseInCashAndCashEquivalentsFromNewlyConsolidatedSubsidiaryCCE", "CurrentYearDuration" ] => adjustments.first,
+              [ "jppfs_cor:CashAndCashEquivalents", "OpeningCash" ] => opening }
+    period = reporting_period(facts.compact)
+    amounts = FinancialStatements::Amounts.new
+    amounts.store("cf.cash_end", period.money("jppfs_cor:CashAndCashEquivalents", "CurrentYearInstant"),
+                  period.rounding_error("jppfs_cor:CashAndCashEquivalents", "CurrentYearInstant"))
+    described_class.apply(amounts, mapping: nil, source: period, consolidation: :consolidated)
+    amounts["cf.cash_begin"] if amounts.key?("cf.cash_begin")
   end
 
-  # 期末残だけを抽出した金額の表に補正ルールを適用し、補った期首残を返す（補わなければ nil）。
-  # XBRLの代役は、期末残・当期増減・連結範囲変更等と、期首より前の時点の残高（opening）に答える
-  def supplemented_opening(opening: money(23_236_000), closing: money(36_621_000), change: money(13_385_000), adjustments: [])
-    facts = { [ described_class::BALANCE, :instant ] => closing, [ described_class::CHANGE, :duration ] => change }
-    described_class::SCOPE_CHANGES.zip(adjustments) { |qname, fact| facts[[ qname, :duration ]] = fact }
-    source = instance_double(Xbrl::ReportingPeriod)
-    allow(source).to receive(:fact) { |qname, period:, consolidation:| facts[[ qname, period ]] if consolidation == :consolidated }
-    allow(source).to receive(:facts_before_period).with(described_class::BALANCE, consolidation: :consolidated).and_return([ opening ])
-    amounts = FinancialStatements::Amounts.new
-    amounts.store("cf.cash_end", closing.money, closing.rounding_error)
-    described_class.apply(amounts, mapping: nil, source: source, consolidation: :consolidated)
-    amounts["cf.cash_begin"] if amounts.key?("cf.cash_begin")
+  def reporting_period(facts)
+    contexts = { "FilingDateInstant" => "<i:instant>2026-03-01</i:instant>", "CurrentYearInstant" => "<i:instant>2025-12-31</i:instant>",
+                 "CurrentYearDuration" => "<i:startDate>2025-01-01</i:startDate><i:endDate>2025-12-31</i:endDate>",
+                 "OpeningCash" => "<i:instant>2023-12-31</i:instant>" }
+    xml = +<<~XML
+      <i:xbrl xmlns:i="http://www.xbrl.org/2003/instance" xmlns:c="http://www.xbrl.org/2003/iso4217"
+       xmlns:jppfs_cor="http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2025-11-01/jppfs_cor">
+      <i:unit id="JPY"><i:measure>c:JPY</i:measure></i:unit><i:unit id="USD"><i:measure>c:USD</i:measure></i:unit>
+    XML
+    contexts.each do |id, period|
+      xml << "<i:context id='#{id}'><i:entity><i:identifier scheme='urn:test'>E00001</i:identifier></i:entity><i:period>#{period}</i:period></i:context>"
+    end
+    facts.each do |(qname, context), fact|
+      decimals = " decimals='#{fact[:decimals]}'" if fact[:decimals]
+      xml << "<#{qname} contextRef='#{context}' unitRef='#{fact[:unit]}'#{decimals}>#{fact[:value]}</#{qname}>"
+    end
+    Xbrl::Document.new(Nokogiri::XML(xml + "</i:xbrl>")).for_reporting_period(start_date: "2025-01-01", end_date: "2025-12-31")
   end
 
   it "同じCFの増減と整合する開示期首額で補う" do
@@ -50,6 +70,8 @@ RSpec.describe Ingestion::Adjustments::OpeningCash do
     expect(supplemented_opening(change: nil)).to be_nil
     expect(supplemented_opening(opening: money("invalid"))).to be_nil
     expect(supplemented_opening(change: money(13_385_000, unit: "USD"))).to be_nil
+    # 単位の定義がなく、円か分からない金額
+    expect(supplemented_opening(change: money(13_385_000, unit: "Undeclared"))).to be_nil
     expect(supplemented_opening(opening: money(-1))).to be_nil
   end
 
