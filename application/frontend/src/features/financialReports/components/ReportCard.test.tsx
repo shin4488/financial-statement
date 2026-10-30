@@ -180,7 +180,7 @@ function renderCards(tops: Record<string, number>) {
 const drawn = (card: HTMLElement) => card.textContent?.includes('流動資産');
 const below = (screens: number) => window.innerHeight * screens;
 
-it('画面と、そのすぐ下（画面の高さの半分まで）にあるカードは、最初の表示からグラフを描く', () => {
+it('画面と、そのすぐ下（画面の高さの0.3倍まで）にあるカードは、最初の表示からグラフを描く', () => {
   const cards = renderCards({
     見える: 0,
     すぐ下: below(1.2),
