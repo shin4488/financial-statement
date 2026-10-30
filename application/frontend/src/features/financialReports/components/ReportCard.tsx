@@ -4,6 +4,7 @@ import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
 import AppCarousel from './AppCarousel';
+import { useStaggeredDraw } from './useStaggeredDraw';
 import { FinancialIndicators } from '@/shared/financialIndicators';
 import { trackEvent } from '@/plugins/firebase/analytics';
 import {
@@ -46,9 +47,13 @@ export const ReportCard = React.memo(function ReportCard({
   const subheaderSuffix = standardLabel
     ? `（${consolidationTypeLabel}・${standardLabel}）`
     : `（${consolidationTypeLabel}）`;
+  // 一覧を開いたときや追加で読み込んだときに、全カードのグラフを一度に描くと画面が止まる。
+  // 見えているカードを先に描き、ほかのカードは1枚ずつ順に描く。描くまではグラフと同じ大きさの枠を置くため、ページの高さとカルーセルの動きは変わらない
+  const [cardRef, drawn] = useStaggeredDraw<HTMLDivElement>();
+  const deferred = !drawn;
 
   return (
-    <Card>
+    <Card ref={cardRef}>
       <CardHeader
         title={
           <Link
@@ -70,10 +75,13 @@ export const ReportCard = React.memo(function ReportCard({
       />
       <CardContent>
         <AppCarousel>
-          <StackedBarChart chart={report.balanceSheet} />
-          <StackedBarChart chart={report.profitLoss} />
-          <WaterfallChart chart={report.cashFlow} />
-          <FreeCashFlowChart trend={report.freeCashFlowTrend} />
+          <StackedBarChart chart={report.balanceSheet} deferred={deferred} />
+          <StackedBarChart chart={report.profitLoss} deferred={deferred} />
+          <WaterfallChart chart={report.cashFlow} deferred={deferred} />
+          <FreeCashFlowChart
+            trend={report.freeCashFlowTrend}
+            deferred={deferred}
+          />
           <FinancialIndicators indicators={report.financialIndicators} />
         </AppCarousel>
       </CardContent>

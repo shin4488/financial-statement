@@ -1,14 +1,6 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import {
-  Bar,
-  BarChart,
-  LabelList,
-  Rectangle,
-  ResponsiveContainer,
-  Tooltip,
-  YAxis,
-} from 'recharts';
+import { Bar, BarChart, LabelList, Rectangle, Tooltip, YAxis } from 'recharts';
 import {
   colorForRole,
   hiddenRoles,
@@ -19,6 +11,7 @@ import { ChartUnavailable } from './ChartUnavailable';
 import { inDeclarationOrder } from './drawOrder';
 import { formatAmount } from './formatAmount';
 import type { StackChart, Segment } from './types';
+import { useChartSize } from './useChartSize';
 
 // rechartsは「行の配列 * 固定dataKey」を要求するが、こちらは「バーごとに異なるセグメント列」を
 // 描きたい。そこで行 = バー、列 = 全バーのセグメントkeyの和集合、に変換する。
@@ -72,13 +65,19 @@ export interface StackedBarChartProps {
   chart: StackChart;
   width?: string | number;
   height?: string | number;
+  // trueの間は、グラフと同じ大きさの枠だけを置いてグラフを描かない。見えないグラフを描く処理を、呼び出し元が後回しにするために使う
+  deferred?: boolean;
 }
 
 export function StackedBarChart({
   chart,
   width = '90%',
   height = 400,
+  deferred = false,
 }: StackedBarChartProps) {
+  const [chartElement, chartSize] = useChartSize<HTMLDivElement>(
+    chart.renderable,
+  );
   if (!chart.renderable) {
     // カルーセル内でチャートと差し替わるため、サイズを揃えてスライド切替時のレイアウト跳ねを防ぐ
     return <ChartUnavailable note={chart.note} width={width} height={height} />;
@@ -86,13 +85,12 @@ export function StackedBarChart({
   const { rows, columns } = toStackRows(chart);
 
   return (
-    <Box width={width} height={height} m="auto">
-      <ResponsiveContainer
-        width="100%"
-        height={typeof height === 'number' ? height : '100%'}
-      >
+    <Box ref={chartElement} width={width} height={height} m="auto">
+      {!deferred && chartSize.width > 0 && chartSize.height > 0 && (
         <BarChart
           data={rows}
+          width={chartSize.width}
+          height={chartSize.height}
           // rechartsは系列を登録した順に積むため、表示中に列が増えると新しい系列が末尾に積まれる。
           // 列の構成が変わったらグラフを作り直し、columnsの順に積む
           key={JSON.stringify(columns.map((column) => column.key))}
@@ -177,7 +175,7 @@ export function StackedBarChart({
             </Bar>
           ))}
         </BarChart>
-      </ResponsiveContainer>
+      )}
     </Box>
   );
 }

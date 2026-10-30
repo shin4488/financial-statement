@@ -14,6 +14,7 @@ import {
 import { inDeclarationOrder } from './drawOrder';
 import { colorByRole } from './colorRoles';
 import type { FreeCashFlowTrend } from './types';
+import { useChartSize } from './useChartSize';
 
 type Point = FreeCashFlowTrend['points'][number];
 type Row = Point & { amountMillions: number | null; periodLabel: string };
@@ -199,21 +200,17 @@ function PointTooltip({
   );
 }
 
-export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
-  const chartElement = React.useRef<HTMLDivElement>(null);
-  const [chartWidth, setChartWidth] = React.useState(0);
-  // 金額ラベルの位置と目盛りの文字の大きさを、グラフを描く幅と同じ幅で決めるため、幅を測ってグラフに渡す
-  React.useLayoutEffect(() => {
-    const element = chartElement.current;
-    if (!trend.renderable || !element) {
-      return;
-    }
-    const updateWidth = () => setChartWidth(element.clientWidth);
-    const observer = new ResizeObserver(updateWidth);
-    observer.observe(element);
-    updateWidth();
-    return () => observer.disconnect();
-  }, [trend.renderable]);
+export function FreeCashFlowChart({
+  trend,
+  deferred = false,
+}: {
+  trend: FreeCashFlowTrend;
+  // trueの間は、グラフと同じ大きさの枠だけを置いてグラフを描かない。見えないグラフを描く処理を、呼び出し元が後回しにするために使う
+  deferred?: boolean;
+}) {
+  const [chartElement, { width: chartWidth }] = useChartSize<HTMLDivElement>(
+    trend.renderable,
+  );
   const compactLabels = chartWidth > 0 && chartWidth < 470;
   const rows: Row[] = trend.points.map((point) => ({
     ...point,
@@ -287,8 +284,7 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
       {trend.renderable ? (
         <>
           <Box ref={chartElement} mt={1} height={CHART_HEIGHT}>
-            {/* 非表示のカルーセル項目は幅が0になるため、実寸があるときだけ描画する */}
-            {chartWidth > 0 && (
+            {!deferred && chartWidth > 0 && (
               <BarChart
                 data={rows}
                 width={chartWidth}

@@ -15,6 +15,7 @@ import { ChartUnavailable } from './ChartUnavailable';
 import { inDeclarationOrder } from './drawOrder';
 import { colorForRole, tooltipBackgroundColor } from './colorRoles';
 import { formatAmountInMillions } from './formatAmount';
+import { useChartSize } from './useChartSize';
 import type {
   WaterfallChart as WaterfallChartData,
   WaterfallStep,
@@ -230,35 +231,19 @@ export interface WaterfallChartProps {
   chart: WaterfallChartData;
   width?: string | number;
   height?: string | number;
+  // trueの間は、グラフと同じ大きさの枠だけを置いてグラフを描かない。見えないグラフを描く処理を、呼び出し元が後回しにするために使う
+  deferred?: boolean;
 }
 
 export function WaterfallChart({
   chart,
   width = '90%',
   height = 400,
+  deferred = false,
 }: WaterfallChartProps) {
-  const chartElement = React.useRef<HTMLDivElement>(null);
-  const [chartSize, setChartSize] = React.useState({ width: 0, height: 0 });
-
-  React.useLayoutEffect(() => {
-    const element = chartElement.current;
-    if (!chart.renderable || !element) {
-      return;
-    }
-    const updateSize = () => {
-      const nextWidth = element.clientWidth;
-      const nextHeight = element.clientHeight;
-      setChartSize((current) =>
-        current.width === nextWidth && current.height === nextHeight
-          ? current
-          : { width: nextWidth, height: nextHeight },
-      );
-    };
-    const observer = new ResizeObserver(updateSize);
-    observer.observe(element);
-    updateSize();
-    return () => observer.disconnect();
-  }, [chart.renderable]);
+  const [chartElement, chartSize] = useChartSize<HTMLDivElement>(
+    chart.renderable,
+  );
 
   if (!chart.renderable) {
     // カルーセル内でチャートと差し替わるため、サイズを揃えてスライド切替時のレイアウト跳ねを防ぐ
@@ -287,7 +272,7 @@ export function WaterfallChart({
       </Typography>
       <Box ref={chartElement} flex={1} minHeight={0}>
         {/* 非表示のカルーセル項目は0×0になるため、実寸があるときだけ描画する */}
-        {chartSize.width > 0 && chartSize.height > 0 && (
+        {!deferred && chartSize.width > 0 && chartSize.height > 0 && (
           <BarChart
             data={rows}
             width={chartSize.width}

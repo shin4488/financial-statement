@@ -8,17 +8,13 @@ import {
 } from '@/shared/financialCharts';
 
 beforeEach(() => {
+  // jsdomは要素の大きさを計算しないため、グラフを描く枠の大きさを渡す
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(400);
+  vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(400);
   vi.stubGlobal(
     'ResizeObserver',
     class {
-      constructor(
-        private callback: (
-          entries: { contentRect: { width: number; height: number } }[],
-        ) => void,
-      ) {}
-      observe() {
-        this.callback([{ contentRect: { width: 400, height: 400 } }]);
-      }
+      observe() {}
       unobserve() {}
       disconnect() {}
     },
@@ -28,6 +24,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 function seg(
