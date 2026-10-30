@@ -104,3 +104,29 @@ it('グラフはTabの移動先にならない', () => {
     ),
   ).toEqual([]);
 });
+
+it('区分の棒とラベルを宣言した順に重ね、後の区分の棒を前の区分のラベルより前に描く', () => {
+  const { container } = render(
+    <StackedBarChart chart={solvent} height={400} />,
+  );
+
+  // SVGは文書の順に重ねて描く
+  const fill = (element: Element) =>
+    element.getAttribute('fill') ??
+    element.querySelector('[fill]')?.getAttribute('fill');
+  const painted = [
+    ...container.querySelectorAll('.recharts-bar-rectangle path, text'),
+  ].map((element) =>
+    element.tagName === 'text'
+      ? `label:${element.textContent}`
+      : `bar:${fill(element)}`,
+  );
+  expect(painted).toEqual([
+    `bar:${colorByRole.asset1}`,
+    'label:assets: 100%',
+    `bar:${colorByRole.liability1}`,
+    'label:liabilities: 60%',
+    `bar:${colorByRole.equity}`,
+    'label:equity: 40%',
+  ]);
+});

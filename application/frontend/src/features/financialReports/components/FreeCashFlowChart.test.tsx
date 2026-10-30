@@ -115,7 +115,7 @@ it('狭いカードで欠損年があっても、各年の金額をその年の�
   );
 });
 
-it('グラフはTabの移動先にならない', () => {
+it('グラフはTabの移動先にならず、0の基準線を棒より奥に描く', () => {
   stubChartWidth(600);
 
   const { container } = render(
@@ -127,6 +127,15 @@ it('グラフはTabの移動先にならない', () => {
       (element) => (element as HTMLElement | SVGElement).tabIndex >= 0,
     ),
   ).toEqual([]);
+  // SVGは文書の順に重ねて描く
+  const zeroLine = container.querySelector('.recharts-reference-line');
+  const firstBar = container.querySelector('.recharts-bar-rectangle');
+  expect(
+    zeroLine &&
+      firstBar &&
+      zeroLine.compareDocumentPosition(firstBar) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+  ).toBeTruthy();
 });
 
 it('全期間欠損時は説明を一文だけ表示する', () => {

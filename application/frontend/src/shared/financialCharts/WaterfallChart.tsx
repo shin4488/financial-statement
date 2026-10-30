@@ -12,7 +12,7 @@ import {
   YAxis,
 } from 'recharts';
 import { ChartUnavailable } from './ChartUnavailable';
-import { pointerFocusOutlineHidden } from './chartFocus';
+import { inDeclarationOrder } from './drawOrder';
 import { colorForRole, tooltipBackgroundColor } from './colorRoles';
 import { formatAmountInMillions } from './formatAmount';
 import type {
@@ -274,12 +274,7 @@ export function WaterfallChart({
   );
 
   return (
-    <Stack
-      width={width}
-      height={height}
-      m="auto"
-      sx={pointerFocusOutlineHidden}
-    >
+    <Stack width={width} height={height} m="auto">
       <Typography
         letterSpacing="inherit"
         fontFamily="inherit"
@@ -355,17 +350,20 @@ export function WaterfallChart({
               stackId="w"
               fill="transparent"
               isAnimationActive={false}
+              zIndex={inDeclarationOrder}
             />
             <Bar
               dataKey="span"
               stackId="w"
               isAnimationActive={false}
+              zIndex={inDeclarationOrder}
               // rechartsは高さ0の棒を既定の形では描画対象から外し、ラベル（0）も出さない。形を明示して残す
               shape={<Rectangle />}
             >
               <LabelList
                 dataKey="value"
                 content={<ValueLabel layout={labelLayout} />}
+                zIndex={inDeclarationOrder}
               />
               {rows.map((row) => (
                 <Cell

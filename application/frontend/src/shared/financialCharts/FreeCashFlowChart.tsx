@@ -12,7 +12,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { pointerFocusOutlineHidden } from './chartFocus';
+import { inDeclarationOrder } from './drawOrder';
 import { colorByRole } from './colorRoles';
 import type { FreeCashFlowTrend } from './types';
 
@@ -274,7 +274,7 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
       </Stack>
       {trend.renderable ? (
         <>
-          <Box mt={1} sx={pointerFocusOutlineHidden}>
+          <Box mt={1}>
             <ResponsiveContainer
               width="100%"
               height={CHART_HEIGHT}
@@ -298,7 +298,11 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
                   tick={{ fontSize: tickFontSize }}
                 />
                 <YAxis hide width={0} domain={domain} />
-                <ReferenceLine y={0} stroke="#8f9bad" />
+                <ReferenceLine
+                  y={0}
+                  stroke="#8f9bad"
+                  zIndex={inDeclarationOrder}
+                />
                 {rows
                   .filter((point) => point.amount == null)
                   .map((point) => (
@@ -312,7 +316,9 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
                         position: 'top',
                         fill: '#687587',
                         fontSize: 10,
+                        zIndex: inDeclarationOrder,
                       }}
+                      zIndex={inDeclarationOrder}
                     />
                   ))}
                 <Tooltip cursor={false} content={<PointTooltip />} />
@@ -321,9 +327,11 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
                   barSize={32}
                   minPointSize={3}
                   isAnimationActive={false}
+                  zIndex={inDeclarationOrder}
                 >
                   <LabelList
                     dataKey="year"
+                    zIndex={inDeclarationOrder}
                     content={
                       <ValueLabel
                         rows={rows}

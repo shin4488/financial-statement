@@ -16,7 +16,7 @@ import {
   tooltipBackgroundColor,
 } from './colorRoles';
 import { ChartUnavailable } from './ChartUnavailable';
-import { pointerFocusOutlineHidden } from './chartFocus';
+import { inDeclarationOrder } from './drawOrder';
 import { formatAmount } from './formatAmount';
 import type { StackChart, Segment } from './types';
 
@@ -86,7 +86,7 @@ export function StackedBarChart({
   const { rows, columns } = toStackRows(chart);
 
   return (
-    <Box width={width} height={height} m="auto" sx={pointerFocusOutlineHidden}>
+    <Box width={width} height={height} m="auto">
       <ResponsiveContainer
         width="100%"
         height={typeof height === 'number' ? height : '100%'}
@@ -163,6 +163,7 @@ export function StackedBarChart({
               stackId="a"
               fill={colorForRole(colorRole)}
               isAnimationActive={false}
+              zIndex={inDeclarationOrder}
               // rechartsは高さ0の棒を既定の形では描画対象から外し、ラベル（0%）も出さない。形を明示して残す
               shape={<Rectangle />}
             >
@@ -170,6 +171,7 @@ export function StackedBarChart({
                 dataKey={`${key}Ratio`}
                 fill={stackLabelColor}
                 position="center"
+                zIndex={inDeclarationOrder}
                 formatter={(value) => `${label}: ${value}%`}
               />
             </Bar>
