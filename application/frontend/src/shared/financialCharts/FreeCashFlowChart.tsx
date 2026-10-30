@@ -7,7 +7,6 @@ import {
   LabelList,
   ReferenceDot,
   ReferenceLine,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
@@ -201,7 +200,20 @@ function PointTooltip({
 }
 
 export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
+  const chartElement = React.useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = React.useState(0);
+  // 金額ラベルの位置と目盛りの文字の大きさを、グラフを描く幅と同じ幅で決めるため、幅を測ってグラフに渡す
+  React.useLayoutEffect(() => {
+    const element = chartElement.current;
+    if (!trend.renderable || !element) {
+      return;
+    }
+    const updateWidth = () => setChartWidth(element.clientWidth);
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(element);
+    updateWidth();
+    return () => observer.disconnect();
+  }, [trend.renderable]);
   const compactLabels = chartWidth > 0 && chartWidth < 470;
   const rows: Row[] = trend.points.map((point) => ({
     ...point,
@@ -274,14 +286,13 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
       </Stack>
       {trend.renderable ? (
         <>
-          <Box mt={1}>
-            <ResponsiveContainer
-              width="100%"
-              height={CHART_HEIGHT}
-              onResize={(width) => setChartWidth(width)}
-            >
+          <Box ref={chartElement} mt={1} height={CHART_HEIGHT}>
+            {/* 非表示のカルーセル項目は幅が0になるため、実寸があるときだけ描画する */}
+            {chartWidth > 0 && (
               <BarChart
                 data={rows}
+                width={chartWidth}
+                height={CHART_HEIGHT}
                 // recharts 3は既定でグラフをTabで止まる要素にし、左右キーでツールチップを動かす。recharts 2と同じく、キーボードでは操作しない
                 accessibilityLayer={false}
                 margin={{
@@ -354,7 +365,7 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
                   ))}
                 </Bar>
               </BarChart>
-            </ResponsiveContainer>
+            )}
           </Box>
           {trend.note && (
             <Typography

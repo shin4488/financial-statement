@@ -28,25 +28,12 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
-// グラフの幅の監視から、指定した幅を渡す
+// jsdomは要素の大きさを計算しないため、グラフを描く領域の幅として、指定した幅を渡す
 function stubChartWidth(width: number) {
-  vi.stubGlobal(
-    'ResizeObserver',
-    class {
-      constructor(
-        private callback: (
-          entries: { contentRect: { width: number; height: number } }[],
-        ) => void,
-      ) {}
-      observe() {
-        this.callback([{ contentRect: { width, height: 305 } }]);
-      }
-      unobserve() {}
-      disconnect() {}
-    },
-  );
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(width);
 }
 
 it('金額をカード共通の百万円単位で表示し、100万円未満も0と誤表示しない', () => {
