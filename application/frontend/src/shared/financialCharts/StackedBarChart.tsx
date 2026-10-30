@@ -1,13 +1,6 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import {
-  Bar,
-  BarChart,
-  LabelList,
-  ResponsiveContainer,
-  Tooltip,
-  YAxis,
-} from 'recharts';
+import { Bar, BarChart, LabelList, Tooltip, YAxis } from 'recharts';
 import {
   colorForRole,
   hiddenRoles,
@@ -17,6 +10,7 @@ import {
 import { ChartUnavailable } from './ChartUnavailable';
 import { formatAmount } from './formatAmount';
 import type { StackChart, Segment } from './types';
+import { useChartSize } from './useChartSize';
 
 // rechartsは「行の配列 * 固定dataKey」を要求するが、こちらは「バーごとに異なるセグメント列」を
 // 描きたい。そこで行 = バー、列 = 全バーのセグメントkeyの和集合、に変換する。
@@ -77,6 +71,9 @@ export function StackedBarChart({
   width = '90%',
   height = 400,
 }: StackedBarChartProps) {
+  const [chartElement, chartSize] = useChartSize<HTMLDivElement>(
+    chart.renderable,
+  );
   if (!chart.renderable) {
     // カルーセル内でチャートと差し替わるため、サイズを揃えてスライド切替時のレイアウト跳ねを防ぐ
     return <ChartUnavailable note={chart.note} width={width} height={height} />;
@@ -84,12 +81,9 @@ export function StackedBarChart({
   const { rows, columns } = toStackRows(chart);
 
   return (
-    <Box width={width} height={height} m="auto">
-      <ResponsiveContainer
-        width="100%"
-        height={typeof height === 'number' ? height : '100%'}
-      >
-        <BarChart data={rows}>
+    <Box ref={chartElement} width={width} height={height} m="auto">
+      {chartSize.width > 0 && chartSize.height > 0 && (
+        <BarChart data={rows} width={chartSize.width} height={chartSize.height}>
           {/* Y軸反転: 積み上げを「上から下」に描く（BSの「上=流動・下=純資産」の慣習を保つ）。
             domainのdataMaxで最も高いバーに全バーの縮尺を合わせる */}
           <YAxis reversed hide domain={[0, 'dataMax']} />
@@ -164,7 +158,7 @@ export function StackedBarChart({
             </Bar>
           ))}
         </BarChart>
-      </ResponsiveContainer>
+      )}
     </Box>
   );
 }
