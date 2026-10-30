@@ -228,15 +228,12 @@ function ValueLabel({
 
 export interface WaterfallChartProps {
   chart: WaterfallChartData;
-  // スクリーンリーダーが読み上げるグラフの名前。チャートはどの財務諸表かを知らないため、呼び出し元が決める
-  ariaLabel: string;
   width?: string | number;
   height?: string | number;
 }
 
 export function WaterfallChart({
   chart,
-  ariaLabel,
   width = '90%',
   height = 400,
 }: WaterfallChartProps) {
@@ -306,7 +303,8 @@ export function WaterfallChart({
               bottom: chartBottomMargin,
               left: chartSideMargin,
             }}
-            aria-label={ariaLabel}
+            // recharts 3は既定でグラフをTabで止まる要素にし、左右キーでツールチップを動かす。recharts 2と同じく、キーボードでは操作しない
+            accessibilityLayer={false}
           >
             <XAxis
               dataKey="name"

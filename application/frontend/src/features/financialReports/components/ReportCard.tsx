@@ -70,18 +70,9 @@ export const ReportCard = React.memo(function ReportCard({
       />
       <CardContent>
         <AppCarousel>
-          <StackedBarChart
-            chart={report.balanceSheet}
-            ariaLabel="貸借対照表のグラフ"
-          />
-          <StackedBarChart
-            chart={report.profitLoss}
-            ariaLabel="損益計算書のグラフ"
-          />
-          <WaterfallChart
-            chart={report.cashFlow}
-            ariaLabel="キャッシュフロー計算書のグラフ"
-          />
+          <StackedBarChart chart={report.balanceSheet} />
+          <StackedBarChart chart={report.profitLoss} />
+          <WaterfallChart chart={report.cashFlow} />
           <FreeCashFlowChart trend={report.freeCashFlowTrend} />
           <FinancialIndicators indicators={report.financialIndicators} />
         </AppCarousel>

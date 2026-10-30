@@ -70,15 +70,12 @@ export function toStackRows(chart: StackChart): {
 
 export interface StackedBarChartProps {
   chart: StackChart;
-  // スクリーンリーダーが読み上げるグラフの名前。チャートはどの財務諸表かを知らないため、呼び出し元が決める
-  ariaLabel: string;
   width?: string | number;
   height?: string | number;
 }
 
 export function StackedBarChart({
   chart,
-  ariaLabel,
   width = '90%',
   height = 400,
 }: StackedBarChartProps) {
@@ -99,7 +96,8 @@ export function StackedBarChart({
           // rechartsは系列を登録した順に積むため、表示中に列が増えると新しい系列が末尾に積まれる。
           // 列の構成が変わったらグラフを作り直し、columnsの順に積む
           key={JSON.stringify(columns.map((column) => column.key))}
-          aria-label={ariaLabel}
+          // recharts 3は既定でグラフをTabで止まる要素にし、左右キーでツールチップを動かす。recharts 2と同じく、キーボードでは操作しない
+          accessibilityLayer={false}
         >
           {/* Y軸反転: 積み上げを「上から下」に描く（BSの「上=流動・下=純資産」の慣習を保つ）。
             domainのdataMaxで最も高いバーに全バーの縮尺を合わせる */}

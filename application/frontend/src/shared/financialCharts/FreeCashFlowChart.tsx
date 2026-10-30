@@ -282,7 +282,8 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
             >
               <BarChart
                 data={rows}
-                aria-label="フリーキャッシュフローの過去5年の棒グラフ"
+                // recharts 3は既定でグラフをTabで止まる要素にし、左右キーでツールチップを動かす。recharts 2と同じく、キーボードでは操作しない
+                accessibilityLayer={false}
                 margin={{
                   top: compactLabels ? COMPACT_TOP_MARGIN : 25,
                   right: 4,
