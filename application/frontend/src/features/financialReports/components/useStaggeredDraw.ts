@@ -1,9 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
-// 置いた時点で、画面とその下の画面の高さの半分までにある要素は、最初の表示から描く。
-// 追加で読み込んだ要素がすぐ下に並び、スクロールで次のフレームに見えてくるため
-const drawAtOnceScreens = 1.5;
+// 置いた時点で、画面とその下の画面の高さの0.3倍までにある要素は、最初の表示から描く。
+// 追加で読み込んだ要素は画面の下端のすぐ下に並び、スクロールで次のフレームに見えてくることがあるため。
+// 広げるほど、最初の表示までに描く要素が増える
+const drawAtOnceScreens = 1.3;
 
 // 描く順番を待っている要素
 const waiting: (() => void)[] = [];
