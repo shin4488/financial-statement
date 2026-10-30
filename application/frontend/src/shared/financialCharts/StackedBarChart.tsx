@@ -64,12 +64,15 @@ export interface StackedBarChartProps {
   chart: StackChart;
   width?: string | number;
   height?: string | number;
+  // trueの間は、グラフと同じ大きさの枠だけを置いてグラフを描かない。見えないグラフを描く処理を、呼び出し元が後回しにするために使う
+  deferred?: boolean;
 }
 
 export function StackedBarChart({
   chart,
   width = '90%',
   height = 400,
+  deferred = false,
 }: StackedBarChartProps) {
   const [chartElement, chartSize] = useChartSize<HTMLDivElement>(
     chart.renderable,
@@ -82,7 +85,7 @@ export function StackedBarChart({
 
   return (
     <Box ref={chartElement} width={width} height={height} m="auto">
-      {chartSize.width > 0 && chartSize.height > 0 && (
+      {!deferred && chartSize.width > 0 && chartSize.height > 0 && (
         <BarChart data={rows} width={chartSize.width} height={chartSize.height}>
           {/* Y軸反転: 積み上げを「上から下」に描く（BSの「上=流動・下=純資産」の慣習を保つ）。
             domainのdataMaxで最も高いバーに全バーの縮尺を合わせる */}

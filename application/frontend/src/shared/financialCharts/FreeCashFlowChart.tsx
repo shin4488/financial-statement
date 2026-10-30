@@ -196,7 +196,14 @@ function PointTooltip({
   );
 }
 
-export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
+export function FreeCashFlowChart({
+  trend,
+  deferred = false,
+}: {
+  trend: FreeCashFlowTrend;
+  // trueの間は、グラフと同じ大きさの枠だけを置いてグラフを描かない。見えないグラフを描く処理を、呼び出し元が後回しにするために使う
+  deferred?: boolean;
+}) {
   const [chartElement, { width: chartWidth }] = useChartSize<HTMLDivElement>(
     trend.renderable,
   );
@@ -273,7 +280,7 @@ export function FreeCashFlowChart({ trend }: { trend: FreeCashFlowTrend }) {
       {trend.renderable ? (
         <>
           <Box ref={chartElement} mt={1} height={CHART_HEIGHT}>
-            {chartWidth > 0 && (
+            {!deferred && chartWidth > 0 && (
               <BarChart
                 data={rows}
                 width={chartWidth}

@@ -229,12 +229,15 @@ export interface WaterfallChartProps {
   chart: WaterfallChartData;
   width?: string | number;
   height?: string | number;
+  // trueの間は、グラフと同じ大きさの枠だけを置いてグラフを描かない。見えないグラフを描く処理を、呼び出し元が後回しにするために使う
+  deferred?: boolean;
 }
 
 export function WaterfallChart({
   chart,
   width = '90%',
   height = 400,
+  deferred = false,
 }: WaterfallChartProps) {
   const [chartElement, chartSize] = useChartSize<HTMLDivElement>(
     chart.renderable,
@@ -267,7 +270,7 @@ export function WaterfallChart({
       </Typography>
       <Box ref={chartElement} flex={1} minHeight={0}>
         {/* 非表示のカルーセル項目は0×0になるため、実寸があるときだけ描画する */}
-        {chartSize.width > 0 && chartSize.height > 0 && (
+        {!deferred && chartSize.width > 0 && chartSize.height > 0 && (
           <BarChart
             data={rows}
             width={chartSize.width}
