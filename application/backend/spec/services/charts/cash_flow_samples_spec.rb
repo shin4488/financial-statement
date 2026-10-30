@@ -10,10 +10,10 @@ RSpec.describe "キャッシュ・フロー計算書のグラフ（実XBRL）" d
   def cash_flow(doc_id, consolidation_type)
     require_xbrl_fixture(doc_id)
     Dir.mktmpdir do |work_dir|
-      Ingestion::ReportIngester.new(client: FixtureEdinetClient.new).ingest(doc_id: doc_id, work_dir: work_dir)
+      UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: doc_id, work_dir: work_dir)
     end
     fs = Disclosure::FinancialStatement.find_by!(consolidation_type: consolidation_type)
-    [ fs, Charts::BuilderRegistry.build_all(fs)[:cash_flow] ]
+    [ fs, Charts::BuilderRegistry.build_all(fs.to_statement_data)[:cash_flow] ]
   end
 
   def steps(chart) = chart.steps.to_h { |step| [ step.key, step.amount ] }
@@ -24,7 +24,7 @@ RSpec.describe "キャッシュ・フロー計算書のグラフ（実XBRL）" d
     it "ぷらっとホーム 2021年3月期: 財務CFの行がなく、換算差額を含めた式が端数の範囲で成り立つため、財務CFを0として描く" do
       fs, chart = cash_flow("S100LR17", :non_consolidated)
       aggregate_failures do
-        expect(fs.items_hash).not_to have_key("cf.financing") # 保存する値は変えない
+        expect(fs.amounts.to_h).not_to have_key("cf.financing") # 保存する値は変えない
         expect(steps(chart)).to eq("cashBegin" => 334_170_000, "operating" => -12_047_000, "investing" => -3_400_000,
                                    "financing" => 0, "cashEnd" => 318_777_000)
         expect(cash_flow_warnings).to be_empty
@@ -32,8 +32,9 @@ RSpec.describe "キャッシュ・フロー計算書のグラフ（実XBRL）" d
     end
 
     it "キャンバス 2026年6月期: 投資CF・財務CFが「－」で、FCF推移も投資CFを0として営業CFだけになる" do
-      fs, chart = cash_flow("S100Z4G9", :non_consolidated)
-      trend = FinancialStatements::FreeCashFlowTrends.build([ fs.report ]).fetch(fs.report.id)
+      _, chart = cash_flow("S100Z4G9", :non_consolidated)
+      trend = UseCases::ListFinancialReports.new.call(limit: 10, offset: 0, stock_codes: nil, cf_signs: {}, with_trend: true)
+                                            .sole.free_cash_flow_trend
       aggregate_failures do
         expect(steps(chart)).to eq("cashBegin" => 2_827_879_000, "operating" => -1_424_017_000, "investing" => 0,
                                    "financing" => 0, "cashEnd" => 1_445_095_000)
@@ -44,7 +45,7 @@ RSpec.describe "キャッシュ・フロー計算書のグラフ（実XBRL）" d
     it "visumo 2026年3月期: 合併による増加（23,354千円）を式に含めて、財務CFを0として描く" do
       fs, chart = cash_flow("S100YCOW", :non_consolidated)
       aggregate_failures do
-        expect(fs.items_hash["cf.merger"]).to eq 23_354_000
+        expect(fs.amounts["cf.merger"]).to eq 23_354_000
         expect(steps(chart)["financing"]).to eq 0
         expect(cash_flow_warnings).to be_empty
       end
@@ -85,7 +86,7 @@ RSpec.describe "キャッシュ・フロー計算書のグラフ（実XBRL）" d
   it "Fringe81 2017年3月期: CF計算書の期末残に標準タグがなく、経営指標の要約の現金同等物の残高で補う" do
     fs, chart = cash_flow("S100AQXU", :non_consolidated)
     aggregate_failures do
-      expect(fs.items_hash["cf.cash_end"]).to eq 275_119_000
+      expect(fs.amounts["cf.cash_end"]).to eq 275_119_000
       # 527,442−53,651−321,582＋122,911＝275,120千円。差の1千円は各金額の千円未満の端数
       expect(steps(chart)).to eq("cashBegin" => 527_442_000, "operating" => -53_651_000, "investing" => -321_582_000,
                                  "financing" => 122_911_000, "cashEnd" => 275_119_000)
@@ -98,7 +99,7 @@ RSpec.describe "キャッシュ・フロー計算書のグラフ（実XBRL）" d
       fs, chart = cash_flow("S100XRWN", :consolidated)
       aggregate_failures do
         expect(steps(chart)).to include("cashBegin" => 138_293_000_000, "cashEnd" => 120_534_000_000)
-        expect(fs.items_hash["bs.cash_and_equivalents"]).to eq 110_008_000_000 # BSの科目は財政状態計算書の額のまま
+        expect(fs.amounts["bs.cash_and_equivalents"]).to eq 110_008_000_000 # BSの科目は財政状態計算書の額のまま
         expect(cash_flow_warnings).to be_empty
       end
     end
@@ -140,7 +141,7 @@ RSpec.describe "キャッシュ・フロー計算書のグラフ（実XBRL）" d
     it "良品計画 2025年8月期: 連結除外に伴う現金及び現金同等物の減少額（△175百万円）を含めて式が成り立つ" do
       fs = cash_flow("S100X5NI", :consolidated).first
       aggregate_failures do
-        expect(fs.items_hash["cf.consolidation_change"]).to eq(-175_000_000)
+        expect(fs.amounts["cf.consolidation_change"]).to eq(-175_000_000)
         expect(cash_flow_warnings).to be_empty
       end
     end
@@ -148,7 +149,7 @@ RSpec.describe "キャッシュ・フロー計算書のグラフ（実XBRL）" d
     it "コシダカホールディングス 2023年8月期: 非連結子会社との合併に伴う現金及び現金同等物の増加額（13,878千円）を含めて式が成り立つ" do
       fs = cash_flow("S100X7D9", :consolidated).first
       aggregate_failures do
-        expect(fs.items_hash["cf.merger"]).to eq 13_878_000
+        expect(fs.amounts["cf.merger"]).to eq 13_878_000
         expect(cash_flow_warnings).to be_empty
       end
     end
@@ -156,7 +157,7 @@ RSpec.describe "キャッシュ・フロー計算書のグラフ（実XBRL）" d
     it "前澤給装工業 2026年3月期: 連結子会社の合併による現金及び現金同等物の増減額（289百万円）を含めて式が成り立つ" do
       fs = cash_flow("S100YIVJ", :non_consolidated).first
       aggregate_failures do
-        expect(fs.items_hash["cf.merger"]).to eq 289_000_000
+        expect(fs.amounts["cf.merger"]).to eq 289_000_000
         expect(cash_flow_warnings).to be_empty
       end
     end

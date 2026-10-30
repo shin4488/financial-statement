@@ -44,6 +44,39 @@ RSpec.describe Disclosure::ReportWriter do
       end
     end
 
+    it "連結に貸借対照表だけがあり、単体に当期の損益・CFがあれば、単体を主にする" do
+      save("S0000001", dei, "45020",
+           [ statement(:consolidated, { "bs.assets" => 200 }),
+             statement(:non_consolidated, { "bs.assets" => 100, "pl.profit" => 10, "cf.operating" => 20 }) ])
+
+      expect(events.map { |event| event.first(4) }).to eq [ [ :saved, :consolidated, "consolidated", false ],
+                                                             [ :saved, :non_consolidated, "non_consolidated", true ] ]
+    end
+
+    {
+      "連結に当期の損益があれば" => [ { "bs.assets" => 200, "pl.profit" => 20 }, "jgaap_general" ],
+      "連結に資産合計がなければ（未対応の形式など）" => [ {}, "unsupported" ]
+    }.each do |condition, (consolidated_items, presentation_format)|
+      it "#{condition}、単体に当期の損益があっても連結を主にする" do
+        save("S0000001", dei, "45020",
+             [ statement(:consolidated, consolidated_items, presentation_format: presentation_format),
+               statement(:non_consolidated, { "bs.assets" => 100, "pl.profit" => 10 }) ])
+
+        expect(Disclosure::FinancialStatement.where(is_primary: true).pluck(:consolidation_type)).to eq [ "consolidated" ]
+      end
+    end
+
+    it "主が連結から単体に替わる再取込でも、新しい主を立てる前に旧い主を外す（1有報に主は1つの一意制約に反しない）" do
+      save("S0000001", dei, "45020",
+           [ statement(:consolidated, { "bs.assets" => 200, "pl.profit" => 20 }),
+             statement(:non_consolidated, { "bs.assets" => 100, "pl.profit" => 10 }) ])
+
+      save("S0000009", dei, "45020",
+           [ statement(:consolidated, { "bs.assets" => 200 }), statement(:non_consolidated, { "bs.assets" => 100, "pl.profit" => 10 }) ])
+
+      expect(Disclosure::FinancialStatement.where(is_primary: true).pluck(:consolidation_type)).to eq [ "non_consolidated" ]
+    end
+
     it "連結を作成しない書類は単体を主にする" do
       save("S0000001", dei(has_consolidated: false), "45020", [ statement(:non_consolidated, { "bs.assets" => 100 }) ])
 

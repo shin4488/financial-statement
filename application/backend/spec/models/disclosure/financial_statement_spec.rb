@@ -19,7 +19,7 @@ RSpec.describe Disclosure::FinancialStatement do
       expect(statement_data).to have_attributes(consolidation_type: :non_consolidated, accounting_standard: "japan_gaap",
                                                 presentation_format: "jgaap_general", disclosed_roe: 0.081.to_d,
                                                 fiscal_year_end_date: Date.new(2025, 12, 31))
-      expect(statement_data.amounts).to eq("bs.assets" => 100_000_000)
+      expect(statement_data.amounts.to_h).to eq("bs.assets" => 100_000_000)
       expect(statement_data.amounts.rounding_errors).to eq("bs.assets" => 1_000_000)
       expect(statement_data.amounts).to be_frozen
     end

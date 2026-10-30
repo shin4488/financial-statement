@@ -65,14 +65,17 @@ RSpec.describe UseCases::StatementInspection do
       expect(described_class.notices(statement(items), primary: true, doc_id: "S0000001").to_a).to eq []
     end
 
-    it "資産合計を作らない形式（unsupported）では資産合計の欠落を、換算差額などの行を読まない形式ではCFの照合を通知しない" do
+    it "資産合計を作らない形式（unsupported）では資産合計の欠落を、経営指標の要約だけで作る形式（換算差額などの行がない）ではCFの照合を通知しない" do
+      # 期首残＋営業CF＋投資CF＋財務CF＝期末残が、換算差額の分（10）だけ合わない
       cash_flow = profit_loss_and_cash_flow.slice("cf.cash_begin", "cf.operating", "cf.investing", "cf.financing", "cf.cash_end")
 
       aggregate_failures do
         expect(described_class.notices(statement(cash_flow, presentation_format: "unsupported"), primary: true, doc_id: "S0000001").to_a)
           .to eq []
-        expect(described_class.notices(statement(cash_flow.merge("bs.assets" => 1), presentation_format: "ifrs_summary"),
-                                       primary: true, doc_id: "S0000001").to_a).to eq []
+        %w[ifrs_summary usgaap_summary].each do |format|
+          expect(described_class.notices(statement(cash_flow.merge("bs.assets" => 1), presentation_format: format),
+                                         primary: true, doc_id: "S0000001").to_a).to eq([]), format
+        end
       end
     end
 

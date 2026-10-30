@@ -10,14 +10,14 @@ RSpec.describe "貸借対照表のグラフ（実XBRL）" do
   def ingest(doc_id)
     require_xbrl_fixture(doc_id)
     Dir.mktmpdir do |work_dir|
-      Ingestion::ReportIngester.new(client: FixtureEdinetClient.new).ingest(doc_id: doc_id, work_dir: work_dir)
+      UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: doc_id, work_dir: work_dir)
     end
   end
 
   def charts(doc_id, consolidation_type)
     ingest(doc_id)
     fs = Disclosure::FinancialStatement.find_by!(consolidation_type: consolidation_type)
-    [ fs, Charts::BuilderRegistry.build_all(fs) ]
+    [ fs, Charts::BuilderRegistry.build_all(fs.to_statement_data) ]
   end
 
   def segments(bar) = bar.segments.map { |segment| [ segment.label, segment.signed_amount ] }
@@ -30,7 +30,7 @@ RSpec.describe "貸借対照表のグラフ（実XBRL）" do
       debit, credit = charts[:balance_sheet].bars
       aggregate_failures do
         expect(fs.presentation_format).to eq "jgaap_bank"
-        expect(fs.items_hash["bs.deposits"]).to eq 184_652_065_000_000
+        expect(fs.amounts["bs.deposits"]).to eq 184_652_065_000_000
         expect(segments(debit)).to eq [
           [ "現金預け金", 57_012_194_000_000 ], [ "貸出金", 6_434_130_000_000 ], [ "有価証券", 191_440_416_000_000 ],
           [ "その他資産", 289_864_524_000_000 - 57_012_194_000_000 - 6_434_130_000_000 - 191_440_416_000_000 ]
@@ -48,7 +48,7 @@ RSpec.describe "貸借対照表のグラフ（実XBRL）" do
       aggregate_failures do
         { consolidated: 186_108_700_000_000, non_consolidated: 186_113_094_000_000 }.each do |type, deposits|
           fs = Disclosure::FinancialStatement.find_by!(consolidation_type: type)
-          chart = Charts::BuilderRegistry.build_all(fs)[:balance_sheet]
+          chart = Charts::BuilderRegistry.build_all(fs.to_statement_data)[:balance_sheet]
           expect(chart.renderable).to be(true), "#{type}: #{chart.note}"
           expect(chart.bars.last.segments.first).to have_attributes(label: "預金", signed_amount: deposits)
         end
@@ -106,7 +106,7 @@ RSpec.describe "貸借対照表のグラフ（実XBRL）" do
       renderable: false, note: "財政状態計算書: 2019年3月末より前のIFRSは非対応です。")
   end
 
-  it "いちよし証券 2025年3月期: 流動負債・固定負債のほかの負債（特別法上の準備金）は今のまま描かず、警告もしない" do
+  it "いちよし証券 2025年3月期: 流動負債・固定負債のほかの負債（特別法上の準備金）は差額でしか求められないため貸方に積まず、BSの照合でも警告しない" do
     _, charts = charts("S100Y87F", :consolidated)
     debit, credit = charts[:balance_sheet].bars
     aggregate_failures do

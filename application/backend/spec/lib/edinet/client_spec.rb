@@ -42,7 +42,7 @@ RSpec.describe Edinet::Client do
       stub_request(:get, %r{documents\.json}).to_return(status: 200,
         body: { metadata: { status: "403", message: "Forbidden" } }.to_json)
       expect { client.list_annual_reports(date: Date.new(2026, 6, 20)) }
-        .to raise_error(Edinet::Client::ApiError) { |error| expect(error.status).to eq "403" }
+        .to raise_error(Edinet::Client::ApiError, "EDINET API failed: 403")
     end
   end
 
@@ -52,10 +52,7 @@ RSpec.describe Edinet::Client do
     it "公式形式の#{body['StatusCode']}を一覧0件として扱わない" do
       stub_request(:get, %r{documents\.json}).to_return(status: 200, body: body.to_json)
       expect { client.list_annual_reports(date: Date.new(2026, 6, 20)) }
-        .to raise_error(Edinet::Client::ApiError) { |error|
-          expect(error.status).to eq body["StatusCode"].to_s
-          expect(error.message).to eq "EDINET API failed: #{body['StatusCode']}"
-        }
+        .to raise_error(Edinet::Client::ApiError, "EDINET API failed: #{body['StatusCode']}")
       expect(a_request(:get, %r{documents\.json})).to have_been_made.once
     end
 
@@ -63,10 +60,7 @@ RSpec.describe Edinet::Client do
       stub_request(:get, %r{documents/S1000001}).to_return(status: 200, body: body.to_json)
       Dir.mktmpdir do |work_dir|
         expect { client.download_xbrl(doc_id: "S1000001", work_dir: work_dir) }
-          .to raise_error(Edinet::Client::ApiError) { |error|
-            expect(error.status).to eq body["StatusCode"].to_s
-            expect(error.message).to eq "EDINET API failed: #{body['StatusCode']}"
-          }
+          .to raise_error(Edinet::Client::ApiError, "EDINET API failed: #{body['StatusCode']}")
         expect(Dir.children(work_dir)).to be_empty
       end
       expect(a_request(:get, %r{documents/S1000001})).to have_been_made.once
@@ -168,10 +162,7 @@ RSpec.describe Edinet::Client do
         stub_download("S1000001", { metadata: { status: status, message: "private response" } }.to_json)
         Dir.mktmpdir do |work_dir|
           expect { client.download_xbrl(doc_id: "S1000001", work_dir: work_dir) }
-            .to raise_error(Edinet::Client::ApiError) { |error|
-              expect(error.status).to eq status
-              expect(error.message).to eq "EDINET API failed: #{status}"
-            }
+            .to raise_error(Edinet::Client::ApiError, "EDINET API failed: #{status}")
           expect(Dir.children(work_dir)).to be_empty
         end
         expect(a_request(:get, %r{documents/S1000001})).to have_been_made.once

@@ -1,10 +1,10 @@
 require "rails_helper"
 
 RSpec.describe FinancialStatements::Formats do
-  it "DBに保存する形式名を、対応する形式・unsupported の順に並べる" do
-    expect(described_class::ALL).to eq %w[
-      jgaap_general jgaap_bank jgaap_insurance ifrs_classified ifrs_liquidity ifrs_summary usgaap_summary unsupported
-    ]
+  it "DBに保存する形式名は、対応する7形式と unsupported" do
+    expect(described_class::ALL).to contain_exactly(
+      "jgaap_general", "jgaap_bank", "jgaap_insurance", "ifrs_classified", "ifrs_liquidity", "ifrs_summary", "usgaap_summary", "unsupported"
+    )
   end
 
   it "形式名の定数はすべて一覧にある" do

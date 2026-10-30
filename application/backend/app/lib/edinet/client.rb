@@ -1,15 +1,12 @@
-# EDINET API v2 の薄いラッパ。外部I/Oをここに集約する。
+# EDINET API v2 の薄いラッパ。EDINETとの通信をここに集約する。
 # レート制限（リクエスト過多で403）のため同期・逐次実行が前提（並列化しない）
 module Edinet
   class Client
     # HTTP 200でも、本文のmetadata.status / StatusCodeで取得失敗が返ることがある。
     # APIキーを含むURLや応答本文を例外に載せない。
     class ApiError < StandardError
-      attr_reader :status
-
       def initialize(status)
-        @status = status.to_s
-        super("EDINET API failed: #{@status}")
+        super("EDINET API failed: #{status}")
       end
     end
     # API仕様書記載の公式ホスト。閲覧サイト側ホスト（disclosure.edinet-fsa.go.jp）の

@@ -1,0 +1,42 @@
+require "rails_helper"
+
+RSpec.describe "Ingestion::Mappings::IfrsSummary" do
+  describe "抽出（連結・S100SO41: 詳細タグ付け義務化前の有報）" do
+    subject(:items) do
+      Ingestion::StatementExtractor.amounts(Ingestion::Mappings::IfrsSummary, source: load_xbrl_fixture("S100SO41"),
+                                                                               consolidation: :consolidated)
+    end
+
+    it "経営指標サマリからPL・CFと指標用の利益・期首期末残高を抽出する" do
+      expect(items.to_h).to eq(
+        "bs.assets" => 72_459_000_000,
+        "bs.assets_begin" => 71_409_000_000,
+        "bs.equity_attributable_to_owners" => 18_706_000_000,
+        "bs.equity_attributable_to_owners_begin" => 18_036_000_000,
+        "pl.profit_attributable_to_owners" => 1_321_000_000,
+        "pl.revenue" => 119_281_000_000,
+        # 要約には日本基準の売上高119,430百万円も並ぶが、IFRSの売上収益を照合に使う
+        "pl.summary_revenue" => 119_281_000_000,
+        "pl.profit_before_tax" => 3_688_000_000,
+        "cf.operating" => 8_364_000_000,
+        "cf.investing" => -4_886_000_000,
+        "cf.financing" => -2_900_000_000,
+        "cf.cash_begin" => 12_665_000_000,
+        "cf.cash_end" => 13_248_000_000)
+    end
+  end
+
+  describe "抽出（連結・S100ENUV: 総資産を企業拡張タグ TotalAssets だけで開示する有報）" do
+    subject(:items) do
+      Ingestion::StatementExtractor.amounts(Ingestion::Mappings::IfrsSummary, source: load_xbrl_fixture("S100ENUV"),
+                                                                               consolidation: :consolidated)
+    end
+
+    it "期首・期末の総資産を企業拡張タグから取り、要約の親会社所有者帰属持分比率（0.442）と合う" do
+      aggregate_failures do
+        expect(items.values_at("bs.assets", "bs.assets_begin")).to eq [ 1_953_466_000_000, 1_388_486_000_000 ]
+        expect((items["bs.equity_attributable_to_owners"] / items["bs.assets"].to_d).round(3)).to eq 0.442.to_d
+      end
+    end
+  end
+end

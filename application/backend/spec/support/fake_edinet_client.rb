@@ -1,6 +1,6 @@
-# Edinet::Client の代役。ReportIngester#ingest（公開API）をEDINET非接続で通すために、
+# Edinet::Client の代役。UseCases::IngestReport#call（公開API）をEDINET非接続で通すために、
 # 与えられたXBRL文字列をwork_dirへ書き出してパスを返す。
-# ingestは取込後にファイルを消すため、実フィクスチャを直接渡さず毎回書き出す
+# IngestReportは取込後にファイルを消すため、実フィクスチャを直接渡さず毎回書き出す
 class FakeEdinetClient
   # xml_by_doc_id: { "S0000001" => "<xbrl…>", "S0000002" => nil, ... }（nil = XBRLを含まない書類）
   def initialize(xml_by_doc_id)

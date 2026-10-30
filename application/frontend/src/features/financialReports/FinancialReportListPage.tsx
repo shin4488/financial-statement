@@ -73,7 +73,7 @@ function FinancialReportList() {
   // 空レスポンスを無限に取り続けるため、「ページサイズ未満のレスポンスを受けたら終端」を
   // 状態として持つ（件数フィールドをAPIに増やさず一覧APIをシンプルに保つ意図）
   const [reachedEnd, setReachedEnd] = useState(false);
-  useEffect(() => setReachedEnd(false), [variables]); // 検索条件が変わったら判定をリセット
+  useEffect(() => setReachedEnd(false), [variables]);
   const hasMore =
     !reachedEnd &&
     reports.length > 0 &&
@@ -131,8 +131,6 @@ function FinancialReportList() {
   );
 }
 
-// 専用のApolloクライアントをこのページ配下だけに提供する
-// （共有シングルトンのキャッシュ設定に手を入れず、他ページと独立に保つため）
 export default function FinancialReportListPage() {
   return (
     <ApolloProvider client={financialReportsClient}>

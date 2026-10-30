@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe "売上を企業拡張タグだけで開示する会社（実XBRL）" do
   let(:warnings) { [] }
   let(:revenue_warnings) do
-    warnings.map(&:first) & [ Ingestion::Reconciliation::REVENUE_MISMATCH, Ingestion::Reconciliation::REVENUE_MISSING ]
+    warnings.map(&:first) & [ UseCases::IngestionNotices.text(:revenue_mismatch), UseCases::IngestionNotices.text(:revenue_missing) ]
   end
 
   before { allow(Sentry).to receive(:capture_message) { |message, **options| warnings << [ message, options ] } }
@@ -13,9 +13,9 @@ RSpec.describe "売上を企業拡張タグだけで開示する会社（実XBRL
   def ingest(doc_id)
     require_xbrl_fixture(doc_id)
     Dir.mktmpdir do |work_dir|
-      Ingestion::ReportIngester.new(client: FixtureEdinetClient.new).ingest(doc_id: doc_id, work_dir: work_dir)
+      UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: doc_id, work_dir: work_dir)
     end
-    Disclosure::FinancialStatement.find_by!(is_primary: true).items_hash
+    Disclosure::FinancialStatement.find_by!(is_primary: true).amounts
   end
 
   {

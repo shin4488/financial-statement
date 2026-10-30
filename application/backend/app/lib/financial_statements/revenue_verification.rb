@@ -6,7 +6,7 @@ module FinancialStatements
     # :mismatched      … 一致しない（売上が内訳だけになっている、または取り違えている）
     # :revenue_missing … 要約に売上があるのに、損益計算書の売上が取れない
     # :unverifiable    … 要約に売上がなく、照合できない
-    def self.status(items) = status_of(items, items["pl.revenue"], items.rounding_errors["pl.revenue"])
+    def self.status(items) = status_of(items, items["pl.revenue"], items.rounding_error("pl.revenue"))
 
     # 売上の取得候補の金額が、要約の売上と一致するか。売上を候補に差し替える前に確かめる
     def self.verified?(items, revenue, rounding_error) = status_of(items, revenue, rounding_error) == :matched

@@ -2,15 +2,14 @@
 
 上場企業の有価証券報告書（EDINET）を取り込み、財務3表チャートをGraphQLで返すAPIサーバ。
 
-[financial-statement](https://github.com/shin4488/financial-statement) monorepoの
-`application/backend` ディレクトリ。設計ドキュメントとdocker-compose定義はリポジトリルート側にある。
+[financial-statement](https://github.com/shin4488/financial-statement) monorepoの `application/backend` ディレクトリ。設計ドキュメントとdocker-compose定義はリポジトリルート側にある。
 
 ## 技術スタック
 
 | 項目 | 内容 |
 |---|---|
 | 言語・FW | Ruby 3.4.10 / Rails 7.2（`config.api_only = true`） |
-| API | GraphQL（graphql-ruby）。エンドポイントは `POST /graphql` の1本のみ |
+| API | GraphQL（graphql-ruby） |
 | 非同期処理 | Sidekiq + sidekiq-cron（毎日2:00に前日提出分を取込） |
 | データストア | PostgreSQL / Redis |
 
@@ -74,22 +73,23 @@ bundle exec rspec
 ```
 app/lib/
   financial_statements/item_catalog.rb # 科目カタログ（唯一の科目一覧。科目ごとの期間・期首の科目・意味）
-  edinet/client.rb                     # EDINET API（外部I/Oはここだけ）
+  edinet/client.rb                     # EDINET API（EDINETとの通信はここだけ）
   xbrl/document.rb                     # XBRLのfact検索プリミティブ
-app/models/disclosure/                 # 現行テーブルのモデル
+app/models/disclosure/                 # テーブルのモデル
 app/services/
   ingestion/                           # 対象確認・形式判定・対応表・抽出・取得式・補正ルール
   use_cases/                           # 入口から呼ぶ処理の手順（日付・docID指定の取込、1有報の取込と点検、書類の逐次実行、一覧の取得）
-  charts/                              # ChartBuilder（チャート構造の組み立て）
+  charts/                              # 形式ごとのBuilderと部品（チャート構造の組み立て）
   disclosure/report_writer.rb          # 取り込んだ有報の保存（1有報分）
   disclosure/search_query.rb           # 一覧検索（CF符号・証券コード）
+  disclosure/reingest_targets.rb       # 再取込タスク（rake ingestion:reingest_*）の対象の検索
 app/graphql/
   financial_statement_schema.rb        # スキーマ（複雑度・深さの上限を含む）
-  resolvers/financial_reports.rb       # 現行クエリ financialReports
+  resolvers/financial_reports.rb       # クエリ financialReports
 ```
 
-設計意図・XBRLの形式ごとの差異はリポジトリルートの `docs/guide/`（03〜04章に設計解説）を参照。
-**XBRLタグを扱う作業の前に必ず `docs/guide/06_taxonomy_mapping.md` の該当する表（BS/PL/CF）を読むこと。**
+設計意図・XBRLの形式ごとの差異はリポジトリルートの `docs/guide/`（02〜03章に設計解説）を参照。
+**XBRLタグを扱う作業の前に必ず `docs/guide/05_taxonomy_mapping.md` の該当する表（BS/PL/CF）を読むこと。**
 
 `/graphql` は公開・未認証エンドポイントのため、スキーマに複雑度・深さの上限がある。
 フィールドを増やすときは上限に収まるか確認する（`financial_statement_schema.rb`）。

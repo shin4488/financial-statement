@@ -15,7 +15,7 @@ RSpec.describe UseCases::ListFinancialReports do
     report = create(:disclosure_report, company: company,
                     fiscal_year_start_date: Date.new(year - 1, 4, 1), fiscal_year_end_date: Date.new(year, 3, 31),
                     filing_date: Date.new(year, 6, 20))
-    create(:disclosure_financial_statement, report: report, consolidation_type: consolidation_type, items_hash: items)
+    create(:disclosure_financial_statement, report: report, consolidation_type: consolidation_type, amounts: items)
   end
 
   def call(limit: 10, offset: 0, stock_codes: nil, cf_signs: {}, with_trend: true)
@@ -30,10 +30,25 @@ RSpec.describe UseCases::ListFinancialReports do
     expect(entry.report).to eq fs.report
     expect(entry.statement).to have_attributes(consolidation_type: :consolidated, accounting_standard: "ifrs",
                                                presentation_format: "ifrs_classified", fiscal_year_end_date: Date.new(2025, 3, 31))
-    expect(entry.statement.amounts).to eq items
-    expect(entry.charts).to eq Charts::BuilderRegistry.build_all(fs)
-    expect(entry.indicators).to eq FinancialStatements::Indicators.build(fs)
-    expect(entry.free_cash_flow_trend).to eq FinancialStatements::FreeCashFlowTrends.build([ fs.report ]).fetch(fs.report.id)
+    expect(entry.statement.amounts.to_h).to eq items
+    # BSは流動・非流動の資産と負債・資本で描き、PLは税引前利益がないため描かず、CFは期首残＋各CF＝期末残で描く
+    expect(entry.charts[:balance_sheet].bars.map { |bar| bar.segments.map { |segment| [ segment.key, segment.amount ] } }).to eq [
+      [ [ "currentAssets", 300 ], [ "nonCurrentAssets", 700 ] ],
+      [ [ "currentLiabilities", 200 ], [ "nonCurrentLiabilities", 300 ], [ "equity", 500 ] ]
+    ]
+    expect(entry.charts[:profit_loss]).to have_attributes(renderable: false, note: "損益計算書: この企業のIFRS損益計算書は表示に対応していません。")
+    expect(entry.charts[:cash_flow].steps.map { |step| [ step.key, step.amount ] }).to eq [
+      [ "cashBegin", 100 ], [ "operating", 50 ], [ "investing", -20 ], [ "financing", -10 ], [ "cashEnd", 120 ]
+    ]
+    metric = ->(value) { FinancialStatements::Indicators::Metric.new(value: value, status: "available", source: "calculated") }
+    expect(entry.indicators).to eq(roe: metric.(0.16), roa: metric.(0.08), net_profit_margin: metric.(0.04),
+                                   asset_turnover: metric.(2.0), financial_leverage: metric.(2.0))
+    point = FinancialStatements::FreeCashFlowTrends::Point
+    expect(entry.free_cash_flow_trend).to eq FinancialStatements::FreeCashFlowTrends::Trend.new(
+      renderable: true, note: nil,
+      points: (2021..2024).map { |year| point.new(year: year) } +
+              [ point.new(year: 2025, fiscal_year_start_date: "2024-04-01", fiscal_year_end_date: "2025-03-31",
+                          operating_cf: 50, investing_cf: -20, amount: 30, consolidation_type: :consolidated) ])
     expect(entry.free_cash_flow_trend.points.last.amount).to eq 30
   end
 
@@ -46,11 +61,11 @@ RSpec.describe UseCases::ListFinancialReports do
     expect(entry.indicators[:roe].value).to eq 0.2
   end
 
-  it "FCF推移を要求されなければ、作らず、過去の財務諸表も読まない" do
+  it "FCF推移を要求されなければ、作らず、過去の財務諸表も読まない（要求したときより問い合わせが少ない）" do
     statement(2025)
-    expect(Disclosure::CashFlowHistory).not_to receive(:new)
 
     expect(call(with_trend: false).sole.free_cash_flow_trend).to be_nil
+    expect(count_queries { call(with_trend: false) }).to be < count_queries { call(with_trend: true) }
   end
 
   it "検索の条件を一覧の検索に渡す" do

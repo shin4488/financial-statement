@@ -39,14 +39,17 @@ module SyntheticXbrl
   }.freeze
 
   # dei:   DEI_DEFAULTS を上書きするハッシュ（値nilでそのタグ自体を出さない）
-  # facts: { ["jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember"] => 100, ... }
-  def synthetic_xbrl_xml(dei: {}, facts: {}, contexts: nil)
+  # facts: { ["jppfs_cor:Assets", "CurrentYearInstant_NonConsolidatedMember"] => 100, ... }。
+  #        値を "" にすると、行はあるが値が空（表では「－」）のタグになる。
+  #        接頭辞 filer_ext: のタグは、提出者の企業拡張タグ（jpcrp030000-asr_E00001-000）として書く
+  # decimals: { [qname, context] => "-3" } のXBRLのdecimals属性（-3なら千円単位で、端数の上限は1,000）。書かない金額は精度不明
+  def synthetic_xbrl_xml(dei: {}, facts: {}, contexts: nil, decimals: {})
     dei_values = DEI_DEFAULTS.merge(dei)
     elements = dei_values.filter_map do |key, value|
       fact_element(DEI_TAGS.fetch(key), "FilingDateInstant", value) unless value.nil?
     end
     elements += contexts || financial_contexts(dei_values, facts.keys.map(&:last))
-    elements += facts.map { |(qname, context), value| fact_element(qname, context, value) }
+    elements += facts.map { |(qname, context), value| fact_element(qname, context, value, decimals[[ qname, context ]]) }
     ns_declarations = NS_URIS.map { |prefix, uri| %(xmlns:#{prefix}="#{uri}") }.join(" ")
     <<~XML
       <?xml version="1.0" encoding="UTF-8"?>
@@ -56,9 +59,9 @@ module SyntheticXbrl
     XML
   end
 
-  def synthetic_xbrl_document(dei: {}, facts: {})
+  def synthetic_xbrl_document(dei: {}, facts: {}, decimals: {})
     file = Tempfile.new([ "synthetic", ".xbrl" ])
-    file.write(synthetic_xbrl_xml(dei: dei, facts: facts))
+    file.write(synthetic_xbrl_xml(dei: dei, facts: facts, decimals: decimals))
     file.close
     Xbrl::Document.load(file.path)
   ensure
@@ -91,8 +94,10 @@ module SyntheticXbrl
       end
     end
 
-    def fact_element(qname, context, value)
-      %(  <#{qname} contextRef="#{context}">#{ERB::Util.html_escape(value)}</#{qname}>)
+    def fact_element(qname, context, value, decimals = nil)
+      name = qname.sub(/\Afiler_ext:/, "jpcrp030000-asr_E00001-000:")
+      precision = %( decimals="#{decimals}") if decimals
+      %(  <#{name} contextRef="#{context}"#{precision}>#{ERB::Util.html_escape(value)}</#{name}>)
     end
 end
 

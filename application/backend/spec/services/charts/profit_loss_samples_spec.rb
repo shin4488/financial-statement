@@ -6,10 +6,10 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
   def profit_loss(doc_id, consolidation_type)
     require_xbrl_fixture(doc_id)
     Dir.mktmpdir do |work_dir|
-      Ingestion::ReportIngester.new(client: FixtureEdinetClient.new).ingest(doc_id: doc_id, work_dir: work_dir)
+      UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: doc_id, work_dir: work_dir)
     end
     fs = Disclosure::FinancialStatement.find_by!(consolidation_type: consolidation_type, is_primary: true)
-    [ fs, Charts::BuilderRegistry.build_all(fs)[:profit_loss] ]
+    [ fs, Charts::BuilderRegistry.build_all(fs.to_statement_data)[:profit_loss] ]
   end
 
   def segments(bar) = bar.segments.map { |segment| [ segment.label, segment.signed_amount ] }
@@ -18,7 +18,7 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
     fs, chart = profit_loss("S100YK5Y", :non_consolidated)
     debit, credit = chart.bars
     aggregate_failures do
-      expect(fs.items_hash["pl.revenue"]).to eq 9_211_685_000
+      expect(fs.amounts["pl.revenue"]).to eq 9_211_685_000
       expect(segments(debit)).to eq [ [ "売上原価", 8_499_995_000 ], [ "販売一般管理費", 364_352_000 ], [ "営業利益", 347_338_000 ] ]
       expect(segments(credit)).to eq [ [ "売上", 9_211_685_000 ] ]
     end
@@ -94,7 +94,7 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
       end
     end
 
-    it "ローソン 2023年2月期: 企業拡張タグの収益で、今までの差額の描き方で描く" do
+    it "ローソン 2023年2月期: 企業拡張タグの収益で、ほかのIFRSの会社と同じく差額を含めて描く" do
       _, chart = profit_loss("S100QTB3", :consolidated)
       debit, credit = chart.bars
       aggregate_failures do
@@ -183,12 +183,12 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
       it "#{name}: 売上は取れるが、費用を差額でしか求められないため描かない" do
         require_xbrl_fixture(doc_id)
         Dir.mktmpdir do |work_dir|
-          Ingestion::ReportIngester.new(client: FixtureEdinetClient.new).ingest(doc_id: doc_id, work_dir: work_dir)
+          UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: doc_id, work_dir: work_dir)
         end
         fs = Disclosure::FinancialStatement.find_by!(is_primary: true)
         aggregate_failures do
-          expect(fs.items_hash["pl.revenue"]).to be_present
-          expect(Charts::BuilderRegistry.build_all(fs)[:profit_loss].renderable).to be false
+          expect(fs.amounts["pl.revenue"]).to be_present
+          expect(Charts::BuilderRegistry.build_all(fs.to_statement_data)[:profit_loss].renderable).to be false
         end
       end
     end
@@ -271,7 +271,7 @@ RSpec.describe "損益計算書のグラフ（実XBRL）" do
     it "窪田製薬ホールディングス 2021年12月期（IFRS）: 営業損失にその他の営業収益が含まれ、費用の合計と一致しないため描かない" do
       fs, chart = profit_loss("S100NRX4", :consolidated)
       aggregate_failures do
-        expect(fs.items_hash["pl.revenue"]).to eq 0
+        expect(fs.amounts["pl.revenue"]).to eq 0
         expect(chart.renderable).to be false
       end
     end

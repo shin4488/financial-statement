@@ -1,27 +1,31 @@
 require "rails_helper"
 
 RSpec.describe Charts::BuilderRegistry do
-  it "FormatRegistryの全形式（unsupported以外）にBS/PLのBuilderが対応している" do
-    supported = Ingestion::FormatRegistry::ALL - [ Ingestion::FormatRegistry::UNSUPPORTED ]
-    expect(described_class::BS.keys).to match_array(supported)
-    expect(described_class::PL.keys).to match_array(supported)
+  unsupported_note = "この会計基準・業種の財務諸表は表示に対応していません。"
+
+  it "unsupported以外のすべての形式は、BS/PLを形式ごとの描き方で組み立て、未対応の説明文にしない" do
+    (FinancialStatements::Formats::ALL - [ FinancialStatements::Formats::UNSUPPORTED ]).each do |format|
+      fs = create(:disclosure_financial_statement, presentation_format: format)
+      charts = described_class.build_all(fs.to_statement_data)
+      expect(charts.values_at(:balance_sheet, :profit_loss).map(&:note)).not_to include(unsupported_note), format
+    end
   end
 
-  it "unsupported形式はBS/PLがunrenderableになり、CFは科目があれば描ける" do
+  it "unsupported形式はBS/PLが未対応の説明文でunrenderableになり、CFは科目があれば描ける" do
     fs = create(:disclosure_financial_statement, presentation_format: "unsupported",
-                items_hash: { "cf.cash_begin" => 1, "cf.operating" => 2, "cf.investing" => 3,
+                amounts: { "cf.cash_begin" => 1, "cf.operating" => 2, "cf.investing" => 3,
                               "cf.financing" => 4, "cf.cash_end" => 10 })
-    charts = described_class.build_all(fs)
-    expect(charts[:balance_sheet].renderable).to be false
-    expect(charts[:profit_loss].renderable).to be false
+    charts = described_class.build_all(fs.to_statement_data)
+    expect(charts[:balance_sheet]).to have_attributes(renderable: false, note: unsupported_note)
+    expect(charts[:profit_loss]).to have_attributes(renderable: false, note: unsupported_note)
     expect(charts[:cash_flow].renderable).to be true
   end
 
   it "有報の決算日をグラフ作成処理に渡し、説明文を年度で分ける" do
     report = create(:disclosure_report, fiscal_year_start_date: Date.new(2017, 4, 1), fiscal_year_end_date: Date.new(2018, 3, 31))
     fs = create(:disclosure_financial_statement, report: report, presentation_format: "ifrs_summary",
-                items_hash: { "bs.assets" => 1_000 })
-    expect(described_class.build_all(fs)[:balance_sheet].note).to eq "財政状態計算書: 2019年3月末より前のIFRSは非対応です。"
+                amounts: { "bs.assets" => 1_000 })
+    expect(described_class.build_all(fs.to_statement_data)[:balance_sheet].note).to eq "財政状態計算書: 2019年3月末より前のIFRSは非対応です。"
   end
 
   describe "StatementData を受ける" do
@@ -38,12 +42,12 @@ RSpec.describe Charts::BuilderRegistry do
       }
     end
 
-    it "凍結した金額から、どの形式でもARモデルを渡したときと同じグラフを組み立てる" do
+    it "凍結した金額から、どの形式でも例外にならずにBS・PL・CFのグラフを組み立てる" do
       FinancialStatements::Formats::ALL.each do |format|
-        fs = create(:disclosure_financial_statement, presentation_format: format, items_hash: items)
+        fs = create(:disclosure_financial_statement, presentation_format: format, amounts: items)
         statement_data = fs.to_statement_data
         expect(statement_data.amounts).to be_frozen
-        expect(described_class.build_all(statement_data)).to eq(described_class.build_all(fs)), format
+        expect(described_class.build_all(statement_data).keys).to eq(%i[balance_sheet profit_loss cash_flow]), format
       end
     end
 

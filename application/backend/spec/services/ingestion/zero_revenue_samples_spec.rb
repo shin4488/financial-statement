@@ -6,7 +6,7 @@ RSpec.describe "売上0の書類（実XBRL）" do
   def ingest(doc_id)
     require_xbrl_fixture(doc_id)
     Dir.mktmpdir do |work_dir|
-      Ingestion::ReportIngester.new(client: FixtureEdinetClient.new).ingest(doc_id: doc_id, work_dir: work_dir)
+      UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: doc_id, work_dir: work_dir)
     end
   end
 
@@ -17,25 +17,25 @@ RSpec.describe "売上0の書類（実XBRL）" do
   }.each do |doc_id, name|
     it "#{name}: 売上の行と要約の売上が「－」のため、売上0として保存する" do
       ingest(doc_id)
-      items = Disclosure::FinancialStatement.find_by!(is_primary: true).items_hash
+      items = Disclosure::FinancialStatement.find_by!(is_primary: true).amounts
       expect(items.values_at("pl.revenue", "pl.summary_revenue")).to eq [ 0, 0 ]
     end
   end
 
   it "窪田製薬ホールディングス 2019年12月期（IFRS）: 損益計算書に売上の行がなく、要約の売上が「－」のため、売上0として保存する" do
     ingest("S100IFQA")
-    items = Disclosure::FinancialStatement.find_by!(is_primary: true).items_hash
+    items = Disclosure::FinancialStatement.find_by!(is_primary: true).amounts
     expect(items.values_at("pl.revenue", "pl.summary_revenue")).to eq [ 0, 0 ]
   end
 
   it "東京海上ホールディングス 2026年3月期（IFRS）: 要約に売上の行がないため、売上0にしない" do
     ingest("S100YLS8")
-    expect(Disclosure::FinancialStatement.find_by!(is_primary: true).items_hash).not_to have_key("pl.revenue")
+    expect(Disclosure::FinancialStatement.find_by!(is_primary: true).amounts.to_h).not_to have_key("pl.revenue")
   end
 
   it "クックビズ 2022年11月期: 連結初年度で連結の損益計算書を作っておらず、すべての行が「－」のため、売上0にしない" do
     ingest("S100QBCW")
-    expect(Disclosure::FinancialStatement.find_by!(consolidation_type: :consolidated).items_hash).not_to have_key("pl.revenue")
+    expect(Disclosure::FinancialStatement.find_by!(consolidation_type: :consolidated).amounts.to_h).not_to have_key("pl.revenue")
   end
 
   it "ヘリオス 2019年12月期: 売上高純利益率は算出できず、総資産回転率は0回になる" do

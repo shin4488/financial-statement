@@ -8,12 +8,12 @@ RSpec.describe "実書類の報告期間に基づく取込" do
     it "#{doc_id}の連結期間を単体のDEI開始日で切り詰めず、損益・CF・公表ROEを保存する" do
       require_xbrl_fixture(doc_id)
       Dir.mktmpdir do |dir|
-        Ingestion::ReportIngester.new(client: FixtureEdinetClient.new).ingest(doc_id: doc_id, work_dir: dir)
+        UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: doc_id, work_dir: dir)
       end
       report = Disclosure::Report.find_by!(edinet_document_id: doc_id)
       expect(report.fiscal_year_start_date.to_s).to eq "2025-12-01"
       consolidated = report.primary_financial_statement
-      expect(consolidated.items_hash).to include("pl.revenue" => expected[:revenue], "cf.cash_begin" => expected[:cash_begin])
+      expect(consolidated.amounts.to_h).to include("pl.revenue" => expected[:revenue], "cf.cash_begin" => expected[:cash_begin])
       expect(consolidated.disclosed_roe).to eq expected[:roe].to_d
     end
   end
@@ -21,20 +21,20 @@ RSpec.describe "実書類の報告期間に基づく取込" do
   it "S100Z0VFの実際の年度で連結・単体を保存し、再取込しても三表と公表ROEを保持する", :aggregate_failures do
     require_xbrl_fixture("S100Z0VF")
     Dir.mktmpdir do |dir|
-      2.times { Ingestion::ReportIngester.new(client: FixtureEdinetClient.new).ingest(doc_id: "S100Z0VF", work_dir: dir) }
+      2.times { UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: "S100Z0VF", work_dir: dir) }
     end
     report = Disclosure::Report.find_by!(edinet_document_id: "S100Z0VF")
     consolidated = report.primary_financial_statement
     single = report.financial_statements.find_by!(consolidation_type: :non_consolidated)
     expect(report.fiscal_year_start_date.to_s).to eq "2025-01-01"
     expect(report.fiscal_year_end_date.to_s).to eq "2025-12-31"
-    expect(consolidated.items_hash).to include(
+    expect(consolidated.amounts.to_h).to include(
       "bs.assets" => 191_166_000_000, "pl.revenue" => 303_926_000_000,
       "pl.profit_attributable_to_owners" => 3_096_000_000, "cf.cash_begin" => 0,
       "bs.equity_attributable_to_owners" => 66_602_000_000)
-    expect(consolidated.items_hash).not_to have_key("bs.assets_begin")
+    expect(consolidated.amounts.to_h).not_to have_key("bs.assets_begin")
     expect(consolidated.disclosed_roe).to eq "0.093".to_d
-    expect(single.items_hash).to include("bs.assets" => 157_557_000_000, "bs.assets_begin" => 0)
+    expect(single.amounts.to_h).to include("bs.assets" => 157_557_000_000, "bs.assets_begin" => 0)
     expect(single.disclosed_roe).to eq "0.054".to_d
     expect(report.financial_statements.all? { |fs| fs.disclosed_roe_checked_at.present? }).to be true
 

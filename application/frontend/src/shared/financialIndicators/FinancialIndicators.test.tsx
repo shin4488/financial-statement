@@ -105,14 +105,6 @@ it('企業公表値で補完したROEだけに出所を示す', () => {
   ).toBeNull();
 });
 
-it('指標のない旧キャッシュでも表示でき、新しい取得結果へ更新できる', () => {
-  const { rerender } = render(<FinancialIndicators />);
-  expect(screen.getAllByText('データなし')).toHaveLength(7);
-  rerender(<FinancialIndicators indicators={data} />);
-  expect(screen.getByLabelText('ROE：16.0%')).toBeTruthy();
-  expect(screen.queryByText('データなし')).toBeNull();
-});
-
 it('売上データがなくてもAPIが返したROE・ROAを表示する', () => {
   const missing = { status: 'MISSING_DATA' as const, value: null };
   render(

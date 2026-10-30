@@ -27,12 +27,12 @@ docker compose run --rm appserver bash -c 'BUNDLE_PATH=vendor/bundle bundle upda
 
 - `restart` は旧イメージを使うため、再ビルド後はコンテナを作り直す。DB等は必要に応じてComposeで起動する。
 - Rubyだけを更新する場合、lockfileの差分は `RUBY VERSION` と `BUNDLED WITH` に限定し、gemの解決が変わっていないことを確認する。
-- `BUNDLED WITH` はDockerと本番rbenvの同梱Bundlerを確認して合わせる。`bundle update --bundler` で無条件に最新化しない。現行の `deploy.sh`・`start.sh`・`docker_setup.sh` は `--path` の設定記憶に依存するため、そのままBundler 4にしない。
-- 公式RubyイメージのBundler設定は単発コンテナ間で残らない。単発コマンドごとに `BUNDLE_PATH=vendor/bundle` または対応する `--path vendor/bundle` を指定する。
+- `BUNDLED WITH` はDockerと本番rbenvの同梱Bundlerを確認して合わせる。`bundle update --bundler` で無条件に最新化しない。gemの置き場所は、非推奨の `--path` ではなくBundlerの設定で指定する（本番はサーバの `.bundle/config`、Dockerは `docker_setup.sh`）。
+- 公式RubyイメージのBundler設定は単発コンテナ間で残らない。単発コマンドごとに `BUNDLE_PATH=vendor/bundle` を指定する。
 - PR前にRails/Puma起動、GraphQLの実データ応答、nginx経由（:10000）の画面200、Sidekiq起動と `daily_ingestion_job` 登録、RSpec、RuboCopを確認する。ルートガイドの実XBRLフィクスチャ検証も必要。
 
 ## PRと本番反映
 
 PR作成を依頼された場合は共通 `create-pr` skillを使い、選定理由・検証結果・Bundlerの制約を記載する。
 
-本番反映を行う場合だけ [本番手順](references/production.md) を読む。新Rubyの導入、転送、gemの再ビルド、ユーザーによる再起動、稼働Rubyの確認の順序を守る。旧版はロールバック用に残し、削除はユーザーへの確認後に行う。
+本番反映は依頼された場合だけ行い、更新方針への合意だけで本番反映や旧版の削除を始めない。手順はgit管理外の `/deploy` skillにある。`/deploy` skillを使えなければ、接続先・事前確認・実行担当をユーザーに確認し、推測で操作しない。

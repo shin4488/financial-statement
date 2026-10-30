@@ -3,7 +3,7 @@ import { ApolloClient, InMemoryCache } from '@apollo/client';
 // 無限スクロールの結果連結。単純なconcatにしない理由: 同じoffsetを二重に取得した場合
 // （再レンダリングとスクロールの競合など）にリストが重複しないよう、offset位置へ上書きする。
 // offsetが手元のリストより先を指す場合（途中ページの取得失敗など）は末尾に詰める:
-// 疎（歯抜け）の配列を作ると、lengthが実件数と乖離して終端判定（30の倍数）を狂わせるため
+// 疎（歯抜け）の配列を作ると、lengthが実件数と乖離して終端判定（ページサイズの倍数）を狂わせるため
 export function mergeFinancialReports(
   existing: unknown[] | undefined,
   incoming: unknown[],

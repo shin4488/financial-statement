@@ -12,11 +12,10 @@ module Charts
       (value - base).abs <= base * TOLERANCE
     end
 
-    # 保存した科目どうしの式が端数の範囲で成り立つか。differenceは式の左辺と右辺の差、codesは式に使った科目。
-    # 端数を持たない入力（精度の分からない科目）では、差が0のときだけ成り立つとみなす
+    # 保存した科目どうしの式が端数の範囲で成り立つか。itemsは金額の表（FinancialStatements::Amounts）、
+    # differenceは式の左辺と右辺の差、codesは式に使った科目。端数がnilの科目（精度の分からない科目）を含むと、差が0のときだけ成り立つとみなす
     def self.balanced?(items, difference, codes)
-      errors = items.respond_to?(:rounding_errors) ? items.rounding_errors.values_at(*codes) : codes.map { nil }
-      FinancialStatements::RoundingRange.within?(difference, errors)
+      FinancialStatements::RoundingRange.within?(difference, items.rounding_errors.values_at(*codes))
     end
   end
 end

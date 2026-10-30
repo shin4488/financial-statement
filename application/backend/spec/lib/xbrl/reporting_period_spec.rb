@@ -282,28 +282,28 @@ RSpec.describe "CFの期首額の照合はBSの期首検索を緩めない" do
     xml = xml.gsub("Prior1YearInstant", "OpeningCash").gsub("CurrentYearDuration", "CurrentPeriod") if alias_ids
     period = Xbrl::Document.new(Nokogiri::XML(xml + "</i:xbrl>"))
       .for_reporting_period(start_date: "2025-01-01", end_date: "2025-12-31")
-    Ingestion::Extractors::JgaapGeneral.new(period, "").extract
+    Ingestion::StatementExtractor.amounts(Ingestion::Mappings::JgaapGeneral, source: period, consolidation: :consolidated)
   end
 
   it "期首日付が誤っていても現金の増減が一致すればCFだけ補完する" do
     result = extraction
-    expect(result).to include("cf.cash_begin" => 100, "cf.cash_end" => 120)
-    expect(result).not_to have_key("bs.assets_begin")
-    expect(result).not_to have_key("bs.equity_attributable_to_owners_begin")
+    expect(result.to_h).to include("cf.cash_begin" => 100, "cf.cash_end" => 120)
+    expect(result.to_h).not_to have_key("bs.assets_begin")
+    expect(result.to_h).not_to have_key("bs.equity_attributable_to_owners_begin")
   end
 
   it "一致しない金額・別企業・当期末以降の値は使わない" do
-    expect(extraction(opening_cash: 90)).not_to have_key("cf.cash_begin")
-    expect(extraction(entity: "E99999")).not_to have_key("cf.cash_begin")
-    expect(extraction(opening_date: "2025-12-31")).not_to have_key("cf.cash_begin")
+    expect(extraction(opening_cash: 90).to_h).not_to have_key("cf.cash_begin")
+    expect(extraction(entity: "E99999").to_h).not_to have_key("cf.cash_begin")
+    expect(extraction(opening_date: "2025-12-31").to_h).not_to have_key("cf.cash_begin")
   end
 
   it "当期・期首のcontextが任意のIDでも同じ結果を返す" do
-    expect(extraction(alias_ids: true)).to include("cf.cash_begin" => 100)
+    expect(extraction(alias_ids: true).to_h).to include("cf.cash_begin" => 100)
   end
 
   it "開示精度の範囲で複数候補が成立するときは推測で選ばない" do
-    expect(extraction(competing: true)).not_to have_key("cf.cash_begin")
+    expect(extraction(competing: true).to_h).not_to have_key("cf.cash_begin")
   end
 end
 
@@ -315,7 +315,7 @@ RSpec.describe "CFの期首額を補完する条件" do
   end
 
   # facts: { [タグ, contextのID] => 金額 }。円単位で、開示精度は decimals で指定したもの以外はINF
-  def extract(extractor, facts, extra_contexts: {}, decimals: {})
+  def extract(mapping, facts, extra_contexts: {}, decimals: {})
     xml = +<<~XML
       <i:xbrl xmlns:i="http://www.xbrl.org/2003/instance" xmlns:c="http://www.xbrl.org/2003/iso4217"
        xmlns:jppfs_cor="http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2025-11-01/jppfs_cor"
@@ -330,7 +330,7 @@ RSpec.describe "CFの期首額を補完する条件" do
       xml << "<#{qname} contextRef='#{context}' unitRef='yen' decimals='#{decimals.fetch([ qname, context ], 'INF')}'>#{amount}</#{qname}>"
     end
     period = Xbrl::Document.new(Nokogiri::XML(xml + "</i:xbrl>")).for_reporting_period(start_date: "2025-01-01", end_date: "2025-12-31")
-    extractor.new(period, "").extract
+    Ingestion::StatementExtractor.amounts(mapping, source: period, consolidation: :consolidated)
   end
 
   let(:opening_and_change) do
@@ -339,34 +339,34 @@ RSpec.describe "CFの期首額を補完する条件" do
   end
 
   it "期末残を経営指標の要約のタグで取り、原本の期末残（日本基準のタグ）がなければ補完しない" do
-    result = extract(Ingestion::Extractors::JgaapGeneral, opening_and_change.merge(
+    result = extract(Ingestion::Mappings::JgaapGeneral, opening_and_change.merge(
       [ "jpcrp_cor:CashAndCashEquivalentsSummaryOfBusinessResults", "CurrentYearInstant" ] => 120))
-    expect(result).to include("cf.cash_end" => 120)
-    expect(result).not_to have_key("cf.cash_begin")
+    expect(result.to_h).to include("cf.cash_end" => 120)
+    expect(result.to_h).not_to have_key("cf.cash_begin")
   end
 
   it "原本の期末残（日本基準のタグ）が、別のタグで取った期末残と違えば補完しない（同じなら補完する）" do
     # 期末残の最初の候補が日本基準のタグでない形式（IFRSなど）でだけ、2つの期末残が食い違い得る
     ifrs_closing = { [ "jpigp_cor:CashAndCashEquivalentsIFRS", "CurrentYearInstant" ] => 120 }
-    differing = extract(Ingestion::Extractors::IfrsClassified, opening_and_change.merge(ifrs_closing).merge(
+    differing = extract(Ingestion::Mappings::IfrsClassified, opening_and_change.merge(ifrs_closing).merge(
       [ "jppfs_cor:CashAndCashEquivalents", "CurrentYearInstant" ] => 140,
       [ "jppfs_cor:CashAndCashEquivalents", "OpeningCash" ] => 120))
-    expect(differing).to include("cf.cash_end" => 120)
-    expect(differing).not_to have_key("cf.cash_begin")
+    expect(differing.to_h).to include("cf.cash_end" => 120)
+    expect(differing.to_h).not_to have_key("cf.cash_begin")
 
-    same = extract(Ingestion::Extractors::IfrsClassified, opening_and_change.merge(ifrs_closing).merge(
+    same = extract(Ingestion::Mappings::IfrsClassified, opening_and_change.merge(ifrs_closing).merge(
       [ "jppfs_cor:CashAndCashEquivalents", "CurrentYearInstant" ] => 120))
-    expect(same).to include("cf.cash_begin" => 100, "cf.cash_end" => 120)
+    expect(same.to_h).to include("cf.cash_begin" => 100, "cf.cash_end" => 120)
   end
 
   it "期間を読めないcontextは候補にせず、ほかのcontextの期首残で補完する" do
     # 期間を読めるなら、開示精度の範囲でCFの式を満たす2つ目の候補になり、補完しなくなる値
-    result = extract(Ingestion::Extractors::JgaapGeneral, opening_and_change.merge(
+    result = extract(Ingestion::Mappings::JgaapGeneral, opening_and_change.merge(
       [ "jppfs_cor:CashAndCashEquivalents", "CurrentYearInstant" ] => 120,
       [ "jppfs_cor:CashAndCashEquivalents", "UnreadablePeriod" ] => 101),
       extra_contexts: { "UnreadablePeriod" => "<i:instant>2023-02-30</i:instant>" },
       decimals: { [ "jppfs_cor:CashAndCashEquivalents", "UnreadablePeriod" ] => "-1" })
-    expect(result).to include("cf.cash_begin" => 100, "cf.cash_end" => 120)
+    expect(result.to_h).to include("cf.cash_begin" => 100, "cf.cash_end" => 120)
   end
 end
 
@@ -455,17 +455,17 @@ RSpec.describe "期間と連結区分のシンボルによる検索と、CFの�
         [ "NetIncreaseDecreaseInCashAndCashEquivalents", "CurrentYearDuration" ] => 20 }
     end
 
-    def extract(source, consolidation = Ingestion::Extractors::Base::CONSOLIDATED)
-      Ingestion::Extractors::JgaapGeneral.new(source, consolidation).extract
+    def extract(source, consolidation = :consolidated)
+      Ingestion::StatementExtractor.amounts(Ingestion::Mappings::JgaapGeneral, source: source, consolidation: consolidation)
     end
 
     it "ReportingPeriodを通したときだけ補完し、Xbrl::Documentを直接渡したときは補完しない" do
       doc = load_document(current + [ context_xml("OpeningCash", [ "2023-12-31" ]) ],
                           cash.merge([ "CashAndCashEquivalents", "OpeningCash" ] => 100))
-      expect(extract(bind_period(doc))).to include("cf.cash_begin" => 100, "cf.cash_end" => 120)
+      expect(extract(bind_period(doc)).to_h).to include("cf.cash_begin" => 100, "cf.cash_end" => 120)
       direct = extract(doc)
-      expect(direct).to include("cf.cash_end" => 120)
-      expect(direct).not_to have_key("cf.cash_begin")
+      expect(direct.to_h).to include("cf.cash_end" => 120)
+      expect(direct.to_h).not_to have_key("cf.cash_begin")
     end
 
     it "期首残を取れていれば、補完で置き換えない" do
@@ -473,7 +473,7 @@ RSpec.describe "期間と連結区分のシンボルによる検索と、CFの�
       doc = load_document(current + [ context_xml("Prior1YearInstant", [ "2024-12-31" ]), context_xml("OpeningCash", [ "2023-12-31" ]) ],
                           cash.merge([ "CashAndCashEquivalents", "Prior1YearInstant" ] => 90,
                                      [ "CashAndCashEquivalents", "OpeningCash" ] => 100))
-      expect(extract(bind_period(doc))).to include("cf.cash_begin" => 90, "cf.cash_end" => 120)
+      expect(extract(bind_period(doc)).to_h).to include("cf.cash_begin" => 90, "cf.cash_end" => 120)
     end
 
     it "単体の区分では、単体のcontextの残高だけで補完する" do
@@ -486,8 +486,8 @@ RSpec.describe "期間と連結区分のシンボルによる検索と、CFの�
            [ "CashAndCashEquivalents", "ParentOpening" ] => 100, [ "CashAndCashEquivalents", "GroupOpening" ] => 101 },
          # 連結の101も開示精度の範囲でCFの式を満たすため、連結区分を照合しなければ候補が2つになり補完しない
          decimals: { [ "CashAndCashEquivalents", "GroupOpening" ] => "-1" })
-      result = extract(bind_period(doc), Ingestion::Extractors::Base::NON_CONSOLIDATED)
-      expect(result).to include("cf.cash_begin" => 100, "cf.cash_end" => 120)
+      result = extract(bind_period(doc), :non_consolidated)
+      expect(result.to_h).to include("cf.cash_begin" => 100, "cf.cash_end" => 120)
     end
 
     it "補った期首残の端数は、採った原本の開示精度にする" do
@@ -502,21 +502,20 @@ RSpec.describe "期間と連結区分のシンボルによる検索と、CFの�
 end
 
 RSpec.describe "期間・連結区分と標準のコンテキストIDの読み替え" do
-  it "期間と連結区分の組から標準のIDを求め、標準のIDから同じ組に戻せる" do
-    pairs = Xbrl::ReportingPeriod::PERIODS.keys.product(Xbrl::ReportingPeriod::CONSOLIDATIONS.values)
-    ids = pairs.map { |period, consolidation| Xbrl::ReportingPeriod.context_id(period, consolidation) }
-    aggregate_failures do
-      expect(ids).to contain_exactly("CurrentYearInstant", "CurrentYearDuration", "Prior1YearInstant",
-                                     "CurrentYearInstant_NonConsolidatedMember", "CurrentYearDuration_NonConsolidatedMember",
-                                     "Prior1YearInstant_NonConsolidatedMember")
-      expect(ids.map { |id| Xbrl::ReportingPeriod.period_and_consolidation(id) }).to eq pairs
+  it "期間と連結区分の組ごとに、その組を指すEDINETの標準のコンテキストIDを求める" do
+    {
+      [ :instant, :consolidated ] => "CurrentYearInstant",
+      [ :duration, :consolidated ] => "CurrentYearDuration",
+      [ :prior_instant, :consolidated ] => "Prior1YearInstant",
+      [ :instant, :non_consolidated ] => "CurrentYearInstant_NonConsolidatedMember",
+      [ :duration, :non_consolidated ] => "CurrentYearDuration_NonConsolidatedMember",
+      [ :prior_instant, :non_consolidated ] => "Prior1YearInstant_NonConsolidatedMember"
+    }.each do |(period, consolidation), id|
+      expect(Xbrl::ReportingPeriod.context_id(period, consolidation)).to eq id
     end
   end
 
-  it "決めていない期間・連結区分は例外にし、標準でないIDは組にしない" do
-    aggregate_failures do
-      expect { Xbrl::ReportingPeriod.context_id(:instant, nil) }.to raise_error(KeyError)
-      expect(Xbrl::ReportingPeriod.period_and_consolidation("FilingDateInstant")).to be_nil
-    end
+  it "決めていない期間・連結区分は例外にする" do
+    expect { Xbrl::ReportingPeriod.context_id(:instant, nil) }.to raise_error(KeyError)
   end
 end

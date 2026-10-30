@@ -5,8 +5,7 @@ RSpec.describe FinancialStatements::CashFlowVerification do
   def amounts(values)
     FinancialStatements::Amounts.new.tap do |result|
       values.each do |code, amount|
-        result[code] = amount
-        result.rounding_errors[code] = 1_000.to_d
+        result.store(code, amount, 1_000.to_d)
       end
     end
   end
@@ -64,9 +63,15 @@ RSpec.describe FinancialStatements::CashFlowVerification do
       # 差は1千円（各金額の千円未満の端数）。精度が分かれば端数の範囲に収まる
       aggregate_failures do
         expect(described_class.mismatch(amounts(without_financing))).to be_nil
-        expect(described_class.mismatch(without_financing)).to eq without_financing
-        expect(described_class.mismatch(without_financing.merge("cf.cash_end" => 318_778_000))).to be_nil
+        expect(described_class.mismatch(amounts_of_unknown_precision(without_financing))).to eq without_financing
+        expect(described_class.mismatch(amounts_of_unknown_precision(without_financing.merge("cf.cash_end" => 318_778_000)))).to be_nil
       end
+    end
+
+    it "行がある項目のどれかの精度が分からなければ、ほかの金額の端数の合計より小さい差でも成り立たない" do
+      # 差は1千円で、精度の分かる4つの金額の端数の合計（4千円）より小さい
+      items = amounts(without_financing).tap { |result| result.store("cf.exchange_effect", 55_000, nil) }
+      expect(described_class.mismatch(items)).to eq without_financing
     end
   end
 end

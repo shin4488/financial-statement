@@ -1,7 +1,7 @@
 require "rails_helper"
 
-# ExtractorやFormatDetectorのspecはXbrl::Documentをスタブで置き換えているため、
-# スタブが約束している振る舞い（qname+contextでの解決・値の正規化）はここで実物に対して固定する
+# 対応表の整合の検査（mapping_consistency_spec）はXbrl::Documentを代役で置き換えているため、
+# 代役が約束している振る舞い（qname+contextでの解決・値の正規化）はここで実物に対して固定する
 RSpec.describe Xbrl::Document do
   def document_from(xml)
     file = Tempfile.new([ "doc", ".xbrl" ])

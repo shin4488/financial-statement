@@ -1,7 +1,6 @@
 # 実XBRLフィクスチャ
 
-Extractor系スペックの入力に使う実際の有報XBRL。1件数MBあるためgit管理せず、
-必要なときに以下でEDINETから取得する（`EDINET_API_KEY` が必要）:
+対応表の抽出と、取込から表示までのスペックの入力に使う実際の有報XBRL。1件数MBあるためgit管理せず、必要なときに以下でEDINETから取得する（`EDINET_API_KEY` が必要）:
 
 ```bash
 bundle exec rails runner '
@@ -21,7 +20,8 @@ bundle exec rails runner '
      S100LR17 S100YCOW S100YLVF S100DGXR S100AQXU S1009DYN S100YCDE
      S100XRWN S100YM3K S100YZB3 S100YGCZ S100X5NI S100X7D9 S100YIVJ
      S100Y3VC S100YD39 S100Y5IT S100YA84 S100YM8I
-     S100QTR5 S100ABBU].each do |doc_id|
+     S100QTR5 S100ABBU S100Z8TU
+     S10096LR S100BV2Q S100ENUV].each do |doc_id|
     path = client.download_xbrl(doc_id: doc_id, work_dir: dir)
     puts "#{doc_id}: #{path}"
     sleep 2
@@ -56,12 +56,12 @@ bundle exec rails runner '
 | S100YE7T | 日本郵政 | 複数業種コード（bnk,ins）→ 銀行の経常収益があるため銀行 / 貯金を企業拡張タグから取りBSを描く |
 | S100SO41 | クリエイト・レストランツHD | ifrs_summary判定（2019年2月期=詳細タグ義務化前でjpigp_corが無い）/ 経営指標サマリからPL骨格+CF5点 |
 
-期待値の出典はリポジトリルートの docs/guide/06_taxonomy_mapping.md（「実地調査の記録」）の実測表。
+期待値の出典はリポジトリルートの docs/guide/05_taxonomy_mapping.md（「実地調査の記録」）の実測表。
 フィクスチャが存在しない場合、該当スペックはskipされる。
 
 ## ROE・ROAの追加サンプル
 
-`spec/graphql/financial_indicators_samples_spec.rb` では上記と次の計33社・64財務諸表を、取込→DB→APIまで照合する。期待値にはExtractorとは別の経営指標サマリの金額・比率を使用する。銀行の比率の切捨て、ガス売上の内訳合算の丸め差は開示精度の範囲だけ許容する。
+`spec/graphql/financial_indicators_samples_spec.rb` では上記と次の計33社・64財務諸表を、取込→DB→APIまで照合する。期待値には、取込の抽出を通さずに原本から読んだ経営指標サマリの金額・比率を使用する。銀行の比率の切捨て、ガス売上の内訳合算の丸め差は開示精度の範囲だけ許容する。
 
 | docID | 企業 | 検証ポイント |
 |---|---|---|
@@ -90,6 +90,10 @@ bundle exec rails runner '
 
 `S100YZFP`（シーラHD）は連結初年度の公表ROE37.2%を保存・補完する回帰例。前年単体と当年連結の残高を混ぜず、ROA・レバレッジの欠損を残す。
 
+`spec/graphql/filer_extension_total_assets_indicators_spec.rb` の `S10096LR`・`S100BV2Q`・`S100ENUV`（ファーストリテイリング 2016〜2018年8月期。`ifrs_summary`）は、経営指標サマリの総資産を企業拡張タグ `TotalAssets` だけで開示する有報。期首・期末の総資産を取り、ROA・総資産回転率・財務レバレッジを算出することを検証する。
+
+`spec/graphql/balance_sheet_only_consolidation_spec.rb` の `S100Z8TU`（シルバーライフ 2026年7月期）と `S100QBCW`（クックビズ 2022年11月期）は、連結初年度で連結貸借対照表だけを作り、損益・CFを単体で開示する有報。単体を主にし、BS・PL・CFと指標を単体の値で返すことを検証する。
+
 `spec/graphql/disclosed_roe_differences_spec.rb` は、公表ROEと平均残高での計算値が異なる8件を取込→保存→APIまで検証する。本表の利益・期首期末自己資本、公表ROEをそれぞれ独立した期待値で確認し、公表値に合わせて計算式を変更しないことを保証する。
 
 | docID | 企業 | 照合で確認する違い |
@@ -103,7 +107,7 @@ bundle exec rails runner '
 | S100YTAR | ユビテック | 小数第1位までの0方向の切捨てで再現できる（赤字） |
 | S100YTAL | プレミアアンチエイジング | 公表比率の桁数より本表の金額の精度が粗い |
 
-上表は数値の再現条件であり、各企業の内部の計算方法を断定するものではない。金額と差の根拠は [タグ対応表の実地調査](../../../../../docs/guide/06_taxonomy_mapping.md#公表roeと計算値の差の追加照合) を参照。
+上表は数値の再現条件であり、各企業の内部の計算方法を断定するものではない。金額と差の根拠は [タグ対応表の実地調査](../../../../../docs/guide/05_taxonomy_mapping.md#公表roeと計算値の差の追加照合) を参照。
 
 `spec/graphql/missing_revenue_indicators_spec.rb` は三菱UFJ FG・かんぽ生命・東京海上HDで、売上関連の欠損がROE・ROA・レバレッジに波及しないことをAPIまで検証する。経常収益や保険収益を売上高に読み替えない。
 
@@ -124,7 +128,7 @@ bundle exec rails runner '
 | S100YB5L | 武田薬品 | 2026年3月期（IFRS）。表示した費用があり、差額は費用側の「その他の費用（純額）」 |
 | S100YD7J | HOYA | 2026年3月期（IFRS）。売上原価・販管費のタグがなく、差額は「費用（純額）」6,201億円 |
 | S100YAVT | 三井物産 | 2026年3月期（IFRS）。原価が標準タグでないため、原価を差額で求めず、差額に含めたまま描く |
-| S100QTB3 | ローソン | 2023年2月期（IFRS）。企業拡張タグの収益で、今までの差額の描き方で描く |
+| S100QTB3 | ローソン | 2023年2月期（IFRS）。企業拡張タグの収益で、ほかのIFRSの会社と同じく差額を含めて描く |
 | S100Y8NY | トヨタ自動車 | 2026年3月期（IFRS）。営業費用が売上原価＋販管費の合計と一致しない（金融事業に係る金融費用を含む）ため、積まずに描いてSentryに警告する |
 | S100L2D0 | Jトラスト | 2020年12月期（IFRS）。営業費用と販管費が別の行。営業費用を積まずに描き（差額は収益の48.9%）、Sentryに警告する |
 | S100W6NE | 燦ホールディングス | 2025年3月期。原価に当たる営業費用24,216百万円と販管費3,246百万円を積み、左右が端数の範囲で一致する |
@@ -141,7 +145,7 @@ bundle exec rails runner '
 
 ## 米国基準
 
-`spec/graphql/usgaap_summary_samples_spec.rb` は、米国基準の有報を取込からAPIまで通し、経営指標サマリからCFと財務指標だけを出し、BS・PLは説明文を返すことを検証する。`spec/services/ingestion/extractors/usgaap_summary_spec.rb` は取得する科目を検証する。
+`spec/graphql/usgaap_summary_samples_spec.rb` は、米国基準の有報を取込からAPIまで通し、経営指標サマリからCFと財務指標だけを出し、BS・PLは説明文を返すことを検証する。`spec/services/ingestion/mappings/usgaap_summary_spec.rb` は取得する科目を検証する。
 
 | docID | 企業 | 検証ポイント |
 |---|---|---|
@@ -161,7 +165,7 @@ bundle exec rails runner '
 | S100IXWZ | ソニーフィナンシャルHD | 2020年3月期。業種コードBNK,INSでも銀行の経常収益がなく保険の経常収益があるため、保険の様式で描く（保険契約準備金10,731,488百万円、経常収益1,781,420百万円） |
 | S100XCO8 | ピクセラ | 2025年9月期。繰延資産11,276千円を借方に積み、借方の合計が資産合計と端数の範囲で一致する |
 | S100D97M | 三菱商事 | 2018年3月期（ifrs_summary）。2019年3月末より前に終わる年度のIFRSの説明文 |
-| S100Y87F | いちよし証券 | 2025年3月期。流動負債・固定負債のほかの負債（特別法上の準備金）は差額でしか描けないため今のまま描き、BSの照合は警告しない |
+| S100Y87F | いちよし証券 | 2025年3月期。流動負債・固定負債のほかの負債（特別法上の準備金）は差額でしか求められないため貸方に積まずに描き、BSの照合は警告しない |
 
 ## キャッシュ・フロー計算書のグラフ
 

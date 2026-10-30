@@ -1,66 +1,56 @@
 # financial-statement (investee)
 
-上場企業の財務三表（貸借対照表・損益計算書・キャッシュフロー計算書）をグラフで直感的に可視化するWebアプリケーションです。
+上場企業の財務三表（貸借対照表・損益計算書・キャッシュフロー計算書）をグラフで表示するWebアプリケーションです。
 
 金融庁の開示システム（EDINET）から有価証券報告書のXBRLデータを取得・解析し、積み上げグラフやウォーターフォールグラフとして表示します。
 
-- **本番サービス**: [https://investee.info](https://investee.info)
-
----
+本番: [https://investee.info](https://investee.info)
 
 ## 主な機能
 
-- **財務三表のビジュアル表示**: 貸借対照表（BS）、損益計算書（PL）、キャッシュフロー計算書（CF）を視覚的なグラフで比較・分析。
-- **銘柄検索・絞り込み**: 証券コードや企業名による検索、キャッシュフローのパターン（営業・投資・財務CFの正負の組み合わせ）によるスクリーニング。
-- **自動データ更新**: EDINET APIと連携し、提出された有価証券報告書を日次バッチで自動取り込み。
-
----
+| 機能 | 内容 |
+|---|---|
+| グラフ | 企業の会計期間ごとのカードに、BS・PL・CFのグラフ、フリーキャッシュフローの過去5年の推移、ROE・ROAを表示する |
+| 絞り込み | 証券コード（複数可）と、キャッシュフローのパターン（営業・投資・財務CFの正負の組み合わせ）で絞り込む |
+| データの更新 | EDINET APIから、前日に提出された有価証券報告書を日次バッチで取り込む |
 
 ## システム構成
 
 ```mermaid
 flowchart TD
-    subgraph Data["外部データ連携"]
-        EDINET["金融庁 EDINET API v2<br>(有報 XBRL データ)"]
+    Browser["ブラウザ<br>React / MUI / recharts"] -->|"画面の読み込み・GraphQL"| Nginx["nginx<br>リバースプロキシ"]
+
+    subgraph Frontend["フロントエンド (React SPA)"]
+        Static["ビルド済み静的ファイル<br>(開発時は Vite devサーバ)"]
     end
 
     subgraph Backend["バックエンド (Rails 7 / GraphQL)"]
+        API["GraphQL API サーバ"]
         Batch["Sidekiq バッチ<br>(日次取込 / パース処理)"]
-        API["GraphQL API サーバ<br>(スキーマ・クエリ配信)"]
     end
 
     subgraph Storage["データストア"]
-        PG[("PostgreSQL<br>(財務・企業データ)")]
-        Redis[("Redis<br>(ジョブキュー)")]
+        PG[("PostgreSQL")]
+        Redis[("Redis")]
     end
 
-    subgraph Frontend["フロントエンド (React SPA)"]
-        Web["Nginx リバースプロキシ<br>(:10000)"]
-        Client["React / MUI / recharts<br>(グラフ描画 & 検索)"]
-    end
-
-    EDINET --> Batch
-    Batch --> PG
-    Batch -.-> Redis
+    EDINET["金融庁 EDINET API v2"] --> Batch
+    Nginx -->|"/"| Static
+    Nginx -->|"/api (GraphQL)"| API
     API --> PG
-    Web --> Client
-    Client -->|"GraphQL Query"| Web
-    Web --> API
+    Batch --> PG
+    Batch -->|"スケジュール"| Redis
 ```
-
----
 
 ## 技術スタック
 
 | レイヤー | 技術・ライブラリ |
 |---|---|
-| **フロントエンド** | React, TypeScript, Apollo Client, Redux Toolkit, Material-UI, recharts |
-| **バックエンド** | Ruby 3.4, Ruby on Rails 7, GraphQL (graphql-ruby), Sidekiq |
-| **データベース / キャッシュ** | PostgreSQL 12, Redis |
-| **インフラ / 実行環境** | Docker, Docker Compose, Nginx |
-| **外部連携** | 金融庁 EDINET API v2 |
-
----
+| フロントエンド | React, TypeScript, Apollo Client, Redux Toolkit, MUI, recharts |
+| バックエンド | Ruby 3.4, Ruby on Rails 7, GraphQL (graphql-ruby), Sidekiq |
+| データストア | PostgreSQL 12, Redis（Sidekiqのジョブとスケジュール） |
+| インフラ / 実行環境 | Docker, Docker Compose, nginx |
+| 外部連携 | 金融庁 EDINET API v2 |
 
 ## 開発環境のセットアップ
 
@@ -89,11 +79,12 @@ SENTRY_DSN: "" # 任意（エラー監視を使用する場合のみ）
 docker compose up
 ```
 
-起動後、以下のURLから各サービスにアクセスできます：
-- **フロントエンド画面**: `http://localhost:10000`
-- **GraphQL エンドポイント**: `http://localhost:20000/graphql`
+起動後は、次のURLで動作を確認できます。
 
----
+| 対象 | URL |
+|---|---|
+| 画面 | `http://localhost:10000` |
+| GraphQL エンドポイント | `http://localhost:20000/graphql` |
 
 ## データの取り込み（有報インポート）
 
@@ -107,8 +98,6 @@ docker compose exec appserver bundle exec rake 'ingestion:backfill[2026-06-20,20
 docker compose exec appserver bundle exec rake 'ingestion:documents[S100YB5L S100YB25]'
 ```
 
----
-
 ## 主な開発コマンド
 
 ```bash
@@ -117,12 +106,7 @@ cd application/frontend && npm run compile
 
 # バックエンドのテスト実行
 docker compose exec appserver bundle exec rspec
-
-# フロントエンドのテスト実行
-docker compose exec appserver yarn --cwd application/frontend test
 ```
-
----
 
 ## リポジトリ構成
 
@@ -131,7 +115,7 @@ financial-statement/
 ├── application/
 │   ├── backend/             # Rails API サーバ（モデル、バッチ、GraphQLスキーマ）
 │   └── frontend/            # React SPA（UIコンポーネント、チャート描画）
-├── web/                     # Nginx のリバースプロキシ設定
+├── web/                     # nginx のリバースプロキシ設定
 ├── database/                # PostgreSQL の初期化スクリプト
 ├── cache/                   # Redis のコンテナ定義
 ├── docs/                    # 会計基準別の変換仕様や運用設計ドキュメント

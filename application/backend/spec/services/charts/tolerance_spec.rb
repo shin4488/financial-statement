@@ -37,5 +37,10 @@ RSpec.describe Charts::Tolerance do
       expect(described_class.balanced?(items, 0, %w[a b])).to be true
       expect(described_class.balanced?(items, 1, %w[a b])).to be false
     end
+
+    it "精度の分からない金額を含めば、ほかの金額の端数の合計より小さい差でも一致とみなさない" do
+      items = amounts("a" => 2.to_d, "b" => nil)
+      expect(described_class.balanced?(items, 1, %w[a b])).to be false
+    end
   end
 end

@@ -13,7 +13,7 @@ RSpec.describe "売上を企業拡張タグだけで開示する実有報の財�
     it "#{name}: 売上高純利益率と総資産回転率を返す", :aggregate_failures do
       require_xbrl_fixture(doc_id)
       Dir.mktmpdir do |dir|
-        Ingestion::ReportIngester.new(client: FixtureEdinetClient.new).ingest(doc_id: doc_id, work_dir: dir)
+        UseCases::IngestReport.new(client: FixtureEdinetClient.new).call(doc_id: doc_id, work_dir: dir)
       end
 
       result = FinancialStatementSchema.execute(<<~GRAPHQL).to_h

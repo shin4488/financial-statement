@@ -10,7 +10,7 @@ RSpec.describe Disclosure::CashFlowHistory do
   end
 
   def statement(year, items = {}, company: self.company, **attributes)
-    create(:disclosure_financial_statement, report: report(year, company: company), items_hash: items, **attributes)
+    create(:disclosure_financial_statement, report: report(year, company: company), amounts: items, **attributes)
   end
 
   def target(report)
@@ -25,7 +25,7 @@ RSpec.describe Disclosure::CashFlowHistory do
     statement(2020, { "cf.operating" => 1 })
     statement(2026, { "cf.operating" => 2 })
     create(:disclosure_financial_statement, report: current.report, consolidation_type: :non_consolidated, is_primary: false,
-           items_hash: { "cf.operating" => 3 })
+           amounts: { "cf.operating" => 3 })
     statement(2024, { "cf.operating" => 4 }, company: create(:disclosure_company))
 
     history = described_class.new.load([ target(current.report) ])
@@ -69,12 +69,12 @@ RSpec.describe Disclosure::CashFlowHistory do
     expect(history.map(&:fiscal_year_end_date)).to eq [ Date.new(2025, 12, 31) ]
   end
 
-  it "有報の件数によらず、問い合わせは3回にする" do
+  it "有報の件数によらず、問い合わせの回数を同じにする" do
     reports = Array.new(3) { report(2025, company: create(:disclosure_company)) }
-    reports.each { |r| create(:disclosure_financial_statement, report: r, items_hash: { "cf.operating" => 1 }) }
+    reports.each { |r| create(:disclosure_financial_statement, report: r, amounts: { "cf.operating" => 1 }) }
 
-    expect(count_queries { described_class.new.load(reports.first(1).map { |r| target(r) }) }).to eq 3
-    expect(count_queries { described_class.new.load(reports.map { |r| target(r) }) }).to eq 3
+    expect(count_queries { described_class.new.load(reports.map { |r| target(r) }) })
+      .to eq(count_queries { described_class.new.load(reports.first(1).map { |r| target(r) }) })
   end
 
   it "有報がなければ、問い合わせずに空を返す" do

@@ -25,9 +25,9 @@ module Charts
     }.freeze
     UNSUPPORTED_NOTE = "この会計基準・業種の財務諸表は表示に対応していません。".freeze
 
-    # StatementData を受ける。items_hash・presentation_format・fiscal_year_end_date を持つ値（ARモデルなど）も受け、その3つだけを読む
+    # statement は FinancialStatements::StatementData。Builderには金額の表（Amounts）と決算日を渡す
     def self.build_all(statement)
-      items = statement.is_a?(FinancialStatements::StatementData) ? statement.amounts : statement.items_hash
+      items = statement.amounts
       format = statement.presentation_format
       date = statement.fiscal_year_end_date
       {

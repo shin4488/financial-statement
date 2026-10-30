@@ -5,9 +5,7 @@ module FinancialStatements
     # 連結区分は、抽出結果（シンボル）とARモデル（文字列）のどちらから作っても同じ値にする。
     # 金額と端数は、渡されたものを複製して凍結する。作った後に変わらず、渡した側の金額は凍結しないように
     def initialize(consolidation_type:, amounts:, **)
-      copy = amounts.dup
-      copy.rounding_errors.freeze
-      super(consolidation_type: consolidation_type.to_sym, amounts: copy.freeze, **)
+      super(consolidation_type: consolidation_type.to_sym, amounts: amounts.dup.freeze, **)
     end
 
     def consolidated? = consolidation_type == :consolidated

@@ -29,5 +29,6 @@ module Ingestion
 
     # 取得候補のうち、財務諸表の本表のもの。経営指標の要約の単一タグを除く（sum・max の中のタグは除かない）
     def self.statement_candidates(expression) = candidates(expression).reject { |entry| entry.is_a?(Tag) && entry.summary? }
+    private_class_method :candidates
   end
 end

@@ -7,8 +7,7 @@ class Charts::Builders::PlIfrs < Charts::Builders::Base
     [ "sga",         "販売費及び一般管理費", "pl.sga",           "expense2" ]
   ].freeze
   # 売上0の会社（創薬ベンチャーなど）は、研究開発費・一般管理費を販管費と別の行で開示することがある。
-  # 研究開発費のタグはほかの費用と重ねて付けられることがあり、売上がある会社のグラフに加えると今の描き方が変わるため、
-  # 売上0のグラフだけで使う（売上0のグラフは費用の合計が営業損失と一致するときだけ描くので、重ねて数えれば描かれない）
+  # 研究開発費のタグはほかの費用と重ねて付けられることがあり、売上がある会社のグラフに加えると費用を二重に数えるおそれがあるため、売上0のグラフだけで使う（売上0のグラフは費用の合計が営業損失と一致するときだけ描くので、重ねて数えれば描かれない）
   ZERO_REVENUE_BREAKDOWN = (BREAKDOWN + [
     [ "researchAndDevelopment",   "研究開発費", "pl.research_and_development",            "expense1" ],
     [ "generalAndAdministrative", "一般管理費", "pl.general_and_administrative_expenses", "expense2" ]

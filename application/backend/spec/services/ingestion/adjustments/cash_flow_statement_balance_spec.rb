@@ -2,12 +2,9 @@ require "rails_helper"
 
 RSpec.describe Ingestion::Adjustments::CashFlowStatementBalance do
   # 期末残の取得候補だけを持つ対応表。先頭は財政状態計算書の現金のタグ、次に要約のタグ、最後にCF計算書の残高のタグ
-  def mapping_with(candidates)
-    expression = Ingestion::Expressions.wrap(candidates)
-    double("mapping").tap { |mapping| allow(mapping).to receive(:expression) { |code| expression if code == "cf.cash_end" } }
+  let(:mapping) do
+    Ingestion::Mappings::Mapping.define("test") { item "cf.cash_end", [ "jppfs_cor:BsCash", "jpcrp_cor:CashSummary", "jppfs_cor:CfCash" ] }
   end
-
-  let(:mapping) { mapping_with([ "t:BsCash", "jpcrp_cor:CashSummary", "t:CfCash" ]) }
 
   # 期首800＋営業300−投資100−財務50＝950。期末残は財政状態計算書の現金の1,000で、CFの式が成り立たない
   def extracted(except: nil)
@@ -17,22 +14,17 @@ RSpec.describe Ingestion::Adjustments::CashFlowStatementBalance do
     end
   end
 
-  # facts・errors: { [qname, 標準のコンテキストID] => 値 }
-  def source_with(facts, errors: {})
-    instance_double(Xbrl::Document).tap do |xbrl|
-      allow(xbrl).to receive(:money) { |qname, context| facts[[ qname, context ]] }
-      allow(xbrl).to receive(:rounding_error) { |qname, context| errors[[ qname, context ]] }
-    end
-  end
+  # facts: { [qname, 標準のコンテキストID] => 値 } を書いたXBRL。decimals は開示の精度（"-1"なら端数の上限は10、"-2"なら100）
+  def source_with(facts, decimals: {}) = synthetic_xbrl_document(facts: facts, decimals: decimals)
 
-  def apply(amounts, source, mapping: self.mapping)
+  def apply(amounts, source)
     described_class.apply(amounts, mapping: mapping, source: source, consolidation: :consolidated)
     amounts
   end
 
   it "2番目以降の本表の候補でCFの式が成り立てば、期首残・期末残をその候補の金額と端数にする" do
-    source = source_with({ [ "t:CfCash", "CurrentYearInstant" ] => 950, [ "t:CfCash", "Prior1YearInstant" ] => 800 },
-                         errors: { [ "t:CfCash", "CurrentYearInstant" ] => 10.to_d, [ "t:CfCash", "Prior1YearInstant" ] => 10.to_d })
+    source = source_with({ [ "jppfs_cor:CfCash", "CurrentYearInstant" ] => 950, [ "jppfs_cor:CfCash", "Prior1YearInstant" ] => 800 },
+                         decimals: { [ "jppfs_cor:CfCash", "CurrentYearInstant" ] => "-1", [ "jppfs_cor:CfCash", "Prior1YearInstant" ] => "-1" })
     amounts = apply(extracted, source)
     aggregate_failures do
       expect(amounts.values_at("cf.cash_begin", "cf.cash_end")).to eq [ 800, 950 ]
@@ -41,8 +33,19 @@ RSpec.describe Ingestion::Adjustments::CashFlowStatementBalance do
   end
 
   it "候補でもCFの式が成り立たなければ、金額も端数も変えない" do
-    source = source_with({ [ "t:CfCash", "CurrentYearInstant" ] => 900, [ "t:CfCash", "Prior1YearInstant" ] => 800 },
-                         errors: { [ "t:CfCash", "CurrentYearInstant" ] => 10.to_d })
+    source = source_with({ [ "jppfs_cor:CfCash", "CurrentYearInstant" ] => 900, [ "jppfs_cor:CfCash", "Prior1YearInstant" ] => 800 },
+                         decimals: { [ "jppfs_cor:CfCash", "CurrentYearInstant" ] => "-1" })
+    amounts = apply(extracted, source)
+    aggregate_failures do
+      expect(amounts.values_at("cf.cash_begin", "cf.cash_end")).to eq [ 800, 1_000 ]
+      expect(amounts.rounding_errors.values_at("cf.cash_begin", "cf.cash_end")).to eq [ 1.to_d, 1.to_d ]
+    end
+  end
+
+  # 試算は端数を比べない。端数だけが広い候補で、CFの式を成り立たせない
+  it "候補の金額が期首残・期末残と同じなら、端数を広げればCFの式が成り立つときも、端数を変えない" do
+    source = source_with({ [ "jppfs_cor:CfCash", "CurrentYearInstant" ] => 1_000, [ "jppfs_cor:CfCash", "Prior1YearInstant" ] => 800 },
+                         decimals: { [ "jppfs_cor:CfCash", "CurrentYearInstant" ] => "-2", [ "jppfs_cor:CfCash", "Prior1YearInstant" ] => "-2" })
     amounts = apply(extracted, source)
     aggregate_failures do
       expect(amounts.values_at("cf.cash_begin", "cf.cash_end")).to eq [ 800, 1_000 ]
@@ -56,7 +59,7 @@ RSpec.describe Ingestion::Adjustments::CashFlowStatementBalance do
   end
 
   it "期末残を取れていなければ差し替えない" do
-    source = source_with({ [ "t:CfCash", "CurrentYearInstant" ] => 950, [ "t:CfCash", "Prior1YearInstant" ] => 800 })
-    expect(apply(extracted(except: "cf.cash_end"), source)).not_to have_key("cf.cash_end")
+    source = source_with({ [ "jppfs_cor:CfCash", "CurrentYearInstant" ] => 950, [ "jppfs_cor:CfCash", "Prior1YearInstant" ] => 800 })
+    expect(apply(extracted(except: "cf.cash_end"), source).to_h).not_to have_key("cf.cash_end")
   end
 end
