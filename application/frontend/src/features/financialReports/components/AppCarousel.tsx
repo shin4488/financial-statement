@@ -45,7 +45,7 @@ export default function AppCarousel({
   const pendingNeighbors = useRef<{
     draw: () => void;
     leaveQueue: () => void;
-  }>();
+  }>(undefined);
   // マウスを重ねる・タップする・フォーカスする・触れている間は自動切替を止める
   const [pausedBy, setPausedBy] = useState({
     hover: false,
@@ -59,7 +59,7 @@ export default function AppCarousel({
     y: number;
     scrollLeft: number;
   } | null>(null);
-  const settleTimer = useRef<number>();
+  const settleTimer = useRef<number>(undefined);
   const isAutoPlay = useSelector(
     (state: RootState) => state.autoPlayStatus.isAutoPlay,
   );

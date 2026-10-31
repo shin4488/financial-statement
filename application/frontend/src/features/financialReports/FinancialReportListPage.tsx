@@ -46,7 +46,7 @@ function FinancialReportList() {
   );
   const reports = data?.financialReports ?? [];
   // StrictMode、追加読込、再レンダーで最初の検索結果を重複計測しない。
-  const resultTracked = useRef<{ key: string; complete: boolean }>();
+  const resultTracked = useRef<{ key: string; complete: boolean }>(undefined);
   useEffect(() => {
     const key = JSON.stringify(variables);
     if (resultTracked.current?.key !== key) {
