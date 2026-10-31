@@ -56,7 +56,7 @@ bundle exec rails runner '
 | S100YE7T | 日本郵政 | 複数業種コード（bnk,ins）→ 銀行の経常収益があるため銀行 / 貯金を企業拡張タグから取りBSを描く |
 | S100SO41 | クリエイト・レストランツHD | ifrs_summary判定（2019年2月期=詳細タグ義務化前でjpigp_corが無い）/ 経営指標サマリからPL骨格+CF5点 |
 
-期待値の出典はリポジトリルートの docs/guide/05_taxonomy_mapping.md（「実地調査の記録」）の実測表。
+期待値の出典は、[タグ対応表の「実地調査の記録」](../../../../../docs/guide/05_taxonomy_mapping.md#実地調査の記録)の実測表。
 フィクスチャが存在しない場合、該当スペックはskipされる。
 
 ## ROE・ROAの追加サンプル
