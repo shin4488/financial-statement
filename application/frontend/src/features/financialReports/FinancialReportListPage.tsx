@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ApolloProvider, useQuery } from '@apollo/client';
 import { Grid } from '@mui/material';
@@ -95,8 +101,9 @@ function FinancialReportList() {
   const loadMoreFailed = loadMoreStatus === 'failed';
   const listRef = useRef<HTMLDivElement>(null);
   // 失敗時は終端扱いにせず、利用者が次に最下部までスクロールしたときに再試行させる。
-  // 最下部に留まる間は、失敗の表示で高さが変わるたびや慣性スクロールでもscrollイベントが続くため、上へスクロールして一覧の下端が画面の下端よりloadMoreThreshold以上下になったときに追加読込を再開する。
-  useEffect(() => {
+  // 最下部に留まる間は、失敗の表示で高さが変わるたびや慣性スクロールでもscrollイベントが続くため、一覧の下端が画面の下端よりloadMoreThreshold以上下にあるときに追加読込を再開する。
+  // 失敗した時点ですでに離れている場合と、失敗の表示の直後に離れる場合も取りこぼさないよう、失敗を表示する描画の中（useLayoutEffect）で位置を確かめてからscrollを待つ。
+  useLayoutEffect(() => {
     if (!loadMoreFailed) {
       return;
     }
@@ -106,6 +113,7 @@ function FinancialReportList() {
         setLoadMoreStatus('idle');
       }
     };
+    resumeAwayFromBottom();
     window.addEventListener('scroll', resumeAwayFromBottom, { passive: true });
     return () => window.removeEventListener('scroll', resumeAwayFromBottom);
   }, [loadMoreFailed]);

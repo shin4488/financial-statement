@@ -7,12 +7,18 @@ import FinancialReportListPage from './FinancialReportListPage';
 import { financialReportsClient } from './apolloClient';
 import type { FinancialReport } from './api/types';
 import autoPlayStatusReducer from '@/store/slices/autoPlayStatusSlice';
+import { trackEvent } from '@/plugins/firebase/analytics';
 
 // カードの中身はこのテストの対象外。表示された企業を数えられるよう、企業名だけを出す
 vi.mock('./components/ReportCard', () => ({
   ReportCard: ({ report }: { report: FinancialReport }) => (
     <article>{report.companyName}</article>
   ),
+}));
+// 追加読込の結果を処理し終えたことを、計測の呼び出しで知る
+vi.mock('@/plugins/firebase/analytics', async (original) => ({
+  ...(await original<typeof import('@/plugins/firebase/analytics')>()),
+  trackEvent: vi.fn(),
 }));
 
 const pageSize = 30;
@@ -107,6 +113,7 @@ beforeEach(() => {
 afterEach(async () => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.mocked(trackEvent).mockClear();
   await financialReportsClient.clearStore();
 });
 
@@ -159,6 +166,18 @@ function deferred() {
     resolve = done;
   });
   return { promise, resolve };
+}
+
+// 保留していた追加読込を失敗させ、ページがその失敗を処理して描画し終えるまで待つ
+async function failPendingRequest(pending: ReturnType<typeof deferred>) {
+  await act(async () => {
+    pending.resolve(new Response('Bad Gateway', { status: 502 }));
+    await vi.waitFor(() =>
+      expect(trackEvent).toHaveBeenCalledWith('report_load_more', {
+        result_status: 'error',
+      }),
+    );
+  });
 }
 
 it('読み込み中に何度スクロールしても要求は1回で、30件ずつ重複なく増える', async () => {
@@ -222,17 +241,36 @@ it('失敗した後、利用者が最下部から離れて戻ったら、同じo
   await screen.findByRole('alert');
 
   secondPageFails = false;
-  // 読み込みの範囲（一覧の下端から250px）より上へ離れるだけでは送らない
+  // 読み込みの範囲（一覧の下端から250px）より上へ離れると、失敗の表示を消して読み込み待ちに戻る。離れるだけでは送らない
   scrollTo(scrollTop - 250);
-  await settle();
+  await waitFor(() => expect(screen.queryByRole('alert')).toBeNull());
+  expect(screen.getByRole('progressbar')).toBeDefined();
   expect(requestedOffsets).toEqual([0, 30]);
   scrollToBottom();
   await waitForCards(60);
-  expect(screen.queryByRole('alert')).toBeNull();
   scrollToBottom();
   await waitForCards(90);
   await settle();
   expect(requestedOffsets).toEqual([0, 30, 30, 60]);
+});
+
+it('追加読込の途中で最下部から離れ、その後に失敗したときも、最下部へ戻ったら読み直す', async () => {
+  const failingSecondPage = deferred();
+  let secondPageFails = true;
+  reply = (offset) =>
+    offset === 30 && secondPageFails ? failingSecondPage.promise : page(offset);
+  renderPage();
+  await waitForCards(30);
+  scrollToBottom();
+  await waitFor(() => expect(requestedOffsets).toEqual([0, 30]));
+
+  scrollTo(scrollTop - 500);
+  await failPendingRequest(failingSecondPage);
+  secondPageFails = false;
+  // 失敗した後はスクロールせず、最下部へ一度に移る（Endキーなど）
+  scrollToBottom();
+  await waitForCards(60);
+  expect(requestedOffsets).toEqual([0, 30, 30]);
 });
 
 it('総件数がページサイズの倍数で最後の応答が空のとき、同じoffsetを2回要求しない', async () => {
@@ -262,8 +300,7 @@ it('検索条件を切り替えた後に前の条件の追加読込が失敗し�
 
   act(() => navigate('/?stock-codes=7203'));
   await waitForCards(5);
-  staleSecondPage.resolve(new Response('Bad Gateway', { status: 502 }));
-  await settle();
+  await failPendingRequest(staleSecondPage);
   expect(screen.queryByRole('alert')).toBeNull();
   expect(screen.getAllByRole('article')).toHaveLength(5);
   expect(requestedOffsets).toEqual([0, 30, 0]);
