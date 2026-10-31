@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { useSelector } from 'react-redux';
 import { Box, IconButton } from '@mui/material';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
@@ -6,6 +7,7 @@ import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { RootState } from '@/store/store';
 import { trackEvent, ProductParams } from '@/plugins/firebase/analytics';
+import { waitForTurn } from './drawQueue';
 
 // ナビボタンはスライド下のインジケータ行に重ねて置き、幅の狭い画面でもチャートの下端に重ならないようにする
 const navRowHeight = 40;
@@ -39,6 +41,11 @@ export default function AppCarousel({
   const [rendered, setRendered] = useState<ReadonlySet<number>>(
     () => new Set([0, 1]),
   );
+  // 順番を待っている、隣のスライドを描く処理
+  const pendingNeighbors = useRef<{
+    draw: () => void;
+    leaveQueue: () => void;
+  }>();
   // マウスを重ねる・タップする・フォーカスする・触れている間は自動切替を止める
   const [pausedBy, setPausedBy] = useState({
     hover: false,
@@ -62,9 +69,9 @@ export default function AppCarousel({
       current[reason] === paused ? current : { ...current, [reason]: paused },
     );
 
-  const renderBetween = (from: number, to: number) => {
-    const start = Math.max(0, Math.min(from, to) - 1);
-    const end = Math.min(last, Math.max(from, to) + 1);
+  const addRendered = (from: number, to: number) => {
+    const start = Math.max(0, from);
+    const end = Math.min(last, to);
     setRendered((current) => {
       const next = new Set(current);
       for (let index = start; index <= end; index++) {
@@ -72,6 +79,33 @@ export default function AppCarousel({
       }
       return next.size === current.size ? current : next;
     });
+  };
+
+  // 表示するスライドはすぐに描き、その隣は順番を待って描く。隣は見えていないうえ、
+  // 自動切替では全カードが同時に切り替わるため、隣のグラフを全カードで一度に描くと画面が止まる
+  const renderBetween = (from: number, to: number) => {
+    const start = Math.min(from, to);
+    const end = Math.max(from, to);
+    addRendered(start, end);
+    const neighborsRendered =
+      (start === 0 || rendered.has(start - 1)) &&
+      (end === last || rendered.has(end + 1));
+    if (neighborsRendered) {
+      return;
+    }
+    pendingNeighbors.current?.leaveQueue();
+    const draw = () => {
+      pendingNeighbors.current = undefined;
+      flushSync(() => addRendered(start - 1, end + 1));
+    };
+    pendingNeighbors.current = { draw, leaveQueue: waitForTurn(draw) };
+  };
+
+  // 触れる・マウスを重ねる・フォーカスすると、スワイプやキー操作で隣のスライドが見えるため、順番を待たずに描く
+  const drawNeighborsNow = () => {
+    const pending = pendingNeighbors.current;
+    pending?.leaveQueue();
+    pending?.draw();
   };
 
   const scrollToSlide = (index: number) => {
@@ -147,14 +181,26 @@ export default function AppCarousel({
     return () => window.clearTimeout(timer);
   }, [isAutoPlay, paused, active, last]);
 
-  useEffect(() => () => window.clearTimeout(settleTimer.current), []);
+  useEffect(
+    () => () => {
+      window.clearTimeout(settleTimer.current);
+      pendingNeighbors.current?.leaveQueue();
+    },
+    [],
+  );
 
   return (
     <Box
       position="relative"
-      onMouseEnter={() => pause('hover', true)}
+      onMouseEnter={() => {
+        pause('hover', true);
+        drawNeighborsNow();
+      }}
       onMouseLeave={() => pause('hover', false)}
-      onFocus={() => pause('focus', true)}
+      onFocus={() => {
+        pause('focus', true);
+        drawNeighborsNow();
+      }}
       onBlur={() => pause('focus', false)}
     >
       <Box
@@ -163,6 +209,7 @@ export default function AppCarousel({
         onTouchStart={(event) => {
           autoScrolling.current = false;
           pause('touch', true);
+          drawNeighborsNow();
           // 2本指（拡大操作）は端のスワイプとして扱わない
           const touch = event.touches[0];
           touchStart.current =
