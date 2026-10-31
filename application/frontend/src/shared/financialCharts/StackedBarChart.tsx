@@ -1,13 +1,6 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import {
-  Bar,
-  BarChart,
-  LabelList,
-  ResponsiveContainer,
-  Tooltip,
-  YAxis,
-} from 'recharts';
+import { Bar, BarChart, LabelList, Tooltip, YAxis } from 'recharts';
 import {
   colorForRole,
   hiddenRoles,
@@ -17,6 +10,7 @@ import {
 import { ChartUnavailable } from './ChartUnavailable';
 import { formatAmount } from './formatAmount';
 import type { StackChart, Segment } from './types';
+import { useChartSize } from './useChartSize';
 
 // rechartsは「行の配列 * 固定dataKey」を要求するが、こちらは「バーごとに異なるセグメント列」を
 // 描きたい。そこで行 = バー、列 = 全バーのセグメントkeyの和集合、に変換する。
@@ -70,13 +64,19 @@ export interface StackedBarChartProps {
   chart: StackChart;
   width?: string | number;
   height?: string | number;
+  // trueの間は、グラフと同じ大きさの枠だけを置いてグラフを描かない。見えないグラフを描く処理を、呼び出し元が後回しにするために使う
+  deferred?: boolean;
 }
 
 export function StackedBarChart({
   chart,
   width = '90%',
   height = 400,
+  deferred = false,
 }: StackedBarChartProps) {
+  const [chartElement, chartSize] = useChartSize<HTMLDivElement>(
+    chart.renderable,
+  );
   if (!chart.renderable) {
     // カルーセル内でチャートと差し替わるため、サイズを揃えてスライド切替時のレイアウト跳ねを防ぐ
     return <ChartUnavailable note={chart.note} width={width} height={height} />;
@@ -84,12 +84,9 @@ export function StackedBarChart({
   const { rows, columns } = toStackRows(chart);
 
   return (
-    <Box width={width} height={height} m="auto">
-      <ResponsiveContainer
-        width="100%"
-        height={typeof height === 'number' ? height : '100%'}
-      >
-        <BarChart data={rows}>
+    <Box ref={chartElement} width={width} height={height} m="auto">
+      {!deferred && chartSize.width > 0 && chartSize.height > 0 && (
+        <BarChart data={rows} width={chartSize.width} height={chartSize.height}>
           {/* Y軸反転: 積み上げを「上から下」に描く（BSの「上=流動・下=純資産」の慣習を保つ）。
             domainのdataMaxで最も高いバーに全バーの縮尺を合わせる */}
           <YAxis reversed hide domain={[0, 'dataMax']} />
@@ -164,7 +161,7 @@ export function StackedBarChart({
             </Bar>
           ))}
         </BarChart>
-      </ResponsiveContainer>
+      )}
     </Box>
   );
 }
