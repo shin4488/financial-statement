@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import browserslistToEsbuild from 'browserslist-to-esbuild';
 import { defineConfig } from 'vitest/config';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [react()],
   resolve: {
     alias: {
@@ -28,6 +28,10 @@ export default defineConfig({
       },
     },
   },
+  // Apollo Clientは globalThis.__DEV__ が false でない限り開発モードで動き、DevToolsの案内・結果のfreezeなどの開発用の処理を行う。
+  // 本番のビルドだけ false に置き換えて開発モードを外し、その処理をバンドルから除く（開発サーバとテストは開発モードのまま）
+  define:
+    command === 'build' ? { 'globalThis.__DEV__': JSON.stringify(false) } : {},
   build: {
     // deploy.shがrsyncする成果物ディレクトリと、その中のファイル配置を維持する
     outDir: 'build',
@@ -52,4 +56,4 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
   },
-});
+}));
