@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import { Bar, BarChart, LabelList, Tooltip, YAxis } from 'recharts';
+import { Bar, BarChart, LabelList, Rectangle, Tooltip, YAxis } from 'recharts';
 import {
   colorForRole,
   hiddenRoles,
@@ -8,6 +8,7 @@ import {
   tooltipBackgroundColor,
 } from './colorRoles';
 import { ChartUnavailable } from './ChartUnavailable';
+import { inDeclarationOrder } from './drawOrder';
 import { formatAmount } from './formatAmount';
 import type { StackChart, Segment } from './types';
 import { useChartSize } from './useChartSize';
@@ -86,7 +87,16 @@ export function StackedBarChart({
   return (
     <Box ref={chartElement} width={width} height={height} m="auto">
       {!deferred && chartSize.width > 0 && chartSize.height > 0 && (
-        <BarChart data={rows} width={chartSize.width} height={chartSize.height}>
+        <BarChart
+          data={rows}
+          width={chartSize.width}
+          height={chartSize.height}
+          // rechartsは系列を登録した順に積むため、表示中に列が増えると新しい系列が末尾に積まれる。
+          // 列の構成が変わったらグラフを作り直し、columnsの順に積む
+          key={JSON.stringify(columns.map((column) => column.key))}
+          // recharts 3は既定でグラフをTabで止まる要素にし、左右キーでツールチップを動かす。recharts 2と同じく、キーボードでは操作しない
+          accessibilityLayer={false}
+        >
           {/* Y軸反転: 積み上げを「上から下」に描く（BSの「上=流動・下=純資産」の慣習を保つ）。
             domainのdataMaxで最も高いバーに全バーの縮尺を合わせる */}
           <YAxis reversed hide domain={[0, 'dataMax']} />
@@ -151,12 +161,16 @@ export function StackedBarChart({
               stackId="a"
               fill={colorForRole(colorRole)}
               isAnimationActive={false}
+              zIndex={inDeclarationOrder}
+              // rechartsは高さ0の棒を既定の形では描画対象から外し、ラベル（0%）も出さない。形を明示して残す
+              shape={<Rectangle />}
             >
               <LabelList
                 dataKey={`${key}Ratio`}
                 fill={stackLabelColor}
                 position="center"
-                formatter={(value: number) => `${label}: ${value}%`}
+                zIndex={inDeclarationOrder}
+                formatter={(value) => `${label}: ${value}%`}
               />
             </Bar>
           ))}
