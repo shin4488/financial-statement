@@ -8,17 +8,21 @@ import { CashFlowTypeValue, cashFlowTypeRequestMap } from '@/constants/values';
 // 細工URLで巨大な配列を送ってエラー画面になるのを防ぐ
 export const maxStockCodes = 100;
 
+// 証券コードは大文字で保存されている（英数字コード対応後の391A等）。
+// 小文字・空白混じりの入力や共有URLでも検索できるよう正規化する
+export function normalizeStockCode(code: string): string {
+  return code.trim().toUpperCase();
+}
+
 export function parseStockCodes(searchParams: URLSearchParams): string[] {
-  // 証券コードは大文字で保存されている（英数字コード対応後の391A等）。
-  // 小文字・空白混じりの入力や共有URLでも検索できるよう正規化する
-  return (
+  const codes =
     searchParams
       .get('stock-codes')
       ?.split(',')
-      .map((code) => code.trim().toUpperCase())
-      .filter(Boolean)
-      .slice(0, maxStockCodes) ?? []
-  );
+      .map(normalizeStockCode)
+      .filter(Boolean) ?? [];
+  // 正規化すると同じになるコードは同じ企業を指すため、1つにまとめてから件数を切り詰める
+  return [...new Set(codes)].slice(0, maxStockCodes);
 }
 
 export function parseCashFlowType(
