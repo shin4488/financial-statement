@@ -88,8 +88,8 @@ app/graphql/
   resolvers/financial_reports.rb       # クエリ financialReports
 ```
 
-設計意図・XBRLの形式ごとの差異はリポジトリルートの `docs/guide/`（02〜03章に設計解説）を参照。
-**XBRLタグを扱う作業の前に必ず `docs/guide/05_taxonomy_mapping.md` の該当する表（BS/PL/CF）を読むこと。**
+設計の意図とXBRLの形式ごとの違いは、[リポジトリ理解ガイド](../../docs/guide/README.md)の[02章](../../docs/guide/02_data_flow.md)・[03章](../../docs/guide/03_system.md)を参照。
+**XBRLタグを扱う作業の前に、必ず[タグ対応表](../../docs/guide/05_taxonomy_mapping.md)の該当する表（BS・PL・CF）を読むこと。**
 
 `/graphql` は公開・未認証エンドポイントのため、スキーマに複雑度・深さの上限がある。
 フィールドを増やすときは上限に収まるか確認する（`financial_statement_schema.rb`）。

@@ -33,12 +33,13 @@ Ingestion::Mappings::JgaapGeneral = Ingestion::Mappings::Mapping.define(
     "jppfs_cor:OperatingRevenueIVT",                                  # 営業収益（投資運用）
     "jppfs_cor:OperatingRevenueINV",                                  # 営業収益（投資業）
     "jppfs_cor:ShippingBusinessRevenueAndOtherOperatingRevenueWAT",   # 海運業収益及びその他の営業収益（海運）
-    # 一般事業会社の総額。営業収益（OperatingRevenue1）と 売上高+営業収入（NetSales+OperatingRevenue2）は
-    # 制度上は 営業収益 = 売上高 + 営業収入 だが、どれをどう付けるかは企業で揺れる:
-    #   営業収益を総額に付ける小売（3タグとも） / 総額タグを付けず売上高と営業収入だけ付ける小売 /
-    #   売上高を総額とし営業収益を一部の事業にだけ付ける会社 / 営業収入だけを開示する持株会社の単体 /
-    #   売上高と営業収入の両方に同じ総額を付ける会社（足すと売上が2倍になるため、同じ金額なら1回だけ数える）
-    # 内訳は総額を超えないので、最も包括的な値（最大）を採ればどのパターンでも総額になる
+    # 一般事業会社の総額。制度上は 営業収益（OperatingRevenue1）= 売上高 + 営業収入（NetSales + OperatingRevenue2）だが、どのタグをどう付けるかは企業で揺れる。
+    #   - 営業収益を総額に付ける小売（3タグとも）
+    #   - 総額タグを付けず、売上高と営業収入だけ付ける小売
+    #   - 売上高を総額とし、営業収益を一部の事業にだけ付ける会社
+    #   - 営業収入だけを開示する持株会社の単体
+    #   - 売上高と営業収入の両方に同じ総額を付ける会社（足すと売上が2倍になるため、同じ金額なら1回だけ数える）
+    # 内訳は総額を超えないので、最も大きい値を採ればどのパターンでも総額になる
     max("jppfs_cor:OperatingRevenue1",                                # 営業収益
         sum("jppfs_cor:NetSales", "jppfs_cor:OperatingRevenue2",      # 売上高 + 営業収入
             distinct_amounts: true)),
@@ -87,9 +88,9 @@ Ingestion::Mappings::JgaapGeneral = Ingestion::Mappings::Mapping.define(
          sum("jppfs_cor:NetSales", "jppfs_cor:RentIncomeOfRealEstateRevOA", "jppfs_cor:OtherRevenue2RevOA", all_present: true),
          sum("jppfs_cor:NetSales", "jppfs_cor:RentIncomeRevOA", all_present: true)
        ]
-  # 経営指標の要約（主要な経営指標等の推移）の売上。売上のタグに合計ではなく内訳だけを付けた書類を見つけるため、
-  # 取り込んだ売上と照合する。要約に売上高と営業総収入のように内訳と総額が並ぶ会社があるため、
-  # 本表の売上と同じく最も包括的な値を採る。要約の売上も企業拡張タグで開示されることがあり、要素名は会社ごとに違う
+  # 経営指標の要約（主要な経営指標等の推移）の売上。売上のタグに合計ではなく内訳だけを付けた書類を見つけるため、取り込んだ売上と照合する。
+  # 要約に売上高と営業総収入のように内訳と総額が並ぶ会社があるため、本表の売上と同じく最も大きい値を採る。
+  # 要約の売上も企業拡張タグで開示されることがあり、要素名は会社ごとに違う
   item "pl.summary_revenue", [
     max("jpcrp_cor:NetSalesSummaryOfBusinessResults",                 # 売上高
         "jpcrp_cor:OperatingRevenue1SummaryOfBusinessResults",        # 営業収益

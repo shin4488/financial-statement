@@ -147,7 +147,12 @@ RSpec.describe Disclosure::ReportWriter do
     end
 
     it "同じ書類IDの書類がなければ何もしない" do
-      expect { writer.exclude_from_listing("S0000001") }.not_to raise_error
+      save("S0000001", dei, "45020", [ statement(:consolidated, { "bs.assets" => 200 }) ])
+      saved = Disclosure::FinancialStatement.sole.attributes
+
+      writer.exclude_from_listing("S0000002")
+
+      expect(Disclosure::FinancialStatement.sole.attributes).to eq saved
     end
   end
 end

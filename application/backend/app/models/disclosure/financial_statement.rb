@@ -3,7 +3,7 @@ module Disclosure
     self.table_name = "financial_statements"
 
     belongs_to :report, class_name: "Disclosure::Report"
-    # dependent: :delete_all — 取込の科目総入れ替え（items.delete_all）で行を物理削除するため。
+    # 取込で科目を総入れ替えする（items.delete_all）ときに、行を物理削除するため dependent: :delete_all を指定する。
     # 指定がないと関連のdelete_allは外部キーのNULL化になり、NOT NULL制約に違反する
     has_many :items, class_name: "Disclosure::FinancialStatementItem",
              foreign_key: :financial_statement_id, dependent: :delete_all

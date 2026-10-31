@@ -1,7 +1,7 @@
-# Dependabot security updates（脆弱性fix時の自動PR）のグループ化設定。
-# version updates（定期バンプPR）は使わない方針のため、各エントリは
-# open-pull-requests-limit: 0 で定期PRを無効化している（scheduleは必須項目のため形式的に記載）。
-# security updatesの有効/無効自体はリポジトリ設定側のトグルで制御される
+# Dependabot security updates（脆弱性を直す自動PR）を、エコシステムとディレクトリごとに1本のPRにまとめる設定。
+# version updates（定期的な版上げのPR）は使わないため、各エントリの open-pull-requests-limit: 0 で止めている（scheduleは必須の項目のため書いている）。
+# cooldownはversion updatesで公開から7日たっていない版を避ける設定で、security updatesには適用されない。
+# security updatesを使うかどうかは、リポジトリの設定で切り替える。
 version: 2
 updates:
   - package-ecosystem: bundler
@@ -9,6 +9,8 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 0
+    cooldown:
+      default-days: 7
     groups:
       backend-security:
         applies-to: security-updates
@@ -18,7 +20,20 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 0
+    cooldown:
+      default-days: 7
     groups:
       frontend-security:
+        applies-to: security-updates
+        patterns: ["*"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    cooldown:
+      default-days: 7
+    groups:
+      actions-security:
         applies-to: security-updates
         patterns: ["*"]
