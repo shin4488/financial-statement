@@ -8,7 +8,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| 言語・FW | Ruby 3.4.12 / Rails 7.2（`config.api_only = true`） |
+| 言語・FW | Ruby 3.4.12 / Rails 8.1（`config.api_only = true`） |
 | API | GraphQL（graphql-ruby） |
 | 非同期処理 | Sidekiq + sidekiq-cron（毎日2:00に前日提出分を取込） |
 | データストア | PostgreSQL / Redis |
