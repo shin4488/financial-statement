@@ -32,6 +32,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import SearchIcon from '@mui/icons-material/Search';
 import { AppDispatch, RootState } from '@/store/store';
 import { changeAutoPlayStatus } from '@/store/slices/autoPlayStatusSlice';
+import { writeLocalStorage } from '@/utils/localStorage';
 import {
   autoPlayStatusLocalStorageKey,
   CashFlowTypeValue,
@@ -134,7 +135,7 @@ export function ReportListLayout({ children }: { children: React.ReactNode }) {
                               : 'autoplay_off',
                           });
                           dispatch(changeAutoPlayStatus(event.target.checked));
-                          localStorage.setItem(
+                          writeLocalStorage(
                             autoPlayStatusLocalStorageKey,
                             String(event.target.checked),
                           );
