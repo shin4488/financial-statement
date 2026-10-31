@@ -22,7 +22,14 @@ const slideNames = ['BS', 'PL', 'CF', 'フリーCF', 'ROE・ROA'];
 
 // jsdomは横スクロールしないため、スライド幅とscrollToをブラウザの代わりに与える
 beforeEach(() => {
-  vi.useFakeTimers();
+  vi.useFakeTimers({
+    toFake: [
+      'setTimeout',
+      'clearTimeout',
+      'requestAnimationFrame',
+      'cancelAnimationFrame',
+    ],
+  });
   Object.defineProperty(HTMLElement.prototype, 'clientWidth', {
     configurable: true,
     get: () => slideWidth,
@@ -40,6 +47,8 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  // 描く順番待ちの処理を最後まで進め、次のテストに持ち越さない
+  vi.runAllTimers();
   vi.useRealTimers();
   vi.mocked(trackEvent).mockClear();
   delete (HTMLElement.prototype as Partial<HTMLElement>).scrollTo;
@@ -182,19 +191,41 @@ it('触れている間とマウスを重ねている間は、自動切替を止�
   expect(currentSlide()).toBe('PL');
 });
 
-it('最初は表示中と隣のスライドだけを描き、表示が進むとその隣も描く', () => {
+// 中身を描いたスライド
+function renderedSlides() {
+  return slideNames.filter((name) => screen.queryByText(name));
+}
+
+it('最初は表示中と隣のスライドだけを描く。表示が進むと、その隣は見えていないため順番を待って描く', () => {
   const scroller = renderCarousel();
-  expect(slideNames.filter((name) => screen.queryByText(name))).toEqual([
-    'BS',
-    'PL',
-  ]);
+  expect(renderedSlides()).toEqual(['BS', 'PL']);
   scrollTo(scroller, slideWidth);
-  settle();
-  expect(slideNames.filter((name) => screen.queryByText(name))).toEqual([
-    'BS',
-    'PL',
-    'CF',
-  ]);
+  expect(renderedSlides()).toEqual(['BS', 'PL']);
+  act(() => {
+    vi.advanceTimersByTime(0);
+  });
+  expect(renderedSlides()).toEqual(['BS', 'PL', 'CF']);
+});
+
+it('インジケータで離れたスライドへ移るときは、途中と移り先のスライドを順番を待たずに描く', () => {
+  renderCarousel();
+  fireEvent.click(screen.getByRole('button', { name: 'carousel indicator 4' }));
+  expect(renderedSlides()).toEqual(['BS', 'PL', 'CF', 'フリーCF']);
+});
+
+it('触れる・マウスを重ねる・フォーカスすると、隣のスライドを順番を待たずに描く', () => {
+  const interactions: ((scroller: HTMLElement) => void)[] = [
+    (scroller) => fireEvent.touchStart(scroller),
+    (scroller) => fireEvent.mouseEnter(scroller),
+    () => act(() => screen.getByRole('button', { name: 'Next' }).focus()),
+  ];
+  for (const interact of interactions) {
+    const scroller = renderCarousel();
+    scrollTo(scroller, slideWidth);
+    interact(scroller);
+    expect(renderedSlides()).toEqual(['BS', 'PL', 'CF']);
+    cleanup();
+  }
 });
 
 it('先頭で右へ、最後で左へスワイプすると、反対の端へ移る', () => {
