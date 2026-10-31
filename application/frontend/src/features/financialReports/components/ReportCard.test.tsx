@@ -1,7 +1,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen, within } from '@testing-library/react';
 import { ReportCard } from './ReportCard';
 import autoPlayStatusReducer from '@/store/slices/autoPlayStatusSlice';
 import type { FinancialReport } from '../api/types';
@@ -220,5 +220,40 @@ it('順番を待つ間に画面に見えてきたカードは、順番を待た�
   expect([drawn(cards['一枚目']), drawn(cards['二枚目'])]).toEqual([
     false,
     true,
+  ]);
+});
+
+// カルーセルの切替のボタン（インジケータ5つと前後のボタン）の数
+const switchButtons = (card: HTMLElement) =>
+  within(card).queryAllByRole('button', {
+    name: /^(carousel indicator \d|Previous|Next)$/,
+  }).length;
+
+it('画面から離れたカードは、切替のボタンもグラフと一緒に、描くときに置く', () => {
+  const cards = renderCards({
+    見える: 0,
+    一枚目: below(2),
+    二枚目: below(3),
+  });
+  const state = () =>
+    Object.values(cards).map((card) => [drawn(card), switchButtons(card)]);
+  expect(state()).toEqual([
+    [true, 7],
+    [false, 0],
+    [false, 0],
+  ]);
+
+  advance(0);
+  expect(state()).toEqual([
+    [true, 7],
+    [true, 7],
+    [false, 0],
+  ]);
+
+  showInViewport(cards['二枚目']);
+  expect(state()).toEqual([
+    [true, 7],
+    [true, 7],
+    [true, 7],
   ]);
 });
