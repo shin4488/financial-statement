@@ -5,12 +5,14 @@ import {
   BarChart,
   Cell,
   LabelList,
+  Rectangle,
   Text,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts';
 import { ChartUnavailable } from './ChartUnavailable';
+import { inDeclarationOrder } from './drawOrder';
 import { colorForRole, tooltipBackgroundColor } from './colorRoles';
 import { formatAmountInMillions } from './formatAmount';
 import { useChartSize } from './useChartSize';
@@ -281,6 +283,8 @@ export function WaterfallChart({
               bottom: chartBottomMargin,
               left: chartSideMargin,
             }}
+            // recharts 3は既定でグラフをTabで止まる要素にし、左右キーでツールチップを動かす。recharts 2と同じく、キーボードでは操作しない
+            accessibilityLayer={false}
           >
             <XAxis
               dataKey="name"
@@ -331,11 +335,20 @@ export function WaterfallChart({
               stackId="w"
               fill="transparent"
               isAnimationActive={false}
+              zIndex={inDeclarationOrder}
             />
-            <Bar dataKey="span" stackId="w" isAnimationActive={false}>
+            <Bar
+              dataKey="span"
+              stackId="w"
+              isAnimationActive={false}
+              zIndex={inDeclarationOrder}
+              // rechartsは高さ0の棒を既定の形では描画対象から外し、ラベル（0）も出さない。形を明示して残す
+              shape={<Rectangle />}
+            >
               <LabelList
                 dataKey="value"
                 content={<ValueLabel layout={labelLayout} />}
+                zIndex={inDeclarationOrder}
               />
               {rows.map((row) => (
                 <Cell

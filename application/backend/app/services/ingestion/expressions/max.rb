@@ -1,7 +1,7 @@
 module Ingestion
   module Expressions
-    # 最大値（max("…:A", sum("…:B", "…:C"))）。同じ科目の総額の候補が複数併記され、どれが総額かが企業のタグ付けで揺れる場合
-    # （売上高と営業収益）に、内訳は総額を超えないことを根拠に「最も包括的な値」を採る。要素にはタグか sum を置ける
+    # 最大値（max("…:A", sum("…:B", "…:C"))）。同じ科目の総額の候補が複数併記され、どれが総額かが企業のタグ付けで揺れる場合（売上高と営業収益）に、最も大きい値を総額として採る。内訳は総額を超えないため。
+    # 要素にはタグか sum を置ける
     Max = Data.define(:entries) do
       def amount(source, period:, consolidation:)
         amounts = entries.filter_map { |entry| entry.amount(source, period:, consolidation:) }

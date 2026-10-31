@@ -54,7 +54,7 @@ flowchart TD
 
 ## 開発環境のセットアップ
 
-Docker Compose を利用して、バックエンド・フロントエンド・データベース・Redis を一括で立ち上げることができます。
+Docker Composeで、バックエンド・フロントエンド・データベース・Redisをまとめて起動します。
 
 ### 1. リポジトリの準備
 
@@ -94,7 +94,7 @@ docker compose up
 # 日付範囲を指定して一括取り込み
 docker compose exec appserver bundle exec rake 'ingestion:backfill[2026-06-20,2026-06-30]'
 
-# 書類管理番号（docID）を指定してピンポイントで取り込み
+# 書類管理番号（docID）を指定して取り込み
 docker compose exec appserver bundle exec rake 'ingestion:documents[S100YB5L S100YB25]'
 ```
 

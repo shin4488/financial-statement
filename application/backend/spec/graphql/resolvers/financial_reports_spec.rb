@@ -70,9 +70,50 @@ RSpec.describe "financialReports query" do
                                            "amount" => 672_290_000_000)
   end
 
-  it "CF符号フィルタの引数が効く" do
-    result = execute({ "limit" => 10, "offset" => 0, "operatingCfSign" => "NEGATIVE" })
-    expect(result.dig("data", "financialReports")).to eq []
+  describe "絞り込みの引数" do
+    # 上の有報（4502）は 営業CF+・投資CF−・財務CF−。
+    # こちらは 営業CF−・投資CF+・財務CF− にし、どの引数をどの活動のCFと取り違えても、返る有報が変わるようにする
+    before do
+      create(:disclosure_financial_statement,
+             report: create(:disclosure_report, company: create(:disclosure_company, stock_code: "391A0")),
+             amounts: { "cf.operating" => -10, "cf.investing" => 20, "cf.financing" => -30 })
+    end
+
+    def stock_codes_for(arguments)
+      result = FinancialStatementSchema.execute("{ financialReports(limit: 10, offset: 0, #{arguments}) { stockCode } }").to_h
+      expect(result["errors"]).to be_nil
+      result.dig("data", "financialReports").map { |report| report["stockCode"] }
+    end
+
+    it "stockCodesは画面と同じ4桁（英字を含むコードも）で受け取り、指定した証券コードの有報だけを返す" do
+      expect(stock_codes_for('stockCodes: ["391A"]')).to eq [ "391A" ]
+      expect(stock_codes_for('stockCodes: ["4502", "391A"]')).to contain_exactly("4502", "391A")
+      expect(stock_codes_for('stockCodes: ["7203"]')).to eq []
+    end
+
+    it "operatingCfSign・investingCfSign・financingCfSignは、それぞれ営業・投資・財務のCFの符号で絞り込む" do
+      aggregate_failures do
+        expect(stock_codes_for("operatingCfSign: POSITIVE")).to eq [ "4502" ]
+        expect(stock_codes_for("operatingCfSign: NEGATIVE")).to eq [ "391A" ]
+        expect(stock_codes_for("investingCfSign: POSITIVE")).to eq [ "391A" ]
+        expect(stock_codes_for("investingCfSign: NEGATIVE")).to eq [ "4502" ]
+        expect(stock_codes_for("financingCfSign: POSITIVE")).to eq []
+        expect(stock_codes_for("financingCfSign: NEGATIVE")).to contain_exactly("4502", "391A")
+        expect(stock_codes_for("operatingCfSign: NEGATIVE, investingCfSign: POSITIVE, financingCfSign: NEGATIVE")).to eq [ "391A" ]
+      end
+    end
+
+    it "CFが0の有報は、正・負のどちらの絞り込みにも含めない" do
+      create(:disclosure_financial_statement,
+             report: create(:disclosure_report, company: create(:disclosure_company, stock_code: "99990")),
+             amounts: { "cf.operating" => 0, "cf.investing" => 0, "cf.financing" => 0 })
+
+      aggregate_failures do
+        %w[operatingCfSign investingCfSign financingCfSign].product(%w[POSITIVE NEGATIVE]).each do |argument, sign|
+          expect(stock_codes_for("#{argument}: #{sign}")).not_to include("9999"), "#{argument}: #{sign}"
+        end
+      end
+    end
   end
 
   it "企業マスタの証券コードがない有報は、stockCodeをnull（空文字なら空文字）で返す" do
