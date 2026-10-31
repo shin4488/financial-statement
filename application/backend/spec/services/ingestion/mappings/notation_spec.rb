@@ -37,7 +37,7 @@ RSpec.describe "対応表の記法と補正ルールの評価" do
     end
   end
 
-  describe "最大値（総額候補が併記されるとき最も包括的な値を採る）" do
+  describe "最大値（総額の候補が併記されるとき、最も大きい値を総額として採る）" do
     it "営業収益が総額（売上高+営業収入 と一致）なら営業収益" do
       facts = { [ "jppfs_cor:OperatingRevenue", "CurrentYearDuration" ] => 1_000, [ "jppfs_cor:NetSales", "CurrentYearDuration" ] => 900,
                 [ "jppfs_cor:OperatingIncome2", "CurrentYearDuration" ] => 100 }
