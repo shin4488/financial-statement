@@ -47,8 +47,8 @@ export const ReportCard = React.memo(function ReportCard({
   const subheaderSuffix = standardLabel
     ? `（${consolidationTypeLabel}・${standardLabel}）`
     : `（${consolidationTypeLabel}）`;
-  // 一覧を開いたときや追加で読み込んだときに、全カードのグラフを一度に描くと画面が止まる。
-  // 見えているカードを先に描き、ほかのカードは1枚ずつ順に描く。描くまではグラフと同じ大きさの枠を置くため、ページの高さとカルーセルの動きは変わらない
+  // 一覧を開いたときや追加で読み込んだときに、全カードのグラフと切替のボタンを一度に描くと画面が止まる。
+  // 見えているカードを先に描き、ほかのカードは1枚ずつ順に描く。描くまではグラフと同じ大きさの枠とボタンの段の高さだけを置くため、ページの高さとカルーセルの動きは変わらない
   const [cardRef, drawn] = useStaggeredDraw<HTMLDivElement>();
   const deferred = !drawn;
 
@@ -74,7 +74,7 @@ export const ReportCard = React.memo(function ReportCard({
         subheader={`${report.stockCode} : ${report.fiscalYearStartDate} - ${report.fiscalYearEndDate}${subheaderSuffix}`}
       />
       <CardContent>
-        <AppCarousel>
+        <AppCarousel deferred={deferred}>
           <StackedBarChart chart={report.balanceSheet} deferred={deferred} />
           <StackedBarChart chart={report.profitLoss} deferred={deferred} />
           <WaterfallChart chart={report.cashFlow} deferred={deferred} />
