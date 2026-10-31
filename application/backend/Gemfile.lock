@@ -182,7 +182,7 @@ GEM
       nio4r (~> 2.0)
     raabro (1.4.0)
     racc (1.8.1)
-    rack (2.2.23)
+    rack (2.2.25)
     rack-session (1.0.2)
       rack (< 3)
     rack-test (2.2.0)
@@ -358,7 +358,7 @@ DEPENDENCIES
   nokogiri (>= 1.19.4)
   pg (~> 1.1)
   puma (~> 7.2, >= 7.2.1)
-  rack (~> 2.2.23)
+  rack (~> 2.2.25)
   rails (~> 7.2.0, >= 7.2.3.2)
   rspec-rails (~> 6.1)
   rubocop-rails-omakase

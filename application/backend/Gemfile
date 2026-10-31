@@ -6,7 +6,7 @@ gem "rails", "~> 7.2.0", ">= 7.2.3.2"
 
 # rackはRailsの間接依存だが、未認証リクエストが必ず通る層のため
 # 既知脆弱性（パラメータ数/メモリ量無制限のDoS群）修正版を明示する
-gem "rack", "~> 2.2.23"
+gem "rack", "~> 2.2.25"
 
 # Use postgresql as the database for Active Record
 gem "pg", "~> 1.1"
