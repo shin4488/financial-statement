@@ -24,7 +24,7 @@ flowchart TD
         Static["ビルド済み静的ファイル<br>(開発時は Vite devサーバ)"]
     end
 
-    subgraph Backend["バックエンド (Rails 7 / GraphQL)"]
+    subgraph Backend["バックエンド (Rails 8 / GraphQL)"]
         API["GraphQL API サーバ"]
         Batch["Sidekiq バッチ<br>(日次取込 / パース処理)"]
     end
@@ -47,7 +47,7 @@ flowchart TD
 | レイヤー | 技術・ライブラリ |
 |---|---|
 | フロントエンド | React, TypeScript, Apollo Client, Redux Toolkit, MUI, recharts |
-| バックエンド | Ruby 3.4, Ruby on Rails 7, GraphQL (graphql-ruby), Sidekiq |
+| バックエンド | Ruby 3.4, Ruby on Rails 8, GraphQL (graphql-ruby), Sidekiq |
 | データストア | PostgreSQL 12, Redis（Sidekiqのジョブとスケジュール） |
 | インフラ / 実行環境 | Docker, Docker Compose, nginx |
 | 外部連携 | 金融庁 EDINET API v2 |

@@ -10,9 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_17_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_17_000001) do
   # These are extensions that must be enabled in order to support this database
-  enable_extension "plpgsql"
+  enable_extension "pg_catalog.plpgsql"
 
   create_table "companies", comment: "企業", force: :cascade do |t|
     t.string "edinet_code", limit: 6, null: false, comment: "EDINETコード"
