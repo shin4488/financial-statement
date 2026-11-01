@@ -33,16 +33,17 @@ export default function AppCarousel({
   deferred = false,
 }: {
   children: React.ReactNode;
-  // trueの間は、切替のボタン（インジケータと前後のボタン）を置かず、その段の高さだけを残す。見えないカードのボタンを作る処理を、呼び出し元が後回しにするために使う
+  // trueの間は、切替のボタン（インジケータと前後のボタン）を置かず、その段の高さだけを残す。falseになったら、表示中のスライドの隣を順番を待って描く。
+  // 見えないカードの中身を作る処理を、呼び出し元が後回しにするために使う
   deferred?: boolean;
 }) {
   const slides = React.Children.toArray(children);
   const last = Math.max(0, slides.length - 1);
   const scroller = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
-  // 一覧の初期表示で全カードの全グラフを描かないよう、表示中と隣のスライドだけ描く。一度描いたスライドは残す
+  // 一覧の初期表示で全カードの全グラフを描かないよう、表示中のスライドだけを描き、隣は順番を待って描く。一度描いたスライドは残す
   const [rendered, setRendered] = useState<ReadonlySet<number>>(
-    () => new Set([0, 1]),
+    () => new Set([0]),
   );
   // 順番を待っている、隣のスライドを描く処理
   const pendingNeighbors = useRef<{
@@ -183,6 +184,14 @@ export default function AppCarousel({
     }, autoPlayInterval);
     return () => window.clearTimeout(timer);
   }, [isAutoPlay, paused, active, last]);
+
+  // 中身を描けるようになったら、表示中のスライドの隣を順番を待って描く。
+  // 見えているカードは最初の表示から描くため、隣まで同じ処理の中で描くと最初の表示が遅くなる
+  useEffect(() => {
+    if (!deferred) {
+      renderBetween(active, active);
+    }
+  }, [deferred]);
 
   useEffect(
     () => () => {
