@@ -1,6 +1,7 @@
 module Disclosure
   # 有報一覧の検索（証券コード・CF符号フィルタ）
   class SearchQuery
+    # 科目の部分索引 idx_items_cf_sign の条件と同じ3科目。変えるときは、その索引も作り直す
     CF_CODES = {
       operating: "cf.operating", investing: "cf.investing", financing: "cf.financing"
     }.freeze
@@ -27,6 +28,7 @@ module Disclosure
       # 索引探索が繰り返され、多数が一致する符号パターンではキャッシュが冷えていると
       # 秒単位まで遅くなるため。科目テーブルを1回のスキャンで済ませ、
       # 「指定した符号を全て満たす財務諸表id」をGROUP BY/HAVINGで集める。
+      # このスキャンは、財務諸表idを含むCFの3科目の部分索引（idx_items_cf_sign）で済み、表本体を読まない。
       # COUNT(*)と符号条件数の一致で全条件充足とみなせるのは、
       # (financial_statement_id, item_code)がユニークで同一科目の重複行がないため
       def apply_cf_signs(scope, cf_signs)
