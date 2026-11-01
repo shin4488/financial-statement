@@ -184,7 +184,7 @@ it('自動切替は6秒ごとに次へ進み、最後の次は先頭に戻る。
   expect(navigatedCharts()).toEqual([]);
 });
 
-it('触れている間とマウスを重ねている間は、自動切替を止める', () => {
+it('触れている間と、スライドの中身にマウスを重ねている間は、自動切替を止める', () => {
   const scroller = renderCarousel(true);
   fireEvent.touchStart(scroller);
   act(() => {
@@ -198,12 +198,60 @@ it('触れている間とマウスを重ねている間は、自動切替を止�
   settle();
   expect(currentSlide()).toBe('PL');
 
-  fireEvent.pointerEnter(scroller, { pointerType: 'mouse' });
+  fireEvent.pointerEnter(screen.getByText('PL'), { pointerType: 'mouse' });
   act(() => {
     vi.advanceTimersByTime(12000);
   });
   expect(currentSlide()).toBe('PL');
 });
+
+it.each([
+  ['スライドの余白', () => screen.getByText('BS').parentElement as HTMLElement],
+  ['切替のボタン', () => screen.getByRole('button', { name: '次のグラフ' })],
+])('%sにマウスを重ねているだけでは、自動切替を止めない', (_, target) => {
+  renderCarousel(true);
+  fireEvent.pointerEnter(target(), { pointerType: 'mouse' });
+  act(() => {
+    vi.advanceTimersByTime(6000);
+  });
+  settle();
+  expect(currentSlide()).toBe('PL');
+});
+
+it.each([
+  [
+    'スライドの余白へ移る',
+    (content: HTMLElement) =>
+      fireEvent.pointerOver(content.parentElement as HTMLElement, {
+        pointerType: 'mouse',
+      }),
+  ],
+  [
+    'カルーセルの外へ出る',
+    (content: HTMLElement) =>
+      fireEvent.pointerLeave(content, { pointerType: 'mouse' }),
+  ],
+])(
+  'マウスがスライドの中身から離れると、そこから6秒後に自動切替を再開する（%s）',
+  (_, leave) => {
+    renderCarousel(true);
+    const content = screen.getByText('BS');
+    fireEvent.pointerEnter(content, { pointerType: 'mouse' });
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    leave(content);
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    expect(currentSlide()).toBe('BS');
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    settle();
+    expect(currentSlide()).toBe('PL');
+  },
+);
 
 it('フォーカスしている間は、自動切替を止める', () => {
   renderCarousel(true);

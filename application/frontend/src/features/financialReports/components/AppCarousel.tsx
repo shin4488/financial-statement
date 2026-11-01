@@ -52,7 +52,8 @@ export default function AppCarousel({
     draw: () => void;
     leaveQueue: () => void;
   }>(undefined);
-  // マウスを重ねる・フォーカスする・触れている間は自動切替を止める。
+  // スライドの中身（グラフや指標）にマウスを重ねている間と、フォーカスしている間、触れている間は自動切替を止める。
+  // スライドの余白や切替のボタンに重ねているだけでは止めない。一覧ではマウスがほぼ常にいずれかのカードの上にあるため、カルーセル全体で止めると、そのカードが切り替わらなくなる。
   // タップした後は止めない。スマホでは、タップの後にブラウザがマウスを重ねたときと同じイベントを出し、ボタンやグラフにはフォーカスも当たるため、
   // それで止めると、カードの外をタップするまで止まったままになる（自動切替は画面上部のチェックボックスで止められる）
   const [pausedBy, setPausedBy] = useState({
@@ -209,17 +210,10 @@ export default function AppCarousel({
   return (
     <Box
       position="relative"
-      // マウスを重ねたことは、タッチではない操作のポインタで判断する。タップの後にブラウザが出すマウスのイベントでは止めない
+      // マウスを重ねたことは、タッチではない操作のポインタで判断する。タップの後にブラウザが出すマウスのイベントは除く
       onPointerEnter={(event) => {
-        if (event.pointerType === 'touch') {
-          return;
-        }
-        pause('hover', true);
-        drawNeighborsNow();
-      }}
-      onPointerLeave={(event) => {
         if (event.pointerType !== 'touch') {
-          pause('hover', false);
+          drawNeighborsNow();
         }
       }}
       onFocus={(event) => {
@@ -277,6 +271,17 @@ export default function AppCarousel({
             minWidth={0}
             // 勢いよくスワイプしても1枚ずつ進める
             sx={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
+            // 中身の外の余白に移ったときは、このBox自身がイベントの対象になる
+            onPointerOver={(event) => {
+              if (event.pointerType !== 'touch') {
+                pause('hover', event.target !== event.currentTarget);
+              }
+            }}
+            onPointerLeave={(event) => {
+              if (event.pointerType !== 'touch') {
+                pause('hover', false);
+              }
+            }}
           >
             {rendered.has(index) && slide}
           </Box>
