@@ -198,11 +198,77 @@ it('触れている間とマウスを重ねている間は、自動切替を止�
   settle();
   expect(currentSlide()).toBe('PL');
 
-  fireEvent.mouseEnter(scroller);
+  fireEvent.pointerEnter(scroller, { pointerType: 'mouse' });
   act(() => {
     vi.advanceTimersByTime(12000);
   });
   expect(currentSlide()).toBe('PL');
+});
+
+it('フォーカスしている間は、自動切替を止める', () => {
+  renderCarousel(true);
+  act(() => screen.getByRole('button', { name: '次のグラフ' }).focus());
+  act(() => {
+    vi.advanceTimersByTime(12000);
+  });
+  expect(currentSlide()).toBe('BS');
+});
+
+// タップと、その後にブラウザが続けて出すイベント（スマホのブラウザの動き）。
+// タッチのポインタが重なり、互換のためのマウスのイベントが続き、押した要素にフォーカスが当たってからクリックになる
+function tap(target: HTMLElement) {
+  fireEvent.touchStart(target);
+  fireEvent.touchEnd(target);
+  fireEvent.pointerEnter(target, { pointerType: 'touch' });
+  fireEvent.mouseEnter(target);
+  act(() => target.focus());
+  fireEvent.click(target);
+}
+
+it('スライドをタップした後は、ブラウザが続けて出すマウスのイベントやフォーカスでは止めず、自動切替を続ける', () => {
+  const scroller = renderCarousel(true);
+  // グラフにはフォーカスが当たるため、タップしたスライドにフォーカスできるようにする
+  scroller.tabIndex = 0;
+  tap(scroller);
+  act(() => {
+    vi.advanceTimersByTime(6000);
+  });
+  settle();
+  expect(currentSlide()).toBe('PL');
+});
+
+it('前後のボタンをタップした後も、自動切替を続ける', () => {
+  renderCarousel(true);
+  tap(screen.getByRole('button', { name: '次のグラフ' }));
+  settle();
+  expect(currentSlide()).toBe('PL');
+  act(() => {
+    vi.advanceTimersByTime(6000);
+  });
+  settle();
+  expect(currentSlide()).toBe('CF');
+});
+
+it('タップから1秒以上たってから当たったフォーカスでは、自動切替を止める', () => {
+  // jsdomのイベントの時刻（timeStamp）はDate.nowから作られるため、Dateも偽の時計にして進める
+  vi.useFakeTimers({
+    toFake: [
+      'setTimeout',
+      'clearTimeout',
+      'requestAnimationFrame',
+      'cancelAnimationFrame',
+      'Date',
+    ],
+  });
+  const scroller = renderCarousel(true);
+  fireEvent.touchStart(scroller);
+  fireEvent.touchEnd(scroller);
+  vi.setSystemTime(Date.now() + 1000);
+  act(() => screen.getByRole('button', { name: '次のグラフ' }).focus());
+  act(() => {
+    vi.advanceTimersByTime(12000);
+  });
+  expect(currentSlide()).toBe('BS');
 });
 
 // 中身を描いたスライド
@@ -230,7 +296,7 @@ it('インジケータで離れたスライドへ移るときは、途中と移�
 it('触れる・マウスを重ねる・フォーカスすると、隣のスライドを順番を待たずに描く', () => {
   const interactions: ((scroller: HTMLElement) => void)[] = [
     (scroller) => fireEvent.touchStart(scroller),
-    (scroller) => fireEvent.mouseEnter(scroller),
+    (scroller) => fireEvent.pointerEnter(scroller, { pointerType: 'mouse' }),
     () => act(() => screen.getByRole('button', { name: '次のグラフ' }).focus()),
   ];
   for (const interact of interactions) {
