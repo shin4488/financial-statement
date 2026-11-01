@@ -1,8 +1,20 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { MemoryRouter, NavigateFunction, useNavigate } from 'react-router-dom';
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
+import {
+  MemoryRouter,
+  NavigateFunction,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import FinancialReportListPage from './FinancialReportListPage';
 import { financialReportsClient } from './apolloClient';
 import type { FinancialReport } from './api/types';
@@ -58,7 +70,7 @@ const json = (body: unknown, status = 200) =>
 const page = (offset: number, count = pageSize) =>
   json({ data: { financialReports: reports(offset, count) } });
 
-// APIの代わりに、要求されたoffsetを記録して、テストごとに決めた応答を返す。
+// APIの代わりに、要求されたoffsetと証券コードを記録して、テストごとに決めた応答を返す。
 // 本物の通信と同じく応答は別のタスクで返す（送り直しが止まらない不具合が戻っても、待ち時間の上限でテストが終わるようにする）。
 type Variables = { offset: number; stockCodes: string[] | null };
 let reply: (
@@ -66,6 +78,7 @@ let reply: (
   variables: Variables,
 ) => Response | Promise<Response>;
 let requestedOffsets: number[] = [];
+let requestedStockCodes: (string[] | null)[] = [];
 
 // jsdomはレイアウトを計算しないため、カード1枚の高さと縦のスクロール位置をブラウザの代わりに与える。
 // 一覧はページの先頭から始まり、要素の高さは中のカードの枚数で決まるものとする
@@ -74,11 +87,13 @@ let scrollTop = 0;
 
 beforeEach(() => {
   requestedOffsets = [];
+  requestedStockCodes = [];
   vi.stubGlobal(
     'fetch',
     vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
       const { variables } = JSON.parse(String(init?.body));
       requestedOffsets.push(variables.offset);
+      requestedStockCodes.push(variables.stockCodes);
       await new Promise((resolve) => setTimeout(resolve, 0));
       return reply(variables.offset, variables);
     }),
@@ -124,15 +139,25 @@ function CaptureNavigate() {
   return null;
 }
 
-function renderPage() {
+function CurrentStockCodes() {
+  const { search } = useLocation();
+  return (
+    <output data-testid="url-stock-codes">
+      {new URLSearchParams(search).get('stock-codes')}
+    </output>
+  );
+}
+
+function renderPage(url = '/') {
   const store = configureStore({
     reducer: { autoPlayStatus: autoPlayStatusReducer },
   });
   const tree = () => (
     <Provider store={store}>
-      <MemoryRouter>
+      <MemoryRouter initialEntries={[url]}>
         <FinancialReportListPage />
         <CaptureNavigate />
+        <CurrentStockCodes />
       </MemoryRouter>
     </Provider>
   );
@@ -304,4 +329,54 @@ it('検索条件を切り替えた後に前の条件の追加読込が失敗し�
   expect(screen.queryByRole('alert')).toBeNull();
   expect(screen.getAllByRole('article')).toHaveLength(5);
   expect(requestedOffsets).toEqual([0, 30, 0]);
+});
+
+function enterStockCode(code: string) {
+  const input = screen.getByLabelText('証券コードで検索（複数可）');
+  fireEvent.change(input, { target: { value: code } });
+  fireEvent.keyDown(input, { key: 'Enter' });
+}
+
+// 応答（0件）を画面に反映し終えるまで待つ
+const searchFinished = () =>
+  screen.findByText('条件に一致する企業がありません。');
+
+const chipLabels = () =>
+  Array.from(document.querySelectorAll('header .MuiChip-label')).map(
+    (chip) => chip.textContent,
+  );
+
+const urlStockCodes = () => screen.getByTestId('url-stock-codes').textContent;
+
+describe('証券コードの検索', () => {
+  beforeEach(() => {
+    reply = () => json({ data: { financialReports: [] } });
+  });
+
+  it('入力済みのコードを大文字・小文字だけ変えて入れても、検索条件とAPIへの引数は増えない', async () => {
+    renderPage('/?stock-codes=7203,604A');
+    await searchFinished();
+
+    enterStockCode('604a');
+    expect(chipLabels()).toEqual(['7203', '604A']);
+    expect(urlStockCodes()).toBe('7203,604A');
+
+    // 別のコードを入れて次の検索を待つ。その間に重複したコードで検索していれば、下の比較で分かる
+    enterStockCode('6758');
+    await searchFinished();
+    expect(requestedStockCodes).toEqual([
+      ['7203', '604A'],
+      ['7203', '604A', '6758'],
+    ]);
+    expect(chipLabels()).toEqual(['7203', '604A', '6758']);
+    expect(urlStockCodes()).toBe('7203,604A,6758');
+  });
+
+  it('URLに大文字・小文字だけ違うコードがあれば、1つにまとめて検索する', async () => {
+    renderPage('/?stock-codes=604A,604a');
+    await searchFinished();
+
+    expect(requestedStockCodes).toEqual([['604A']]);
+    expect(chipLabels()).toEqual(['604A']);
+  });
 });
