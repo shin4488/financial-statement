@@ -11,7 +11,7 @@ class AddCashFlowSignIndexToFinancialStatementItems < ActiveRecord::Migration[8.
               name: "idx_items_cf_sign", algorithm: :concurrently
     # 索引だけで読むには、表の可視性マップ（全行が見えるページの記録）が要る。
     # PostgreSQL 12の自動VACUUMは行の追加だけでは動かないため、ここで作る。
-    # この後に追加した行は、次のVACUUMまで表本体も読む（1年分の追加でも、読む量は索引がないときの約7分の1）
+    # この後に追加した行は、次のVACUUMまで表本体も読む
     execute "VACUUM (ANALYZE) financial_statement_items"
   end
 
