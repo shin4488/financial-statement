@@ -19,7 +19,7 @@ const edgeSwipeDistance = 50;
 // タップの後、この時間（ms）の内に当たったフォーカスは、タップによるものとみなす
 const tapFocusWindow = 1000;
 // スライドの中身にマウスをこの時間（ms）重ねたままにしたら、自動切替を止める
-const hoverPauseDelay = 2000;
+const hoverPauseDelay = 3000;
 const chartTypes: ProductParams['chart_type'][] = [
   'bs',
   'pl',
