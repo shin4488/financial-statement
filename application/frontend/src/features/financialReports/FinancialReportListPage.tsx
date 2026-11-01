@@ -5,7 +5,11 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import {
+  useLocation,
+  useNavigationType,
+  useSearchParams,
+} from 'react-router-dom';
 import { ApolloProvider, useQuery } from '@apollo/client';
 import { Grid } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -24,6 +28,35 @@ import { searchAnalytics } from './analytics';
 
 // InfiniteScrollが追加読込を始める、一覧の下端と画面の下端の距離（px）
 const loadMoreThreshold = 250;
+
+// 履歴（location.key）ごとの、一覧のスクロール位置
+const scrollTops = new Map<string, number>();
+
+// 一覧から静的ページへ移り、ブラウザの「戻る」で戻ったときに、離れたときのスクロール位置に戻す。
+// BrowserRouterにはスクロール位置を戻す仕組みがない。ブラウザも戻すが、一覧を描く前に戻すため、ページの高さが足りず先頭の近くで止まる。
+// 一覧は、読み込み済みの結果をApolloのキャッシュから描くため、描いた直後に位置を戻せる
+function useRestoreScrollOnBack(listReady: boolean) {
+  const { key } = useLocation();
+  const navigationType = useNavigationType();
+  const restored = useRef(false);
+  // ページを離れるときに読むと、次のページに入れ替わった後の位置になるため、スクロールのたびに覚える。
+  // 入れ替わるときに外れるよう、useLayoutEffectで登録する
+  useLayoutEffect(() => {
+    const save = () => scrollTops.set(key, window.scrollY);
+    window.addEventListener('scroll', save, { passive: true });
+    return () => window.removeEventListener('scroll', save);
+  }, [key]);
+  useLayoutEffect(() => {
+    if (restored.current || !listReady) {
+      return;
+    }
+    restored.current = true;
+    const top = scrollTops.get(key);
+    if (navigationType === 'POP' && top !== undefined) {
+      window.scrollTo(0, top);
+    }
+  }, [listReady, key, navigationType]);
+}
 
 // URLクエリ（例: /?stock-codes=7203,4502&cash-flow-type=healthy）→ GraphQL変数。
 // 検索条件をReduxでなくURLに持つ理由: 検索結果画面をURLで共有・ブックマークできる
@@ -54,6 +87,7 @@ function FinancialReportList() {
     },
   );
   const reports = data?.financialReports ?? [];
+  useRestoreScrollOnBack(reports.length > 0);
   // StrictMode、追加読込、再レンダーで最初の検索結果を重複計測しない。
   const resultTracked = useRef<{ key: string; complete: boolean }>();
   useEffect(() => {
