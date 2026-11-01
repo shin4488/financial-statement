@@ -184,7 +184,7 @@ it('自動切替は6秒ごとに次へ進み、最後の次は先頭に戻る。
   expect(navigatedCharts()).toEqual([]);
 });
 
-it('触れている間と、スライドの中身にマウスを重ねている間は、自動切替を止める', () => {
+it('触れている間は、自動切替を止める', () => {
   const scroller = renderCarousel(true);
   fireEvent.touchStart(scroller);
   act(() => {
@@ -197,12 +197,58 @@ it('触れている間と、スライドの中身にマウスを重ねている�
   });
   settle();
   expect(currentSlide()).toBe('PL');
+});
 
-  fireEvent.pointerEnter(screen.getByText('PL'), { pointerType: 'mouse' });
-  act(() => {
-    vi.advanceTimersByTime(12000);
-  });
+// 時間を少しずつ進める。ブラウザと同じく、途中のタイマーで変わった状態を、その後のタイマーが動く前に反映させる
+function advance(ms: number) {
+  for (let elapsed = 0; elapsed < ms; elapsed += 100) {
+    act(() => {
+      vi.advanceTimersByTime(Math.min(100, ms - elapsed));
+    });
+  }
+}
+
+// マウスを表示中のBSのスライドの中身に重ねる
+function hoverContent() {
+  const content = screen.getByText('BS');
+  fireEvent.pointerEnter(content, { pointerType: 'mouse' });
+  return content;
+}
+
+it('スライドの中身にマウスを重ねたまま2秒たつと、自動切替を止める', () => {
+  renderCarousel(true);
+  hoverContent();
+  advance(12000);
+  expect(currentSlide()).toBe('BS');
+});
+
+it('スライドの中身にマウスを重ねても、2秒たつまでは止めない', () => {
+  renderCarousel(true);
+  advance(4500);
+  hoverContent();
+  advance(1500);
+  settle();
   expect(currentSlide()).toBe('PL');
+});
+
+it('マウスが2秒たたずにスライドの中身から離れたときは、止めずに6秒ごとの切替を続ける', () => {
+  renderCarousel(true);
+  const content = hoverContent();
+  advance(1900);
+  fireEvent.pointerLeave(content, { pointerType: 'mouse' });
+  advance(4100);
+  settle();
+  expect(currentSlide()).toBe('PL');
+});
+
+it('スライドの中身の上でマウスを動かしても、2秒は最初に重ねたときから数える', () => {
+  renderCarousel(true);
+  advance(3000);
+  const content = hoverContent();
+  advance(1500);
+  fireEvent.pointerOver(content, { pointerType: 'mouse' });
+  advance(1500);
+  expect(currentSlide()).toBe('BS');
 });
 
 it.each([
@@ -232,22 +278,15 @@ it.each([
       fireEvent.pointerLeave(content, { pointerType: 'mouse' }),
   ],
 ])(
-  'マウスがスライドの中身から離れると、そこから6秒後に自動切替を再開する（%s）',
+  '止めた後、マウスがスライドの中身から離れると、そこから6秒後に自動切替を再開する（%s）',
   (_, leave) => {
     renderCarousel(true);
-    const content = screen.getByText('BS');
-    fireEvent.pointerEnter(content, { pointerType: 'mouse' });
-    act(() => {
-      vi.advanceTimersByTime(5000);
-    });
+    const content = hoverContent();
+    advance(5000);
     leave(content);
-    act(() => {
-      vi.advanceTimersByTime(5000);
-    });
+    advance(5000);
     expect(currentSlide()).toBe('BS');
-    act(() => {
-      vi.advanceTimersByTime(1000);
-    });
+    advance(1000);
     settle();
     expect(currentSlide()).toBe('PL');
   },
