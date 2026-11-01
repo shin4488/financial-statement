@@ -59,10 +59,20 @@ describe('支援技術に伝える名前と見出し', () => {
     });
   });
 
-  it('キャッシュフローの選択欄を「キャッシュフロー」という名前で伝える', () => {
+  it('キャッシュフローの選択欄を、「キャッシュフロー」と選んでいる値で伝え、開いた一覧も「キャッシュフロー」で伝える', () => {
     renderLayout();
-    const select = screen.getByRole('button', { name: 'キャッシュフロー' });
+    const select = screen.getByRole('button', {
+      name: 'キャッシュフロー 指定なし',
+    });
     expect(select.getAttribute('aria-haspopup')).toBe('listbox');
+    fireEvent.mouseDown(select);
+    screen.getByRole('listbox', { name: 'キャッシュフロー' });
+  });
+
+  it('キャッシュフローのラベルを押しても、選択欄へフォーカスを移さない', () => {
+    renderLayout();
+    fireEvent.click(screen.getByText('キャッシュフロー'));
+    expect(document.activeElement).toBe(document.body);
   });
 
   it('一覧の領域（main）の先頭に、見出し（h1）「財務諸表の一覧」を置く', () => {

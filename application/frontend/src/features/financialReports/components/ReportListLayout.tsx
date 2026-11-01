@@ -157,7 +157,18 @@ export function ReportListLayout({ children }: { children: React.ReactNode }) {
                   キャッシュフロー
                 </InputLabel>
                 <Select
-                  labelId="cash-flow-type-label"
+                  // labelIdで結び付けると、ラベルを押したときに選択欄へフォーカスを移す処理が加わるため、名前だけを結び付ける。
+                  // 選択欄の名前は、ラベルと選んでいる値になる
+                  SelectDisplayProps={{
+                    id: 'cash-flow-type-select',
+                    'aria-labelledby':
+                      'cash-flow-type-label cash-flow-type-select',
+                  }}
+                  MenuProps={{
+                    MenuListProps: {
+                      'aria-labelledby': 'cash-flow-type-label',
+                    },
+                  }}
                   variant="standard"
                   value={cashFlowType}
                   onChange={(event: SelectChangeEvent<CashFlowTypeValue>) => {
