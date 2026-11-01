@@ -98,7 +98,7 @@ function settle() {
 
 function currentSlide() {
   const current = screen
-    .getAllByRole('button', { name: /carousel indicator/ })
+    .getAllByRole('button', { name: /^\d番目のグラフ$/ })
     .findIndex((button) => button.getAttribute('aria-current') === 'true');
   return slideNames[current];
 }
@@ -109,6 +109,20 @@ function navigatedCharts() {
     .mocked(trackEvent)
     .mock.calls.map(([, params]) => params?.chart_type);
 }
+
+it('切替のボタンは、インジケータを「1番目のグラフ」〜「5番目のグラフ」、前後のボタンを「前のグラフ」「次のグラフ」という名前で伝える', () => {
+  renderCarousel();
+  const names = [
+    ...slideNames.map((_, index) => `${index + 1}番目のグラフ`),
+    '前のグラフ',
+    '次のグラフ',
+  ];
+  // 名前ごとにボタンが1つだけあり、ほかの名前のボタンはない
+  for (const name of names) {
+    screen.getByRole('button', { name });
+  }
+  expect(screen.getAllByRole('button')).toHaveLength(names.length);
+});
 
 it('スワイプで止まった位置のスライドを表示中とし、途中の位置では計測せず止まった位置で1回だけ計測する', () => {
   const scroller = renderCarousel();
@@ -138,21 +152,21 @@ it('スワイプが途中で戻り、同じスライドに止まったときは�
 
 it('ナビボタンは隣のスライドへ、端では反対の端へ移る', () => {
   renderCarousel();
-  fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+  fireEvent.click(screen.getByRole('button', { name: '次のグラフ' }));
   settle();
-  fireEvent.click(screen.getByRole('button', { name: 'Previous' }));
+  fireEvent.click(screen.getByRole('button', { name: '前のグラフ' }));
   settle();
-  fireEvent.click(screen.getByRole('button', { name: 'Previous' }));
+  fireEvent.click(screen.getByRole('button', { name: '前のグラフ' }));
   settle();
   expect(currentSlide()).toBe('ROE・ROA');
-  fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+  fireEvent.click(screen.getByRole('button', { name: '次のグラフ' }));
   settle();
   expect(navigatedCharts()).toEqual(['pl', 'bs', 'indicators', 'bs']);
 });
 
 it('インジケータを押すと、そのスライドへ移る', () => {
   renderCarousel();
-  fireEvent.click(screen.getByRole('button', { name: 'carousel indicator 3' }));
+  fireEvent.click(screen.getByRole('button', { name: '3番目のグラフ' }));
   settle();
   expect(currentSlide()).toBe('CF');
   expect(navigatedCharts()).toEqual(['cf']);
@@ -209,7 +223,7 @@ it('最初は表示中と隣のスライドだけを描く。表示が進むと�
 
 it('インジケータで離れたスライドへ移るときは、途中と移り先のスライドを順番を待たずに描く', () => {
   renderCarousel();
-  fireEvent.click(screen.getByRole('button', { name: 'carousel indicator 4' }));
+  fireEvent.click(screen.getByRole('button', { name: '4番目のグラフ' }));
   expect(renderedSlides()).toEqual(['BS', 'PL', 'CF', 'フリーCF']);
 });
 
@@ -217,7 +231,7 @@ it('触れる・マウスを重ねる・フォーカスすると、隣のスラ�
   const interactions: ((scroller: HTMLElement) => void)[] = [
     (scroller) => fireEvent.touchStart(scroller),
     (scroller) => fireEvent.mouseEnter(scroller),
-    () => act(() => screen.getByRole('button', { name: 'Next' }).focus()),
+    () => act(() => screen.getByRole('button', { name: '次のグラフ' }).focus()),
   ];
   for (const interact of interactions) {
     const scroller = renderCarousel();
