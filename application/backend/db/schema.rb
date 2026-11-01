@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_01_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -32,6 +32,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_000001) do
     t.datetime "updated_at", null: false
     t.decimal "rounding_error", comment: "XBRL開示精度に基づく丸め誤差上限（円）。NULLは精度不明"
     t.index ["financial_statement_id", "item_code"], name: "idx_items_fs_code", unique: true
+    t.index ["item_code", "amount", "financial_statement_id"], name: "idx_items_cf_sign", where: "((item_code)::text = ANY ((ARRAY['cf.operating'::character varying, 'cf.investing'::character varying, 'cf.financing'::character varying])::text[]))"
     t.index ["item_code", "amount"], name: "idx_items_code_amount"
   end
 

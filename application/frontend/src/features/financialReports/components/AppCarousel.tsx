@@ -16,6 +16,8 @@ const autoPlayInterval = 6000;
 const scrollSettleDelay = 150;
 // 端で外側へこれ以上動かしたら、反対の端へ移す
 const edgeSwipeDistance = 50;
+// タップの後、この時間（ms）の内に当たったフォーカスは、タップによるものとみなす
+const tapFocusWindow = 1000;
 const chartTypes: ProductParams['chart_type'][] = [
   'bs',
   'pl',
@@ -49,12 +51,15 @@ export default function AppCarousel({
     draw: () => void;
     leaveQueue: () => void;
   }>(undefined);
-  // マウスを重ねる・タップする・フォーカスする・触れている間は自動切替を止める
+  // マウスを重ねる・フォーカスする・触れている間は自動切替を止める。
+  // タップした後は止めない。スマホでは、タップの後にブラウザがマウスを重ねたときと同じイベントを出し、ボタンやグラフにはフォーカスも当たるため、
+  // それで止めると、カードの外をタップするまで止まったままになる（自動切替は画面上部のチェックボックスで止められる）
   const [pausedBy, setPausedBy] = useState({
     hover: false,
     focus: false,
     touch: false,
   });
+  const tapEndedAt = useRef(Number.NEGATIVE_INFINITY);
   const settledIndex = useRef(0);
   const autoScrolling = useRef(false);
   const touchStart = useRef<{
@@ -195,16 +200,30 @@ export default function AppCarousel({
   return (
     <Box
       position="relative"
-      onMouseEnter={() => {
+      // マウスを重ねたことは、タッチではない操作のポインタで判断する。タップの後にブラウザが出すマウスのイベントでは止めない
+      onPointerEnter={(event) => {
+        if (event.pointerType === 'touch') {
+          return;
+        }
         pause('hover', true);
         drawNeighborsNow();
       }}
-      onMouseLeave={() => pause('hover', false)}
-      onFocus={() => {
-        pause('focus', true);
+      onPointerLeave={(event) => {
+        if (event.pointerType !== 'touch') {
+          pause('hover', false);
+        }
+      }}
+      onFocus={(event) => {
+        if (event.timeStamp - tapEndedAt.current >= tapFocusWindow) {
+          pause('focus', true);
+        }
         drawNeighborsNow();
       }}
       onBlur={() => pause('focus', false)}
+      // スライドだけでなく、前後のボタンとインジケータのタップも含める
+      onTouchEnd={(event) => {
+        tapEndedAt.current = event.timeStamp;
+      }}
     >
       <Box
         ref={scroller}
@@ -264,7 +283,7 @@ export default function AppCarousel({
           slides.map((_, index) => (
             <IconButton
               key={index}
-              aria-label={`carousel indicator ${index + 1}`}
+              aria-label={`${index + 1}番目のグラフ`}
               aria-current={index === active ? 'true' : undefined}
               onClick={() => scrollToSlide(index)}
               sx={{
@@ -297,7 +316,7 @@ export default function AppCarousel({
             }}
           >
             <IconButton
-              aria-label={direction === 'next' ? 'Next' : 'Previous'}
+              aria-label={direction === 'next' ? '次のグラフ' : '前のグラフ'}
               onClick={() =>
                 scrollToSlide(direction === 'next' ? following : previous)
               }
