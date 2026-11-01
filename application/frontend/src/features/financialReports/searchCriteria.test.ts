@@ -14,6 +14,12 @@ describe('parseStockCodes', () => {
     ]);
   });
 
+  it('大文字・小文字や空白だけ違うコードは、最初に出た位置で1つにまとめる', () => {
+    expect(
+      parseStockCodes(params('stock-codes=7203,604A,604a, 604A ,7203')),
+    ).toEqual(['7203', '604A']);
+  });
+
   it('指定がなければ空配列', () => {
     expect(parseStockCodes(params(''))).toEqual([]);
   });
@@ -23,6 +29,15 @@ describe('parseStockCodes', () => {
     expect(
       parseStockCodes(params(`stock-codes=${many.join(',')}`)),
     ).toHaveLength(maxStockCodes);
+  });
+
+  it('上限は重複をまとめた後のコードの数で数える', () => {
+    const duplicated = Array.from({ length: maxStockCodes }, () => '7203');
+    expect(
+      parseStockCodes(
+        params(`stock-codes=${[...duplicated, '604A'].join(',')}`),
+      ),
+    ).toEqual(['7203', '604A']);
   });
 });
 
