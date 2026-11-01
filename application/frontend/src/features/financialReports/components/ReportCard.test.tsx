@@ -226,7 +226,7 @@ it('順番を待つ間に画面に見えてきたカードは、順番を待た�
 // カルーセルの切替のボタン（インジケータ5つと前後のボタン）の数
 const switchButtons = (card: HTMLElement) =>
   within(card).queryAllByRole('button', {
-    name: /^(carousel indicator \d|Previous|Next)$/,
+    name: /^(\d番目のグラフ|前のグラフ|次のグラフ)$/,
   }).length;
 
 it('画面から離れたカードは、切替のボタンもグラフと一緒に、描くときに置く', () => {

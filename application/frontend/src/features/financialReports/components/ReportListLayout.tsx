@@ -28,6 +28,7 @@ import {
   Toolbar,
   Tooltip,
 } from '@mui/material';
+import { visuallyHidden } from '@mui/utils';
 import InfoIcon from '@mui/icons-material/Info';
 import SearchIcon from '@mui/icons-material/Search';
 import { AppDispatch, RootState } from '@/store/store';
@@ -82,6 +83,8 @@ export function ReportListLayout({ children }: { children: React.ReactNode }) {
   // （説明を二重に持たない。ツールチップはタッチでも15秒開いたままなのでリンクを押せる）
   const infoTooltip = (
     <Tooltip
+      // ボタンの名前は「カードの見方」のままにし、ツールチップの中身は開いている間の説明として伝える
+      describeChild
       placement="bottom-start"
       enterTouchDelay={0}
       leaveTouchDelay={15000}
@@ -111,7 +114,7 @@ export function ReportListLayout({ children }: { children: React.ReactNode }) {
         </List>
       }
     >
-      <IconButton size="small">
+      <IconButton size="small" aria-label="カードの見方">
         <InfoIcon fontSize="small" />
       </IconButton>
     </Tooltip>
@@ -150,8 +153,22 @@ export function ReportListLayout({ children }: { children: React.ReactNode }) {
               </Grid>
 
               <Grid item xs={5} sm={2}>
-                <InputLabel>キャッシュフロー</InputLabel>
+                <InputLabel id="cash-flow-type-label">
+                  キャッシュフロー
+                </InputLabel>
                 <Select
+                  // labelIdで結び付けると、ラベルを押したときに選択欄へフォーカスを移す処理が加わるため、名前だけを結び付ける。
+                  // 選択欄の名前は、ラベルと選んでいる値になる
+                  SelectDisplayProps={{
+                    id: 'cash-flow-type-select',
+                    'aria-labelledby':
+                      'cash-flow-type-label cash-flow-type-select',
+                  }}
+                  MenuProps={{
+                    MenuListProps: {
+                      'aria-labelledby': 'cash-flow-type-label',
+                    },
+                  }}
                   variant="standard"
                   value={cashFlowType}
                   onChange={(event: SelectChangeEvent<CashFlowTypeValue>) => {
@@ -227,7 +244,13 @@ export function ReportListLayout({ children }: { children: React.ReactNode }) {
         </Toolbar>
       </AppBar>
 
-      <Box component="main">{children}</Box>
+      <Box component="main">
+        {/* 一覧ページは見出しを表示しないため、スクリーンリーダーで見出しから移動できるよう、見えない h1 を置く */}
+        <Box component="h1" sx={visuallyHidden}>
+          財務諸表の一覧
+        </Box>
+        {children}
+      </Box>
 
       <SiteFooter />
     </>

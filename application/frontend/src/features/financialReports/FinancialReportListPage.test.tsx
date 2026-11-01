@@ -4,6 +4,8 @@ import { configureStore } from '@reduxjs/toolkit';
 import {
   MemoryRouter,
   NavigateFunction,
+  Route,
+  Routes,
   useLocation,
   useNavigate,
 } from 'react-router-dom';
@@ -103,6 +105,12 @@ beforeEach(() => {
     configurable: true,
     get: () => scrollTop,
   });
+  Object.defineProperty(window, 'scrollY', {
+    configurable: true,
+    get: () => scrollTop,
+  });
+  // jsdomはwindow.scrollToを持たない。一覧は「戻る」で戻ったときに位置を戻すため呼ぶ
+  vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
   Object.defineProperty(HTMLElement.prototype, 'offsetParent', {
     configurable: true,
     get(this: HTMLElement) {
@@ -129,6 +137,7 @@ afterEach(async () => {
   cleanup();
   vi.unstubAllGlobals();
   vi.mocked(trackEvent).mockClear();
+  vi.mocked(window.scrollTo).mockRestore();
   await financialReportsClient.clearStore();
 });
 
@@ -347,6 +356,44 @@ const chipLabels = () =>
   );
 
 const urlStockCodes = () => screen.getByTestId('url-stock-codes').textContent;
+
+it('静的ページへ移ってブラウザの「戻る」で一覧に戻ると、離れたときのスクロール位置に戻す。リンクで一覧を開いたときは戻さない', async () => {
+  reply = (offset) => page(offset);
+  const scrollToPosition = vi.mocked(window.scrollTo);
+  const store = configureStore({
+    reducer: { autoPlayStatus: autoPlayStatusReducer },
+  });
+  render(
+    <Provider store={store}>
+      <MemoryRouter>
+        <Routes>
+          <Route path="/guide" element={<p>財務三表の読み方</p>} />
+          <Route path="*" element={<FinancialReportListPage />} />
+        </Routes>
+        <CaptureNavigate />
+      </MemoryRouter>
+    </Provider>,
+  );
+  await waitForCards(30);
+  // MemoryRouterの最初の履歴は、どのテストでも同じキーのため、前のテストで覚えた位置に戻すことがある。それは見ない
+  scrollToPosition.mockClear();
+  scrollTo(4000);
+  act(() => navigate('/guide'));
+  await screen.findByText('財務三表の読み方');
+  // 静的ページは先頭から表示する（StaticPageLayout）
+  scrollTo(0);
+
+  act(() => navigate(-1));
+  await waitForCards(30);
+  expect(scrollToPosition).toHaveBeenCalledWith(0, 4000);
+
+  scrollToPosition.mockClear();
+  act(() => navigate('/guide'));
+  await screen.findByText('財務三表の読み方');
+  act(() => navigate('/'));
+  await waitForCards(30);
+  expect(scrollToPosition).not.toHaveBeenCalled();
+});
 
 describe('証券コードの検索', () => {
   beforeEach(() => {

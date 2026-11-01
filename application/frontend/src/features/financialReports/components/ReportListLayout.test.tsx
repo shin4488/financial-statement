@@ -42,6 +42,49 @@ function renderLayout() {
   return { store, checkbox };
 }
 
+describe('支援技術に伝える名前と見出し', () => {
+  it('情報ボタンを「カードの見方」という名前で伝える', () => {
+    renderLayout();
+    screen.getByRole('button', { name: 'カードの見方' });
+  });
+
+  it('情報のツールチップを開いても、情報ボタンの名前は「カードの見方」のままで、ツールチップの中身を説明として伝える', async () => {
+    renderLayout();
+    fireEvent.mouseOver(screen.getByRole('button', { name: 'カードの見方' }));
+    await screen.findByRole('tooltip');
+    screen.getByRole('button', {
+      name: 'カードの見方',
+      description:
+        /^カードはBS → PL → CF → フリーCF → ROE・ROAの順に切り替わります/,
+    });
+  });
+
+  it('キャッシュフローの選択欄を、「キャッシュフロー」と選んでいる値で伝え、開いた一覧も「キャッシュフロー」で伝える', () => {
+    renderLayout();
+    const select = screen.getByRole('button', {
+      name: 'キャッシュフロー 指定なし',
+    });
+    expect(select.getAttribute('aria-haspopup')).toBe('listbox');
+    fireEvent.mouseDown(select);
+    screen.getByRole('listbox', { name: 'キャッシュフロー' });
+  });
+
+  it('キャッシュフローのラベルを押しても、選択欄へフォーカスを移さない', () => {
+    renderLayout();
+    fireEvent.click(screen.getByText('キャッシュフロー'));
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it('一覧の領域（main）の先頭に、見出し（h1）「財務諸表の一覧」を置く', () => {
+    renderLayout();
+    const heading = screen.getByRole('heading', {
+      level: 1,
+      name: '財務諸表の一覧',
+    });
+    expect(screen.getByRole('main').firstElementChild).toBe(heading);
+  });
+});
+
 describe('自動切替のチェック', () => {
   it('切り替えた設定を保存する', () => {
     const { store, checkbox } = renderLayout();

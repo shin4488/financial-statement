@@ -283,7 +283,7 @@ export default function AppCarousel({
           slides.map((_, index) => (
             <IconButton
               key={index}
-              aria-label={`carousel indicator ${index + 1}`}
+              aria-label={`${index + 1}番目のグラフ`}
               aria-current={index === active ? 'true' : undefined}
               onClick={() => scrollToSlide(index)}
               sx={{
@@ -316,7 +316,7 @@ export default function AppCarousel({
             }}
           >
             <IconButton
-              aria-label={direction === 'next' ? 'Next' : 'Previous'}
+              aria-label={direction === 'next' ? '次のグラフ' : '前のグラフ'}
               onClick={() =>
                 scrollToSlide(direction === 'next' ? following : previous)
               }
