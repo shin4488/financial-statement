@@ -51,7 +51,7 @@ export default function AppCarousel({
   const pendingNeighbors = useRef<{
     draw: () => void;
     leaveQueue: () => void;
-  }>();
+  }>(undefined);
   // マウスを重ねる・フォーカスする・触れている間は自動切替を止める。
   // タップした後は止めない。スマホでは、タップの後にブラウザがマウスを重ねたときと同じイベントを出し、ボタンやグラフにはフォーカスも当たるため、
   // それで止めると、カードの外をタップするまで止まったままになる（自動切替は画面上部のチェックボックスで止められる）
@@ -68,7 +68,7 @@ export default function AppCarousel({
     y: number;
     scrollLeft: number;
   } | null>(null);
-  const settleTimer = useRef<number>();
+  const settleTimer = useRef<number>(undefined);
   const isAutoPlay = useSelector(
     (state: RootState) => state.autoPlayStatus.isAutoPlay,
   );

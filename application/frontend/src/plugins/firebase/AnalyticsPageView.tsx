@@ -4,7 +4,7 @@ import { analyticsPage, trackEvent } from './analytics';
 
 export default function AnalyticsPageView() {
   const { pathname } = useLocation();
-  const previous = useRef<string>();
+  const previous = useRef<string>(undefined);
   useEffect(() => {
     const page = analyticsPage(pathname);
     if (previous.current === page) {

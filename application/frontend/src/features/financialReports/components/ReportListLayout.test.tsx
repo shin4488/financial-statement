@@ -61,9 +61,9 @@ describe('支援技術に伝える名前と見出し', () => {
 
   it('キャッシュフローの選択欄を、「キャッシュフロー」と選んでいる値で伝え、開いた一覧も「キャッシュフロー」で伝える', () => {
     renderLayout();
-    const select = screen.getByRole('button', {
-      name: 'キャッシュフロー 指定なし',
-    });
+    // 選択欄はコンボボックスで、名前と選んでいる値を分けて伝える
+    const select = screen.getByRole('combobox', { name: 'キャッシュフロー' });
+    expect(select.textContent).toBe('指定なし');
     expect(select.getAttribute('aria-haspopup')).toBe('listbox');
     fireEvent.mouseDown(select);
     screen.getByRole('listbox', { name: 'キャッシュフロー' });
