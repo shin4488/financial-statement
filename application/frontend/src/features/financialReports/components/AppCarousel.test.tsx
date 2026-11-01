@@ -276,15 +276,47 @@ function renderedSlides() {
   return slideNames.filter((name) => screen.queryByText(name));
 }
 
-it('最初は表示中と隣のスライドだけを描く。表示が進むと、その隣は見えていないため順番を待って描く', () => {
+it('最初は表示中のスライドだけを描き、隣は見えていないため順番を待って描く。表示が進んだときも、その隣は順番を待って描く', () => {
   const scroller = renderCarousel();
+  expect(renderedSlides()).toEqual(['BS']);
+  act(() => {
+    vi.advanceTimersByTime(0);
+  });
   expect(renderedSlides()).toEqual(['BS', 'PL']);
   scrollTo(scroller, slideWidth);
   expect(renderedSlides()).toEqual(['BS', 'PL']);
   act(() => {
-    vi.advanceTimersByTime(0);
+    vi.advanceTimersByTime(20);
   });
   expect(renderedSlides()).toEqual(['BS', 'PL', 'CF']);
+});
+
+it('中身を描けない間は隣のスライドを描かず、描けるようになったら隣を順番を待って描く', () => {
+  const store = configureStore({
+    reducer: { autoPlayStatus: autoPlayStatusReducer },
+    preloadedState: { autoPlayStatus: { isAutoPlay: false } },
+  });
+  const carousel = (deferred: boolean) => (
+    <Provider store={store}>
+      <AppCarousel deferred={deferred}>
+        {slideNames.map((name) => (
+          <div key={name}>{name}</div>
+        ))}
+      </AppCarousel>
+    </Provider>
+  );
+  const { rerender } = render(carousel(true));
+  act(() => {
+    vi.advanceTimersByTime(20);
+  });
+  expect(renderedSlides()).toEqual(['BS']);
+
+  rerender(carousel(false));
+  expect(renderedSlides()).toEqual(['BS']);
+  act(() => {
+    vi.advanceTimersByTime(0);
+  });
+  expect(renderedSlides()).toEqual(['BS', 'PL']);
 });
 
 it('インジケータで離れたスライドへ移るときは、途中と移り先のスライドを順番を待たずに描く', () => {
