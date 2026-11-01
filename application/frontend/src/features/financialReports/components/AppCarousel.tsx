@@ -18,6 +18,8 @@ const scrollSettleDelay = 150;
 const edgeSwipeDistance = 50;
 // タップの後、この時間（ms）の内に当たったフォーカスは、タップによるものとみなす
 const tapFocusWindow = 1000;
+// スライドの中身にマウスをこの時間（ms）重ねたままにしたら、自動切替を止める
+const hoverPauseDelay = 3000;
 const chartTypes: ProductParams['chart_type'][] = [
   'bs',
   'pl',
@@ -52,7 +54,9 @@ export default function AppCarousel({
     draw: () => void;
     leaveQueue: () => void;
   }>(undefined);
-  // マウスを重ねる・フォーカスする・触れている間は自動切替を止める。
+  // スライドの中身（グラフや指標）にマウスを重ねたまま一定の時間がたってから離すまでの間と、フォーカスしている間、触れている間は自動切替を止める。
+  // スライドの余白や切替のボタンに重ねているだけでは止めない。一覧ではマウスがほぼ常にいずれかのカードの上にあるため、カルーセル全体で止めると、そのカードが切り替わらなくなる。
+  // 重ねてすぐには止めず、ページをスクロールする途中でマウスがグラフの上を通っただけのカードは切り替わり続けるようにする。
   // タップした後は止めない。スマホでは、タップの後にブラウザがマウスを重ねたときと同じイベントを出し、ボタンやグラフにはフォーカスも当たるため、
   // それで止めると、カードの外をタップするまで止まったままになる（自動切替は画面上部のチェックボックスで止められる）
   const [pausedBy, setPausedBy] = useState({
@@ -69,6 +73,8 @@ export default function AppCarousel({
     scrollLeft: number;
   } | null>(null);
   const settleTimer = useRef<number>(undefined);
+  const hoveringContent = useRef(false);
+  const hoverTimer = useRef<number>(undefined);
   const isAutoPlay = useSelector(
     (state: RootState) => state.autoPlayStatus.isAutoPlay,
   );
@@ -77,6 +83,23 @@ export default function AppCarousel({
     setPausedBy((current) =>
       current[reason] === paused ? current : { ...current, [reason]: paused },
     );
+
+  // 中身の上でマウスを動かしても、時間は最初に重ねたときから数える
+  const hoverContent = (hovering: boolean) => {
+    if (hovering === hoveringContent.current) {
+      return;
+    }
+    hoveringContent.current = hovering;
+    window.clearTimeout(hoverTimer.current);
+    if (hovering) {
+      hoverTimer.current = window.setTimeout(
+        () => pause('hover', true),
+        hoverPauseDelay,
+      );
+    } else {
+      pause('hover', false);
+    }
+  };
 
   const addRendered = (from: number, to: number) => {
     const start = Math.max(0, from);
@@ -201,6 +224,7 @@ export default function AppCarousel({
   useEffect(
     () => () => {
       window.clearTimeout(settleTimer.current);
+      window.clearTimeout(hoverTimer.current);
       pendingNeighbors.current?.leaveQueue();
     },
     [],
@@ -209,17 +233,10 @@ export default function AppCarousel({
   return (
     <Box
       position="relative"
-      // マウスを重ねたことは、タッチではない操作のポインタで判断する。タップの後にブラウザが出すマウスのイベントでは止めない
+      // マウスを重ねたことは、タッチではない操作のポインタで判断する。タップの後にブラウザが出すマウスのイベントは除く
       onPointerEnter={(event) => {
-        if (event.pointerType === 'touch') {
-          return;
-        }
-        pause('hover', true);
-        drawNeighborsNow();
-      }}
-      onPointerLeave={(event) => {
         if (event.pointerType !== 'touch') {
-          pause('hover', false);
+          drawNeighborsNow();
         }
       }}
       onFocus={(event) => {
@@ -277,6 +294,17 @@ export default function AppCarousel({
             minWidth={0}
             // 勢いよくスワイプしても1枚ずつ進める
             sx={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
+            // 中身の外の余白に移ったときは、このBox自身がイベントの対象になる
+            onPointerOver={(event) => {
+              if (event.pointerType !== 'touch') {
+                hoverContent(event.target !== event.currentTarget);
+              }
+            }}
+            onPointerLeave={(event) => {
+              if (event.pointerType !== 'touch') {
+                hoverContent(false);
+              }
+            }}
           >
             {rendered.has(index) && slide}
           </Box>
