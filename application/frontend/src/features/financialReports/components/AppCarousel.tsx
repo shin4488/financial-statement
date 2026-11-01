@@ -30,8 +30,11 @@ const chartTypes: ProductParams['chart_type'][] = [
 // 縦の操作はページのスクロール、タップはグラフの金額表示としてブラウザがそのまま扱う
 export default function AppCarousel({
   children,
+  deferred = false,
 }: {
   children: React.ReactNode;
+  // trueの間は、切替のボタン（インジケータと前後のボタン）を置かず、その段の高さだけを残す。見えないカードのボタンを作る処理を、呼び出し元が後回しにするために使う
+  deferred?: boolean;
 }) {
   const slides = React.Children.toArray(children);
   const last = Math.max(0, slides.length - 1);
@@ -257,62 +260,64 @@ export default function AppCarousel({
         alignItems="center"
         justifyContent="center"
       >
-        {slides.map((_, index) => (
-          <IconButton
-            key={index}
-            aria-label={`carousel indicator ${index + 1}`}
-            aria-current={index === active ? 'true' : undefined}
-            onClick={() => scrollToSlide(index)}
+        {!deferred &&
+          slides.map((_, index) => (
+            <IconButton
+              key={index}
+              aria-label={`carousel indicator ${index + 1}`}
+              aria-current={index === active ? 'true' : undefined}
+              onClick={() => scrollToSlide(index)}
+              sx={{
+                p: 0,
+                transition: '200ms',
+                color: index === active ? '#494949' : '#afafaf',
+                '&:hover, &:active': {
+                  color: index === active ? '#494949' : '#1f1f1f',
+                },
+              }}
+            >
+              <FiberManualRecordIcon sx={{ fontSize: 15 }} />
+            </IconButton>
+          ))}
+      </Box>
+      {!deferred &&
+        (['prev', 'next'] as const).map((direction) => (
+          <Box
+            key={direction}
+            position="absolute"
+            bottom={0}
+            height={navRowHeight}
+            zIndex={1}
+            {...(direction === 'next' ? { right: 0 } : { left: 0 })}
             sx={{
-              p: 0,
-              transition: '200ms',
-              color: index === active ? '#494949' : '#afafaf',
-              '&:hover, &:active': {
-                color: index === active ? '#494949' : '#1f1f1f',
+              '&:hover button': {
+                backgroundColor: 'black',
+                filter: 'brightness(120%)',
               },
             }}
           >
-            <FiberManualRecordIcon sx={{ fontSize: 15 }} />
-          </IconButton>
+            <IconButton
+              aria-label={direction === 'next' ? 'Next' : 'Previous'}
+              onClick={() =>
+                scrollToSlide(direction === 'next' ? following : previous)
+              }
+              sx={{
+                mx: '10px',
+                backgroundColor: '#494949',
+                color: 'white',
+                opacity: 0.2,
+                transition: '200ms',
+                '&:hover': { opacity: 0.6 },
+              }}
+            >
+              {direction === 'next' ? (
+                <NavigateNextIcon />
+              ) : (
+                <NavigateBeforeIcon />
+              )}
+            </IconButton>
+          </Box>
         ))}
-      </Box>
-      {(['prev', 'next'] as const).map((direction) => (
-        <Box
-          key={direction}
-          position="absolute"
-          bottom={0}
-          height={navRowHeight}
-          zIndex={1}
-          {...(direction === 'next' ? { right: 0 } : { left: 0 })}
-          sx={{
-            '&:hover button': {
-              backgroundColor: 'black',
-              filter: 'brightness(120%)',
-            },
-          }}
-        >
-          <IconButton
-            aria-label={direction === 'next' ? 'Next' : 'Previous'}
-            onClick={() =>
-              scrollToSlide(direction === 'next' ? following : previous)
-            }
-            sx={{
-              mx: '10px',
-              backgroundColor: '#494949',
-              color: 'white',
-              opacity: 0.2,
-              transition: '200ms',
-              '&:hover': { opacity: 0.6 },
-            }}
-          >
-            {direction === 'next' ? (
-              <NavigateNextIcon />
-            ) : (
-              <NavigateBeforeIcon />
-            )}
-          </IconButton>
-        </Box>
-      ))}
     </Box>
   );
 }
