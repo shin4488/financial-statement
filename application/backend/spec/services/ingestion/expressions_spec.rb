@@ -40,13 +40,14 @@ RSpec.describe Ingestion::Expressions do
         described_class.sum("jppfs_cor:A", "jppfs_cor:B", distinct_amounts: true),
         described_class.sum("jppfs_cor:A", "jppfs_cor:D", all_present: true),
         described_class.max("jppfs_cor:C", described_class.sum("jppfs_cor:A", "jppfs_cor:C")),
+        described_class.difference("jppfs_cor:A", "jppfs_cor:C"),
         described_class.filer_ext(/SummaryOfBusinessResults\z/),
         described_class.wrap([ "jppfs_cor:D", "jppfs_cor:C" ]),
         described_class.wrap([ "jppfs_cor:D", "jppfs_cor:E" ])
       ]
       expect(expressions.map { |expression| expression.amount(source, **duration) })
-        .to eq [ 500, nil, 570, 9, 70, nil ]
-      expect(expressions.map { |expression| expression.evaluate(source, **duration)&.amount }).to eq [ 500, nil, 570, 9, 70, nil ]
+        .to eq [ 500, nil, 570, 430, 9, 70, nil ]
+      expect(expressions.map { |expression| expression.evaluate(source, **duration)&.amount }).to eq [ 500, nil, 570, 430, 9, 70, nil ]
     end
   end
 
@@ -72,6 +73,33 @@ RSpec.describe Ingestion::Expressions do
     decimals = { [ "jppfs_cor:A", context ] => "0", [ "jppfs_cor:B", context ] => "-1", [ "jppfs_cor:C", context ] => "-1" }
     max = described_class.max("jppfs_cor:A", described_class.sum("jppfs_cor:B", "jppfs_cor:C"))
     expect(max.evaluate(source_with(facts, decimals: decimals), **duration)).to eq described_class::Measured.new(100, 1.to_d)
+  end
+
+  describe "差" do
+    let(:difference) { described_class.difference("jppfs_cor:Total", "jppfs_cor:Part") }
+
+    def facts(total, part) = { [ "jppfs_cor:Total", context ] => total, [ "jppfs_cor:Part", context ] => part }.compact
+
+    it "合計から内訳を引き、端数の上限は2つのタグの端数を足す" do
+      decimals = { [ "jppfs_cor:Total", context ] => "0", [ "jppfs_cor:Part", context ] => "-1" }
+      expect(difference.evaluate(source_with(facts(100, 60), decimals: decimals), **duration)).to eq described_class::Measured.new(40, 11.to_d)
+    end
+
+    it "片方のタグがないか、差が0以下なら取らない" do
+      aggregate_failures do
+        [ [ 100, nil ], [ nil, 60 ], [ 100, 100 ], [ 60, 100 ] ].each do |total, part|
+          source = source_with(facts(total, part))
+          expect([ difference.amount(source, **duration), difference.evaluate(source, **duration) ]).to eq [ nil, nil ]
+        end
+      end
+    end
+
+    it "差が取れず、行はあるが値が空のタグがあるときだけ空とする" do
+      aggregate_failures do
+        expect(difference.blank?(source_with(facts(100, "")), **duration)).to be true
+        expect(difference.blank?(source_with(facts(100, 100)), **duration)).to be false
+      end
+    end
   end
 
   describe "比率" do

@@ -7,7 +7,7 @@ module Ingestion
 
       attr_reader :entries
 
-      # ブロックの中で item "科目コード", 取得の記法, replacements: [候補, …] と書く。sum・max・filer_ext も呼べる
+      # ブロックの中で item "科目コード", 取得の記法, replacements: [候補, …] と書く。sum・max・difference・filer_ext も呼べる
       def self.define(&) = new(Definition.new.tap { |definition| definition.instance_exec(&) }.entries)
 
       def initialize(entries)
@@ -29,6 +29,7 @@ module Ingestion
 
         def sum(*qnames, distinct_amounts: false, all_present: false) = Expressions.sum(*qnames, distinct_amounts:, all_present:)
         def max(*entries) = Expressions.max(*entries)
+        def difference(total, part) = Expressions.difference(total, part)
         def filer_ext(pattern) = Expressions.filer_ext(pattern)
       end
       private_constant :Definition

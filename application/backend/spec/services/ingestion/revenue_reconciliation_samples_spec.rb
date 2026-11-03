@@ -74,6 +74,15 @@ RSpec.describe "売上と経営指標の要約の照合（実XBRL）" do
     end
   end
 
+  it "アークランズ 2026年2月期: 営業収入の小計の行がなく内訳の行だけのため、営業収益から売上高を引いた営業収入で照合し、警告しない" do
+    items = ingest("S100Z7KT")
+    aggregate_failures do
+      expect(items.values_at("pl.revenue", "pl.non_sales_operating_revenue", "pl.summary_revenue"))
+        .to eq [ 357_076_000_000, 16_025_000_000, 341_051_000_000 ]
+      expect(warnings).to be_empty
+    end
+  end
+
   it "丸井グループ: 要約の売上収益（RevenueKeyFinancialData）と売上が一致するため警告しない" do
     items = ingest("S100YWE4")
     aggregate_failures do

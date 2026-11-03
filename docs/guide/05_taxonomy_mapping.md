@@ -199,7 +199,7 @@
 |---|---|---|
 | `pl.summary_revenue` | 一般 | 1. 最大値 `max(NetSales, OperatingRevenue1, OperatingRevenue2, GrossOperatingRevenue` の各 `…SummaryOfBusinessResults`、`RevenueKeyFinancialData)`（`jpcrp_cor`）<br>2. 企業拡張タグのうち、要素名が `…(Revenue\|Revenues\|Sales)SummaryOfBusinessResults` で終わるもの（事業収益・営業収益など） |
 | `pl.summary_revenue` | 分類・配列・サマリ | 1. `jpcrp_cor:RevenueIFRSSummaryOfBusinessResults`<br>2. 企業拡張タグのうち、要素名が `…(Revenue\|Revenues\|Sales)IFRSSummaryOfBusinessResults` で終わるもの |
-| `pl.non_sales_operating_revenue` | 一般 | `jppfs_cor:OperatingRevenue2`（営業収入） |
+| `pl.non_sales_operating_revenue` | 一般 | 1. `jppfs_cor:OperatingRevenue2`（営業収入）<br>2. 差 `OperatingRevenue1` − `NetSales`（営業収益から売上高を引いた残り。差が正のときだけ）。営業収入の小計の行がなく、賃貸収入などの内訳の行だけを並べる会社（アークランズ） |
 
 要約に売上高と営業総収入のように内訳と総額が並ぶ会社（ミニストップ単体）があるため、日本基準の標準タグは最も大きい値を採る。IFRS移行年度の要約には日本基準の売上高も並ぶ（クリエイト・レストランツHD）ため、IFRSではIFRSの要素だけを候補にする。企業拡張タグの要素名の形は末尾で判定し、1株当たりの値や比率（`…PerShare…` など）には当てない。
 

@@ -1,5 +1,5 @@
 module Ingestion
-  # 取得式。対応表の値を評価して、科目の金額を求める。単一タグ（Tag）を葉とし、ほかの取得式を子に持つ式（Fallback・Sum・Max）も
+  # 取得式。対応表の値を評価して、科目の金額を求める。単一タグ（Tag）を葉とし、ほかの取得式を子に持つ式（Fallback・Sum・Max・Difference）も
   # 同じメソッドを持つため、記法を足すときは同じメソッドを持つクラスを1つ足せば、ほかの式の中にも置ける。
   # 取得式どうしに共有する実装はないため、基底クラスを作らず、次のメソッドを揃える。
   #   evaluate(source, period:, consolidation:) … 金額と端数の上限の組（Measured）。取れなければ nil
@@ -21,6 +21,7 @@ module Ingestion
     # 対応表の記法。意味は各クラスにある
     def self.sum(*qnames, distinct_amounts: false, all_present: false) = Sum.new(qnames.map { |qname| Tag.new(qname) }, distinct_amounts, all_present)
     def self.max(*entries) = Max.new(entries.map { |entry| wrap(entry) })
+    def self.difference(total, part) = Difference.new(Tag.new(total), Tag.new(part))
     def self.filer_ext(pattern) = FilerExtension.new(pattern)
     def self.ratio(qname) = Ratio.new(qname)
 
