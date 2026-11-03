@@ -100,8 +100,12 @@ Ingestion::Mappings::JgaapGeneral = Ingestion::Mappings::Mapping.define(
     filer_ext(/(Revenue|Revenues|Sales)SummaryOfBusinessResults\z/)   # 事業収益など。1株当たりの値や比率は要素名の末尾が違うため当たらない
   ]
   # 営業収入（営業収益のうち売上高以外）。売上を営業収益とした会社には、要約に売上高だけを載せる会社がある。
-  # 売上から営業収入を除いた額が要約の売上高と合うかで、売上を照合する
-  item "pl.non_sales_operating_revenue", "jppfs_cor:OperatingRevenue2"
+  # 売上から営業収入を除いた額が要約の売上高と合うかで、売上を照合する。
+  # 営業収入の小計の行がなく、賃貸収入などの内訳の行だけを並べる会社は、営業収益から売上高を引いた残りを営業収入とする
+  item "pl.non_sales_operating_revenue", [
+    "jppfs_cor:OperatingRevenue2",
+    difference("jppfs_cor:OperatingRevenue1", "jppfs_cor:NetSales")
+  ]
   # 売上原価。OperatingCost（営業原価）を先頭に置く理由: OperatingRevenue1とペアの原価であり、
   # 営業収益型ではCostOfSales（売上原価）も併記されるが、そちらは売上高側の原価のため。
   # CostOfProductsManufactured（当期製品製造原価）を末尾に置く理由: 売上原価の代わりに

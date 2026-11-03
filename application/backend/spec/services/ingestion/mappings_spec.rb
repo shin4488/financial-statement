@@ -13,6 +13,7 @@ RSpec.describe Ingestion::Mappings do
     when expressions::Tag, expressions::Ratio then [ expression.qname ]
     when expressions::Fallback, expressions::Max then expression.entries.flat_map { |entry| qnames_of(entry) }
     when expressions::Sum then expression.tags.flat_map { |tag| qnames_of(tag) }
+    when expressions::Difference then [ expression.total, expression.part ].flat_map { |tag| qnames_of(tag) }
     # 企業拡張タグを要素名の形で探す。接頭辞は filer_ext に決まっている
     when expressions::FilerExtension then []
     when expressions::JgaapOwnersEquity
